@@ -1,0 +1,20 @@
+name: couple_cards
+description: Fondations du domaine et du catalogue, phases 0 et 1.
+publish_to: none
+version: 0.1.0+1
+environment:
+  sdk: '>=3.11.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  test: ^1.29.0
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/catalog/source/cards.v2.fr.json
+    - assets/catalog/source/profile_elements.v1.fr.json
+    - assets/catalog/source/tags.v1.json

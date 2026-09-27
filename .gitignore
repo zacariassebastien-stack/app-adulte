@@ -1,0 +1,10 @@
+.tooling/
+.dart_tool/
+.build/
+build/
+coverage/
+.flutter-plugins-dependencies
+.idea/
+*.iml
+*.log
+.DS_Store

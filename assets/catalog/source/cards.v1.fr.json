@@ -1,0 +1,5123 @@
+{
+  "schema_version": 1,
+  "catalog_version": 1,
+  "locale": "fr-FR",
+  "cards": [
+    {
+      "stable_id": "card.hug",
+      "order": 1,
+      "content_version": 1,
+      "title": "Câlin",
+      "title_key": "cards.hug.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "affection.hug",
+        "contact.body"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.affection.hug",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.contact.body",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.hug.base",
+          "title": "Câlin",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.hug.guided",
+          "title": "Câlin — variante guidée",
+          "chili_level": 2,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.kiss_me",
+      "order": 2,
+      "content_version": 1,
+      "title": "Embrasse-moi",
+      "title_key": "cards.kiss_me.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "kiss.general"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.kiss.general",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.kiss_me.base",
+          "title": "Embrasse-moi",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.deep_kiss",
+      "order": 3,
+      "content_version": 1,
+      "title": "Baiser langoureux",
+      "title_key": "cards.deep_kiss.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "kiss.prolonged",
+        "kiss.tongue"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.kiss.prolonged",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.kiss.tongue",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.deep_kiss.base",
+          "title": "Baiser langoureux",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.neck_kisses",
+      "order": 4,
+      "content_version": 1,
+      "title": "Bisous dans le cou",
+      "title_key": "cards.neck_kisses.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "kiss.zone.neck"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.kiss.zone.neck",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.neck_kisses.base",
+          "title": "Bisous dans le cou",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.caress",
+      "order": 5,
+      "content_version": 1,
+      "title": "Caresse",
+      "title_key": "cards.caress.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "touch.caress"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.touch.caress",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.caress.base",
+          "title": "Caresse",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.caress.guided",
+          "title": "Caresse — variante guidée",
+          "chili_level": 2,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.sensual_caress",
+      "order": 6,
+      "content_version": 1,
+      "title": "Caresse sensuelle",
+      "title_key": "cards.sensual_caress.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "touch.caress.sensual"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.touch.caress.sensual",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.sensual_caress.base",
+          "title": "Caresse sensuelle",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.intimate_caress",
+      "order": 7,
+      "content_version": 1,
+      "title": "Caresse intime",
+      "title_key": "cards.intimate_caress.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "touch.caress.intimate"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.touch.caress.intimate",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.intimate_caress.base",
+          "title": "Caresse intime",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.massage",
+      "order": 8,
+      "content_version": 1,
+      "title": "Massage",
+      "title_key": "cards.massage.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "massage.general"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.massage.general",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.massage.base",
+          "title": "Massage",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.massage.guided",
+          "title": "Massage — variante guidée",
+          "chili_level": 2,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.sensual_massage",
+      "order": 9,
+      "content_version": 1,
+      "title": "Massage sensuel",
+      "title_key": "cards.sensual_massage.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "massage.sensual"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.massage.sensual",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.sensual_massage.base",
+          "title": "Massage sensuel",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.intimate_massage",
+      "order": 10,
+      "content_version": 1,
+      "title": "Massage intime",
+      "title_key": "cards.intimate_massage.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "massage.intimate"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.massage.intimate",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.intimate_massage.base",
+          "title": "Massage intime",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.undressing",
+      "order": 11,
+      "content_version": 1,
+      "title": "Effeuillage",
+      "title_key": "cards.undressing.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "clothing.undressing"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.undressing",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.undressing.base",
+          "title": "Effeuillage",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.undressing.guided",
+          "title": "Effeuillage — variante guidée",
+          "chili_level": 2,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.remove_one_clothing",
+      "order": 12,
+      "content_version": 1,
+      "title": "Enlève un vêtement",
+      "title_key": "cards.remove_one_clothing.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "clothing.remove"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.remove",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.remove_one_clothing.base",
+          "title": "Enlève un vêtement",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            },
+            {
+              "type": "CLOTHES_AT_LEAST",
+              "target": "PARTNER",
+              "value": 1
+            }
+          ],
+          "state_effects": [
+            {
+              "type": "CLOTHES_DELTA",
+              "target": "PARTNER",
+              "delta": -1
+            }
+          ],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.remove_two_clothing",
+      "order": 13,
+      "content_version": 1,
+      "title": "Enlève deux vêtements",
+      "title_key": "cards.remove_two_clothing.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "clothing.remove"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.remove",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.remove_two_clothing.base",
+          "title": "Enlève deux vêtements",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            },
+            {
+              "type": "CLOTHES_AT_LEAST",
+              "target": "PARTNER",
+              "value": 2
+            }
+          ],
+          "state_effects": [
+            {
+              "type": "CLOTHES_DELTA",
+              "target": "PARTNER",
+              "delta": -2
+            }
+          ],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.undress_me",
+      "order": 14,
+      "content_version": 1,
+      "title": "Déshabille-moi",
+      "title_key": "cards.undress_me.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "clothing.partner_remove"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.partner_remove",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.undress_me.base",
+          "title": "Déshabille-moi",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.undress_partner",
+      "order": 15,
+      "content_version": 1,
+      "title": "Déshabille ton partenaire",
+      "title_key": "cards.undress_partner.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "clothing.partner_remove"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.partner_remove",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.undress_partner.base",
+          "title": "Déshabille ton partenaire",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.underwear_only",
+      "order": 16,
+      "content_version": 1,
+      "title": "Reste en sous-vêtements",
+      "title_key": "cards.underwear_only.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "clothing.underwear"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.underwear",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.underwear_only.base",
+          "title": "Reste en sous-vêtements",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.nudity",
+      "order": 17,
+      "content_version": 1,
+      "title": "Mets-toi nu(e)",
+      "title_key": "cards.nudity.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "clothing.nudity"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.nudity",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.nudity.base",
+          "title": "Mets-toi nu(e)",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.striptease",
+      "order": 18,
+      "content_version": 1,
+      "title": "Strip-tease",
+      "title_key": "cards.striptease.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "clothing.striptease",
+        "staging.performance"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.striptease",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.staging.performance",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.striptease.base",
+          "title": "Strip-tease",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.full_striptease",
+      "order": 19,
+      "content_version": 1,
+      "title": "Strip-tease intégral",
+      "title_key": "cards.full_striptease.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "clothing.striptease",
+        "clothing.nudity"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.striptease",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.clothing.nudity",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.full_striptease.base",
+          "title": "Strip-tease intégral",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.choose_outfit",
+      "order": 20,
+      "content_version": 1,
+      "title": "Choisis ma tenue",
+      "title_key": "cards.choose_outfit.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "clothing.outfit_choice"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.outfit_choice",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.choose_outfit.base",
+          "title": "Choisis ma tenue",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.lap_sit",
+      "order": 21,
+      "content_version": 1,
+      "title": "Assieds-toi sur mes genoux",
+      "title_key": "cards.lap_sit.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "contact.body",
+        "staging.position"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.contact.body",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.staging.position",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.lap_sit.base",
+          "title": "Assieds-toi sur mes genoux",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.body_to_body",
+      "order": 22,
+      "content_version": 1,
+      "title": "Corps contre corps",
+      "title_key": "cards.body_to_body.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "contact.body"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.contact.body",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.body_to_body.base",
+          "title": "Corps contre corps",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.clothed_rubbing",
+      "order": 23,
+      "content_version": 1,
+      "title": "Frottements habillés",
+      "title_key": "cards.clothed_rubbing.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "contact.rubbing",
+        "clothing.clothed"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.contact.rubbing",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.clothing.clothed",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.clothed_rubbing.base",
+          "title": "Frottements habillés",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.imposed_position",
+      "order": 24,
+      "content_version": 1,
+      "title": "Position imposée",
+      "title_key": "cards.imposed_position.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "control.position"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.control.position",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.imposed_position.base",
+          "title": "Position imposée",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.copy_position",
+      "order": 25,
+      "content_version": 1,
+      "title": "Copie ma position",
+      "title_key": "cards.copy_position.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "staging.position"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.staging.position",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.copy_position.base",
+          "title": "Copie ma position",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.simulate_act",
+      "order": 26,
+      "content_version": 1,
+      "title": "Simule un acte sexuel",
+      "title_key": "cards.simulate_act.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "simulation.intimate"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.simulation.intimate",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.simulate_act.base",
+          "title": "Simule un acte sexuel",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.simulate_act.guided",
+          "title": "Simule un acte sexuel — variante guidée",
+          "chili_level": 3,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.simulate_penetration",
+      "order": 27,
+      "content_version": 1,
+      "title": "Simule une pénétration",
+      "title_key": "cards.simulate_penetration.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "simulation.penetration"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.simulation.penetration",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.simulate_penetration.base",
+          "title": "Simule une pénétration",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.simulate_oral",
+      "order": 28,
+      "content_version": 1,
+      "title": "Simule un acte oral",
+      "title_key": "cards.simulate_oral.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "simulation.oral"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.simulation.oral",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.simulate_oral.base",
+          "title": "Simule un acte oral",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.simulate_69",
+      "order": 29,
+      "content_version": 1,
+      "title": "Simule un 69",
+      "title_key": "cards.simulate_69.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "simulation.69"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.simulation.69",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.simulate_69.base",
+          "title": "Simule un 69",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.simulate_facesitting",
+      "order": 30,
+      "content_version": 1,
+      "title": "Simule un facesitting",
+      "title_key": "cards.simulate_facesitting.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "simulation.facesitting"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.simulation.facesitting",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.simulate_facesitting.base",
+          "title": "Simule un facesitting",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.masturbation",
+      "order": 31,
+      "content_version": 1,
+      "title": "Masturbation",
+      "title_key": "cards.masturbation.title",
+      "precision": "OPEN",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.masturbation"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.masturbation",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.masturbation.base",
+          "title": "Masturbation",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.masturbation.guided",
+          "title": "Masturbation — variante guidée",
+          "chili_level": 4,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.masturbate_self_visible",
+      "order": 32,
+      "content_version": 1,
+      "title": "Masturbe-toi devant moi",
+      "title_key": "cards.masturbate_self_visible.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.masturbation.self",
+        "observation.be_watched"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.masturbation.self",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.observation.be_watched",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.masturbate_self_visible.base",
+          "title": "Masturbe-toi devant moi",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.masturbate_partner",
+      "order": 33,
+      "content_version": 1,
+      "title": "Masturbe ton partenaire",
+      "title_key": "cards.masturbate_partner.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.masturbation.partner"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.masturbation.partner",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.masturbate_partner.base",
+          "title": "Masturbe ton partenaire",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.mutual_masturbation",
+      "order": 34,
+      "content_version": 1,
+      "title": "Masturbation mutuelle",
+      "title_key": "cards.mutual_masturbation.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.masturbation.mutual"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.masturbation.mutual",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.mutual_masturbation.base",
+          "title": "Masturbation mutuelle",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.manual_intimate",
+      "order": 35,
+      "content_version": 1,
+      "title": "Jeu manuel intime",
+      "title_key": "cards.manual_intimate.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.manual"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.manual",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.manual_intimate.base",
+          "title": "Jeu manuel intime",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.oral_give",
+      "order": 36,
+      "content_version": 1,
+      "title": "Sexe oral",
+      "title_key": "cards.oral_give.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.oral.give"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.oral.give",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.oral_give.base",
+          "title": "Sexe oral",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.oral_receive",
+      "order": 37,
+      "content_version": 1,
+      "title": "Reçois du sexe oral",
+      "title_key": "cards.oral_receive.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.oral.receive"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.oral.receive",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.oral_receive.base",
+          "title": "Reçois du sexe oral",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.sixty_nine",
+      "order": 38,
+      "content_version": 1,
+      "title": "69",
+      "title_key": "cards.sixty_nine.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.oral.mutual"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.oral.mutual",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.sixty_nine.base",
+          "title": "69",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.vaginal_penetration",
+      "order": 39,
+      "content_version": 1,
+      "title": "Pénétration vaginale",
+      "title_key": "cards.vaginal_penetration.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.penetration.vaginal"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.penetration.vaginal",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.vaginal_penetration.base",
+          "title": "Pénétration vaginale",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.choose_sex_position",
+      "order": 40,
+      "content_version": 1,
+      "title": "Choisis une position sexuelle",
+      "title_key": "cards.choose_sex_position.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.position_choice"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.position_choice",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.choose_sex_position.base",
+          "title": "Choisis une position sexuelle",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.anal_play",
+      "order": 41,
+      "content_version": 1,
+      "title": "Jeu anal",
+      "title_key": "cards.anal_play.title",
+      "precision": "OPEN",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.anal.general"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.anal.general",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.anal_play.base",
+          "title": "Jeu anal",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.anal_play.guided",
+          "title": "Jeu anal — variante guidée",
+          "chili_level": 5,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.anal_caress",
+      "order": 42,
+      "content_version": 1,
+      "title": "Caresse anale",
+      "title_key": "cards.anal_caress.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.anal.external"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.anal.external",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.anal_caress.base",
+          "title": "Caresse anale",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.anal_manual",
+      "order": 43,
+      "content_version": 1,
+      "title": "Stimulation anale manuelle",
+      "title_key": "cards.anal_manual.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.anal.manual"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.anal.manual",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.anal_manual.base",
+          "title": "Stimulation anale manuelle",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.anal_penetration",
+      "order": 44,
+      "content_version": 1,
+      "title": "Pénétration anale",
+      "title_key": "cards.anal_penetration.title",
+      "precision": "PRECISE",
+      "frequency": "RARE",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.anal.penetration"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.anal.penetration",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.anal_penetration.base",
+          "title": "Pénétration anale",
+          "chili_level": 5,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.anal_oral",
+      "order": 45,
+      "content_version": 1,
+      "title": "Sexe oral anal",
+      "title_key": "cards.anal_oral.title",
+      "precision": "PRECISE",
+      "frequency": "RARE",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.anal.oral"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.anal.oral",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.anal_oral.base",
+          "title": "Sexe oral anal",
+          "chili_level": 5,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.facesitting",
+      "order": 46,
+      "content_version": 1,
+      "title": "Facesitting",
+      "title_key": "cards.facesitting.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.facesitting"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.facesitting",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.facesitting.base",
+          "title": "Facesitting",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.genital_rubbing",
+      "order": 47,
+      "content_version": 1,
+      "title": "Frottement génital",
+      "title_key": "cards.genital_rubbing.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.genital_rubbing"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.genital_rubbing",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.genital_rubbing.base",
+          "title": "Frottement génital",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.chest_play",
+      "order": 48,
+      "content_version": 1,
+      "title": "Jeu avec les seins / torse",
+      "title_key": "cards.chest_play.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "body.chest_play"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.body.chest_play",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.chest_play.base",
+          "title": "Jeu avec les seins / torse",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.nipple_stimulation",
+      "order": 49,
+      "content_version": 1,
+      "title": "Stimulation des tétons",
+      "title_key": "cards.nipple_stimulation.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "body.nipple_stimulation"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.body.nipple_stimulation",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.nipple_stimulation.base",
+          "title": "Stimulation des tétons",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.feet_play",
+      "order": 50,
+      "content_version": 1,
+      "title": "Jeu avec les pieds",
+      "title_key": "cards.feet_play.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "body.feet_play"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.body.feet_play",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.feet_play.base",
+          "title": "Jeu avec les pieds",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.dominate_me",
+      "order": 51,
+      "content_version": 1,
+      "title": "Domine-moi",
+      "title_key": "cards.dominate_me.title",
+      "precision": "OPEN",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "power.domination.receive"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.domination.receive",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.dominate_me.base",
+          "title": "Domine-moi",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.dominate_me.guided",
+          "title": "Domine-moi — variante guidée",
+          "chili_level": 4,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.submit",
+      "order": 52,
+      "content_version": 1,
+      "title": "Soumets-toi",
+      "title_key": "cards.submit.title",
+      "precision": "OPEN",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "power.submission"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.submission",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.submit.base",
+          "title": "Soumets-toi",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.submit.guided",
+          "title": "Soumets-toi — variante guidée",
+          "chili_level": 4,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.give_order",
+      "order": 53,
+      "content_version": 1,
+      "title": "Donne-moi un ordre",
+      "title_key": "cards.give_order.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "power.order.give"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.order.give",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.give_order.base",
+          "title": "Donne-moi un ordre",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.obey_order",
+      "order": 54,
+      "content_version": 1,
+      "title": "Obéis à mon ordre",
+      "title_key": "cards.obey_order.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "power.order.receive"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.order.receive",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.obey_order.base",
+          "title": "Obéis à mon ordre",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.i_decide",
+      "order": 55,
+      "content_version": 1,
+      "title": "Je décide",
+      "title_key": "cards.i_decide.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "power.decision.give"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.decision.give",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.i_decide.base",
+          "title": "Je décide",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.i_decide.guided",
+          "title": "Je décide — variante guidée",
+          "chili_level": 3,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.you_decide",
+      "order": 56,
+      "content_version": 1,
+      "title": "Tu décides",
+      "title_key": "cards.you_decide.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "power.decision.receive"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.decision.receive",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.you_decide.base",
+          "title": "Tu décides",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.you_decide.guided",
+          "title": "Tu décides — variante guidée",
+          "chili_level": 3,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.no_touch",
+      "order": 57,
+      "content_version": 1,
+      "title": "Interdiction de toucher",
+      "title_key": "cards.no_touch.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "control.no_touch"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.control.no_touch",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.no_touch.base",
+          "title": "Interdiction de toucher",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.watch_no_touch",
+      "order": 58,
+      "content_version": 1,
+      "title": "Regarde sans toucher",
+      "title_key": "cards.watch_no_touch.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "observation.watch",
+        "control.no_touch"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.observation.watch",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.control.no_touch",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.watch_no_touch.base",
+          "title": "Regarde sans toucher",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.hands_bound",
+      "order": 59,
+      "content_version": 1,
+      "title": "Mains attachées",
+      "title_key": "cards.hands_bound.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "restraint.hands"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.restraint.hands",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.hands_bound.base",
+          "title": "Mains attachées",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.tie_me",
+      "order": 60,
+      "content_version": 1,
+      "title": "Attache-moi",
+      "title_key": "cards.tie_me.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "restraint.general"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.restraint.general",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.tie_me.base",
+          "title": "Attache-moi",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.blindfold",
+      "order": 61,
+      "content_version": 1,
+      "title": "Bandeau sur les yeux",
+      "title_key": "cards.blindfold.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "sensory.blindfold"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.blindfold",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.blindfold.base",
+          "title": "Bandeau sur les yeux",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.close_eyes",
+      "order": 62,
+      "content_version": 1,
+      "title": "Ferme les yeux",
+      "title_key": "cards.close_eyes.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "sensory.eyes_closed"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.eyes_closed",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.close_eyes.base",
+          "title": "Ferme les yeux",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.guess_touch",
+      "order": 63,
+      "content_version": 1,
+      "title": "Devine au toucher",
+      "title_key": "cards.guess_touch.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "sensory.touch_guess"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.touch_guess",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.guess_touch.base",
+          "title": "Devine au toucher",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.temperature_play",
+      "order": 64,
+      "content_version": 1,
+      "title": "Jeu de température",
+      "title_key": "cards.temperature_play.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "sensory.temperature"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.temperature",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.temperature_play.base",
+          "title": "Jeu de température",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.temperature_play.guided",
+          "title": "Jeu de température — variante guidée",
+          "chili_level": 3,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.sensory_play",
+      "order": 65,
+      "content_version": 1,
+      "title": "Jeu sensoriel",
+      "title_key": "cards.sensory_play.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "sensory.general"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.general",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.sensory_play.base",
+          "title": "Jeu sensoriel",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.sensory_play.guided",
+          "title": "Jeu sensoriel — variante guidée",
+          "chili_level": 3,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.spanking",
+      "order": 66,
+      "content_version": 1,
+      "title": "Fessée",
+      "title_key": "cards.spanking.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "impact.spanking"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.impact.spanking",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.spanking.base",
+          "title": "Fessée",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.bite",
+      "order": 67,
+      "content_version": 1,
+      "title": "Morsure",
+      "title_key": "cards.bite.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "sensory.bite"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.bite",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.bite.base",
+          "title": "Morsure",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.scratches",
+      "order": 68,
+      "content_version": 1,
+      "title": "Griffures",
+      "title_key": "cards.scratches.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "sensory.scratch"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.scratch",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.scratches.base",
+          "title": "Griffures",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.immobilize",
+      "order": 69,
+      "content_version": 1,
+      "title": "Immobilise-moi",
+      "title_key": "cards.immobilize.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "restraint.immobilize"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.restraint.immobilize",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.immobilize.base",
+          "title": "Immobilise-moi",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.make_wait",
+      "order": 70,
+      "content_version": 1,
+      "title": "Fais-moi attendre",
+      "title_key": "cards.make_wait.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "control.waiting"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.control.waiting",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.make_wait.base",
+          "title": "Fais-moi attendre",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.make_wait.guided",
+          "title": "Fais-moi attendre — variante guidée",
+          "chili_level": 3,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.look_at_me",
+      "order": 71,
+      "content_version": 1,
+      "title": "Regarde-moi",
+      "title_key": "cards.look_at_me.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "observation.watch"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.observation.watch",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.look_at_me.base",
+          "title": "Regarde-moi",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.look_at_me.guided",
+          "title": "Regarde-moi — variante guidée",
+          "chili_level": 2,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.let_me_watch",
+      "order": 72,
+      "content_version": 1,
+      "title": "Laisse-moi te regarder",
+      "title_key": "cards.let_me_watch.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "observation.be_watched"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.observation.be_watched",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.let_me_watch.base",
+          "title": "Laisse-moi te regarder",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.let_me_watch.guided",
+          "title": "Laisse-moi te regarder — variante guidée",
+          "chili_level": 2,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.private_exhibition",
+      "order": 73,
+      "content_version": 1,
+      "title": "Exhibition privée",
+      "title_key": "cards.private_exhibition.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "observation.exhibition_private"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.observation.exhibition_private",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.private_exhibition.base",
+          "title": "Exhibition privée",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.private_voyeur",
+      "order": 74,
+      "content_version": 1,
+      "title": "Voyeur privé",
+      "title_key": "cards.private_voyeur.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "observation.voyeur_private"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.observation.voyeur_private",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.private_voyeur.base",
+          "title": "Voyeur privé",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.dance_for_me",
+      "order": 75,
+      "content_version": 1,
+      "title": "Danse pour moi",
+      "title_key": "cards.dance_for_me.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "staging.dance"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.staging.dance",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.dance_for_me.base",
+          "title": "Danse pour moi",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.private_runway",
+      "order": 76,
+      "content_version": 1,
+      "title": "Défilé privé",
+      "title_key": "cards.private_runway.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "staging.runway"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.staging.runway",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.private_runway.base",
+          "title": "Défilé privé",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.pose",
+      "order": 77,
+      "content_version": 1,
+      "title": "Prends la pose",
+      "title_key": "cards.pose.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "staging.pose"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.staging.pose",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.pose.base",
+          "title": "Prends la pose",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.choose_pose",
+      "order": 78,
+      "content_version": 1,
+      "title": "Choisis ma pose",
+      "title_key": "cards.choose_pose.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "staging.pose_choice"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.staging.pose_choice",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.choose_pose.base",
+          "title": "Choisis ma pose",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.shower_together",
+      "order": 79,
+      "content_version": 1,
+      "title": "Douche à deux",
+      "title_key": "cards.shower_together.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "context.shower"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.context.shower",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.shower_together.base",
+          "title": "Douche à deux",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.bath_together",
+      "order": 80,
+      "content_version": 1,
+      "title": "Bain à deux",
+      "title_key": "cards.bath_together.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "context.bath"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.context.bath",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.bath_together.base",
+          "title": "Bain à deux",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.sexting",
+      "order": 81,
+      "content_version": 1,
+      "title": "Sexting",
+      "title_key": "cards.sexting.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "distance.sexting"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.distance.sexting",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.sexting.base",
+          "title": "Sexting",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.sexting.guided",
+          "title": "Sexting — variante guidée",
+          "chili_level": 3,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.flirty_message",
+      "order": 82,
+      "content_version": 1,
+      "title": "Message coquin",
+      "title_key": "cards.flirty_message.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "distance.message"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.distance.message",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.flirty_message.base",
+          "title": "Message coquin",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.suggestive_photo",
+      "order": 83,
+      "content_version": 1,
+      "title": "Photo suggestive",
+      "title_key": "cards.suggestive_photo.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "media.photo.send",
+        "media.photo.suggestive"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.photo.send",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.media.photo.suggestive",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.suggestive_photo.base",
+          "title": "Photo suggestive",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid",
+                "face_to_face"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.underwear_photo",
+      "order": 84,
+      "content_version": 1,
+      "title": "Photo en sous-vêtements",
+      "title_key": "cards.underwear_photo.title",
+      "precision": "PRECISE",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "media.photo.send",
+        "media.photo.underwear"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.photo.send",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.media.photo.underwear",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.underwear_photo.base",
+          "title": "Photo en sous-vêtements",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid",
+                "face_to_face"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.nude_photo",
+      "order": 85,
+      "content_version": 1,
+      "title": "Photo nue",
+      "title_key": "cards.nude_photo.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "media.photo.send",
+        "media.photo.nude"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.photo.send",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.media.photo.nude",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.nude_photo.base",
+          "title": "Photo nue",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid",
+                "face_to_face"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.choose_my_photo",
+      "order": 86,
+      "content_version": 1,
+      "title": "Choisis ma photo",
+      "title_key": "cards.choose_my_photo.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "media.photo.send",
+        "staging.pose_choice"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.photo.send",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.staging.pose_choice",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.choose_my_photo.base",
+          "title": "Choisis ma photo",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.intimate_video",
+      "order": 87,
+      "content_version": 1,
+      "title": "Vidéo intime",
+      "title_key": "cards.intimate_video.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "media.video.send"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.video.send",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.intimate_video.base",
+          "title": "Vidéo intime",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.private_video_call",
+      "order": 88,
+      "content_version": 1,
+      "title": "Visio privée",
+      "title_key": "cards.private_video_call.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "media.live.call"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.live.call",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.private_video_call.base",
+          "title": "Visio privée",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.private_video_call.guided",
+          "title": "Visio privée — variante guidée",
+          "chili_level": 3,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.nude_video_call",
+      "order": 89,
+      "content_version": 1,
+      "title": "Visio nue",
+      "title_key": "cards.nude_video_call.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "media.live.call",
+        "media.live.nude"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.live.call",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.media.live.nude",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.nude_video_call.base",
+          "title": "Visio nue",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.remote_instruction",
+      "order": 90,
+      "content_version": 1,
+      "title": "Donne-moi une consigne à distance",
+      "title_key": "cards.remote_instruction.title",
+      "precision": "GUIDED",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "distance.instruction.give"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.distance.instruction.give",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.remote_instruction.base",
+          "title": "Donne-moi une consigne à distance",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.rp_strangers",
+      "order": 91,
+      "content_version": 1,
+      "title": "Deux inconnus",
+      "title_key": "cards.rp_strangers.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "roleplay.strangers"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.strangers",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.rp_strangers.base",
+          "title": "Deux inconnus",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.rp_strangers.guided",
+          "title": "Deux inconnus — variante guidée",
+          "chili_level": 2,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.rp_photographer",
+      "order": 92,
+      "content_version": 1,
+      "title": "Photographe / Modèle",
+      "title_key": "cards.rp_photographer.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "roleplay.photographer_model"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.photographer_model",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.rp_photographer.base",
+          "title": "Photographe / Modèle",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.rp_photographer.guided",
+          "title": "Photographe / Modèle — variante guidée",
+          "chili_level": 3,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.rp_masseur",
+      "order": 93,
+      "content_version": 1,
+      "title": "Masseur / Client",
+      "title_key": "cards.rp_masseur.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "roleplay.masseur_client"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.masseur_client",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.rp_masseur.base",
+          "title": "Masseur / Client",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.rp_masseur.guided",
+          "title": "Masseur / Client — variante guidée",
+          "chili_level": 3,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.rp_master_servant",
+      "order": 94,
+      "content_version": 1,
+      "title": "Maître / Serviteur",
+      "title_key": "cards.rp_master_servant.title",
+      "precision": "OPEN",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "roleplay.master_servant"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.master_servant",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.rp_master_servant.base",
+          "title": "Maître / Serviteur",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.rp_master_servant.guided",
+          "title": "Maître / Serviteur — variante guidée",
+          "chili_level": 4,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.rp_royalty_servant",
+      "order": 95,
+      "content_version": 1,
+      "title": "Royauté / Serviteur",
+      "title_key": "cards.rp_royalty_servant.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "roleplay.royalty_servant"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.royalty_servant",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.rp_royalty_servant.base",
+          "title": "Royauté / Serviteur",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.rp_royalty_servant.guided",
+          "title": "Royauté / Serviteur — variante guidée",
+          "chili_level": 3,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.rp_celebrity_fan",
+      "order": 96,
+      "content_version": 1,
+      "title": "Célébrité / Fan",
+      "title_key": "cards.rp_celebrity_fan.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "roleplay.celebrity_fan"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.celebrity_fan",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.rp_celebrity_fan.base",
+          "title": "Célébrité / Fan",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.rp_celebrity_fan.guided",
+          "title": "Célébrité / Fan — variante guidée",
+          "chili_level": 3,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.rp_delivery",
+      "order": 97,
+      "content_version": 1,
+      "title": "Livraison inattendue",
+      "title_key": "cards.rp_delivery.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "roleplay.delivery"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.delivery",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.rp_delivery.base",
+          "title": "Livraison inattendue",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.rp_delivery.guided",
+          "title": "Livraison inattendue — variante guidée",
+          "chili_level": 3,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.rp_boss_employee",
+      "order": 98,
+      "content_version": 1,
+      "title": "Patron / Employé adulte",
+      "title_key": "cards.rp_boss_employee.title",
+      "precision": "OPEN",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "roleplay.boss_employee"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.boss_employee",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.rp_boss_employee.base",
+          "title": "Patron / Employé adulte",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.rp_boss_employee.guided",
+          "title": "Patron / Employé adulte — variante guidée",
+          "chili_level": 4,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.rp_medical",
+      "order": 99,
+      "content_version": 1,
+      "title": "Scénario médical adulte",
+      "title_key": "cards.rp_medical.title",
+      "precision": "OPEN",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "roleplay.medical"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.medical",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.rp_medical.base",
+          "title": "Scénario médical adulte",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.rp_medical.guided",
+          "title": "Scénario médical adulte — variante guidée",
+          "chili_level": 4,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    },
+    {
+      "stable_id": "card.rp_bar",
+      "order": 100,
+      "content_version": 1,
+      "title": "Rencontre au bar",
+      "title_key": "cards.rp_bar.title",
+      "precision": "OPEN",
+      "frequency": "COMMON",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "roleplay.bar_meeting"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.bar_meeting",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.rp_bar.base",
+          "title": "Rencontre au bar",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        },
+        {
+          "stable_id": "variant.rp_bar.guided",
+          "title": "Rencontre au bar — variante guidée",
+          "chili_level": 2,
+          "additional_tags": [
+            "variant.guided"
+          ],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": true
+        }
+      ],
+      "parameters": [],
+      "enabled": true
+    }
+  ]
+}

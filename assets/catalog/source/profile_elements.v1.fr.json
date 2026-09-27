@@ -1,0 +1,888 @@
+{
+  "schema_version": 1,
+  "profile_version": 1,
+  "elements": [
+    {
+      "stable_id": "profile.affection.hug",
+      "parent_id": "profile.affection",
+      "title": "affection › hug",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.body.chest_play",
+      "parent_id": "profile.body",
+      "title": "body › chest play",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.body.feet_play",
+      "parent_id": "profile.body",
+      "title": "body › feet play",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.body.nipple_stimulation",
+      "parent_id": "profile.body",
+      "title": "body › nipple stimulation",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.clothed",
+      "parent_id": "profile.clothing",
+      "title": "clothing › clothed",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.nudity",
+      "parent_id": "profile.clothing",
+      "title": "clothing › nudity",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.outfit_choice",
+      "parent_id": "profile.clothing",
+      "title": "clothing › outfit choice",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.partner_remove",
+      "parent_id": "profile.clothing",
+      "title": "clothing › partner remove",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.remove",
+      "parent_id": "profile.clothing",
+      "title": "clothing › remove",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.striptease",
+      "parent_id": "profile.clothing",
+      "title": "clothing › striptease",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.underwear",
+      "parent_id": "profile.clothing",
+      "title": "clothing › underwear",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.undressing",
+      "parent_id": "profile.clothing",
+      "title": "clothing › undressing",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.contact.body",
+      "parent_id": "profile.contact",
+      "title": "contact › body",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.contact.rubbing",
+      "parent_id": "profile.contact",
+      "title": "contact › rubbing",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.context.bath",
+      "parent_id": "profile.context",
+      "title": "context › bath",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.context.shower",
+      "parent_id": "profile.context",
+      "title": "context › shower",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.control.no_touch",
+      "parent_id": "profile.control",
+      "title": "control › no touch",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.control.position",
+      "parent_id": "profile.control",
+      "title": "control › position",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.control.waiting",
+      "parent_id": "profile.control",
+      "title": "control › waiting",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.distance.instruction.give",
+      "parent_id": "profile.distance.instruction",
+      "title": "distance › instruction › give",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.distance.message",
+      "parent_id": "profile.distance",
+      "title": "distance › message",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.distance.sexting",
+      "parent_id": "profile.distance",
+      "title": "distance › sexting",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.impact.spanking",
+      "parent_id": "profile.impact",
+      "title": "impact › spanking",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.anal.external",
+      "parent_id": "profile.intimate.anal",
+      "title": "intimate › anal › external",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.anal.general",
+      "parent_id": "profile.intimate.anal",
+      "title": "intimate › anal › general",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.anal.manual",
+      "parent_id": "profile.intimate.anal",
+      "title": "intimate › anal › manual",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.anal.oral",
+      "parent_id": "profile.intimate.anal",
+      "title": "intimate › anal › oral",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.anal.penetration",
+      "parent_id": "profile.intimate.anal",
+      "title": "intimate › anal › penetration",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.facesitting",
+      "parent_id": "profile.intimate",
+      "title": "intimate › facesitting",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.genital_rubbing",
+      "parent_id": "profile.intimate",
+      "title": "intimate › genital rubbing",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.manual",
+      "parent_id": "profile.intimate",
+      "title": "intimate › manual",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.masturbation",
+      "parent_id": "profile.intimate",
+      "title": "intimate › masturbation",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.masturbation.mutual",
+      "parent_id": "profile.intimate.masturbation",
+      "title": "intimate › masturbation › mutual",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.masturbation.partner",
+      "parent_id": "profile.intimate.masturbation",
+      "title": "intimate › masturbation › partner",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.masturbation.self",
+      "parent_id": "profile.intimate.masturbation",
+      "title": "intimate › masturbation › self",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.oral.give",
+      "parent_id": "profile.intimate.oral",
+      "title": "intimate › oral › give",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.oral.mutual",
+      "parent_id": "profile.intimate.oral",
+      "title": "intimate › oral › mutual",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.oral.receive",
+      "parent_id": "profile.intimate.oral",
+      "title": "intimate › oral › receive",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.penetration.vaginal",
+      "parent_id": "profile.intimate.penetration",
+      "title": "intimate › penetration › vaginal",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.position_choice",
+      "parent_id": "profile.intimate",
+      "title": "intimate › position choice",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.kiss.general",
+      "parent_id": "profile.kiss",
+      "title": "kiss › general",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.kiss.prolonged",
+      "parent_id": "profile.kiss",
+      "title": "kiss › prolonged",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.kiss.tongue",
+      "parent_id": "profile.kiss",
+      "title": "kiss › tongue",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.kiss.zone.neck",
+      "parent_id": "profile.kiss.zone",
+      "title": "kiss › zone › neck",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.massage.general",
+      "parent_id": "profile.massage",
+      "title": "massage › general",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.massage.intimate",
+      "parent_id": "profile.massage",
+      "title": "massage › intimate",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.massage.sensual",
+      "parent_id": "profile.massage",
+      "title": "massage › sensual",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.live.call",
+      "parent_id": "profile.media.live",
+      "title": "media › live › call",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.live.nude",
+      "parent_id": "profile.media.live",
+      "title": "media › live › nude",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.photo.nude",
+      "parent_id": "profile.media.photo",
+      "title": "media › photo › nude",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.photo.send",
+      "parent_id": "profile.media.photo",
+      "title": "media › photo › send",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.photo.suggestive",
+      "parent_id": "profile.media.photo",
+      "title": "media › photo › suggestive",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.photo.underwear",
+      "parent_id": "profile.media.photo",
+      "title": "media › photo › underwear",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.video.send",
+      "parent_id": "profile.media.video",
+      "title": "media › video › send",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.observation.be_watched",
+      "parent_id": "profile.observation",
+      "title": "observation › be watched",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.observation.exhibition_private",
+      "parent_id": "profile.observation",
+      "title": "observation › exhibition private",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.observation.voyeur_private",
+      "parent_id": "profile.observation",
+      "title": "observation › voyeur private",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.observation.watch",
+      "parent_id": "profile.observation",
+      "title": "observation › watch",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.decision.give",
+      "parent_id": "profile.power.decision",
+      "title": "power › decision › give",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.decision.receive",
+      "parent_id": "profile.power.decision",
+      "title": "power › decision › receive",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.domination.receive",
+      "parent_id": "profile.power.domination",
+      "title": "power › domination › receive",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.order.give",
+      "parent_id": "profile.power.order",
+      "title": "power › order › give",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.order.receive",
+      "parent_id": "profile.power.order",
+      "title": "power › order › receive",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.submission",
+      "parent_id": "profile.power",
+      "title": "power › submission",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.restraint.general",
+      "parent_id": "profile.restraint",
+      "title": "restraint › general",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.restraint.hands",
+      "parent_id": "profile.restraint",
+      "title": "restraint › hands",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.restraint.immobilize",
+      "parent_id": "profile.restraint",
+      "title": "restraint › immobilize",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.bar_meeting",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › bar meeting",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.boss_employee",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › boss employee",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.celebrity_fan",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › celebrity fan",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.delivery",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › delivery",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.masseur_client",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › masseur client",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.master_servant",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › master servant",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.medical",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › medical",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.photographer_model",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › photographer model",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.royalty_servant",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › royalty servant",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.strangers",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › strangers",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.bite",
+      "parent_id": "profile.sensory",
+      "title": "sensory › bite",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.blindfold",
+      "parent_id": "profile.sensory",
+      "title": "sensory › blindfold",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.eyes_closed",
+      "parent_id": "profile.sensory",
+      "title": "sensory › eyes closed",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.general",
+      "parent_id": "profile.sensory",
+      "title": "sensory › general",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.scratch",
+      "parent_id": "profile.sensory",
+      "title": "sensory › scratch",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.temperature",
+      "parent_id": "profile.sensory",
+      "title": "sensory › temperature",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.touch_guess",
+      "parent_id": "profile.sensory",
+      "title": "sensory › touch guess",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.simulation.69",
+      "parent_id": "profile.simulation",
+      "title": "simulation › 69",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.simulation.facesitting",
+      "parent_id": "profile.simulation",
+      "title": "simulation › facesitting",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.simulation.intimate",
+      "parent_id": "profile.simulation",
+      "title": "simulation › intimate",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.simulation.oral",
+      "parent_id": "profile.simulation",
+      "title": "simulation › oral",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.simulation.penetration",
+      "parent_id": "profile.simulation",
+      "title": "simulation › penetration",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.staging.dance",
+      "parent_id": "profile.staging",
+      "title": "staging › dance",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.staging.performance",
+      "parent_id": "profile.staging",
+      "title": "staging › performance",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.staging.pose",
+      "parent_id": "profile.staging",
+      "title": "staging › pose",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.staging.pose_choice",
+      "parent_id": "profile.staging",
+      "title": "staging › pose choice",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.staging.position",
+      "parent_id": "profile.staging",
+      "title": "staging › position",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.staging.runway",
+      "parent_id": "profile.staging",
+      "title": "staging › runway",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.touch.caress",
+      "parent_id": "profile.touch",
+      "title": "touch › caress",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.touch.caress.intimate",
+      "parent_id": "profile.touch.caress",
+      "title": "touch › caress › intimate",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.touch.caress.sensual",
+      "parent_id": "profile.touch.caress",
+      "title": "touch › caress › sensual",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    }
+  ]
+}

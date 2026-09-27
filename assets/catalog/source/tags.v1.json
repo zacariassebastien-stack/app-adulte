@@ -1,0 +1,495 @@
+{
+  "schema_version": 1,
+  "tags": [
+    {
+      "stable_id": "tag.affection.hug",
+      "namespace": "affection",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.body.chest_play",
+      "namespace": "body",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.body.feet_play",
+      "namespace": "body",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.body.nipple_stimulation",
+      "namespace": "body",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.clothed",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.nudity",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.outfit_choice",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.partner_remove",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.remove",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.striptease",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.underwear",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.undressing",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.contact.body",
+      "namespace": "contact",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.contact.rubbing",
+      "namespace": "contact",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.context.bath",
+      "namespace": "context",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.context.shower",
+      "namespace": "context",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.control.no_touch",
+      "namespace": "control",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.control.position",
+      "namespace": "control",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.control.waiting",
+      "namespace": "control",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.distance.instruction.give",
+      "namespace": "distance",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.distance.message",
+      "namespace": "distance",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.distance.sexting",
+      "namespace": "distance",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.impact.spanking",
+      "namespace": "impact",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.anal.external",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.anal.general",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.anal.manual",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.anal.oral",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.anal.penetration",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.facesitting",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.genital_rubbing",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.manual",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.masturbation",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.masturbation.mutual",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.masturbation.partner",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.masturbation.self",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.oral.give",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.oral.mutual",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.oral.receive",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.penetration.vaginal",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.position_choice",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.kiss.general",
+      "namespace": "kiss",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.kiss.prolonged",
+      "namespace": "kiss",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.kiss.tongue",
+      "namespace": "kiss",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.kiss.zone.neck",
+      "namespace": "kiss",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.massage.general",
+      "namespace": "massage",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.massage.intimate",
+      "namespace": "massage",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.massage.sensual",
+      "namespace": "massage",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.live.call",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.live.nude",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.photo.nude",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.photo.send",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.photo.suggestive",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.photo.underwear",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.video.send",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.observation.be_watched",
+      "namespace": "observation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.observation.exhibition_private",
+      "namespace": "observation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.observation.voyeur_private",
+      "namespace": "observation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.observation.watch",
+      "namespace": "observation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.power.decision.give",
+      "namespace": "power",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.power.decision.receive",
+      "namespace": "power",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.power.domination.receive",
+      "namespace": "power",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.power.order.give",
+      "namespace": "power",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.power.order.receive",
+      "namespace": "power",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.power.submission",
+      "namespace": "power",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.restraint.general",
+      "namespace": "restraint",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.restraint.hands",
+      "namespace": "restraint",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.restraint.immobilize",
+      "namespace": "restraint",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.bar_meeting",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.boss_employee",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.celebrity_fan",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.delivery",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.masseur_client",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.master_servant",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.medical",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.photographer_model",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.royalty_servant",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.strangers",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.bite",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.blindfold",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.eyes_closed",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.general",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.scratch",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.temperature",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.touch_guess",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.simulation.69",
+      "namespace": "simulation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.simulation.facesitting",
+      "namespace": "simulation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.simulation.intimate",
+      "namespace": "simulation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.simulation.oral",
+      "namespace": "simulation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.simulation.penetration",
+      "namespace": "simulation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.staging.dance",
+      "namespace": "staging",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.staging.performance",
+      "namespace": "staging",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.staging.pose",
+      "namespace": "staging",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.staging.pose_choice",
+      "namespace": "staging",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.staging.position",
+      "namespace": "staging",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.staging.runway",
+      "namespace": "staging",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.touch.caress",
+      "namespace": "touch",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.touch.caress.intimate",
+      "namespace": "touch",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.touch.caress.sensual",
+      "namespace": "touch",
+      "technical_only": false
+    }
+  ]
+}

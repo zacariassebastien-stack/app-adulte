@@ -1,0 +1,7 @@
+Catalogue V1 validation
+Cards: 100
+Variants: 128
+Profile elements: 98
+Tags: 98
+Errors: 0
+STATUS: VALID

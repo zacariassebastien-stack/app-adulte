@@ -1,0 +1,737 @@
+{
+  "valid": false,
+  "cards": 100,
+  "variants": 134,
+  "profile_elements": 98,
+  "tags": 98,
+  "issues": [
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.affection.hug",
+      "property": "parent_id",
+      "message": "Unknown parent profile.affection"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.body.chest_play",
+      "property": "parent_id",
+      "message": "Unknown parent profile.body"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.body.feet_play",
+      "property": "parent_id",
+      "message": "Unknown parent profile.body"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.body.nipple_stimulation",
+      "property": "parent_id",
+      "message": "Unknown parent profile.body"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.clothing.clothed",
+      "property": "parent_id",
+      "message": "Unknown parent profile.clothing"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.clothing.nudity",
+      "property": "parent_id",
+      "message": "Unknown parent profile.clothing"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.clothing.outfit_choice",
+      "property": "parent_id",
+      "message": "Unknown parent profile.clothing"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.clothing.partner_remove",
+      "property": "parent_id",
+      "message": "Unknown parent profile.clothing"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.clothing.remove",
+      "property": "parent_id",
+      "message": "Unknown parent profile.clothing"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.clothing.striptease",
+      "property": "parent_id",
+      "message": "Unknown parent profile.clothing"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.clothing.underwear",
+      "property": "parent_id",
+      "message": "Unknown parent profile.clothing"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.clothing.undressing",
+      "property": "parent_id",
+      "message": "Unknown parent profile.clothing"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.contact.body",
+      "property": "parent_id",
+      "message": "Unknown parent profile.contact"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.contact.rubbing",
+      "property": "parent_id",
+      "message": "Unknown parent profile.contact"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.context.bath",
+      "property": "parent_id",
+      "message": "Unknown parent profile.context"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.context.shower",
+      "property": "parent_id",
+      "message": "Unknown parent profile.context"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.control.no_touch",
+      "property": "parent_id",
+      "message": "Unknown parent profile.control"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.control.position",
+      "property": "parent_id",
+      "message": "Unknown parent profile.control"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.control.waiting",
+      "property": "parent_id",
+      "message": "Unknown parent profile.control"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.distance.instruction.give",
+      "property": "parent_id",
+      "message": "Unknown parent profile.distance.instruction"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.distance.message",
+      "property": "parent_id",
+      "message": "Unknown parent profile.distance"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.distance.sexting",
+      "property": "parent_id",
+      "message": "Unknown parent profile.distance"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.impact.spanking",
+      "property": "parent_id",
+      "message": "Unknown parent profile.impact"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.anal.external",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate.anal"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.anal.general",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate.anal"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.anal.manual",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate.anal"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.anal.oral",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate.anal"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.anal.penetration",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate.anal"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.facesitting",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.genital_rubbing",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.manual",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.masturbation",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.oral.give",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate.oral"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.oral.mutual",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate.oral"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.oral.receive",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate.oral"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.penetration.vaginal",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate.penetration"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.intimate.position_choice",
+      "property": "parent_id",
+      "message": "Unknown parent profile.intimate"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.kiss.general",
+      "property": "parent_id",
+      "message": "Unknown parent profile.kiss"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.kiss.prolonged",
+      "property": "parent_id",
+      "message": "Unknown parent profile.kiss"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.kiss.tongue",
+      "property": "parent_id",
+      "message": "Unknown parent profile.kiss"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.kiss.zone.neck",
+      "property": "parent_id",
+      "message": "Unknown parent profile.kiss.zone"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.massage.general",
+      "property": "parent_id",
+      "message": "Unknown parent profile.massage"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.massage.intimate",
+      "property": "parent_id",
+      "message": "Unknown parent profile.massage"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.massage.sensual",
+      "property": "parent_id",
+      "message": "Unknown parent profile.massage"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.media.live.call",
+      "property": "parent_id",
+      "message": "Unknown parent profile.media.live"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.media.live.nude",
+      "property": "parent_id",
+      "message": "Unknown parent profile.media.live"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.media.photo.nude",
+      "property": "parent_id",
+      "message": "Unknown parent profile.media.photo"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.media.photo.send",
+      "property": "parent_id",
+      "message": "Unknown parent profile.media.photo"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.media.photo.suggestive",
+      "property": "parent_id",
+      "message": "Unknown parent profile.media.photo"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.media.photo.underwear",
+      "property": "parent_id",
+      "message": "Unknown parent profile.media.photo"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.media.video.send",
+      "property": "parent_id",
+      "message": "Unknown parent profile.media.video"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.observation.be_watched",
+      "property": "parent_id",
+      "message": "Unknown parent profile.observation"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.observation.exhibition_private",
+      "property": "parent_id",
+      "message": "Unknown parent profile.observation"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.observation.voyeur_private",
+      "property": "parent_id",
+      "message": "Unknown parent profile.observation"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.observation.watch",
+      "property": "parent_id",
+      "message": "Unknown parent profile.observation"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.power.decision.give",
+      "property": "parent_id",
+      "message": "Unknown parent profile.power.decision"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.power.decision.receive",
+      "property": "parent_id",
+      "message": "Unknown parent profile.power.decision"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.power.domination.receive",
+      "property": "parent_id",
+      "message": "Unknown parent profile.power.domination"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.power.order.give",
+      "property": "parent_id",
+      "message": "Unknown parent profile.power.order"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.power.order.receive",
+      "property": "parent_id",
+      "message": "Unknown parent profile.power.order"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.power.submission",
+      "property": "parent_id",
+      "message": "Unknown parent profile.power"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.restraint.general",
+      "property": "parent_id",
+      "message": "Unknown parent profile.restraint"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.restraint.hands",
+      "property": "parent_id",
+      "message": "Unknown parent profile.restraint"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.restraint.immobilize",
+      "property": "parent_id",
+      "message": "Unknown parent profile.restraint"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.roleplay.bar_meeting",
+      "property": "parent_id",
+      "message": "Unknown parent profile.roleplay"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.roleplay.boss_employee",
+      "property": "parent_id",
+      "message": "Unknown parent profile.roleplay"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.roleplay.celebrity_fan",
+      "property": "parent_id",
+      "message": "Unknown parent profile.roleplay"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.roleplay.delivery",
+      "property": "parent_id",
+      "message": "Unknown parent profile.roleplay"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.roleplay.masseur_client",
+      "property": "parent_id",
+      "message": "Unknown parent profile.roleplay"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.roleplay.master_servant",
+      "property": "parent_id",
+      "message": "Unknown parent profile.roleplay"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.roleplay.medical",
+      "property": "parent_id",
+      "message": "Unknown parent profile.roleplay"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.roleplay.photographer_model",
+      "property": "parent_id",
+      "message": "Unknown parent profile.roleplay"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.roleplay.royalty_servant",
+      "property": "parent_id",
+      "message": "Unknown parent profile.roleplay"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.roleplay.strangers",
+      "property": "parent_id",
+      "message": "Unknown parent profile.roleplay"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.sensory.bite",
+      "property": "parent_id",
+      "message": "Unknown parent profile.sensory"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.sensory.blindfold",
+      "property": "parent_id",
+      "message": "Unknown parent profile.sensory"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.sensory.eyes_closed",
+      "property": "parent_id",
+      "message": "Unknown parent profile.sensory"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.sensory.general",
+      "property": "parent_id",
+      "message": "Unknown parent profile.sensory"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.sensory.scratch",
+      "property": "parent_id",
+      "message": "Unknown parent profile.sensory"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.sensory.temperature",
+      "property": "parent_id",
+      "message": "Unknown parent profile.sensory"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.sensory.touch_guess",
+      "property": "parent_id",
+      "message": "Unknown parent profile.sensory"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.simulation.69",
+      "property": "parent_id",
+      "message": "Unknown parent profile.simulation"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.simulation.facesitting",
+      "property": "parent_id",
+      "message": "Unknown parent profile.simulation"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.simulation.intimate",
+      "property": "parent_id",
+      "message": "Unknown parent profile.simulation"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.simulation.oral",
+      "property": "parent_id",
+      "message": "Unknown parent profile.simulation"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.simulation.penetration",
+      "property": "parent_id",
+      "message": "Unknown parent profile.simulation"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.staging.dance",
+      "property": "parent_id",
+      "message": "Unknown parent profile.staging"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.staging.performance",
+      "property": "parent_id",
+      "message": "Unknown parent profile.staging"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.staging.pose",
+      "property": "parent_id",
+      "message": "Unknown parent profile.staging"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.staging.pose_choice",
+      "property": "parent_id",
+      "message": "Unknown parent profile.staging"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.staging.position",
+      "property": "parent_id",
+      "message": "Unknown parent profile.staging"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.staging.runway",
+      "property": "parent_id",
+      "message": "Unknown parent profile.staging"
+    },
+    {
+      "code": "missing_parent",
+      "object_type": "ProfileElementDefinition",
+      "stable_id": "profile.touch.caress",
+      "property": "parent_id",
+      "message": "Unknown parent profile.touch"
+    },
+    {
+      "code": "missing_tag",
+      "object_type": "CardVariantDefinition",
+      "stable_id": "variant.hug.long",
+      "property": "additional_tags[0]",
+      "message": "Unknown Tag duration.long"
+    },
+    {
+      "code": "missing_tag",
+      "object_type": "CardVariantDefinition",
+      "stable_id": "variant.simulate_act.guided",
+      "property": "additional_tags[0]",
+      "message": "Unknown Tag simulation.guided"
+    },
+    {
+      "code": "missing_tag",
+      "object_type": "CardVariantDefinition",
+      "stable_id": "variant.sexting.guided",
+      "property": "additional_tags[0]",
+      "message": "Unknown Tag distance.instruction.receive"
+    },
+    {
+      "code": "missing_tag",
+      "object_type": "CardVariantDefinition",
+      "stable_id": "variant.intimate_video.suggestive",
+      "property": "additional_tags[0]",
+      "message": "Unknown Tag media.video.suggestive"
+    },
+    {
+      "code": "missing_profile",
+      "object_type": "CardVariantDefinition",
+      "stable_id": "variant.intimate_video.suggestive",
+      "property": "profile_requirements[0].element_id",
+      "message": "Unknown ProfileElement profile.media.video.suggestive"
+    },
+    {
+      "code": "missing_tag",
+      "object_type": "CardVariantDefinition",
+      "stable_id": "variant.intimate_video.nude",
+      "property": "additional_tags[0]",
+      "message": "Unknown Tag media.video.nude"
+    },
+    {
+      "code": "missing_profile",
+      "object_type": "CardVariantDefinition",
+      "stable_id": "variant.intimate_video.nude",
+      "property": "profile_requirements[0].element_id",
+      "message": "Unknown ProfileElement profile.media.video.nude"
+    },
+    {
+      "code": "missing_tag",
+      "object_type": "CardVariantDefinition",
+      "stable_id": "variant.private_video_call.guided",
+      "property": "additional_tags[0]",
+      "message": "Unknown Tag media.live.instruction"
+    },
+    {
+      "code": "missing_profile",
+      "object_type": "CardVariantDefinition",
+      "stable_id": "variant.private_video_call.guided",
+      "property": "profile_requirements[0].element_id",
+      "message": "Unknown ProfileElement profile.media.live.instruction"
+    },
+    {
+      "code": "missing_tag",
+      "object_type": "CardVariantDefinition",
+      "stable_id": "variant.rp_master_servant.orders",
+      "property": "additional_tags[0]",
+      "message": "Unknown Tag power.order"
+    },
+    {
+      "code": "missing_profile",
+      "object_type": "CardVariantDefinition",
+      "stable_id": "variant.rp_master_servant.orders",
+      "property": "profile_requirements[0].element_id",
+      "message": "Unknown ProfileElement profile.power.order"
+    }
+  ]
+}
