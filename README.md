@@ -1,6 +1,6 @@
 # Couple Cards — domaine et stockage local Flutter / Dart
 
-Phases 0 à 3. Projet Android/iOS, domaine, stockage Drift/SQLite et moteurs de
+Phases 0 à 4. Projet Android/iOS, domaine, stockage Drift/SQLite et moteurs de
 jeu purs compatibles Windows. La seule UI est une coquille de lancement.
 
 **État : catalogue réel accepté, zéro erreur référentielle.** Les 104 erreurs
@@ -16,6 +16,8 @@ Voir [questions ouvertes](docs/open_questions.md) et [audit](docs/catalog_audit.
 - `lib/data/local/` : schéma Drift v2, migration et garde-fou médias.
 - `lib/data/repositories/` : profils, catalogue local, sessions et EventLog.
 - `lib/engines/` : moteurs purs de la Phase 3, sans UI ni persistance.
+- `lib/simulation/` : profils artificiels, stratégies composables, runner et mesures.
+- `test/simulation/` : campagne courte déterministe, consentement et invariants.
 - `lib/features/`, `lib/sync/` : périmètres réservés, documentés.
 - `test/domain/`, `test/catalog/`, `test/fixtures/` : tests et données fictives.
 - `tool/audit_catalog.dart` : audit CLI avec sortie JSON et code d'échec.
@@ -28,6 +30,25 @@ sous-dossiers fonctionnels vides. Les domaines média, monétisation et réseau
 ne sont pas implémentés. Aucun runner Windows spécifique n'est créé.
 
 ## Implémenté
+
+La Phase 4 exécute les vrais moteurs avec des décisions artificielles séparées.
+La campagne [BASELINE](docs/simulation_baseline.md) et son
+[JSON complet](docs/simulation_baseline.json) sont reproductibles. Le
+[protocole](docs/phase4_simulation.md) précise les probabilités, dénominateurs,
+limites et questions d'équilibrage. Aucun paramètre du moteur n'est remplacé.
+Les limites de simulation ne sont jamais des règles de fin de partie.
+
+```sh
+dart run tool/simulate.dart --sessions 1 --seed 410000 --output .tooling/debug.json
+dart run tool/simulate.dart --sessions 1000 --output .tooling/experiment.json
+dart compile exe tool/simulate.dart -o .tooling/simulate.exe
+.tooling/simulate.exe --sessions 10000 --seed 410000 --output docs/simulation_baseline.json
+dart run tool/simulation_report.dart
+dart test test/simulation
+```
+
+La campagne longue est explicite et séparée des tests CI. Aucun développement
+d'interface Phase 5 n'est commencé.
 
 Les onze modèles demandés sont immuables, avec enums et codecs sans perte :
 CardDefinition, CardVariantDefinition, ProfileElementDefinition, TagDefinition,
@@ -89,7 +110,7 @@ dart format lib test tool
 dart format --output=none --set-exit-if-changed lib test tool
 dart analyze
 flutter analyze
-dart test test/domain test/catalog test/storage test/engines
+dart test test/domain test/catalog test/storage test/engines test/simulation
 flutter test
 flutter build bundle --debug --target-platform android-arm64
 flutter build apk --debug
@@ -119,5 +140,6 @@ Voir [le relevé de vérification](docs/verification.md) pour les résultats loc
 et les limites de compilation native. La CI est définie mais n'a pas été
 exécutée sur un serveur distant depuis cette session.
 
-La **phase 3** est terminée. Voir [l'architecture des moteurs](docs/phase3_engines.md).
-Aucun simulateur massif de Phase 4 ni UI de Phase 5 n'a été ajouté.
+La **phase 4** est terminée. Voir [les simulations](docs/phase4_simulation.md)
+et [l'architecture des moteurs conservés](docs/phase3_engines.md).
+Aucune UI de Phase 5 n'a été ajoutée.

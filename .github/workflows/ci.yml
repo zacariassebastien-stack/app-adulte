@@ -13,7 +13,7 @@ jobs:
       - run: flutter pub get
       - run: dart format --output=none --set-exit-if-changed lib test tool
       - run: flutter analyze
-      - run: dart test test/domain test/catalog test/storage test/engines
+      - run: dart test test/domain test/catalog test/storage test/engines test/simulation
       - run: flutter test
       - run: flutter build apk --debug
   catalog-acceptance:

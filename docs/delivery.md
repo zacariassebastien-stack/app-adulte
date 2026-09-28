@@ -15,6 +15,8 @@ Le dépôt était vide (hors `.git`) : aucun code utilisateur n'a été remplac�
 | SQLite / Drift | `lib/data/local/app_database.dart`, code généré et migration v1→v2 |
 | Repositories | profil, catalogue local, session et EventLog dans `lib/data/repositories/` |
 | Moteurs purs | éligibilité, tirage, duel, enchère, corruption, recovery, intensité et lifecycle dans `lib/engines/` |
+| Simulation Phase 4 | `lib/simulation/`, `tool/simulate.dart`, `tool/simulation_report.dart`, `test/simulation/` |
+| Campagne BASELINE | `docs/simulation_baseline.md`, `docs/simulation_baseline.json`, protocole `docs/phase4_simulation.md` |
 | Emplacements futurs | `lib/features/README.md`, `lib/sync/README.md` |
 | Tests | domaine, catalogue, stockage/migration, moteurs purs et widget sous `test/` |
 | Audit | `tool/audit_catalog.dart`, `docs/catalog_audit.json`, `docs/source_hashes.json` |
