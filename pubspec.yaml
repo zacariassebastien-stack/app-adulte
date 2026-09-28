@@ -1,5 +1,5 @@
 name: couple_cards
-description: Fondations du domaine et du catalogue, phases 0 et 1.
+description: Fondations du domaine, du catalogue et du stockage local.
 publish_to: none
 version: 0.1.0+1
 environment:
@@ -7,7 +7,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  drift: ^2.28.1
+  sqlite3: ^2.9.3
+  sqlite3_flutter_libs: ^0.5.40
 dev_dependencies:
+  build_runner: ^2.7.0
+  drift_dev: ^2.28.1
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0

@@ -6,4 +6,6 @@ export 'catalog/enums.dart';
 export 'catalog/parameter.dart';
 export 'catalog/requirements.dart';
 export 'profile/preferences.dart';
+export 'profile/profile_state.dart';
 export 'round/combat_value_snapshot.dart';
+export 'session/session_state.dart';

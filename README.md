@@ -1,7 +1,7 @@
-# Couple Cards — fondations Flutter / Dart
+# Couple Cards — domaine et stockage local Flutter / Dart
 
-Phases 0 et 1 uniquement. Projet Android/iOS, domaine et chargement en Dart pur,
-compatibles Windows. La seule UI est une coquille de lancement.
+Phases 0, 1 et 2. Projet Android/iOS, domaine, chargement et stockage local
+Drift/SQLite compatibles Windows. La seule UI est une coquille de lancement.
 
 **État : catalogue réel accepté, zéro erreur référentielle.** Les 104 erreurs
 initiales sont corrigées ; les exigences de consentement sont conservées et complétées.
@@ -13,6 +13,8 @@ Voir [questions ouvertes](docs/open_questions.md) et [audit](docs/catalog_audit.
 - `lib/core/` : lecture JSON stricte, copie immuable, erreurs typées.
 - `lib/domain/` : définitions de contenu, enums, préférences privées et snapshot.
 - `lib/data/catalog_loader/` : chargement JSON et validation référentielle.
+- `lib/data/local/` : schéma Drift v2, migration et garde-fou médias.
+- `lib/data/repositories/` : profils, catalogue local, sessions et EventLog.
 - `lib/engines/`, `lib/features/`, `lib/sync/` : périmètres réservés, documentés.
 - `test/domain/`, `test/catalog/`, `test/fixtures/` : tests et données fictives.
 - `tool/audit_catalog.dart` : audit CLI avec sortie JSON et code d'échec.
@@ -41,7 +43,18 @@ lecteurs de modèles rejettent immédiatement les erreurs de forme.
 Une `CatalogException` contient des `CatalogIssue` avec code, type d'objet,
 stable_id et chemin de propriété. Les IDs ne dépendent jamais des traductions.
 Les particularités du seed sont explicites dans [le contrat](docs/data_contract.md).
-La séparation future public/privé est décrite dans [la frontière de confidentialité](docs/privacy_boundary.md).
+La séparation public/privé est matérialisée par deux DTO sans héritage commun et
+décrite dans [la frontière de confidentialité](docs/privacy_boundary.md).
+
+## Stockage local
+
+Le schéma SQLite v2 persiste les quatre états de consentement et les valeurs
+GENERAL/FAIRE/RECEVOIR, les overrides, les données d'évolution indépendantes,
+le catalogue versionné, les sessions/rounds reprenables, PA, niveau, style,
+zones et verrouillage des cartes, snapshots de combat et EventLog ordonné.
+Les checkpoints, lots d'événements et installations de catalogue sont
+transactionnels. Un garde-fou rejette les médias dans évolution, historique et
+EventLog. La migration v1→v2 est testée sur les quatre états de consentement.
 
 ## Catalogue et références
 
@@ -105,7 +118,5 @@ Voir [le relevé de vérification](docs/verification.md) pour les résultats loc
 et les limites de compilation native. La CI est définie mais n'a pas été
 exécutée sur un serveur distant depuis cette session.
 
-Prochaine étape : préciser les contrats encore ouverts avant le moteur
-d’éligibilité, puis poursuivre la **phase 2** (stockage local,
-migrations, repositories). Aucun moteur de partie ou fonctionnalité des phases
-suivantes n'a été ajouté.
+La **phase 2** est terminée. Aucun moteur de partie ni fonctionnalité de phase 3
+n'a été ajouté ; les questions de game design restent ouvertes telles quelles.
