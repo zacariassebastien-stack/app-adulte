@@ -1,0 +1,4475 @@
+{
+  "commit": "3a0b24a2de2a981d871e05d181fc254b485526ab",
+  "profiles": [
+    {
+      "stable_id": "profile.affection.hug",
+      "parent_id": "profile.affection",
+      "title": "affection › hug",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.body.chest_play",
+      "parent_id": "profile.body",
+      "title": "body › chest play",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.body.feet_play",
+      "parent_id": "profile.body",
+      "title": "body › feet play",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.body.nipple_stimulation",
+      "parent_id": "profile.body",
+      "title": "body › nipple stimulation",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.clothed",
+      "parent_id": "profile.clothing",
+      "title": "clothing › clothed",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.nudity",
+      "parent_id": "profile.clothing",
+      "title": "clothing › nudity",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.outfit_choice",
+      "parent_id": "profile.clothing",
+      "title": "clothing › outfit choice",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.partner_remove",
+      "parent_id": "profile.clothing",
+      "title": "clothing › partner remove",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.remove",
+      "parent_id": "profile.clothing",
+      "title": "clothing › remove",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.striptease",
+      "parent_id": "profile.clothing",
+      "title": "clothing › striptease",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.underwear",
+      "parent_id": "profile.clothing",
+      "title": "clothing › underwear",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing.undressing",
+      "parent_id": "profile.clothing",
+      "title": "clothing › undressing",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.contact.body",
+      "parent_id": "profile.contact",
+      "title": "contact › body",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.contact.rubbing",
+      "parent_id": "profile.contact",
+      "title": "contact › rubbing",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.context.bath",
+      "parent_id": "profile.context",
+      "title": "context › bath",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.context.shower",
+      "parent_id": "profile.context",
+      "title": "context › shower",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.control.no_touch",
+      "parent_id": "profile.control",
+      "title": "control › no touch",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.control.position",
+      "parent_id": "profile.control",
+      "title": "control › position",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.control.waiting",
+      "parent_id": "profile.control",
+      "title": "control › waiting",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.distance.instruction.give",
+      "parent_id": "profile.distance.instruction",
+      "title": "distance › instruction › give",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.distance.message",
+      "parent_id": "profile.distance",
+      "title": "distance › message",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.distance.sexting",
+      "parent_id": "profile.distance",
+      "title": "distance › sexting",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.impact.spanking",
+      "parent_id": "profile.impact",
+      "title": "impact › spanking",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.anal.external",
+      "parent_id": "profile.intimate.anal",
+      "title": "intimate › anal › external",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.anal.general",
+      "parent_id": "profile.intimate.anal",
+      "title": "intimate › anal › general",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.anal.manual",
+      "parent_id": "profile.intimate.anal",
+      "title": "intimate › anal › manual",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.anal.oral",
+      "parent_id": "profile.intimate.anal",
+      "title": "intimate › anal › oral",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.anal.penetration",
+      "parent_id": "profile.intimate.anal",
+      "title": "intimate › anal › penetration",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.facesitting",
+      "parent_id": "profile.intimate",
+      "title": "intimate › facesitting",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.genital_rubbing",
+      "parent_id": "profile.intimate",
+      "title": "intimate › genital rubbing",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.manual",
+      "parent_id": "profile.intimate",
+      "title": "intimate › manual",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.masturbation",
+      "parent_id": "profile.intimate",
+      "title": "intimate › masturbation",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.masturbation.mutual",
+      "parent_id": "profile.intimate.masturbation",
+      "title": "intimate › masturbation › mutual",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.masturbation.partner",
+      "parent_id": "profile.intimate.masturbation",
+      "title": "intimate › masturbation › partner",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.masturbation.self",
+      "parent_id": "profile.intimate.masturbation",
+      "title": "intimate › masturbation › self",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.oral.give",
+      "parent_id": "profile.intimate.oral",
+      "title": "intimate › oral › give",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.oral.mutual",
+      "parent_id": "profile.intimate.oral",
+      "title": "intimate › oral › mutual",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.oral.receive",
+      "parent_id": "profile.intimate.oral",
+      "title": "intimate › oral › receive",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.penetration.vaginal",
+      "parent_id": "profile.intimate.penetration",
+      "title": "intimate › penetration › vaginal",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.position_choice",
+      "parent_id": "profile.intimate",
+      "title": "intimate › position choice",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.kiss.general",
+      "parent_id": "profile.kiss",
+      "title": "kiss › general",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.kiss.prolonged",
+      "parent_id": "profile.kiss",
+      "title": "kiss › prolonged",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.kiss.tongue",
+      "parent_id": "profile.kiss",
+      "title": "kiss › tongue",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.kiss.zone.neck",
+      "parent_id": "profile.kiss.zone",
+      "title": "kiss › zone › neck",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.massage.general",
+      "parent_id": "profile.massage",
+      "title": "massage › general",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.massage.intimate",
+      "parent_id": "profile.massage",
+      "title": "massage › intimate",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.massage.sensual",
+      "parent_id": "profile.massage",
+      "title": "massage › sensual",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.live.call",
+      "parent_id": "profile.media.live",
+      "title": "media › live › call",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.live.nude",
+      "parent_id": "profile.media.live",
+      "title": "media › live › nude",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.photo.nude",
+      "parent_id": "profile.media.photo",
+      "title": "media › photo › nude",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.photo.send",
+      "parent_id": "profile.media.photo",
+      "title": "media › photo › send",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.photo.suggestive",
+      "parent_id": "profile.media.photo",
+      "title": "media › photo › suggestive",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.photo.underwear",
+      "parent_id": "profile.media.photo",
+      "title": "media › photo › underwear",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.video.send",
+      "parent_id": "profile.media.video",
+      "title": "media › video › send",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.observation.be_watched",
+      "parent_id": "profile.observation",
+      "title": "observation › be watched",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.observation.exhibition_private",
+      "parent_id": "profile.observation",
+      "title": "observation › exhibition private",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.observation.voyeur_private",
+      "parent_id": "profile.observation",
+      "title": "observation › voyeur private",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.observation.watch",
+      "parent_id": "profile.observation",
+      "title": "observation › watch",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.decision.give",
+      "parent_id": "profile.power.decision",
+      "title": "power › decision › give",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.decision.receive",
+      "parent_id": "profile.power.decision",
+      "title": "power › decision › receive",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.domination.receive",
+      "parent_id": "profile.power.domination",
+      "title": "power › domination › receive",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.order.give",
+      "parent_id": "profile.power.order",
+      "title": "power › order › give",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.order.receive",
+      "parent_id": "profile.power.order",
+      "title": "power › order › receive",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.submission",
+      "parent_id": "profile.power",
+      "title": "power › submission",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.restraint.general",
+      "parent_id": "profile.restraint",
+      "title": "restraint › general",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.restraint.hands",
+      "parent_id": "profile.restraint",
+      "title": "restraint › hands",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.restraint.immobilize",
+      "parent_id": "profile.restraint",
+      "title": "restraint › immobilize",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.bar_meeting",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › bar meeting",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.boss_employee",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › boss employee",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.celebrity_fan",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › celebrity fan",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.delivery",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › delivery",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.masseur_client",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › masseur client",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.master_servant",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › master servant",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.medical",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › medical",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.photographer_model",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › photographer model",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.royalty_servant",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › royalty servant",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay.strangers",
+      "parent_id": "profile.roleplay",
+      "title": "roleplay › strangers",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.bite",
+      "parent_id": "profile.sensory",
+      "title": "sensory › bite",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.blindfold",
+      "parent_id": "profile.sensory",
+      "title": "sensory › blindfold",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.eyes_closed",
+      "parent_id": "profile.sensory",
+      "title": "sensory › eyes closed",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.general",
+      "parent_id": "profile.sensory",
+      "title": "sensory › general",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.scratch",
+      "parent_id": "profile.sensory",
+      "title": "sensory › scratch",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.temperature",
+      "parent_id": "profile.sensory",
+      "title": "sensory › temperature",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory.touch_guess",
+      "parent_id": "profile.sensory",
+      "title": "sensory › touch guess",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.simulation.69",
+      "parent_id": "profile.simulation",
+      "title": "simulation › 69",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.simulation.facesitting",
+      "parent_id": "profile.simulation",
+      "title": "simulation › facesitting",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.simulation.intimate",
+      "parent_id": "profile.simulation",
+      "title": "simulation › intimate",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.simulation.oral",
+      "parent_id": "profile.simulation",
+      "title": "simulation › oral",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.simulation.penetration",
+      "parent_id": "profile.simulation",
+      "title": "simulation › penetration",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.staging.dance",
+      "parent_id": "profile.staging",
+      "title": "staging › dance",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.staging.performance",
+      "parent_id": "profile.staging",
+      "title": "staging › performance",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.staging.pose",
+      "parent_id": "profile.staging",
+      "title": "staging › pose",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.staging.pose_choice",
+      "parent_id": "profile.staging",
+      "title": "staging › pose choice",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.staging.position",
+      "parent_id": "profile.staging",
+      "title": "staging › position",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.staging.runway",
+      "parent_id": "profile.staging",
+      "title": "staging › runway",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.touch.caress",
+      "parent_id": "profile.touch",
+      "title": "touch › caress",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.touch.caress.intimate",
+      "parent_id": "profile.touch.caress",
+      "title": "touch › caress › intimate",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.touch.caress.sensual",
+      "parent_id": "profile.touch.caress",
+      "title": "touch › caress › sensual",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    }
+  ],
+  "tags": [
+    {
+      "stable_id": "tag.affection.hug",
+      "namespace": "affection",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.body.chest_play",
+      "namespace": "body",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.body.feet_play",
+      "namespace": "body",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.body.nipple_stimulation",
+      "namespace": "body",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.clothed",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.nudity",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.outfit_choice",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.partner_remove",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.remove",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.striptease",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.underwear",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.clothing.undressing",
+      "namespace": "clothing",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.contact.body",
+      "namespace": "contact",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.contact.rubbing",
+      "namespace": "contact",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.context.bath",
+      "namespace": "context",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.context.shower",
+      "namespace": "context",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.control.no_touch",
+      "namespace": "control",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.control.position",
+      "namespace": "control",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.control.waiting",
+      "namespace": "control",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.distance.instruction.give",
+      "namespace": "distance",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.distance.message",
+      "namespace": "distance",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.distance.sexting",
+      "namespace": "distance",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.impact.spanking",
+      "namespace": "impact",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.anal.external",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.anal.general",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.anal.manual",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.anal.oral",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.anal.penetration",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.facesitting",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.genital_rubbing",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.manual",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.masturbation",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.masturbation.mutual",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.masturbation.partner",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.masturbation.self",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.oral.give",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.oral.mutual",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.oral.receive",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.penetration.vaginal",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.intimate.position_choice",
+      "namespace": "intimate",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.kiss.general",
+      "namespace": "kiss",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.kiss.prolonged",
+      "namespace": "kiss",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.kiss.tongue",
+      "namespace": "kiss",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.kiss.zone.neck",
+      "namespace": "kiss",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.massage.general",
+      "namespace": "massage",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.massage.intimate",
+      "namespace": "massage",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.massage.sensual",
+      "namespace": "massage",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.live.call",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.live.nude",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.photo.nude",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.photo.send",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.photo.suggestive",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.photo.underwear",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.video.send",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.observation.be_watched",
+      "namespace": "observation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.observation.exhibition_private",
+      "namespace": "observation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.observation.voyeur_private",
+      "namespace": "observation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.observation.watch",
+      "namespace": "observation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.power.decision.give",
+      "namespace": "power",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.power.decision.receive",
+      "namespace": "power",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.power.domination.receive",
+      "namespace": "power",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.power.order.give",
+      "namespace": "power",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.power.order.receive",
+      "namespace": "power",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.power.submission",
+      "namespace": "power",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.restraint.general",
+      "namespace": "restraint",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.restraint.hands",
+      "namespace": "restraint",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.restraint.immobilize",
+      "namespace": "restraint",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.bar_meeting",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.boss_employee",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.celebrity_fan",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.delivery",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.masseur_client",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.master_servant",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.medical",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.photographer_model",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.royalty_servant",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.roleplay.strangers",
+      "namespace": "roleplay",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.bite",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.blindfold",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.eyes_closed",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.general",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.scratch",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.temperature",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.sensory.touch_guess",
+      "namespace": "sensory",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.simulation.69",
+      "namespace": "simulation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.simulation.facesitting",
+      "namespace": "simulation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.simulation.intimate",
+      "namespace": "simulation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.simulation.oral",
+      "namespace": "simulation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.simulation.penetration",
+      "namespace": "simulation",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.staging.dance",
+      "namespace": "staging",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.staging.performance",
+      "namespace": "staging",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.staging.pose",
+      "namespace": "staging",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.staging.pose_choice",
+      "namespace": "staging",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.staging.position",
+      "namespace": "staging",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.staging.runway",
+      "namespace": "staging",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.touch.caress",
+      "namespace": "touch",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.touch.caress.intimate",
+      "namespace": "touch",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.touch.caress.sensual",
+      "namespace": "touch",
+      "technical_only": false
+    }
+  ],
+  "actions": {
+    "card.hug": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.affection.hug",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.contact.body",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.hug.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.hug.long": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.kiss_me": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.kiss.general",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.kiss_me.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.kiss_me.lingering": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.deep_kiss": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.kiss.prolonged",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.kiss.tongue",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.deep_kiss.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.neck_kisses": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.kiss.zone.neck",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.neck_kisses.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.caress": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.touch.caress",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.caress.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.caress.sensual": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.caress.intimate": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.touch.caress.intimate",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.sensual_caress": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.touch.caress.sensual",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.sensual_caress.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.intimate_caress": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.touch.caress.intimate",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.intimate_caress.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.massage": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.massage.general",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.massage.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.massage.sensual": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.massage.intimate": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.massage.intimate",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.sensual_massage": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.massage.sensual",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.sensual_massage.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.intimate_massage": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.massage.intimate",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.intimate_massage.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.undressing": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.undressing",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.undressing.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.undressing.one": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        },
+        {
+          "type": "CLOTHES_AT_LEAST",
+          "target": "PARTNER",
+          "value": 1
+        }
+      ],
+      "enabled": true
+    },
+    "variant.undressing.two": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        },
+        {
+          "type": "CLOTHES_AT_LEAST",
+          "target": "PARTNER",
+          "value": 2
+        }
+      ],
+      "enabled": true
+    },
+    "card.remove_one_clothing": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.remove",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.remove_one_clothing.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        },
+        {
+          "type": "CLOTHES_AT_LEAST",
+          "target": "PARTNER",
+          "value": 1
+        }
+      ],
+      "enabled": true
+    },
+    "card.remove_two_clothing": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.remove",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.remove_two_clothing.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        },
+        {
+          "type": "CLOTHES_AT_LEAST",
+          "target": "PARTNER",
+          "value": 2
+        }
+      ],
+      "enabled": true
+    },
+    "card.undress_me": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.partner_remove",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.undress_me.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.undress_partner": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.partner_remove",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.undress_partner.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.underwear_only": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.underwear",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.underwear_only.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.nudity": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.nudity",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.nudity.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.striptease": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.striptease",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.staging.performance",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.striptease.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.striptease.underwear": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.underwear",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.striptease.full": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.nudity",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.full_striptease": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.striptease",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.clothing.nudity",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.full_striptease.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.choose_outfit": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.outfit_choice",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.choose_outfit.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.lap_sit": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.contact.body",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.staging.position",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.lap_sit.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.body_to_body": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.contact.body",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.body_to_body.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.clothed_rubbing": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.contact.rubbing",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.clothing.clothed",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.clothed_rubbing.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.imposed_position": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.control.position",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.imposed_position.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.copy_position": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.staging.position",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.copy_position.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.simulate_act": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.simulation.intimate",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.simulate_act.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.simulate_act.guided": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.simulate_penetration": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.simulation.penetration",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.simulate_penetration.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.simulate_oral": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.simulation.oral",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.simulate_oral.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.simulate_69": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.simulation.69",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.simulate_69.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.simulate_facesitting": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.simulation.facesitting",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.simulate_facesitting.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.masturbation": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.masturbation",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.masturbation.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.masturbation.self": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.masturbation.self",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.masturbation.visible": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.masturbate_self_visible": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.masturbation.self",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.observation.be_watched",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.masturbate_self_visible.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.masturbate_partner": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.masturbation.partner",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.masturbate_partner.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.mutual_masturbation": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.masturbation.mutual",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.mutual_masturbation.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.manual_intimate": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.manual",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.manual_intimate.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.oral_give": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.oral.give",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.oral_give.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.oral_receive": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.oral.receive",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.oral_receive.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.sixty_nine": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.oral.mutual",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.sixty_nine.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.vaginal_penetration": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.penetration.vaginal",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.vaginal_penetration.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.choose_sex_position": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.position_choice",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.choose_sex_position.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.anal_play": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.anal.general",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.anal_play.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.anal_play.external": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.anal.external",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.anal_play.manual": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.anal.manual",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.anal_caress": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.anal.external",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.anal_caress.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.anal_manual": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.anal.manual",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.anal_manual.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.anal_penetration": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.anal.penetration",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.anal_penetration.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.anal_oral": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.anal.oral",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.anal_oral.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.facesitting": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.facesitting",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.facesitting.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.genital_rubbing": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.genital_rubbing",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.genital_rubbing.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.chest_play": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.body.chest_play",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.chest_play.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.nipple_stimulation": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.body.nipple_stimulation",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.nipple_stimulation.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.feet_play": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.body.feet_play",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.feet_play.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.dominate_me": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.domination.receive",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.dominate_me.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.dominate_me.orders": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.order.receive",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.dominate_me.restraint": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.restraint.immobilize",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.submit": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.submission",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.submit.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.submit.orders": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.order.give",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.give_order": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.order.give",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.give_order.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.obey_order": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.order.receive",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.obey_order.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.i_decide": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.decision.give",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.i_decide.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.you_decide": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.decision.receive",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.you_decide.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.no_touch": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.control.no_touch",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.no_touch.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.watch_no_touch": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.observation.watch",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.control.no_touch",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.watch_no_touch.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.hands_bound": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.restraint.hands",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.hands_bound.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.tie_me": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.restraint.general",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.tie_me.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.blindfold": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.blindfold",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.blindfold.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.close_eyes": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.eyes_closed",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.close_eyes.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.guess_touch": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.touch_guess",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.guess_touch.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.temperature_play": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.temperature",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.temperature_play.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.sensory_play": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.general",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.sensory_play.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.sensory_play.eyes": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.sensory_play.blindfold": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.sensory_play.temperature": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.spanking": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.impact.spanking",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.spanking.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.bite": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.bite",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.bite.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.scratches": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.sensory.scratch",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.scratches.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.immobilize": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.restraint.immobilize",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.immobilize.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.make_wait": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.control.waiting",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.make_wait.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.look_at_me": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.observation.watch",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.look_at_me.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.let_me_watch": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.observation.be_watched",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.let_me_watch.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.private_exhibition": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.observation.exhibition_private",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.private_exhibition.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.private_exhibition.underwear": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.underwear",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.private_exhibition.nude": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.clothing.nudity",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.private_voyeur": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.observation.voyeur_private",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.private_voyeur.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.dance_for_me": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.staging.dance",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.dance_for_me.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.private_runway": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.staging.runway",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.private_runway.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.pose": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.staging.pose",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.pose.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.pose.partner_choice": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.choose_pose": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.staging.pose_choice",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.choose_pose.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.shower_together": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.context.shower",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.shower_together.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.bath_together": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.context.bath",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.bath_together.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.sexting": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.distance.sexting",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.sexting.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.sexting.guided": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.flirty_message": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.distance.message",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.flirty_message.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.suggestive_photo": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.photo.send",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.media.photo.suggestive",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.suggestive_photo.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid",
+            "face_to_face"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.suggestive_photo.partner_pose": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid",
+            "face_to_face"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.underwear_photo": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.photo.send",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.media.photo.underwear",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.underwear_photo.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid",
+            "face_to_face"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.nude_photo": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.photo.send",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.media.photo.nude",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.nude_photo.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid",
+            "face_to_face"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.choose_my_photo": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.photo.send",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.staging.pose_choice",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.choose_my_photo.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.intimate_video": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.video.send",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.intimate_video.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.intimate_video.suggestive": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.video.suggestive",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.intimate_video.nude": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.video.nude",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.private_video_call": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.live.call",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.private_video_call.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.private_video_call.guided": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.live.instruction",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.nude_video_call": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.live.call",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        },
+        {
+          "element_id": "profile.media.live.nude",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.nude_video_call.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.remote_instruction": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.distance.instruction.give",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.remote_instruction.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "distance",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.rp_strangers": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.strangers",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.rp_strangers.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.rp_photographer": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.photographer_model",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.rp_photographer.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.rp_photographer.suggestive": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.photo.suggestive",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.rp_photographer.underwear": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.media.photo.underwear",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.rp_masseur": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.masseur_client",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.rp_masseur.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.rp_masseur.sensual": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.rp_master_servant": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.master_servant",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.rp_master_servant.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.rp_master_servant.orders": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.power.order",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.rp_royalty_servant": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.royalty_servant",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.rp_royalty_servant.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.rp_celebrity_fan": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.celebrity_fan",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.rp_celebrity_fan.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.rp_delivery": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.delivery",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.rp_delivery.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.rp_boss_employee": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.boss_employee",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.rp_boss_employee.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.rp_medical": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.medical",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.rp_medical.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "card.rp_bar": {
+      "profile_requirements": [
+        {
+          "element_id": "profile.roleplay.bar_meeting",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "enabled": true
+    },
+    "variant.rp_bar.base": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    "variant.rp_bar.flirt": {
+      "profile_requirements": [],
+      "technical_requirements": [
+        {
+          "type": "SESSION_MODE_IN",
+          "values": [
+            "face_to_face",
+            "hybrid",
+            "distance"
+          ]
+        }
+      ],
+      "enabled": true
+    }
+  },
+  "parameter_ids": [
+    "parameter.pose.selector",
+    "parameter.wait.duration_hint"
+  ]
+}

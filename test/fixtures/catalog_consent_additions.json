@@ -1,0 +1,44 @@
+{
+  "variant.kiss_me.lingering": [
+    "profile.kiss.prolonged"
+  ],
+  "variant.caress.sensual": [
+    "profile.touch.caress.sensual"
+  ],
+  "variant.massage.sensual": [
+    "profile.massage.sensual"
+  ],
+  "variant.undressing.one": [
+    "profile.clothing.remove"
+  ],
+  "variant.undressing.two": [
+    "profile.clothing.remove"
+  ],
+  "variant.masturbation.visible": [
+    "profile.observation.be_watched"
+  ],
+  "variant.sensory_play.eyes": [
+    "profile.sensory.eyes_closed"
+  ],
+  "variant.sensory_play.blindfold": [
+    "profile.sensory.blindfold"
+  ],
+  "variant.sensory_play.temperature": [
+    "profile.sensory.temperature"
+  ],
+  "variant.pose.partner_choice": [
+    "profile.staging.pose_choice"
+  ],
+  "variant.sexting.guided": [
+    "profile.distance.instruction.receive"
+  ],
+  "variant.suggestive_photo.partner_pose": [
+    "profile.staging.pose_choice"
+  ],
+  "variant.rp_masseur.sensual": [
+    "profile.massage.sensual"
+  ],
+  "variant.rp_bar.flirt": [
+    "profile.distance.message"
+  ]
+}

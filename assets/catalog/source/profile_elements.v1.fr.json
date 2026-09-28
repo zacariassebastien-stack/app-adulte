@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "profile_version": 1,
+  "profile_version": 2,
   "elements": [
     {
       "stable_id": "profile.affection.hug",
@@ -879,6 +879,321 @@
       "stable_id": "profile.touch.caress.sensual",
       "parent_id": "profile.touch.caress",
       "title": "touch › caress › sensual",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.affection",
+      "parent_id": null,
+      "title": "Affection",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.body",
+      "parent_id": null,
+      "title": "Zones du corps",
+      "kind": "BODY_AREA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.clothing",
+      "parent_id": null,
+      "title": "Vêtements",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.contact",
+      "parent_id": null,
+      "title": "Contact",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.context",
+      "parent_id": null,
+      "title": "Contexte",
+      "kind": "CONTEXT",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.control",
+      "parent_id": null,
+      "title": "Contrôle",
+      "kind": "DYNAMIC",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.distance",
+      "parent_id": null,
+      "title": "À distance",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.distance.instruction",
+      "parent_id": "profile.distance",
+      "title": "Consignes à distance",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.impact",
+      "parent_id": null,
+      "title": "Impact",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate",
+      "parent_id": null,
+      "title": "Intimité",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.anal",
+      "parent_id": "profile.intimate",
+      "title": "Pratiques anales",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.oral",
+      "parent_id": "profile.intimate",
+      "title": "Pratiques orales",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.intimate.penetration",
+      "parent_id": "profile.intimate",
+      "title": "Pénétration",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.kiss",
+      "parent_id": null,
+      "title": "Baisers",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.kiss.zone",
+      "parent_id": "profile.kiss",
+      "title": "Zones des baisers",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.massage",
+      "parent_id": null,
+      "title": "Massages",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media",
+      "parent_id": null,
+      "title": "Médias",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.live",
+      "parent_id": "profile.media",
+      "title": "Appels en direct",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.photo",
+      "parent_id": "profile.media",
+      "title": "Photos",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.video",
+      "parent_id": "profile.media",
+      "title": "Vidéos",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.observation",
+      "parent_id": null,
+      "title": "Observation",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power",
+      "parent_id": null,
+      "title": "Rapports de pouvoir",
+      "kind": "DYNAMIC",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.decision",
+      "parent_id": "profile.power",
+      "title": "Décisions",
+      "kind": "DYNAMIC",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.domination",
+      "parent_id": "profile.power",
+      "title": "Domination",
+      "kind": "DYNAMIC",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.power.order",
+      "parent_id": "profile.power",
+      "title": "Ordres",
+      "kind": "DYNAMIC",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.restraint",
+      "parent_id": null,
+      "title": "Restriction de mouvement",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.roleplay",
+      "parent_id": null,
+      "title": "Jeux de rôle",
+      "kind": "ROLEPLAY",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.sensory",
+      "parent_id": null,
+      "title": "Sensations",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.simulation",
+      "parent_id": null,
+      "title": "Simulation",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.staging",
+      "parent_id": null,
+      "title": "Mise en scène",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.touch",
+      "parent_id": null,
+      "title": "Toucher",
+      "kind": "PRACTICE",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.video.suggestive",
+      "parent_id": "profile.media.video",
+      "title": "Vidéo suggestive",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.video.nude",
+      "parent_id": "profile.media.video",
+      "title": "Vidéo avec nudité",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.media.live.instruction",
+      "parent_id": "profile.media.live",
+      "title": "Consignes en direct",
+      "kind": "MEDIA",
+      "directionality": "GENERAL_ONLY",
+      "explicit_acceptance_required": true,
+      "enabled": true
+    },
+    {
+      "stable_id": "profile.distance.instruction.receive",
+      "parent_id": "profile.distance.instruction",
+      "title": "Recevoir une consigne à distance",
       "kind": "PRACTICE",
       "directionality": "GENERAL_ONLY",
       "explicit_acceptance_required": true,

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "catalog_version": 2,
+  "catalog_version": 3,
   "locale": "fr-FR",
   "cards": [
     {
@@ -78,7 +78,7 @@
     {
       "stable_id": "card.kiss_me",
       "order": 2,
-      "content_version": 1,
+      "content_version": 2,
       "title": "Embrasse-moi",
       "title_key": "cards.kiss_me.title",
       "precision": "GUIDED",
@@ -122,7 +122,14 @@
           "additional_tags": [
             "kiss.prolonged"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.kiss.prolonged",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",
@@ -240,7 +247,7 @@
     {
       "stable_id": "card.caress",
       "order": 5,
-      "content_version": 1,
+      "content_version": 2,
       "title": "Caresse",
       "title_key": "cards.caress.title",
       "precision": "OPEN",
@@ -284,7 +291,14 @@
           "additional_tags": [
             "touch.caress.sensual"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.touch.caress.sensual",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",
@@ -423,7 +437,7 @@
     {
       "stable_id": "card.massage",
       "order": 8,
-      "content_version": 1,
+      "content_version": 2,
       "title": "Massage",
       "title_key": "cards.massage.title",
       "precision": "OPEN",
@@ -467,7 +481,14 @@
           "additional_tags": [
             "massage.sensual"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.massage.sensual",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",
@@ -606,7 +627,7 @@
     {
       "stable_id": "card.undressing",
       "order": 11,
-      "content_version": 1,
+      "content_version": 2,
       "title": "Effeuillage",
       "title_key": "cards.undressing.title",
       "precision": "OPEN",
@@ -650,7 +671,14 @@
           "additional_tags": [
             "clothing.remove"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.clothing.remove",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",
@@ -682,7 +710,14 @@
           "additional_tags": [
             "clothing.remove"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.clothing.remove",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",
@@ -1701,7 +1736,7 @@
     {
       "stable_id": "card.masturbation",
       "order": 31,
-      "content_version": 1,
+      "content_version": 2,
       "title": "Masturbation",
       "title_key": "cards.masturbation.title",
       "precision": "OPEN",
@@ -1774,7 +1809,14 @@
           "additional_tags": [
             "observation.be_watched"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.observation.be_watched",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",
@@ -3443,7 +3485,7 @@
     {
       "stable_id": "card.sensory_play",
       "order": 65,
-      "content_version": 1,
+      "content_version": 2,
       "title": "Jeu sensoriel",
       "title_key": "cards.sensory_play.title",
       "precision": "OPEN",
@@ -3487,7 +3529,14 @@
           "additional_tags": [
             "sensory.eyes_closed"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.sensory.eyes_closed",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",
@@ -3508,7 +3557,14 @@
           "additional_tags": [
             "sensory.blindfold"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.sensory.blindfold",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",
@@ -3529,7 +3585,14 @@
           "additional_tags": [
             "sensory.temperature"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.sensory.temperature",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",
@@ -4123,7 +4186,7 @@
     {
       "stable_id": "card.pose",
       "order": 77,
-      "content_version": 1,
+      "content_version": 2,
       "title": "Prends la pose",
       "title_key": "cards.pose.title",
       "precision": "GUIDED",
@@ -4168,7 +4231,14 @@
           "additional_tags": [
             "staging.pose_choice"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.staging.pose_choice",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",
@@ -4342,7 +4412,7 @@
     {
       "stable_id": "card.sexting",
       "order": 81,
-      "content_version": 1,
+      "content_version": 2,
       "title": "Sexting",
       "title_key": "cards.sexting.title",
       "precision": "OPEN",
@@ -4386,7 +4456,14 @@
           "additional_tags": [
             "distance.instruction.receive"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.distance.instruction.receive",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",
@@ -4453,7 +4530,7 @@
     {
       "stable_id": "card.suggestive_photo",
       "order": 83,
-      "content_version": 1,
+      "content_version": 2,
       "title": "Photo suggestive",
       "title_key": "cards.suggestive_photo.title",
       "precision": "GUIDED",
@@ -4504,7 +4581,14 @@
           "additional_tags": [
             "staging.pose_choice"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.staging.pose_choice",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",
@@ -5097,7 +5181,7 @@
     {
       "stable_id": "card.rp_masseur",
       "order": 93,
-      "content_version": 1,
+      "content_version": 2,
       "title": "Masseur / Client",
       "title_key": "cards.rp_masseur.title",
       "precision": "OPEN",
@@ -5141,7 +5225,14 @@
           "additional_tags": [
             "massage.sensual"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.massage.sensual",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",
@@ -5466,7 +5557,7 @@
     {
       "stable_id": "card.rp_bar",
       "order": 100,
-      "content_version": 1,
+      "content_version": 2,
       "title": "Rencontre au bar",
       "title_key": "cards.rp_bar.title",
       "precision": "OPEN",
@@ -5511,7 +5602,14 @@
           "additional_tags": [
             "distance.message"
           ],
-          "profile_requirements": [],
+          "profile_requirements": [
+            {
+              "element_id": "profile.distance.message",
+              "role": "GENERAL",
+              "requirement": "REQUIRED",
+              "minimum_status": "ACCEPTED"
+            }
+          ],
           "technical_requirements": [
             {
               "type": "SESSION_MODE_IN",

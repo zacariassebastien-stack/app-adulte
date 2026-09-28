@@ -3,8 +3,8 @@
 Phases 0 et 1 uniquement. Projet Android/iOS, domaine et chargement en Dart pur,
 compatibles Windows. La seule UI est une coquille de lancement.
 
-**État : fondations vérifiées, acceptation du catalogue réel bloquée.** Les
-sources V2 ont 104 erreurs référentielles. Le chargeur les refuse explicitement.
+**État : catalogue réel accepté, zéro erreur référentielle.** Les 104 erreurs
+initiales sont corrigées ; les exigences de consentement sont conservées et complétées.
 Voir [questions ouvertes](docs/open_questions.md) et [audit](docs/catalog_audit.json).
 
 ## Architecture
@@ -45,13 +45,14 @@ La séparation future public/privé est décrite dans [la frontière de confiden
 
 ## Catalogue et références
 
-`assets/catalog/source/` contient les neuf fichiers de l'archive, sans changement.
+`assets/catalog/source/` contient les neuf fichiers du seed, dont trois corrigés.
 Seuls `cards.v2.fr.json`, `profile_elements.v1.fr.json` et `tags.v1.json` sont
 embarqués comme assets. V1 et les règles éditoriales restent disponibles comme
 références. La spécification intégrale est dans `docs/reference/spec_contenu_v1.md`.
-`docs/source_hashes.json` atteste les SHA-256 comparés à l'archive fournie.
+`docs/source_hashes.json` conserve les empreintes de l'archive initiale.
+`docs/catalog_hashes.json` atteste les trois fichiers actifs corrigés.
 
-Aucune correction éditoriale n'a été appliquée. Les références abrégées de tags
+Les corrections sont détaillées dans [le relevé éditorial](docs/catalog_repair.md). Les références abrégées de tags
 sont résolues vers les définitions existantes, sans modifier les stable_id.
 Aucun mécanisme ne crée silencieusement un élément ou n'assouplit le consentement.
 
@@ -85,7 +86,7 @@ Sur macOS avec Xcode : `flutter build ios --no-codesign` pour vérifier le proje
 iOS, puis configurer la signature pour un appareil. L'identifiant d'application
 `com.example.couple_cards` est provisoire avant publication.
 
-Audit strict (retour **1** actuellement, retour **0** seulement si valide) :
+Audit strict (retour **0** pour le catalogue corrigé, **1** si invalide) :
 
 ```sh
 dart run tool/audit_catalog.dart
@@ -93,9 +94,10 @@ dart run tool/audit_catalog.dart assets/catalog/source docs/catalog_audit.json
 ```
 
 Les tests fondamentaux n'utilisent que l'activité fictive de dessin. Le test
-réel est un audit de non-régression : il constate le rejet connu du seed,
-il ne prétend pas l'accepter. Le job CI séparé `catalog-acceptance` reste rouge
-tant que les données n'ont pas été corrigées. Aucun test n'est ignoré.
+réel vérifie l'acceptation par le chargeur de production, l'audit, les identités,
+la hiérarchie et la conservation des exigences de consentement. Le job CI
+`catalog-acceptance` vérifie également que l'audit versionné est à jour. Aucun
+test n'est ignoré.
 
 ## Vérifications et suite
 
@@ -103,7 +105,7 @@ Voir [le relevé de vérification](docs/verification.md) pour les résultats loc
 et les limites de compilation native. La CI est définie mais n'a pas été
 exécutée sur un serveur distant depuis cette session.
 
-Prochaine étape : résoudre les définitions manquantes et les écarts de contrat,
-obtenir un audit sans erreur, puis commencer la **phase 2** (stockage local,
+Prochaine étape : préciser les contrats encore ouverts avant le moteur
+d’éligibilité, puis poursuivre la **phase 2** (stockage local,
 migrations, repositories). Aucun moteur de partie ou fonctionnalité des phases
 suivantes n'a été ajouté.

@@ -490,6 +490,41 @@
       "stable_id": "tag.touch.caress.sensual",
       "namespace": "touch",
       "technical_only": false
+    },
+    {
+      "stable_id": "tag.duration.long",
+      "namespace": "duration",
+      "technical_only": true
+    },
+    {
+      "stable_id": "tag.simulation.guided",
+      "namespace": "simulation",
+      "technical_only": true
+    },
+    {
+      "stable_id": "tag.distance.instruction.receive",
+      "namespace": "distance",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.video.suggestive",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.video.nude",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.media.live.instruction",
+      "namespace": "media",
+      "technical_only": false
+    },
+    {
+      "stable_id": "tag.power.order",
+      "namespace": "power",
+      "technical_only": false
     }
   ]
 }

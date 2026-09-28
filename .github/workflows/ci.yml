@@ -25,5 +25,7 @@ jobs:
           flutter-version: '3.47.5'
           channel: stable
       - run: flutter pub get
-      # Intentionally blocks release while supplied V2 has unresolved references.
-      - run: dart run tool/audit_catalog.dart
+      # Strict acceptance and reproducibility of the committed audit.
+      - run: dart test test/catalog/real_catalog_test.dart
+      - run: dart run tool/audit_catalog.dart assets/catalog/source docs/catalog_audit.json
+      - run: git diff --exit-code -- docs/catalog_audit.json
