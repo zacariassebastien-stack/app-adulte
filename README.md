@@ -1,7 +1,7 @@
 # Couple Cards — domaine et stockage local Flutter / Dart
 
-Phases 0, 1 et 2. Projet Android/iOS, domaine, chargement et stockage local
-Drift/SQLite compatibles Windows. La seule UI est une coquille de lancement.
+Phases 0 à 3. Projet Android/iOS, domaine, stockage Drift/SQLite et moteurs de
+jeu purs compatibles Windows. La seule UI est une coquille de lancement.
 
 **État : catalogue réel accepté, zéro erreur référentielle.** Les 104 erreurs
 initiales sont corrigées ; les exigences de consentement sont conservées et complétées.
@@ -15,7 +15,8 @@ Voir [questions ouvertes](docs/open_questions.md) et [audit](docs/catalog_audit.
 - `lib/data/catalog_loader/` : chargement JSON et validation référentielle.
 - `lib/data/local/` : schéma Drift v2, migration et garde-fou médias.
 - `lib/data/repositories/` : profils, catalogue local, sessions et EventLog.
-- `lib/engines/`, `lib/features/`, `lib/sync/` : périmètres réservés, documentés.
+- `lib/engines/` : moteurs purs de la Phase 3, sans UI ni persistance.
+- `lib/features/`, `lib/sync/` : périmètres réservés, documentés.
 - `test/domain/`, `test/catalog/`, `test/fixtures/` : tests et données fictives.
 - `tool/audit_catalog.dart` : audit CLI avec sortie JSON et code d'échec.
 - `android/`, `ios/` : projets natifs générés par Flutter.
@@ -88,7 +89,7 @@ dart format lib test tool
 dart format --output=none --set-exit-if-changed lib test tool
 dart analyze
 flutter analyze
-dart test test/domain test/catalog
+dart test test/domain test/catalog test/storage test/engines
 flutter test
 flutter build bundle --debug --target-platform android-arm64
 flutter build apk --debug
@@ -118,5 +119,5 @@ Voir [le relevé de vérification](docs/verification.md) pour les résultats loc
 et les limites de compilation native. La CI est définie mais n'a pas été
 exécutée sur un serveur distant depuis cette session.
 
-La **phase 2** est terminée. Aucun moteur de partie ni fonctionnalité de phase 3
-n'a été ajouté ; les questions de game design restent ouvertes telles quelles.
+La **phase 3** est terminée. Voir [l'architecture des moteurs](docs/phase3_engines.md).
+Aucun simulateur massif de Phase 4 ni UI de Phase 5 n'a été ajouté.

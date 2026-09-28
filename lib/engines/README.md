@@ -1,5 +1,10 @@
-# Moteurs (phase 3)
+# Moteurs purs — Phase 3
 
-EligibilityEngine, DrawEngine, DuelEngine, AuctionEngine et RecoveryEngine
-utiliseront `domain/domain.dart`. Aucun moteur ni règle d'exécution n'est
-implémenté en phase 1. Imports Flutter interdits dans cette couche.
+Point d'entrée : `engines.dart`.
+
+- `eligibility/` : consentements, hiérarchie et conditions techniques ;
+- `draw/` : scoring et hasard injectable ;
+- `duel/`, `auction/`, `corruption/` : résolution de round ;
+- `recovery/`, `intensity/`, `lifecycle/` : transitions de session.
+
+Voir `docs/phase3_engines.md`. Aucun moteur ne dépend de Flutter ou du stockage.

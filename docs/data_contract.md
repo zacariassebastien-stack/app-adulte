@@ -74,3 +74,20 @@ nécessitent un fuseau explicite et gardent leur chaîne originale au round-trip
 
 L'existence d'une note n'est pas une autorisation de publication. Le snapshot
 ne recalcule aucune valeur et ne change pas après inversion.
+
+## Contrat d'exécution Phase 3
+
+Le catalogue V1 reste sérialisé sans perte. Les conditions composées et
+dépendantes du mode sont représentées dans le moteur par `TechnicalRule` et
+`TechnicalRuleGroup`, avec opérateurs ALL/ANY et `applicableModes`. Elles ne
+sont jamais inférées depuis des tags.
+
+`CatalogEngineAdapter` conserve les exigences déclarées et ajoute uniquement
+les décisions validées qui manquent encore au seed : capacités des cartes
+photo/vidéo/live réellement capturées et proximité TOGETHER pour la variante
+de contrainte non explicitement auto-réalisée. Aucun accessoire n'est ajouté au
+catalogue actuel, puisqu'aucun objet concret n'y est déclaré.
+
+Les raisons d'inéligibilité sont structurées et privées par défaut. Une carte
+est candidate si au moins une variante est jouable. L'exception Recovery ignore
+seulement le plafond 🌶️ ; toutes les autres règles restent actives.

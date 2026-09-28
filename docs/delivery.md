@@ -14,8 +14,9 @@ Le dépôt était vide (hors `.git`) : aucun code utilisateur n'a été remplac�
 | Chargement / validation | `lib/data/catalog_loader/catalog_loader.dart`, `catalog_validator.dart` |
 | SQLite / Drift | `lib/data/local/app_database.dart`, code généré et migration v1→v2 |
 | Repositories | profil, catalogue local, session et EventLog dans `lib/data/repositories/` |
-| Emplacements futurs | `lib/engines/README.md`, `lib/features/README.md`, `lib/sync/README.md` |
-| Tests | domaine, catalogue, widget et stockage/migration sous `test/` |
+| Moteurs purs | éligibilité, tirage, duel, enchère, corruption, recovery, intensité et lifecycle dans `lib/engines/` |
+| Emplacements futurs | `lib/features/README.md`, `lib/sync/README.md` |
+| Tests | domaine, catalogue, stockage/migration, moteurs purs et widget sous `test/` |
 | Audit | `tool/audit_catalog.dart`, `docs/catalog_audit.json`, `docs/source_hashes.json` |
 | Documentation | `README.md`, `docs/open_questions.md`, `docs/data_contract.md`, `docs/privacy_boundary.md`, `docs/verification.md`, ce fichier |
 | Références intactes | `docs/reference/spec_contenu_v1.md`, les neuf fichiers de `assets/catalog/source/` |
