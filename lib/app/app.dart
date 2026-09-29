@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../domain/game/game_screen_data.dart';
 import '../features/game/game_screen.dart';
+import '../features/game/local_game_controller.dart';
+import '../features/game/local_game_fixture.dart';
 
 class CoupleCardsApp extends StatelessWidget {
   const CoupleCardsApp({super.key});
@@ -18,52 +19,27 @@ class CoupleCardsApp extends StatelessWidget {
       scaffoldBackgroundColor: const Color(0xFFF9F7F8),
       useMaterial3: true,
     ),
-    home: GameScreen(
-      data: _fixture(),
-      temporarilyUnavailableCardIds: const {'hand-3'},
-    ),
+    home: const _LocalGameHost(),
   );
+}
 
-  static GameScreenData _fixture() => GameScreenData(
-    playerId: 'local-player',
-    chiliActive: 2,
-    elapsedSeconds: 12 * 60 + 34,
-    actionPoints: 76,
-    indicativeDurationMinutes: 30,
-    privateDataHidden: false,
-    centralActions: [
-      GameCardView(
-        cardId: 'revealed-action',
-        category: 'ACTION DUO',
-        chiliLevels: const [2],
-        locked: false,
-        titleKey: 'Action révélée',
-        descriptionKey: 'La carte active apparaît ici pendant la partie.',
-      ),
-    ],
-    discard: [
-      GameCardView(
-        cardId: 'discarded-action',
-        category: 'ACTION',
-        chiliLevels: const [1],
-        locked: false,
-      ),
-    ],
-    hand: [
-      for (var index = 0; index < 4; index++)
-        GameCardView(
-          cardId: 'hand-$index',
-          category: index.isEven ? 'FAIRE' : 'RECEVOIR',
-          chiliLevels: [index % 3 + 1],
-          locked: index == 1,
-          titleKey: 'Carte ${index + 1}',
-          descriptionKey:
-              'Une description complète de la carte, visible dans son détail.',
-          personalValue: 12 + index,
-          instructionKeys: index == 0
-              ? const ['Informations complémentaires pour cette action.']
-              : const [],
-        ),
-    ],
-  );
+class _LocalGameHost extends StatefulWidget {
+  const _LocalGameHost();
+
+  @override
+  State<_LocalGameHost> createState() => _LocalGameHostState();
+}
+
+class _LocalGameHostState extends State<_LocalGameHost> {
+  late final LocalGameController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = createLocalGameFixture();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      GameScreen(data: controller.screenData, controller: controller);
 }

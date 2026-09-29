@@ -10,8 +10,8 @@ Voir [questions ouvertes](docs/open_questions.md) et [audit](docs/catalog_audit.
 ## Architecture
 
 - `lib/app/` : application Flutter et adaptateur AssetBundle.
-- `lib/features/game/` : écran V1 alimenté par `GameScreenData`, détail des
-  cartes et interactions locales de sélection/verrouillage.
+- `lib/features/game/` : écran V1, fixtures et contrôleur de manche locale qui
+  orchestre les moteurs de sélection, duel, lifecycle et tirage.
 - `lib/core/` : lecture JSON stricte, copie immuable, erreurs typées.
 - `lib/domain/` : définitions de contenu, enums, préférences privées et snapshot.
 - `lib/data/catalog_loader/` : chargement JSON et validation référentielle.
@@ -49,14 +49,10 @@ dart run tool/simulation_report.dart
 dart test test/simulation
 ```
 
-La campagne longue est explicite et séparée des tests CI. L'écran de partie
-gère seulement le détail, la sélection et le verrouillage locaux des cartes :
-aucune mécanique de duel ni navigation complète.
-
-Le prototype 5.3/5.4 ajoute les états locaux de choix, attente et révélation,
-avec un partenaire fictif déterministe. `DuelEngine` n'est pas branché à ce
-stade : la vue ne possède pas encore les variantes, rôles volontaires et
-snapshots nécessaires à ses engagements. L'UI ne recalcule aucune règle.
+La campagne longue est explicite et séparée des tests CI. `LocalGameController`
+orchestre une boucle locale déterministe : éligibilité et variante, engagements
+avec snapshots, `DuelEngine`, PA, `LifecycleEngine`, défausse et refill par
+`DrawEngine`. Les règles restent dans les moteurs ; l'écran ne les recalcule pas.
 
 Les onze modèles demandés sont immuables, avec enums et codecs sans perte :
 CardDefinition, CardVariantDefinition, ProfileElementDefinition, TagDefinition,
@@ -153,4 +149,4 @@ La **phase 4.5** est terminée : [contrat des événements privés et statistiqu
 Les 19 axes disposent de métriques descriptives, sans profils humoristiques finaux.
 Voir aussi [les simulations Phase 4](docs/phase4_simulation.md)
 et [l'architecture des moteurs conservés](docs/phase3_engines.md). L'interface
-Phase 5.2 reste locale et ne déclenche aucune règle de jeu.
+reste locale : aucun réseau, enchère, corruption ou Recovery n'est branché.

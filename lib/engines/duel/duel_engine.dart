@@ -22,12 +22,13 @@ final class DuelResolution {
     required this.actionPoints,
     required this.events,
     this.winnerPlayerId,
+    this.gap = 0,
     this.gapCost = 0,
   });
   final DuelCommitment first;
   final DuelCommitment second;
   final String? winnerPlayerId;
-  final int gapCost;
+  final int gap, gapCost;
   final Map<String, int> actionPoints;
   final List<GameEvent> events;
   bool get tied => winnerPlayerId == null;
@@ -107,6 +108,7 @@ final class DuelEngine {
       first: first,
       second: second,
       winnerPlayerId: winner.snapshot.playerId,
+      gap: gap,
       gapCost: spent,
       actionPoints: Map.unmodifiable(points),
       events: [

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/game/game_screen_data.dart';
+import '../../engines/duel/duel_engine.dart';
+import 'local_game_controller.dart';
 
-enum _PrototypeRoundState { choosing, waitingForPartner, revealed }
-
-/// Game layout with local-only hand interactions. Selection and locking are
-/// deliberately not connected to gameplay engines yet.
+/// Game layout with local hand interactions.
+///
+/// A [LocalGameController] connects the prototype to the existing gameplay
+/// engines; omitting it keeps the lightweight fixture mode used by UI tests.
 class GameScreen extends StatefulWidget {
   const GameScreen({
     required this.data,
@@ -13,6 +15,7 @@ class GameScreen extends StatefulWidget {
     this.temporarilyUnavailableCardIds = const {},
     this.onCardSelected,
     this.prototypePartnerCard,
+    this.controller,
     super.key,
   });
 
@@ -21,6 +24,7 @@ class GameScreen extends StatefulWidget {
   final Set<String> temporarilyUnavailableCardIds;
   final ValueChanged<GameCardView>? onCardSelected;
   final GameCardView? prototypePartnerCard;
+  final LocalGameController? controller;
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -30,19 +34,28 @@ class _GameScreenState extends State<GameScreen> {
   String? _lockedCardId;
   String? _selectedCardId;
   bool _detailOpen = false;
-  _PrototypeRoundState _roundState = _PrototypeRoundState.choosing;
+  LocalRoundPhase _roundState = LocalRoundPhase.choosing;
 
   bool get _hidePrivateData =>
-      widget.privacyTransition || widget.data.privateDataHidden;
-  GameCardView? get _selectedCard => widget.data.hand
-      .where((card) => card.cardId == _selectedCardId)
-      .firstOrNull;
+      widget.privacyTransition || _data.privateDataHidden;
+  GameScreenData get _data => widget.controller?.screenData ?? widget.data;
+  LocalRoundPhase get _phase => widget.controller?.phase ?? _roundState;
+  GameCardView? get _selectedCard {
+    final id = widget.controller?.selectedLocalCardId ?? _selectedCardId;
+    return widget.controller?.cards[id]?.view ??
+        widget.data.hand.where((card) => card.cardId == id).firstOrNull;
+  }
+
   GameCardView get _partnerCard =>
+      widget
+          .controller
+          ?.cards[widget.controller?.selectedPartnerCardId]
+          ?.view ??
       widget.prototypePartnerCard ??
       GameCardView(
         cardId: 'prototype-partner-card',
         category: 'PARTENAIRE',
-        chiliLevels: [widget.data.chiliActive],
+        chiliLevels: [_data.chiliActive],
         locked: false,
         titleKey: 'Carte partenaire',
       );
@@ -50,10 +63,7 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    _lockedCardId = widget.data.hand
-        .where((card) => card.locked)
-        .firstOrNull
-        ?.cardId;
+    _lockedCardId = _data.hand.where((card) => card.locked).firstOrNull?.cardId;
   }
 
   @override
@@ -68,6 +78,9 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _openCard(GameCardView card) async {
     if (_hidePrivateData) return;
+    final choices =
+        widget.controller?.choicesForLocalCard(card.cardId) ?? const [];
+    var selectedVariantId = choices.firstOrNull?.variant.id;
     _detailOpen = true;
     await showModalBottomSheet<void>(
       context: context,
@@ -77,25 +90,52 @@ class _GameScreenState extends State<GameScreen> {
       builder: (sheetContext) => StatefulBuilder(
         builder: (context, setSheetState) {
           final locked = _lockedCardId == card.cardId;
-          final unavailable = widget.temporarilyUnavailableCardIds.contains(
-            card.cardId,
-          );
+          final unavailable =
+              widget.temporarilyUnavailableCardIds.contains(card.cardId) ||
+              (widget.controller?.temporarilyUnavailableCardIds.contains(
+                    card.cardId,
+                  ) ??
+                  false);
           return _CardDetail(
             card: card,
             locked: locked,
             unavailable: unavailable,
             selected: _selectedCardId == card.cardId,
+            variantChoices: choices,
+            selectedVariantId: selectedVariantId,
+            onVariantChanged: (id) =>
+                setSheetState(() => selectedVariantId = id),
             onToggleLock: () {
               if (_hidePrivateData) return;
-              setState(() => _lockedCardId = locked ? null : card.cardId);
+              setState(() {
+                if (widget.controller case final controller?) {
+                  controller.toggleLocalLock(card.cardId);
+                  _lockedCardId = controller.localCards
+                      .where((item) => item.locked)
+                      .firstOrNull
+                      ?.cardId;
+                } else {
+                  _lockedCardId = locked ? null : card.cardId;
+                }
+              });
               setSheetState(() {});
             },
-            onSelect: unavailable || _hidePrivateData
+            onSelect:
+                unavailable ||
+                    _hidePrivateData ||
+                    (widget.controller != null && selectedVariantId == null)
                 ? null
                 : () {
                     setState(() {
                       _selectedCardId = card.cardId;
-                      _roundState = _PrototypeRoundState.waitingForPartner;
+                      if (widget.controller case final controller?) {
+                        controller.selectLocalCard(
+                          card.cardId,
+                          selectedVariantId!,
+                        );
+                      } else {
+                        _roundState = LocalRoundPhase.waitingForPartner;
+                      }
                     });
                     widget.onCardSelected?.call(card);
                     Navigator.of(sheetContext).pop();
@@ -108,17 +148,27 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _revealPrototypeRound() {
-    if (_roundState != _PrototypeRoundState.waitingForPartner ||
-        _hidePrivateData) {
+    if (_phase != LocalRoundPhase.waitingForPartner || _hidePrivateData) {
       return;
     }
-    setState(() => _roundState = _PrototypeRoundState.revealed);
+    setState(() {
+      if (widget.controller case final controller?) {
+        controller.simulatePartnerChoice();
+      } else {
+        _roundState = LocalRoundPhase.revealed;
+      }
+    });
   }
 
   void _finishPrototypeRound() {
     setState(() {
+      widget.controller?.continueToNextRound();
       _selectedCardId = null;
-      _roundState = _PrototypeRoundState.choosing;
+      _roundState = LocalRoundPhase.choosing;
+      _lockedCardId = _data.hand
+          .where((card) => card.locked)
+          .firstOrNull
+          ?.cardId;
     });
   }
 
@@ -133,39 +183,44 @@ class _GameScreenState extends State<GameScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _GameHeader(data: widget.data, hidePrivateData: _hidePrivateData),
+              _GameHeader(data: _data, hidePrivateData: _hidePrivateData),
               const SizedBox(height: 10),
               Expanded(
                 child:
-                    _roundState == _PrototypeRoundState.revealed &&
-                        _selectedCard != null
+                    _phase == LocalRoundPhase.revealed && _selectedCard != null
                     ? _RevealArea(
                         localCard: _selectedCard!,
                         partnerCard: _partnerCard,
+                        resolution: widget.controller?.resolution,
+                        actionPointsBefore:
+                            widget.controller?.actionPointsBeforeResolution,
+                        localPlayerId: widget.controller?.local.playerId,
                         onFinish: _finishPrototypeRound,
                       )
                     : _CentralArea(
-                        action: widget.data.centralActions.firstOrNull,
+                        action: _data.centralActions.firstOrNull,
                         hidePrivateData: _hidePrivateData,
                       ),
               ),
               const SizedBox(height: 10),
-              _DiscardAccess(count: widget.data.discard.length),
+              _DiscardAccess(count: _data.discard.length),
               const SizedBox(height: 10),
               SizedBox(
                 height: 168,
                 child: _hidePrivateData
                     ? const _PrivacyPlaceholder()
-                    : _roundState == _PrototypeRoundState.waitingForPartner
+                    : _phase == LocalRoundPhase.waitingForPartner
                     ? _WaitingForPartner(onSimulate: _revealPrototypeRound)
-                    : _roundState == _PrototypeRoundState.revealed
+                    : _phase == LocalRoundPhase.revealed
                     ? const _RevealedStatus()
                     : _PlayerHand(
-                        cards: widget.data.hand,
+                        cards: _data.hand,
                         lockedCardId: _lockedCardId,
                         selectedCardId: _selectedCardId,
-                        unavailableCardIds:
-                            widget.temporarilyUnavailableCardIds,
+                        unavailableCardIds: {
+                          ...widget.temporarilyUnavailableCardIds,
+                          ...?widget.controller?.temporarilyUnavailableCardIds,
+                        },
                         onCardTap: _openCard,
                       ),
               ),
@@ -384,10 +439,16 @@ class _RevealArea extends StatelessWidget {
   const _RevealArea({
     required this.localCard,
     required this.partnerCard,
+    required this.resolution,
+    required this.actionPointsBefore,
+    required this.localPlayerId,
     required this.onFinish,
   });
 
   final GameCardView localCard, partnerCard;
+  final DuelResolution? resolution;
+  final Map<String, int>? actionPointsBefore;
+  final String? localPlayerId;
   final VoidCallback onFinish;
 
   @override
@@ -399,45 +460,116 @@ class _RevealArea extends StatelessWidget {
       borderRadius: BorderRadius.circular(24),
       border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
     ),
-    child: Column(
-      children: [
-        Text(
-          'Révélation',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: Row(
-            children: [
-              Expanded(
-                child: _RevealedCard(
-                  key: const Key('revealed-local-card'),
-                  label: 'Ta carte',
-                  card: localCard,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _RevealedCard(
-                  key: const Key('revealed-partner-card'),
-                  label: 'Partenaire',
-                  card: partnerCard,
-                ),
-              ),
-            ],
+    child: SingleChildScrollView(
+      child: Column(
+        children: [
+          Text(
+            'Révélation',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
-        ),
-        const SizedBox(height: 8),
-        FilledButton(
-          key: const Key('finish-round-button'),
-          onPressed: onFinish,
-          child: const Text('Terminer la manche'),
-        ),
-      ],
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 150,
+            child: Row(
+              children: [
+                Expanded(
+                  child: _RevealedCard(
+                    key: const Key('revealed-local-card'),
+                    label: 'Ta carte',
+                    card: localCard,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _RevealedCard(
+                    key: const Key('revealed-partner-card'),
+                    label: 'Partenaire',
+                    card: partnerCard,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (resolution case final duel?) ...[
+            _DuelResult(
+              resolution: duel,
+              actionPointsBefore: actionPointsBefore ?? const {},
+              localPlayerId: localPlayerId,
+            ),
+            const SizedBox(height: 8),
+          ],
+          FilledButton(
+            key: const Key('finish-round-button'),
+            onPressed: onFinish,
+            child: const Text('Terminer la manche'),
+          ),
+        ],
+      ),
     ),
   );
+}
+
+class _DuelResult extends StatelessWidget {
+  const _DuelResult({
+    required this.resolution,
+    required this.actionPointsBefore,
+    required this.localPlayerId,
+  });
+
+  final DuelResolution resolution;
+  final Map<String, int> actionPointsBefore;
+  final String? localPlayerId;
+
+  @override
+  Widget build(BuildContext context) {
+    final winnerId = resolution.winnerPlayerId;
+    final resultText = resolution.tied
+        ? 'Égalité — négociation nécessaire'
+        : winnerId == localPlayerId
+        ? 'Tu remportes le duel'
+        : 'Ton partenaire remporte le duel';
+    final pointsPlayer = winnerId ?? localPlayerId;
+    final before = pointsPlayer == null
+        ? null
+        : actionPointsBefore[pointsPlayer];
+    final after = pointsPlayer == null
+        ? null
+        : resolution.actionPoints[pointsPlayer];
+    return Container(
+      key: const Key('duel-result'),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Text(
+            resultText,
+            key: const Key('duel-result-label'),
+            textAlign: TextAlign.center,
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          Text(
+            'Écart : ${resolution.gap} · Coût : ${resolution.gapCost} PA',
+            key: const Key('duel-cost'),
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+          if (before != null && after != null)
+            Text(
+              'PA : $before → $after',
+              key: const Key('duel-pa-change'),
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+        ],
+      ),
+    );
+  }
 }
 
 class _RevealedCard extends StatelessWidget {
@@ -614,12 +746,18 @@ class _CardDetail extends StatelessWidget {
     required this.locked,
     required this.unavailable,
     required this.selected,
+    required this.variantChoices,
+    required this.selectedVariantId,
+    required this.onVariantChanged,
     required this.onToggleLock,
     required this.onSelect,
   });
 
   final GameCardView card;
   final bool locked, unavailable, selected;
+  final List<LocalVariantChoice> variantChoices;
+  final String? selectedVariantId;
+  final ValueChanged<String> onVariantChanged;
   final VoidCallback onToggleLock;
   final VoidCallback? onSelect;
 
@@ -685,6 +823,29 @@ class _CardDetail extends StatelessWidget {
               key: const Key('detail-description'),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
+            if (variantChoices.length > 1) ...[
+              const SizedBox(height: 14),
+              DropdownButtonFormField<String>(
+                key: const Key('variant-selector'),
+                initialValue: selectedVariantId,
+                decoration: const InputDecoration(
+                  labelText: 'Variante accessible',
+                  border: OutlineInputBorder(),
+                ),
+                items: [
+                  for (final choice in variantChoices)
+                    DropdownMenuItem(
+                      value: choice.variant.id,
+                      child: Text(
+                        '🌶️ ${choice.variant.chiliLevel} · ${choice.role.name}',
+                      ),
+                    ),
+                ],
+                onChanged: (id) {
+                  if (id != null) onVariantChanged(id);
+                },
+              ),
+            ],
             const SizedBox(height: 14),
             Wrap(
               spacing: 8,
