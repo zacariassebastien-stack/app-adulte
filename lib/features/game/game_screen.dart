@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../domain/game/game_screen_data.dart';
 
+enum _PrototypeRoundState { choosing, waitingForPartner, revealed }
+
 /// Game layout with local-only hand interactions. Selection and locking are
 /// deliberately not connected to gameplay engines yet.
 class GameScreen extends StatefulWidget {
@@ -10,6 +12,7 @@ class GameScreen extends StatefulWidget {
     this.privacyTransition = false,
     this.temporarilyUnavailableCardIds = const {},
     this.onCardSelected,
+    this.prototypePartnerCard,
     super.key,
   });
 
@@ -17,6 +20,7 @@ class GameScreen extends StatefulWidget {
   final bool privacyTransition;
   final Set<String> temporarilyUnavailableCardIds;
   final ValueChanged<GameCardView>? onCardSelected;
+  final GameCardView? prototypePartnerCard;
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -26,9 +30,22 @@ class _GameScreenState extends State<GameScreen> {
   String? _lockedCardId;
   String? _selectedCardId;
   bool _detailOpen = false;
+  _PrototypeRoundState _roundState = _PrototypeRoundState.choosing;
 
   bool get _hidePrivateData =>
       widget.privacyTransition || widget.data.privateDataHidden;
+  GameCardView? get _selectedCard => widget.data.hand
+      .where((card) => card.cardId == _selectedCardId)
+      .firstOrNull;
+  GameCardView get _partnerCard =>
+      widget.prototypePartnerCard ??
+      GameCardView(
+        cardId: 'prototype-partner-card',
+        category: 'PARTENAIRE',
+        chiliLevels: [widget.data.chiliActive],
+        locked: false,
+        titleKey: 'Carte partenaire',
+      );
 
   @override
   void initState() {
@@ -76,7 +93,10 @@ class _GameScreenState extends State<GameScreen> {
             onSelect: unavailable || _hidePrivateData
                 ? null
                 : () {
-                    setState(() => _selectedCardId = card.cardId);
+                    setState(() {
+                      _selectedCardId = card.cardId;
+                      _roundState = _PrototypeRoundState.waitingForPartner;
+                    });
                     widget.onCardSelected?.call(card);
                     Navigator.of(sheetContext).pop();
                   },
@@ -85,6 +105,21 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
     _detailOpen = false;
+  }
+
+  void _revealPrototypeRound() {
+    if (_roundState != _PrototypeRoundState.waitingForPartner ||
+        _hidePrivateData) {
+      return;
+    }
+    setState(() => _roundState = _PrototypeRoundState.revealed);
+  }
+
+  void _finishPrototypeRound() {
+    setState(() {
+      _selectedCardId = null;
+      _roundState = _PrototypeRoundState.choosing;
+    });
   }
 
   @override
@@ -101,10 +136,18 @@ class _GameScreenState extends State<GameScreen> {
               _GameHeader(data: widget.data, hidePrivateData: _hidePrivateData),
               const SizedBox(height: 10),
               Expanded(
-                child: _CentralArea(
-                  action: widget.data.centralActions.firstOrNull,
-                  hidePrivateData: _hidePrivateData,
-                ),
+                child:
+                    _roundState == _PrototypeRoundState.revealed &&
+                        _selectedCard != null
+                    ? _RevealArea(
+                        localCard: _selectedCard!,
+                        partnerCard: _partnerCard,
+                        onFinish: _finishPrototypeRound,
+                      )
+                    : _CentralArea(
+                        action: widget.data.centralActions.firstOrNull,
+                        hidePrivateData: _hidePrivateData,
+                      ),
               ),
               const SizedBox(height: 10),
               _DiscardAccess(count: widget.data.discard.length),
@@ -113,6 +156,10 @@ class _GameScreenState extends State<GameScreen> {
                 height: 168,
                 child: _hidePrivateData
                     ? const _PrivacyPlaceholder()
+                    : _roundState == _PrototypeRoundState.waitingForPartner
+                    ? _WaitingForPartner(onSimulate: _revealPrototypeRound)
+                    : _roundState == _PrototypeRoundState.revealed
+                    ? const _RevealedStatus()
                     : _PlayerHand(
                         cards: widget.data.hand,
                         lockedCardId: _lockedCardId,
@@ -283,6 +330,169 @@ class _CentralArea extends StatelessWidget {
             ),
     ),
   );
+}
+
+class _WaitingForPartner extends StatelessWidget {
+  const _WaitingForPartner({required this.onSimulate});
+
+  final VoidCallback onSimulate;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    key: const Key('waiting-for-partner'),
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.primaryContainer,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'Carte choisie — En attente de ton partenaire',
+          textAlign: TextAlign.center,
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 6),
+        OutlinedButton(
+          key: const Key('simulate-partner-choice'),
+          onPressed: onSimulate,
+          child: const Text('Simuler le choix du partenaire'),
+        ),
+      ],
+    ),
+  );
+}
+
+class _RevealedStatus extends StatelessWidget {
+  const _RevealedStatus();
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Text(
+      'Les deux cartes sont révélées',
+      key: const Key('revealed-status'),
+      textAlign: TextAlign.center,
+      style: Theme.of(context).textTheme.titleSmall,
+    ),
+  );
+}
+
+class _RevealArea extends StatelessWidget {
+  const _RevealArea({
+    required this.localCard,
+    required this.partnerCard,
+    required this.onFinish,
+  });
+
+  final GameCardView localCard, partnerCard;
+  final VoidCallback onFinish;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    key: const Key('round-reveal'),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(24),
+      border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+    ),
+    child: Column(
+      children: [
+        Text(
+          'Révélation',
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(
+                child: _RevealedCard(
+                  key: const Key('revealed-local-card'),
+                  label: 'Ta carte',
+                  card: localCard,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _RevealedCard(
+                  key: const Key('revealed-partner-card'),
+                  label: 'Partenaire',
+                  card: partnerCard,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        FilledButton(
+          key: const Key('finish-round-button'),
+          onPressed: onFinish,
+          child: const Text('Terminer la manche'),
+        ),
+      ],
+    ),
+  );
+}
+
+class _RevealedCard extends StatelessWidget {
+  const _RevealedCard({required this.label, required this.card, super.key});
+
+  final String label;
+  final GameCardView card;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final chili = card.chiliLevels.isEmpty ? '—' : card.chiliLevels.join(' · ');
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.labelSmall),
+          Text(
+            card.category,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: colors.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: colors.secondaryContainer,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.image_outlined, size: 34),
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            card.titleKey ?? 'Carte',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          Text('🌶️ $chili', style: Theme.of(context).textTheme.labelSmall),
+        ],
+      ),
+    );
+  }
 }
 
 class _DiscardAccess extends StatelessWidget {

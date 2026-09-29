@@ -53,6 +53,11 @@ La campagne longue est explicite et séparée des tests CI. L'écran de partie
 gère seulement le détail, la sélection et le verrouillage locaux des cartes :
 aucune mécanique de duel ni navigation complète.
 
+Le prototype 5.3/5.4 ajoute les états locaux de choix, attente et révélation,
+avec un partenaire fictif déterministe. `DuelEngine` n'est pas branché à ce
+stade : la vue ne possède pas encore les variantes, rôles volontaires et
+snapshots nécessaires à ses engagements. L'UI ne recalcule aucune règle.
+
 Les onze modèles demandés sont immuables, avec enums et codecs sans perte :
 CardDefinition, CardVariantDefinition, ProfileElementDefinition, TagDefinition,
 ProfileRequirement, TechnicalRequirement, StateEffect, CardParameterDefinition,
