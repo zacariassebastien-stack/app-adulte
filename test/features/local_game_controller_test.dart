@@ -15,6 +15,14 @@ void main() {
     controller.simulatePartnerChoice();
   }
 
+  void completePostDuel(LocalGameController controller) {
+    controller.continueAfterDuel();
+    if (controller.phase == LocalRoundPhase.counterAuction) {
+      controller.renounceCounterBid();
+      controller.skipCorruption();
+    }
+  }
+
   test('selection creates an immutable role-specific snapshot', () {
     final controller = createLocalGameFixture();
     controller.selectLocalCard(firstCard, '$firstCard.variant.2');
@@ -92,6 +100,7 @@ void main() {
       'local-card-1',
     );
     commitAndResolve(controller);
+    completePostDuel(controller);
     controller.continueToNextRound();
 
     expect(
@@ -116,6 +125,7 @@ void main() {
   test('a second deterministic round can complete', () {
     final controller = createLocalGameFixture();
     commitAndResolve(controller);
+    completePostDuel(controller);
     controller.continueToNextRound();
     final next = controller.screenData.hand
         .where((card) => controller.choicesForLocalCard(card.cardId).isNotEmpty)
@@ -180,12 +190,21 @@ void main() {
       expect(find.text('11/20'), findsNothing);
       expect(tester.takeException(), isNull);
 
+      await tester.ensureVisible(find.byKey(const Key('continue-after-duel')));
+      await tester.tap(find.byKey(const Key('continue-after-duel')));
+      await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('renounce-counter')));
+      await tester.tap(find.byKey(const Key('renounce-counter')));
+      await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('skip-corruption')));
+      await tester.tap(find.byKey(const Key('skip-corruption')));
+      await tester.pump();
       await tester.ensureVisible(find.byKey(const Key('finish-round-button')));
       await tester.tap(find.byKey(const Key('finish-round-button')));
       await tester.pump();
       expect(find.text('90'), findsOneWidget);
       expect(find.text('Ma main · 4/4'), findsOneWidget);
-      expect(find.text('Défausse · 1 carte'), findsOneWidget);
+      expect(find.text('Défausse · 2 cartes'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

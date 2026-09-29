@@ -34,7 +34,7 @@ LocalGameController createLocalGameFixture({
   final cards = <LocalGameCard>[];
   final localPreferences = <String, LocalVariantPreference>{};
   final partnerPreferences = <String, LocalVariantPreference>{};
-  for (var index = 0; index < 6; index++) {
+  for (var index = 0; index < 8; index++) {
     final cardId = 'local-card-$index';
     final role = index.isEven ? ProfileRole.FAIRE : ProfileRole.RECEVOIR;
     final variants = [
@@ -42,6 +42,7 @@ LocalGameController createLocalGameFixture({
         EngineVariant(
           id: '$cardId.variant.$level',
           chiliLevel: level,
+          invertible: level == 2,
           consentRules: [
             ConsentRule(
               elementId: elementId,
@@ -103,6 +104,7 @@ LocalGameController createLocalGameFixture({
         'local-card-2',
         'local-card-3',
       ],
+      initialDiscardIds: const ['local-card-6'],
       preferencesByVariant: localPreferences,
     ),
     partner: LocalPlayerSetup(
@@ -114,6 +116,7 @@ LocalGameController createLocalGameFixture({
         'local-card-4',
         'local-card-5',
       ],
+      initialDiscardIds: const ['local-card-7'],
       preferencesByVariant: partnerPreferences,
     ),
     context: EngineSessionContext(

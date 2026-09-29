@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/game/game_screen_data.dart';
-import '../../engines/duel/duel_engine.dart';
+import '../../engines/engines.dart';
 import 'local_game_controller.dart';
 
 /// Game layout with local hand interactions.
@@ -34,6 +34,7 @@ class _GameScreenState extends State<GameScreen> {
   String? _lockedCardId;
   String? _selectedCardId;
   bool _detailOpen = false;
+  String? _resolutionError;
   LocalRoundPhase _roundState = LocalRoundPhase.choosing;
 
   bool get _hidePrivateData =>
@@ -172,6 +173,25 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  void _applyControllerAction(void Function(LocalGameController) action) {
+    if (_hidePrivateData || widget.controller == null) return;
+    setState(() {
+      try {
+        action(widget.controller!);
+        _resolutionError = null;
+      } on Object catch (error) {
+        _resolutionError = error.toString().replaceFirst(
+          RegExp(r'^(?:StateError|Invalid argument\(s\)): '),
+          '',
+        );
+      }
+    });
+  }
+
+  bool get _resolvingRound =>
+      _phase != LocalRoundPhase.choosing &&
+      _phase != LocalRoundPhase.waitingForPartner;
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -186,8 +206,7 @@ class _GameScreenState extends State<GameScreen> {
               _GameHeader(data: _data, hidePrivateData: _hidePrivateData),
               const SizedBox(height: 10),
               Expanded(
-                child:
-                    _phase == LocalRoundPhase.revealed && _selectedCard != null
+                child: _resolvingRound && _selectedCard != null
                     ? _RevealArea(
                         localCard: _selectedCard!,
                         partnerCard: _partnerCard,
@@ -195,6 +214,11 @@ class _GameScreenState extends State<GameScreen> {
                         actionPointsBefore:
                             widget.controller?.actionPointsBeforeResolution,
                         localPlayerId: widget.controller?.local.playerId,
+                        controller: widget.controller,
+                        phase: _phase,
+                        hidePrivateData: _hidePrivateData,
+                        error: _resolutionError,
+                        onControllerAction: _applyControllerAction,
                         onFinish: _finishPrototypeRound,
                       )
                     : _CentralArea(
@@ -211,8 +235,8 @@ class _GameScreenState extends State<GameScreen> {
                     ? const _PrivacyPlaceholder()
                     : _phase == LocalRoundPhase.waitingForPartner
                     ? _WaitingForPartner(onSimulate: _revealPrototypeRound)
-                    : _phase == LocalRoundPhase.revealed
-                    ? const _RevealedStatus()
+                    : _resolvingRound
+                    ? _RevealedStatus(phase: _phase)
                     : _PlayerHand(
                         cards: _data.hand,
                         lockedCardId: _lockedCardId,
@@ -422,12 +446,22 @@ class _WaitingForPartner extends StatelessWidget {
 }
 
 class _RevealedStatus extends StatelessWidget {
-  const _RevealedStatus();
+  const _RevealedStatus({required this.phase});
+
+  final LocalRoundPhase phase;
 
   @override
   Widget build(BuildContext context) => Center(
     child: Text(
-      'Les deux cartes sont révélées',
+      switch (phase) {
+        LocalRoundPhase.revealed => 'Les deux cartes sont révélées',
+        LocalRoundPhase.counterAuction => 'Étape · Contre-enchère',
+        LocalRoundPhase.finalDefense => 'Étape · Défense finale',
+        LocalRoundPhase.corruption => 'Étape · Tentations',
+        LocalRoundPhase.actionExecution => 'Étape · Exécution',
+        LocalRoundPhase.roundComplete => 'Manche prête à être terminée',
+        _ => '',
+      },
       key: const Key('revealed-status'),
       textAlign: TextAlign.center,
       style: Theme.of(context).textTheme.titleSmall,
@@ -442,6 +476,11 @@ class _RevealArea extends StatelessWidget {
     required this.resolution,
     required this.actionPointsBefore,
     required this.localPlayerId,
+    required this.controller,
+    required this.phase,
+    required this.hidePrivateData,
+    required this.error,
+    required this.onControllerAction,
     required this.onFinish,
   });
 
@@ -449,6 +488,11 @@ class _RevealArea extends StatelessWidget {
   final DuelResolution? resolution;
   final Map<String, int>? actionPointsBefore;
   final String? localPlayerId;
+  final LocalGameController? controller;
+  final LocalRoundPhase phase;
+  final bool hidePrivateData;
+  final String? error;
+  final void Function(void Function(LocalGameController)) onControllerAction;
   final VoidCallback onFinish;
 
   @override
@@ -460,55 +504,66 @@ class _RevealArea extends StatelessWidget {
       borderRadius: BorderRadius.circular(24),
       border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
     ),
-    child: SingleChildScrollView(
-      child: Column(
-        children: [
-          Text(
-            'Révélation',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 150,
-            child: Row(
+    child: hidePrivateData
+        ? const _PrivacyPlaceholder()
+        : SingleChildScrollView(
+            child: Column(
               children: [
-                Expanded(
-                  child: _RevealedCard(
-                    key: const Key('revealed-local-card'),
-                    label: 'Ta carte',
-                    card: localCard,
+                Text(
+                  'Révélation',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _RevealedCard(
-                    key: const Key('revealed-partner-card'),
-                    label: 'Partenaire',
-                    card: partnerCard,
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 150,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _RevealedCard(
+                          key: const Key('revealed-local-card'),
+                          label: 'Ta carte',
+                          card: localCard,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _RevealedCard(
+                          key: const Key('revealed-partner-card'),
+                          label: 'Partenaire',
+                          card: partnerCard,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(height: 8),
+                if (resolution case final duel?) ...[
+                  _DuelResult(
+                    resolution: duel,
+                    actionPointsBefore: actionPointsBefore ?? const {},
+                    localPlayerId: localPlayerId,
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                if (controller case final game?)
+                  _PostDuelControls(
+                    controller: game,
+                    phase: phase,
+                    error: error,
+                    onAction: onControllerAction,
+                    onFinish: onFinish,
+                  )
+                else
+                  FilledButton(
+                    key: const Key('finish-round-button'),
+                    onPressed: onFinish,
+                    child: const Text('Terminer la manche'),
+                  ),
               ],
             ),
           ),
-          const SizedBox(height: 8),
-          if (resolution case final duel?) ...[
-            _DuelResult(
-              resolution: duel,
-              actionPointsBefore: actionPointsBefore ?? const {},
-              localPlayerId: localPlayerId,
-            ),
-            const SizedBox(height: 8),
-          ],
-          FilledButton(
-            key: const Key('finish-round-button'),
-            onPressed: onFinish,
-            child: const Text('Terminer la manche'),
-          ),
-        ],
-      ),
-    ),
   );
 }
 
@@ -570,6 +625,445 @@ class _DuelResult extends StatelessWidget {
       ),
     );
   }
+}
+
+class _PostDuelControls extends StatefulWidget {
+  const _PostDuelControls({
+    required this.controller,
+    required this.phase,
+    required this.error,
+    required this.onAction,
+    required this.onFinish,
+  });
+
+  final LocalGameController controller;
+  final LocalRoundPhase phase;
+  final String? error;
+  final void Function(void Function(LocalGameController)) onAction;
+  final VoidCallback onFinish;
+
+  @override
+  State<_PostDuelControls> createState() => _PostDuelControlsState();
+}
+
+class _PostDuelControlsState extends State<_PostDuelControls> {
+  late final TextEditingController _bidController;
+  AuctionTarget _auctionTarget = AuctionTarget.OWN_INITIAL_ACTION;
+  CorruptionObjective _corruptionObjective =
+      CorruptionObjective.OWN_INITIAL_ACTION;
+  final Set<String> _selectedCorruptionCards = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _bidController = TextEditingController(
+      text: widget.controller.minimumBid.toString(),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _PostDuelControls oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.phase != widget.phase &&
+        (widget.phase == LocalRoundPhase.counterAuction ||
+            widget.phase == LocalRoundPhase.finalDefense)) {
+      _bidController.text = widget.controller.minimumBid.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _bidController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      _ActionPointsSummary(controller: widget.controller),
+      const SizedBox(height: 8),
+      switch (widget.phase) {
+        LocalRoundPhase.revealed => _revealed(),
+        LocalRoundPhase.counterAuction ||
+        LocalRoundPhase.finalDefense => _auction(),
+        LocalRoundPhase.corruption => _corruption(),
+        LocalRoundPhase.actionExecution => _execution(),
+        LocalRoundPhase.roundComplete => _complete(),
+        _ => const SizedBox.shrink(),
+      },
+      if (widget.error case final error?) ...[
+        const SizedBox(height: 8),
+        Text(
+          error,
+          key: const Key('post-duel-error'),
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
+      ],
+    ],
+  );
+
+  Widget _revealed() => FilledButton(
+    key: const Key('continue-after-duel'),
+    onPressed: () => widget.onAction((game) => game.continueAfterDuel()),
+    child: Text(
+      widget.controller.resolution!.tied
+          ? 'Clore la négociation prototype'
+          : 'Continuer après le duel',
+    ),
+  );
+
+  Widget _auction() {
+    final isDefense = widget.phase == LocalRoundPhase.finalDefense;
+    final actor = widget.controller.activeBidderId;
+    final actorLabel = actor == widget.controller.local.playerId
+        ? 'Toi'
+        : 'Partenaire';
+    return Container(
+      key: Key(isDefense ? 'final-defense-panel' : 'counter-auction-panel'),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Text(
+            isDefense
+                ? 'Défense finale · $actorLabel'
+                : 'Contre-enchère · $actorLabel',
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 6),
+          if (!isDefense)
+            DropdownButtonFormField<AuctionTarget>(
+              key: const Key('auction-target'),
+              isExpanded: true,
+              initialValue: _auctionTarget,
+              decoration: const InputDecoration(
+                labelText: 'Objectif',
+                isDense: true,
+              ),
+              items: [
+                const DropdownMenuItem(
+                  value: AuctionTarget.OWN_INITIAL_ACTION,
+                  child: Text('Défendre sa carte originale'),
+                ),
+                if (widget.controller.inversionAllowed)
+                  const DropdownMenuItem(
+                    value: AuctionTarget.INVERT_WINNING_ACTION,
+                    child: Text('Inverser la carte gagnante'),
+                  ),
+              ],
+              onChanged: (value) {
+                if (value != null) setState(() => _auctionTarget = value);
+              },
+            ),
+          TextField(
+            key: const Key('auction-amount'),
+            controller: _bidController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText:
+                  'PA proposés · minimum ${widget.controller.minimumBid}',
+              helperText: 'Les PA engagés sont dépensés définitivement.',
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  key: Key(isDefense ? 'renounce-defense' : 'renounce-counter'),
+                  onPressed: () => widget.onAction(
+                    isDefense
+                        ? (game) => game.renounceFinalDefense()
+                        : (game) => game.renounceCounterBid(),
+                  ),
+                  child: const Text('Renoncer'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton(
+                  key: Key(isDefense ? 'confirm-defense' : 'confirm-counter'),
+                  onPressed: () {
+                    final amount = int.tryParse(_bidController.text) ?? 0;
+                    widget.onAction(
+                      isDefense
+                          ? (game) => game.submitFinalDefense(amount)
+                          : (game) =>
+                                game.submitCounterBid(amount, _auctionTarget),
+                    );
+                  },
+                  child: const Text('Confirmer'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _corruption() {
+    final offer = widget.controller.corruptionOffer;
+    if (offer != null) {
+      return Container(
+        key: const Key('corruption-offer'),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.tertiaryContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            const Text('Proposition visible'),
+            for (final action in offer.actions)
+              Text(
+                widget.controller.cards[action.cardId]!.view.titleKey ??
+                    action.cardId,
+              ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    key: const Key('refuse-corruption'),
+                    onPressed: () => widget.onAction(
+                      (game) => game.respondToCorruption(accepted: false),
+                    ),
+                    child: const Text('Refuser'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilledButton(
+                    key: const Key('accept-corruption'),
+                    onPressed: () => widget.onAction(
+                      (game) => game.respondToCorruption(accepted: true),
+                    ),
+                    child: const Text('Accepter'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+    final cards = widget.controller.corruptionAvailableCards;
+    return Container(
+      key: const Key('corruption-panel'),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Tentations depuis la défausse',
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          if (cards.isEmpty)
+            const Text('Aucune carte de défausse disponible.')
+          else ...[
+            DropdownButtonFormField<CorruptionObjective>(
+              key: const Key('corruption-objective'),
+              isExpanded: true,
+              initialValue: _corruptionObjective,
+              decoration: const InputDecoration(labelText: 'Objectif'),
+              items: [
+                const DropdownMenuItem(
+                  value: CorruptionObjective.OWN_INITIAL_ACTION,
+                  child: Text('Action originale'),
+                ),
+                if (widget.controller.finalActionCommitment?.cardInvertible ??
+                    false)
+                  const DropdownMenuItem(
+                    value: CorruptionObjective.INVERT_WINNING_ACTION,
+                    child: Text('Inversion de l’action gagnante'),
+                  ),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _corruptionObjective = value);
+                }
+              },
+            ),
+            for (final card in cards)
+              Material(
+                color: Colors.transparent,
+                child: CheckboxListTile(
+                  key: Key('corruption-card-${card.cardId}'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  value: _selectedCorruptionCards.contains(card.cardId),
+                  title: Text(card.titleKey ?? card.cardId),
+                  onChanged: (selected) => setState(() {
+                    if (selected ?? false) {
+                      _selectedCorruptionCards.add(card.cardId);
+                    } else {
+                      _selectedCorruptionCards.remove(card.cardId);
+                    }
+                  }),
+                ),
+              ),
+            FilledButton(
+              key: const Key('propose-corruption'),
+              onPressed: _selectedCorruptionCards.isEmpty
+                  ? null
+                  : () => widget.onAction(
+                      (game) => game.proposeCorruption(
+                        _selectedCorruptionCards,
+                        _corruptionObjective,
+                      ),
+                    ),
+              child: const Text('Faire la proposition'),
+            ),
+          ],
+          TextButton(
+            key: const Key('skip-corruption'),
+            onPressed: () => widget.onAction((game) => game.skipCorruption()),
+            child: const Text('Continuer sans proposition'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _execution() {
+    final current = widget.controller.currentExecutionAction;
+    return Container(
+      key: const Key('action-execution-panel'),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          const Text('Séquence d’actions promise'),
+          for (final action in widget.controller.executionActions)
+            Text(
+              '${widget.controller.cards[action.cardId]!.view.titleKey ?? action.cardId} · ${_actionStatus(action.status)}',
+            ),
+          const SizedBox(height: 8),
+          if (current != null) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    key: const Key('skip-action'),
+                    onPressed: () => widget.onAction(
+                      (game) => game.recordCurrentAction(
+                        ActionExecutionStatus.SKIPPED,
+                      ),
+                    ),
+                    child: const Text('Passer'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilledButton(
+                    key: const Key('complete-action'),
+                    onPressed: () => widget.onAction(
+                      (game) => game.recordCurrentAction(
+                        ActionExecutionStatus.COMPLETED,
+                      ),
+                    ),
+                    child: const Text('Réalisée'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            FilledButton.tonal(
+              key: const Key('consent-stop'),
+              style: FilledButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+              onPressed: () => widget.onAction((game) => game.consentStop()),
+              child: const Text('STOP'),
+            ),
+          ] else
+            FilledButton(
+              key: const Key('finish-action-sequence'),
+              onPressed: () =>
+                  widget.onAction((game) => game.finishCorruptionActions()),
+              child: const Text('Terminer la séquence'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _complete() {
+    final action = widget.controller.finalActionCommitment;
+    final card = action == null
+        ? null
+        : widget.controller.cards[action.snapshot.cardId]?.view;
+    return Column(
+      key: const Key('round-complete-panel'),
+      children: [
+        Text(
+          widget.controller.resolution!.tied
+              ? 'Égalité — négociation'
+              : 'Résultat final enregistré',
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        if (card != null)
+          Text(
+            'Action finale : ${card.titleKey ?? card.cardId}${widget.controller.inversionRetained ? ' · inversion' : ''}',
+            key: const Key('final-action'),
+            textAlign: TextAlign.center,
+          ),
+        const SizedBox(height: 8),
+        FilledButton(
+          key: const Key('finish-round-button'),
+          onPressed: widget.onFinish,
+          child: const Text('Terminer la manche'),
+        ),
+      ],
+    );
+  }
+
+  String _actionStatus(ActionExecutionStatus status) => switch (status) {
+    ActionExecutionStatus.ACCEPTED => 'À réaliser',
+    ActionExecutionStatus.COMPLETED => 'Réalisée',
+    ActionExecutionStatus.SKIPPED => 'Passée',
+    ActionExecutionStatus.STOPPED => 'Arrêtée',
+    ActionExecutionStatus.PROPOSED => 'Proposée',
+  };
+}
+
+class _ActionPointsSummary extends StatelessWidget {
+  const _ActionPointsSummary({required this.controller});
+
+  final LocalGameController controller;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    key: const Key('post-duel-pa'),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Text(
+      'PA disponibles · Toi ${controller.actionPoints[controller.local.playerId]} · Partenaire ${controller.actionPoints[controller.partner.playerId]}',
+      textAlign: TextAlign.center,
+      style: Theme.of(context).textTheme.labelMedium,
+    ),
+  );
 }
 
 class _RevealedCard extends StatelessWidget {

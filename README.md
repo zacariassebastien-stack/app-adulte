@@ -10,8 +10,8 @@ Voir [questions ouvertes](docs/open_questions.md) et [audit](docs/catalog_audit.
 ## Architecture
 
 - `lib/app/` : application Flutter et adaptateur AssetBundle.
-- `lib/features/game/` : écran V1, fixtures et contrôleur de manche locale qui
-  orchestre les moteurs de sélection, duel, lifecycle et tirage.
+- `lib/features/game/` : écran V1, fixtures et contrôleurs locaux qui orchestrent
+  sélection, duel, enchère, corruption, lifecycle et tirage.
 - `lib/core/` : lecture JSON stricte, copie immuable, erreurs typées.
 - `lib/domain/` : définitions de contenu, enums, préférences privées et snapshot.
 - `lib/data/catalog_loader/` : chargement JSON et validation référentielle.
@@ -51,8 +51,14 @@ dart test test/simulation
 
 La campagne longue est explicite et séparée des tests CI. `LocalGameController`
 orchestre une boucle locale déterministe : éligibilité et variante, engagements
-avec snapshots, `DuelEngine`, PA, `LifecycleEngine`, défausse et refill par
+avec snapshots, `DuelEngine`, PA, contre-enchère et défense par `AuctionEngine`,
+tentations par `CorruptionEngine`, défausse par `LifecycleEngine` et refill par
 `DrawEngine`. Les règles restent dans les moteurs ; l'écran ne les recalcule pas.
+Le contrat actuel de `CorruptionEngine` ne prélève pas de PA et ne change pas le
+vainqueur ; il valide seulement la séquence promise et le lifecycle des cartes.
+De même, `DuelEngine.inverted` conserve le snapshot engagé sans exposer encore
+un modèle distinct de rôles physiques. Le prototype affiche fidèlement ces
+limites au lieu d'ajouter une règle UI.
 
 Les onze modèles demandés sont immuables, avec enums et codecs sans perte :
 CardDefinition, CardVariantDefinition, ProfileElementDefinition, TagDefinition,
@@ -149,4 +155,5 @@ La **phase 4.5** est terminée : [contrat des événements privés et statistiqu
 Les 19 axes disposent de métriques descriptives, sans profils humoristiques finaux.
 Voir aussi [les simulations Phase 4](docs/phase4_simulation.md)
 et [l'architecture des moteurs conservés](docs/phase3_engines.md). L'interface
-reste locale : aucun réseau, enchère, corruption ou Recovery n'est branché.
+reste locale : duel, enchère et corruption sont branchés aux moteurs existants,
+sans réseau, Recovery ni persistance de production.

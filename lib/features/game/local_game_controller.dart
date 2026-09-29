@@ -1,7 +1,17 @@
 import '../../domain/domain.dart';
 import '../../engines/engines.dart';
+import 'local_post_duel_controller.dart';
 
-enum LocalRoundPhase { choosing, waitingForPartner, revealed }
+enum LocalRoundPhase {
+  choosing,
+  waitingForPartner,
+  revealed,
+  counterAuction,
+  finalDefense,
+  corruption,
+  actionExecution,
+  roundComplete,
+}
 
 final class LocalGameCard {
   const LocalGameCard({required this.view, required this.engine});
@@ -23,12 +33,15 @@ final class LocalPlayerSetup {
     required this.profile,
     required Iterable<String> initialHandIds,
     required Map<String, LocalVariantPreference> preferencesByVariant,
+    Iterable<String> initialDiscardIds = const [],
   }) : initialHandIds = List.unmodifiable(initialHandIds),
+       initialDiscardIds = List.unmodifiable(initialDiscardIds),
        preferencesByVariant = Map.unmodifiable(preferencesByVariant);
 
   final String playerId;
   final PlayerGameProfile profile;
   final List<String> initialHandIds;
+  final List<String> initialDiscardIds;
   final Map<String, LocalVariantPreference> preferencesByVariant;
 }
 
@@ -56,6 +69,8 @@ final class LocalGameController {
     this.duelEngine = const DuelEngine(),
     this.drawEngine = const DrawEngine(),
     this.lifecycleEngine = const LifecycleEngine(),
+    this.auctionEngine = const AuctionEngine(),
+    this.corruptionEngine = const CorruptionEngine(),
     RandomSource? random,
     DateTime Function()? clock,
   }) : cards = Map.unmodifiable({
@@ -70,24 +85,34 @@ final class LocalGameController {
        _localCards = [
          for (final id in local.initialHandIds)
            CardRuntimeState(cardId: id, zone: CardZone.HAND),
+         for (final id in local.initialDiscardIds)
+           CardRuntimeState(cardId: id, zone: CardZone.DISCARD),
        ],
        _partnerCards = [
          for (final id in partner.initialHandIds)
            CardRuntimeState(cardId: id, zone: CardZone.HAND),
+         for (final id in partner.initialDiscardIds)
+           CardRuntimeState(cardId: id, zone: CardZone.DISCARD),
        ],
        _localHistory = {
          for (final id in local.initialHandIds)
            id: CardHistoryState.seenUnplayed,
+         for (final id in local.initialDiscardIds)
+           id: CardHistoryState.playedOrDiscarded,
        },
        _partnerHistory = {
          for (final id in partner.initialHandIds)
            id: CardHistoryState.seenUnplayed,
+         for (final id in partner.initialDiscardIds)
+           id: CardHistoryState.playedOrDiscarded,
        } {
     if (this.cards.length < duelEngine.config.handSize) {
       throw ArgumentError('Local fixture cannot fill a complete hand');
     }
     _validateHand(local.initialHandIds);
     _validateHand(partner.initialHandIds);
+    _validateDiscard(local);
+    _validateDiscard(partner);
     final localLocked = local.initialHandIds
         .where((id) => this.cards[id]!.view.locked)
         .firstOrNull;
@@ -109,6 +134,8 @@ final class LocalGameController {
   final DuelEngine duelEngine;
   final DrawEngine drawEngine;
   final LifecycleEngine lifecycleEngine;
+  final AuctionEngine auctionEngine;
+  final CorruptionEngine corruptionEngine;
   final RandomSource random;
   final DateTime Function() clock;
 
@@ -116,22 +143,36 @@ final class LocalGameController {
   int roundNumber = 1;
   DuelCommitment? localCommitment, partnerCommitment;
   DuelResolution? resolution;
+  LocalPostDuelController? postDuel;
   Map<String, int>? actionPointsBeforeResolution;
   late Map<String, int> _actionPoints;
   late List<CardRuntimeState> _localCards, _partnerCards;
   late final Map<String, CardHistoryState> _localHistory, _partnerHistory;
 
-  Map<String, int> get actionPoints => Map.unmodifiable(_actionPoints);
+  Map<String, int> get actionPoints =>
+      postDuel?.actionPoints ?? Map.unmodifiable(_actionPoints);
   List<CardRuntimeState> get localCards => List.unmodifiable(_localCards);
   List<CardRuntimeState> get partnerCards => List.unmodifiable(_partnerCards);
   String? get selectedLocalCardId => localCommitment?.snapshot.cardId;
   String? get selectedPartnerCardId => partnerCommitment?.snapshot.cardId;
+  String? get finalWinnerId => postDuel?.finalWinnerId;
+  DuelCommitment? get finalActionCommitment => postDuel?.finalActionCommitment;
+  bool get inversionRetained => postDuel?.inversionRetained ?? false;
+  String? get activeBidderId => postDuel?.activeBidderId;
+  int get minimumBid => postDuel?.minimumBid ?? 1;
+  bool get inversionAllowed => postDuel?.inversionAllowed ?? false;
+  CorruptionOffer? get corruptionOffer => postDuel?.corruptionOffer;
+  List<ActionPromise> get executionActions =>
+      postDuel?.executionActions ?? const [];
+  ActionPromise? get currentExecutionAction => postDuel?.currentAction;
+  List<GameEvent> get roundEvents =>
+      postDuel?.events ?? resolution?.events ?? const [];
 
   GameScreenData get screenData => GameScreenData(
     playerId: local.playerId,
     chiliActive: context.chiliActive,
     elapsedSeconds: 0,
-    actionPoints: _actionPoints[local.playerId],
+    actionPoints: actionPoints[local.playerId],
     privateDataHidden: false,
     hand: [
       for (final state in _localCards.where(
@@ -225,15 +266,112 @@ final class LocalGameController {
         actionPoints: _actionPoints,
       );
       _actionPoints = Map.of(resolution!.actionPoints);
+      postDuel = LocalPostDuelController(
+        duel: resolution!,
+        duelEngine: duelEngine,
+        auctionEngine: auctionEngine,
+        corruptionEngine: corruptionEngine,
+      );
       phase = LocalRoundPhase.revealed;
       return;
     }
     throw StateError('Partner has no eligible card');
   }
 
+  void continueAfterDuel() {
+    _requirePhase(LocalRoundPhase.revealed);
+    postDuel!.continueAfterDuel();
+    _syncPostDuel();
+  }
+
+  void submitCounterBid(int amount, AuctionTarget target) {
+    _requirePhase(LocalRoundPhase.counterAuction);
+    postDuel!.counter(amount: amount, target: target);
+    _syncPostDuel();
+  }
+
+  void renounceCounterBid() {
+    _requirePhase(LocalRoundPhase.counterAuction);
+    postDuel!.renounceCounter();
+    _syncPostDuel();
+  }
+
+  void submitFinalDefense(int amount) {
+    _requirePhase(LocalRoundPhase.finalDefense);
+    postDuel!.defend(amount);
+    _syncPostDuel();
+  }
+
+  void renounceFinalDefense() {
+    _requirePhase(LocalRoundPhase.finalDefense);
+    postDuel!.renounceDefense();
+    _syncPostDuel();
+  }
+
+  List<GameCardView> get corruptionAvailableCards {
+    final owner = postDuel?.corruptionActorId;
+    if (owner == null) return const [];
+    final runtime = owner == local.playerId ? _localCards : _partnerCards;
+    return [
+      for (final card in runtime)
+        if (lifecycleEngine.canUseForCorruption(card)) _view(card),
+    ];
+  }
+
+  void proposeCorruption(
+    Iterable<String> cardIds,
+    CorruptionObjective objective,
+  ) {
+    _requirePhase(LocalRoundPhase.corruption);
+    final ids = cardIds.toSet();
+    final allowed = corruptionAvailableCards.map((card) => card.cardId).toSet();
+    if (ids.isEmpty || !allowed.containsAll(ids)) {
+      throw StateError(
+        'Corruption actions must come from the proposer discard',
+      );
+    }
+    postDuel!.proposeCorruption(
+      objective: objective,
+      cardIds: ids.toList(growable: false),
+    );
+  }
+
+  void respondToCorruption({required bool accepted}) {
+    _requirePhase(LocalRoundPhase.corruption);
+    if (accepted) {
+      postDuel!.acceptCorruption();
+    } else {
+      _applyCorruptionResult(postDuel!.refuseCorruption(_corruptionActorCards));
+    }
+    _syncPostDuel();
+  }
+
+  void recordCurrentAction(ActionExecutionStatus status) {
+    _requirePhase(LocalRoundPhase.actionExecution);
+    postDuel!.recordCurrentAction(status);
+  }
+
+  void finishCorruptionActions() {
+    _requirePhase(LocalRoundPhase.actionExecution);
+    _applyCorruptionResult(postDuel!.finishActions(_corruptionActorCards));
+    _syncPostDuel();
+  }
+
+  void consentStop() {
+    _requirePhase(LocalRoundPhase.actionExecution);
+    _applyCorruptionResult(postDuel!.stop(_corruptionActorCards));
+    _syncPostDuel();
+  }
+
+  void skipCorruption() {
+    _requirePhase(LocalRoundPhase.corruption);
+    postDuel!.skipCorruption();
+    _syncPostDuel();
+  }
+
   void continueToNextRound() {
-    if (phase != LocalRoundPhase.revealed) {
-      throw StateError('The duel must be resolved first');
+    if (phase != LocalRoundPhase.roundComplete) {
+      throw StateError('The post-duel resolution must be complete');
     }
     final localPlayed = localCommitment!.snapshot.cardId;
     final partnerPlayed = partnerCommitment!.snapshot.cardId;
@@ -247,6 +385,7 @@ final class LocalGameController {
     localCommitment = null;
     partnerCommitment = null;
     resolution = null;
+    postDuel = null;
     actionPointsBeforeResolution = null;
     phase = LocalRoundPhase.choosing;
   }
@@ -292,7 +431,13 @@ final class LocalGameController {
     final hand = drawEngine.refill(
       currentHand: current,
       cards: cards.values.map((card) => card.engine).toList(),
-      context: context,
+      context: context.copyWith(
+        exhaustedCardIds: {
+          ...context.exhaustedCardIds,
+          for (final card in runtime)
+            if (card.zone == CardZone.EXHAUSTED) card.cardId,
+        },
+      ),
       actor: actor.profile,
       partner: other.profile,
       hierarchy: hierarchy,
@@ -338,6 +483,44 @@ final class LocalGameController {
         ids.any((id) => !cards.containsKey(id))) {
       throw ArgumentError('Initial hand must contain configured unique cards');
     }
+  }
+
+  void _validateDiscard(LocalPlayerSetup player) {
+    final ids = player.initialDiscardIds;
+    if (ids.toSet().length != ids.length ||
+        ids.any((id) => !cards.containsKey(id)) ||
+        ids.any(player.initialHandIds.contains)) {
+      throw ArgumentError('Initial discard must contain known unique cards');
+    }
+  }
+
+  List<CardRuntimeState> get _corruptionActorCards =>
+      postDuel!.corruptionActorId == local.playerId
+      ? _localCards
+      : _partnerCards;
+
+  void _applyCorruptionResult(CorruptionResolution result) {
+    if (postDuel!.corruptionActorId == local.playerId) {
+      _localCards = List.of(result.cards);
+    } else {
+      _partnerCards = List.of(result.cards);
+    }
+  }
+
+  void _syncPostDuel() {
+    _actionPoints = Map.of(postDuel!.actionPoints);
+    phase = switch (postDuel!.phase) {
+      LocalPostDuelPhase.duelRevealed => LocalRoundPhase.revealed,
+      LocalPostDuelPhase.counterAuction => LocalRoundPhase.counterAuction,
+      LocalPostDuelPhase.finalDefense => LocalRoundPhase.finalDefense,
+      LocalPostDuelPhase.corruption => LocalRoundPhase.corruption,
+      LocalPostDuelPhase.actionExecution => LocalRoundPhase.actionExecution,
+      LocalPostDuelPhase.roundComplete => LocalRoundPhase.roundComplete,
+    };
+  }
+
+  void _requirePhase(LocalRoundPhase expected) {
+    if (phase != expected) throw StateError('Expected $expected, found $phase');
   }
 }
 
