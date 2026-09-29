@@ -1,7 +1,7 @@
 # Couple Cards — domaine et stockage local Flutter / Dart
 
-Phases 0 à 4. Projet Android/iOS, domaine, stockage Drift/SQLite et moteurs de
-jeu purs compatibles Windows. La seule UI est une coquille de lancement.
+Phases 0 à 4.5 et premier squelette visuel de partie. Projet Android/iOS,
+domaine, stockage Drift/SQLite et moteurs de jeu purs compatibles Windows.
 
 **État : catalogue réel accepté, zéro erreur référentielle.** Les 104 erreurs
 initiales sont corrigées ; les exigences de consentement sont conservées et complétées.
@@ -9,7 +9,8 @@ Voir [questions ouvertes](docs/open_questions.md) et [audit](docs/catalog_audit.
 
 ## Architecture
 
-- `lib/app/` : coquille Flutter et adaptateur AssetBundle.
+- `lib/app/` : application Flutter et adaptateur AssetBundle.
+- `lib/features/game/` : écran statique V1 alimenté par `GameScreenData`.
 - `lib/core/` : lecture JSON stricte, copie immuable, erreurs typées.
 - `lib/domain/` : définitions de contenu, enums, préférences privées et snapshot.
 - `lib/data/catalog_loader/` : chargement JSON et validation référentielle.
@@ -47,8 +48,8 @@ dart run tool/simulation_report.dart
 dart test test/simulation
 ```
 
-La campagne longue est explicite et séparée des tests CI. Aucun développement
-d'interface Phase 5 n'est commencé.
+La campagne longue est explicite et séparée des tests CI. Le premier écran de
+partie reste un squelette statique : aucune mécanique ni navigation complète.
 
 Les onze modèles demandés sont immuables, avec enums et codecs sans perte :
 CardDefinition, CardVariantDefinition, ProfileElementDefinition, TagDefinition,
