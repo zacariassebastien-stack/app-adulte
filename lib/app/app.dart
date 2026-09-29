@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../features/game/game_screen.dart';
-import '../features/game/local_game_controller.dart';
-import '../features/game/local_game_fixture.dart';
+import '../features/lobby/lobby_repository.dart';
+import '../features/lobby/two_phone_lobby_screen.dart';
 
 class CoupleCardsApp extends StatelessWidget {
-  const CoupleCardsApp({super.key});
+  const CoupleCardsApp({this.lobbyRepository, super.key});
+
+  final LobbyRepository? lobbyRepository;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -19,27 +20,8 @@ class CoupleCardsApp extends StatelessWidget {
       scaffoldBackgroundColor: const Color(0xFFF9F7F8),
       useMaterial3: true,
     ),
-    home: const _LocalGameHost(),
+    home: TwoPhoneLobbyScreen(
+      repository: lobbyRepository ?? const UnavailableLobbyRepository(),
+    ),
   );
-}
-
-class _LocalGameHost extends StatefulWidget {
-  const _LocalGameHost();
-
-  @override
-  State<_LocalGameHost> createState() => _LocalGameHostState();
-}
-
-class _LocalGameHostState extends State<_LocalGameHost> {
-  late final LocalGameController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = createLocalGameFixture();
-  }
-
-  @override
-  Widget build(BuildContext context) =>
-      GameScreen(data: controller.screenData, controller: controller);
 }

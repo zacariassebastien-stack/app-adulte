@@ -1,6 +1,7 @@
 import 'package:couple_cards/app/app.dart';
 import 'package:couple_cards/domain/game/game_screen_data.dart';
 import 'package:couple_cards/features/game/game_screen.dart';
+import 'package:couple_cards/features/lobby/two_phone_lobby_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -31,10 +32,11 @@ void main() {
     home: GameScreen(data: data(), privacyTransition: privacyTransition),
   );
 
-  testWidgets('application renders the static game screen', (tester) async {
+  testWidgets('application opens the two-phone lobby', (tester) async {
     await tester.pumpWidget(const CoupleCardsApp());
     expect(tester.takeException(), isNull);
-    expect(find.byType(GameScreen), findsOneWidget);
+    expect(find.byType(TwoPhoneLobbyScreen), findsOneWidget);
+    expect(find.text('Créer une partie'), findsOneWidget);
   });
 
   testWidgets('four hand cards are visible', (tester) async {
