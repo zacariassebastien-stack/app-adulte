@@ -99,8 +99,9 @@ abstract interface class NetworkRoundRepository {
 }
 
 final class NetworkRoundException implements Exception {
-  const NetworkRoundException(this.code);
+  const NetworkRoundException(this.code, {this.diagnostic});
   final String code;
+  final String? diagnostic;
 
   @override
   String toString() => code;

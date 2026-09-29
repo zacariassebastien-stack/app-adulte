@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:couple_cards/domain/domain.dart';
 import 'package:couple_cards/engines/engines.dart';
@@ -242,6 +243,49 @@ void main() {
             .digest,
         commitment.digest,
       );
+    });
+
+    test('Phase 6.3B payload matches the PostgreSQL canonical envelope', () {
+      final realisticChoice = ChoicePayload(
+        cardId: 'card.kiss_me',
+        variantId: 'variant.kiss_me.base',
+        parameters: const {
+          'role': 'RECEVOIR',
+          'personal_value': 13,
+          'committed_at': '2026-09-29T19:00:00.000Z',
+        },
+      );
+      const canonicalChoice =
+          '{"card_id":"card.kiss_me","parameters":{"committed_at":"2026-09-29T19:00:00.000Z","personal_value":13,"role":"RECEVOIR"},"variant_id":"variant.kiss_me.base"}';
+      const sessionRound = '11111111-1111-1111-1111-111111111111.round-1';
+      const playerId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+      const nonce = 'fixed-test-nonce';
+      const sqlEnvelope =
+          '["11111111-1111-1111-1111-111111111111.round-1","aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa","{\\"card_id\\":\\"card.kiss_me\\",\\"parameters\\":{\\"committed_at\\":\\"2026-09-29T19:00:00.000Z\\",\\"personal_value\\":13,\\"role\\":\\"RECEVOIR\\"},\\"variant_id\\":\\"variant.kiss_me.base\\"}","fixed-test-nonce"]';
+
+      expect(realisticChoice.canonicalJson(), canonicalChoice);
+      expect(
+        jsonEncode([sessionRound, playerId, canonicalChoice, nonce]),
+        sqlEnvelope,
+      );
+      expect(
+        contract
+            .commit(
+              sessionRound: sessionRound,
+              playerId: playerId,
+              choice: realisticChoice,
+              nonce: nonce,
+            )
+            .digest,
+        '55d2ade39bca0c69e99682eec11441fcdb9bc5a92a83ebfbe507df0a77479410',
+      );
+
+      final migration = File(
+        'supabase/migrations/202609290003_fix_network_reveal_digest.sql',
+      ).readAsStringSync();
+      expect(migration, contains('public.canonical_jsonb(p_choice_payload)'));
+      expect(migration, contains('extensions.digest('));
+      expect(migration, contains("'sha256'::text"));
     });
   });
 

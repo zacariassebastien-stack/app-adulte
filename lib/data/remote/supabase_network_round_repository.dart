@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../sync/commit_reveal/commit_reveal.dart';
@@ -79,7 +80,7 @@ final class SupabaseNetworkRoundRepository implements NetworkRoundRepository {
         ),
       );
     } on PostgrestException catch (error) {
-      throw _translate(error);
+      throw _translate(error, operation: 'get_network_round_state');
     }
   }
 
@@ -124,7 +125,7 @@ final class SupabaseNetworkRoundRepository implements NetworkRoundRepository {
         ),
       );
     } on PostgrestException catch (error) {
-      throw _translate(error);
+      throw _translate(error, operation: function);
     } on AuthException {
       throw const NetworkRoundException('ROUND_AUTH_REQUIRED');
     }
@@ -148,7 +149,10 @@ final class SupabaseNetworkRoundRepository implements NetworkRoundRepository {
     throw const FormatException('Invalid Supabase network round response');
   }
 
-  NetworkRoundException _translate(PostgrestException error) {
+  NetworkRoundException _translate(
+    PostgrestException error, {
+    required String operation,
+  }) {
     final marker = '${error.message} ${error.details ?? ''}';
     const codes = [
       'ROUND_AUTH_REQUIRED',
@@ -163,8 +167,26 @@ final class SupabaseNetworkRoundRepository implements NetworkRoundRepository {
       'ROUND_REVEAL_MISMATCH',
       'ROUND_INVALID_ARGUMENT',
     ];
-    return NetworkRoundException(
-      codes.firstWhere(marker.contains, orElse: () => 'ROUND_NETWORK_ERROR'),
+    final publicCode = codes.firstWhere(
+      marker.contains,
+      orElse: () => 'ROUND_NETWORK_ERROR',
     );
+    final diagnostic =
+        '$operation: PostgREST ${error.code} ${_safeMessage(error.message)}';
+    if (kDebugMode) debugPrint('Network round RPC failed: $diagnostic');
+    return NetworkRoundException(publicCode, diagnostic: diagnostic);
   }
+
+  String _safeMessage(String message) => message
+      .replaceAll(RegExp(r"'([^']|'')*'"), "'<redacted>'")
+      .replaceAll(RegExp(r'\{[^}]*\}'), '<redacted-json>')
+      .replaceAll(RegExp(r'\[[^\]]*\]'), '<redacted-json>')
+      .replaceAll(
+        RegExp(
+          r'\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b',
+        ),
+        '<redacted-id>',
+      )
+      .replaceAll(RegExp(r'\b[0-9a-fA-F]{32,}\b'), '<redacted-secret>')
+      .replaceAll(RegExp(r'eyJ[A-Za-z0-9._-]+'), '<redacted-token>');
 }
