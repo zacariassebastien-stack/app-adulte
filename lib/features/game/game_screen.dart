@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../domain/game/game_screen_data.dart';
 import '../../engines/engines.dart';
 import 'local_game_controller.dart';
+import 'local_recovery_controller.dart';
+import 'local_recovery_panel.dart';
 
 /// Game layout with local hand interactions.
 ///
@@ -37,8 +39,13 @@ class _GameScreenState extends State<GameScreen> {
   String? _resolutionError;
   LocalRoundPhase _roundState = LocalRoundPhase.choosing;
 
-  bool get _hidePrivateData =>
+  bool get _externalPrivateTransition =>
       widget.privacyTransition || _data.privateDataHidden;
+  bool get _hidePrivateData =>
+      _externalPrivateTransition ||
+      (widget.controller?.phase == LocalRoundPhase.betweenRounds &&
+          widget.controller?.recoveryController.phase ==
+              LocalRecoveryPhase.extensionPrivateTransition);
   GameScreenData get _data => widget.controller?.screenData ?? widget.data;
   LocalRoundPhase get _phase => widget.controller?.phase ?? _roundState;
   GameCardView? get _selectedCard {
@@ -174,7 +181,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _applyControllerAction(void Function(LocalGameController) action) {
-    if (_hidePrivateData || widget.controller == null) return;
+    if (_externalPrivateTransition || widget.controller == null) return;
     setState(() {
       try {
         action(widget.controller!);
@@ -188,9 +195,15 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  bool get _resolvingRound =>
-      _phase != LocalRoundPhase.choosing &&
-      _phase != LocalRoundPhase.waitingForPartner;
+  bool get _resolvingRound => switch (_phase) {
+    LocalRoundPhase.revealed ||
+    LocalRoundPhase.counterAuction ||
+    LocalRoundPhase.finalDefense ||
+    LocalRoundPhase.corruption ||
+    LocalRoundPhase.actionExecution ||
+    LocalRoundPhase.roundComplete => true,
+    _ => false,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +219,16 @@ class _GameScreenState extends State<GameScreen> {
               _GameHeader(data: _data, hidePrivateData: _hidePrivateData),
               const SizedBox(height: 10),
               Expanded(
-                child: _resolvingRound && _selectedCard != null
+                child:
+                    _phase == LocalRoundPhase.betweenRounds &&
+                        widget.controller != null
+                    ? LocalRecoveryPanel(
+                        controller: widget.controller!,
+                        privacyTransition: _externalPrivateTransition,
+                        error: _resolutionError,
+                        onAction: _applyControllerAction,
+                      )
+                    : _resolvingRound && _selectedCard != null
                     ? _RevealArea(
                         localCard: _selectedCard!,
                         partnerCard: _partnerCard,
@@ -237,6 +259,10 @@ class _GameScreenState extends State<GameScreen> {
                     ? _WaitingForPartner(onSimulate: _revealPrototypeRound)
                     : _resolvingRound
                     ? _RevealedStatus(phase: _phase)
+                    : _phase == LocalRoundPhase.betweenRounds
+                    ? const _RevealedStatus(
+                        phase: LocalRoundPhase.betweenRounds,
+                      )
                     : _PlayerHand(
                         cards: _data.hand,
                         lockedCardId: _lockedCardId,
@@ -460,6 +486,7 @@ class _RevealedStatus extends StatelessWidget {
         LocalRoundPhase.corruption => 'Étape · Tentations',
         LocalRoundPhase.actionExecution => 'Étape · Exécution',
         LocalRoundPhase.roundComplete => 'Manche prête à être terminée',
+        LocalRoundPhase.betweenRounds => 'Entre les manches',
         _ => '',
       },
       key: const Key('revealed-status'),

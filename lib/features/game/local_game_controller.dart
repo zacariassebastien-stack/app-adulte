@@ -1,6 +1,7 @@
 import '../../domain/domain.dart';
 import '../../engines/engines.dart';
 import 'local_post_duel_controller.dart';
+import 'local_recovery_controller.dart';
 
 enum LocalRoundPhase {
   choosing,
@@ -11,6 +12,7 @@ enum LocalRoundPhase {
   corruption,
   actionExecution,
   roundComplete,
+  betweenRounds,
 }
 
 final class LocalGameCard {
@@ -34,6 +36,7 @@ final class LocalPlayerSetup {
     required Iterable<String> initialHandIds,
     required Map<String, LocalVariantPreference> preferencesByVariant,
     Iterable<String> initialDiscardIds = const [],
+    this.initialActionPoints,
   }) : initialHandIds = List.unmodifiable(initialHandIds),
        initialDiscardIds = List.unmodifiable(initialDiscardIds),
        preferencesByVariant = Map.unmodifiable(preferencesByVariant);
@@ -42,6 +45,7 @@ final class LocalPlayerSetup {
   final PlayerGameProfile profile;
   final List<String> initialHandIds;
   final List<String> initialDiscardIds;
+  final int? initialActionPoints;
   final Map<String, LocalVariantPreference> preferencesByVariant;
 }
 
@@ -71,6 +75,7 @@ final class LocalGameController {
     this.lifecycleEngine = const LifecycleEngine(),
     this.auctionEngine = const AuctionEngine(),
     this.corruptionEngine = const CorruptionEngine(),
+    this.recoveryEngine = const RecoveryEngine(),
     RandomSource? random,
     DateTime Function()? clock,
   }) : cards = Map.unmodifiable({
@@ -79,8 +84,10 @@ final class LocalGameController {
        random = random ?? SeededRandomSource(5304),
        clock = clock ?? DateTime.now,
        _actionPoints = {
-         local.playerId: duelEngine.config.initialPa,
-         partner.playerId: duelEngine.config.initialPa,
+         local.playerId:
+             local.initialActionPoints ?? duelEngine.config.initialPa,
+         partner.playerId:
+             partner.initialActionPoints ?? duelEngine.config.initialPa,
        },
        _localCards = [
          for (final id in local.initialHandIds)
@@ -125,6 +132,21 @@ final class LocalGameController {
     if (partnerLocked != null) {
       _partnerCards = lifecycleEngine.lock(_partnerCards, partnerLocked);
     }
+    recoveryController = LocalRecoveryController(
+      cards: this.cards.values.map((card) => card.engine),
+      local: LocalRecoveryParticipant(
+        playerId: local.playerId,
+        profile: local.profile,
+      ),
+      partner: LocalRecoveryParticipant(
+        playerId: partner.playerId,
+        profile: partner.profile,
+      ),
+      context: context,
+      hierarchy: hierarchy,
+      recoveryEngine: recoveryEngine,
+      lifecycleEngine: lifecycleEngine,
+    );
   }
 
   final Map<String, LocalGameCard> cards;
@@ -136,6 +158,8 @@ final class LocalGameController {
   final LifecycleEngine lifecycleEngine;
   final AuctionEngine auctionEngine;
   final CorruptionEngine corruptionEngine;
+  final RecoveryEngine recoveryEngine;
+  late final LocalRecoveryController recoveryController;
   final RandomSource random;
   final DateTime Function() clock;
 
@@ -149,8 +173,9 @@ final class LocalGameController {
   late List<CardRuntimeState> _localCards, _partnerCards;
   late final Map<String, CardHistoryState> _localHistory, _partnerHistory;
 
-  Map<String, int> get actionPoints =>
-      postDuel?.actionPoints ?? Map.unmodifiable(_actionPoints);
+  Map<String, int> get actionPoints => phase == LocalRoundPhase.betweenRounds
+      ? recoveryController.actionPoints
+      : postDuel?.actionPoints ?? Map.unmodifiable(_actionPoints);
   List<CardRuntimeState> get localCards => List.unmodifiable(_localCards);
   List<CardRuntimeState> get partnerCards => List.unmodifiable(_partnerCards);
   String? get selectedLocalCardId => localCommitment?.snapshot.cardId;
@@ -167,6 +192,11 @@ final class LocalGameController {
   ActionPromise? get currentExecutionAction => postDuel?.currentAction;
   List<GameEvent> get roundEvents =>
       postDuel?.events ?? resolution?.events ?? const [];
+  bool recoveryAvailableFor(String playerId) =>
+      recoveryController.recoveryAvailable(playerId);
+  bool get bothPlayersLow => recoveryController.bothPlayersLow;
+  List<LocalRecoveryOption> recoveryOptionsFor(String playerId) =>
+      recoveryController.optionsFor(playerId);
 
   GameScreenData get screenData => GameScreenData(
     playerId: local.playerId,
@@ -387,6 +417,92 @@ final class LocalGameController {
     resolution = null;
     postDuel = null;
     actionPointsBeforeResolution = null;
+    recoveryController.afterNormalDuel(
+      actionPoints: _actionPoints,
+      runtime: {local.playerId: _localCards, partner.playerId: _partnerCards},
+    );
+    phase = LocalRoundPhase.betweenRounds;
+  }
+
+  void startRecovery(String playerId) {
+    _requirePhase(LocalRoundPhase.betweenRounds);
+    recoveryController.startRecovery(playerId);
+  }
+
+  void selectRecoveryAction(String cardId, String variantId) {
+    _requirePhase(LocalRoundPhase.betweenRounds);
+    recoveryController.selectAction(cardId, variantId);
+  }
+
+  void answerRecovery(RecoveryResponse response) {
+    _requirePhase(LocalRoundPhase.betweenRounds);
+    recoveryController.answer(response);
+  }
+
+  void selectRecoveryCondition(String cardId, String variantId) {
+    _requirePhase(LocalRoundPhase.betweenRounds);
+    recoveryController.selectCondition(cardId, variantId);
+  }
+
+  void recordRecoveryAction(ActionExecutionStatus status) {
+    _requirePhase(LocalRoundPhase.betweenRounds);
+    recoveryController.recordCurrent(status);
+  }
+
+  void finishRecoveryExecution() {
+    _requirePhase(LocalRoundPhase.betweenRounds);
+    recoveryController.finishExecution();
+  }
+
+  void stopRecovery() {
+    _requirePhase(LocalRoundPhase.betweenRounds);
+    recoveryController.consentStop();
+  }
+
+  void startMutualExtension(int amount) {
+    _requirePhase(LocalRoundPhase.betweenRounds);
+    recoveryController.startMutualExtension(amount);
+  }
+
+  void confirmExtensionFirst() => recoveryController.confirmExtensionFirst();
+  void showExtensionToSecondPlayer() =>
+      recoveryController.showExtensionToSecondPlayer();
+  void answerExtensionSecond({required bool accepted}) =>
+      recoveryController.answerExtensionSecond(accepted: accepted);
+
+  void finishBetweenRoundAction() {
+    _requirePhase(LocalRoundPhase.betweenRounds);
+    if (recoveryController.phase != LocalRecoveryPhase.complete) {
+      throw StateError('Between-round action is not complete');
+    }
+    _actionPoints = Map.of(recoveryController.actionPoints);
+    final runtime = recoveryController.runtime;
+    _localCards = List.of(runtime[local.playerId]!);
+    _partnerCards = List.of(runtime[partner.playerId]!);
+    final recovering = recoveryController.recoveringPlayerId;
+    if (recovering != null) {
+      final history = recovering == local.playerId
+          ? _localHistory
+          : _partnerHistory;
+      for (final item in recoveryController.execution) {
+        if (item.status == ActionExecutionStatus.COMPLETED) {
+          history[item.option.card.id] = CardHistoryState.playedOrDiscarded;
+        }
+      }
+      if (recovering == local.playerId) {
+        _localCards = _refill(local, partner, _localCards, _localHistory);
+      } else {
+        _partnerCards = _refill(partner, local, _partnerCards, _partnerHistory);
+      }
+    }
+    recoveryController.resetCompletedFlow();
+  }
+
+  void startNextRound() {
+    _requirePhase(LocalRoundPhase.betweenRounds);
+    if (recoveryController.phase != LocalRecoveryPhase.idle) {
+      throw StateError('Finish the between-round action first');
+    }
     phase = LocalRoundPhase.choosing;
   }
 

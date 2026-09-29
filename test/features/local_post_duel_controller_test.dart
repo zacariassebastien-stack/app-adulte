@@ -226,10 +226,12 @@ void main() {
     final controller = atCorruption()..skipCorruption();
     controller.continueToNextRound();
 
-    expect(controller.phase, LocalRoundPhase.choosing);
+    expect(controller.phase, LocalRoundPhase.betweenRounds);
     expect(controller.roundNumber, 2);
     expect(controller.screenData.hand, hasLength(4));
     expect(controller.postDuel, isNull);
+    controller.startNextRound();
+    expect(controller.phase, LocalRoundPhase.choosing);
   });
 
   testWidgets('auction UI rejects low bid then opens final defense', (

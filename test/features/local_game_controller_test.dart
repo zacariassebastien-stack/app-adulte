@@ -119,6 +119,8 @@ void main() {
       controller.localCards.where((card) => card.locked).single.cardId,
       'local-card-1',
     );
+    expect(controller.phase, LocalRoundPhase.betweenRounds);
+    controller.startNextRound();
     expect(controller.phase, LocalRoundPhase.choosing);
   });
 
@@ -127,6 +129,7 @@ void main() {
     commitAndResolve(controller);
     completePostDuel(controller);
     controller.continueToNextRound();
+    controller.startNextRound();
     final next = controller.screenData.hand
         .where((card) => controller.choicesForLocalCard(card.cardId).isNotEmpty)
         .first;
@@ -203,6 +206,10 @@ void main() {
       await tester.tap(find.byKey(const Key('finish-round-button')));
       await tester.pump();
       expect(find.text('90'), findsOneWidget);
+      expect(find.byKey(const Key('between-rounds-panel')), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const Key('start-next-round')));
+      await tester.tap(find.byKey(const Key('start-next-round')));
+      await tester.pump();
       expect(find.text('Ma main · 4/4'), findsOneWidget);
       expect(find.text('Défausse · 2 cartes'), findsOneWidget);
       expect(tester.takeException(), isNull);

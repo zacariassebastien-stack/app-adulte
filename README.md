@@ -11,7 +11,7 @@ Voir [questions ouvertes](docs/open_questions.md) et [audit](docs/catalog_audit.
 
 - `lib/app/` : application Flutter et adaptateur AssetBundle.
 - `lib/features/game/` : écran V1, fixtures et contrôleurs locaux qui orchestrent
-  sélection, duel, enchère, corruption, lifecycle et tirage.
+  sélection, duel, enchère, corruption, Recovery, lifecycle et tirage.
 - `lib/core/` : lecture JSON stricte, copie immuable, erreurs typées.
 - `lib/domain/` : définitions de contenu, enums, préférences privées et snapshot.
 - `lib/data/catalog_loader/` : chargement JSON et validation référentielle.
@@ -59,6 +59,13 @@ vainqueur ; il valide seulement la séquence promise et le lifecycle des cartes.
 De même, `DuelEngine.inverted` conserve le snapshot engagé sans exposer encore
 un modèle distinct de rôles physiques. Le prototype affiche fidèlement ces
 limites au lieu d'ajouter une règle UI.
+
+Entre deux manches, `LocalRecoveryController` délègue le seuil, l'éligibilité
+catalogue, le gain, le lifecycle et l'extension mutuelle à `RecoveryEngine`.
+Conformément à l'intégration Phase 3 existante, l'unique condition vient de la
+défausse du joueur qui récupère. Le moteur autorise théoriquement un gain au-delà
+des PA initiaux, mais le seuil de 20 % et les valeurs éditoriales `/20` limitent
+le parcours normal actuel ; aucun plafond supplémentaire n'est appliqué.
 
 Les onze modèles demandés sont immuables, avec enums et codecs sans perte :
 CardDefinition, CardVariantDefinition, ProfileElementDefinition, TagDefinition,
@@ -156,4 +163,5 @@ Les 19 axes disposent de métriques descriptives, sans profils humoristiques fin
 Voir aussi [les simulations Phase 4](docs/phase4_simulation.md)
 et [l'architecture des moteurs conservés](docs/phase3_engines.md). L'interface
 reste locale : duel, enchère et corruption sont branchés aux moteurs existants,
-sans réseau, Recovery ni persistance de production.
+ainsi que Recovery et extension mutuelle entre les manches, sans réseau ni
+persistance de production.

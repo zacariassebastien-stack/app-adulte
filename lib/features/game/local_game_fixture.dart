@@ -6,6 +6,9 @@ LocalGameController createLocalGameFixture({
   int localRecevoir = 13,
   int partnerFaire = 11,
   int partnerRecevoir = 9,
+  int? localPa,
+  int? partnerPa,
+  int chiliActive = 2,
   Set<String> removedVariantIds = const {},
 }) {
   const elementId = 'fixture.shared-action';
@@ -105,6 +108,7 @@ LocalGameController createLocalGameFixture({
         'local-card-3',
       ],
       initialDiscardIds: const ['local-card-6'],
+      initialActionPoints: localPa,
       preferencesByVariant: localPreferences,
     ),
     partner: LocalPlayerSetup(
@@ -117,13 +121,14 @@ LocalGameController createLocalGameFixture({
         'local-card-5',
       ],
       initialDiscardIds: const ['local-card-7'],
+      initialActionPoints: partnerPa,
       preferencesByVariant: partnerPreferences,
     ),
     context: EngineSessionContext(
       mode: SessionMode.face_to_face,
       proximity: ProximityState.TOGETHER,
-      chiliActive: 2,
-      chiliUnlocked: 2,
+      chiliActive: chiliActive,
+      chiliUnlocked: chiliActive,
       removedVariantIds: removedVariantIds,
     ),
     hierarchy: ProfileHierarchy(const {elementId: null}),
