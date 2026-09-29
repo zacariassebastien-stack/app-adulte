@@ -1,5 +1,6 @@
 import 'lobby_models.dart';
 import '../../sync/rounds/network_round.dart';
+import '../../sync/rounds/network_game.dart';
 
 abstract interface class LobbyRepository {
   Future<LobbySession> createSession({required String commandId});
@@ -14,6 +15,7 @@ abstract interface class LobbyRepository {
 /// Capabilities available only when the real two-phone backend is configured.
 abstract interface class NetworkLobbyRepository implements LobbyRepository {
   NetworkRoundRepository get roundRepository;
+  NetworkGameRepository get gameRepository;
   Future<String> currentPlayerId();
 }
 

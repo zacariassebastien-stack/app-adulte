@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/catalog/catalog.dart';
-import '../../sync/rounds/network_round.dart';
+import '../../engines/auction/auction_engine.dart';
+import '../../sync/rounds/network_game.dart';
 import '../lobby/lobby_models.dart';
-import 'network_duel_controller.dart';
 import 'network_duel_secret_store.dart';
+import 'network_game_controller.dart';
 
 class NetworkDuelScreen extends StatefulWidget {
   const NetworkDuelScreen({
@@ -18,7 +19,7 @@ class NetworkDuelScreen extends StatefulWidget {
 
   final LobbySession session;
   final String playerId;
-  final NetworkRoundRepository repository;
+  final NetworkGameRepository repository;
   final Catalog catalog;
   final NetworkDuelSecretStore secretStore;
 
@@ -27,16 +28,20 @@ class NetworkDuelScreen extends StatefulWidget {
 }
 
 class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
-  late final NetworkDuelController controller;
+  late final NetworkGameController controller;
+  final counterController = TextEditingController();
+  final defenseController = TextEditingController();
+  AuctionTarget counterTarget = AuctionTarget.OWN_INITIAL_ACTION;
+  String? actionError;
 
   @override
   void initState() {
     super.initState();
-    controller = NetworkDuelController(
+    controller = NetworkGameController(
       session: widget.session,
       playerId: widget.playerId,
       repository: widget.repository,
-      secretStore: widget.secretStore,
+      privateStore: widget.secretStore,
       catalog: widget.catalog,
     )..addListener(_refresh);
     controller.start();
@@ -51,38 +56,63 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     controller
       ..removeListener(_refresh)
       ..dispose();
+    counterController.dispose();
+    defenseController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Premier duel')),
+    appBar: AppBar(title: Text('TOUR ${controller.roundNumber}')),
     body: SafeArea(
-      child: switch (controller.state) {
-        NetworkDuelViewState.loading => const Center(
-          child: CircularProgressIndicator(key: Key('duel-loading')),
-        ),
-        NetworkDuelViewState.choosing ||
-        NetworkDuelViewState.committing => _choosing(),
-        NetworkDuelViewState.waitingForPartner ||
-        NetworkDuelViewState.revealing => _waiting(),
-        NetworkDuelViewState.resolved => _result(),
-        NetworkDuelViewState.error => _error(),
-      },
+      child: Column(
+        children: [
+          if (controller.actionPoints.isNotEmpty) _points(),
+          Expanded(child: _body()),
+        ],
+      ),
     ),
   );
 
+  Widget _points() => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text('Tes PA : ${controller.actionPoints[controller.playerId]}'),
+        Text(
+          'Partenaire : ${controller.actionPoints[controller.opponentId]} PA',
+        ),
+      ],
+    ),
+  );
+
+  Widget _body() => switch (controller.viewState) {
+    NetworkGameViewState.loading => const Center(
+      child: CircularProgressIndicator(key: Key('duel-loading')),
+    ),
+    NetworkGameViewState.choosing ||
+    NetworkGameViewState.committing => _choosing(),
+    NetworkGameViewState.waitingForPartner ||
+    NetworkGameViewState.revealing => _waiting(),
+    NetworkGameViewState.counterDecision => _counterDecision(),
+    NetworkGameViewState.finalDefenseDecision => _finalDefense(),
+    NetworkGameViewState.tieDecision => _tieDecision(),
+    NetworkGameViewState.finalResult => _finalResult(),
+    NetworkGameViewState.waitingNext => _waitingNext(),
+    NetworkGameViewState.error => _error(),
+  };
+
   Widget _choosing() => ListView(
-    key: const Key('network-duel-hand'),
+    key: const Key('network-game-hand'),
     padding: const EdgeInsets.all(16),
     children: [
       Text(
         'Choisis une carte',
         style: Theme.of(context).textTheme.headlineSmall,
       ),
-      const SizedBox(height: 8),
-      const Text('Cette main reste uniquement sur ce téléphone.'),
-      const SizedBox(height: 16),
+      const Text('Ta main, ton verrou et tes notes restent privés.'),
+      const SizedBox(height: 12),
       for (final card in controller.hand) ...[
         Card(
           color: controller.selectedCard?.id == card.id
@@ -90,10 +120,21 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               : null,
           child: ListTile(
             key: Key('network-card-${card.id}'),
-            onTap: controller.state == NetworkDuelViewState.choosing
+            onTap: controller.viewState == NetworkGameViewState.choosing
                 ? () => controller.selectCard(card.id)
                 : null,
-            leading: const Icon(Icons.style_outlined),
+            leading: IconButton(
+              key: Key('lock-${card.id}'),
+              tooltip: controller.lockedCardId == card.id
+                  ? 'Déverrouiller'
+                  : 'Verrouiller',
+              onPressed: () => controller.toggleLock(card.id),
+              icon: Icon(
+                controller.lockedCardId == card.id
+                    ? Icons.lock
+                    : Icons.lock_open,
+              ),
+            ),
             title: Text(card.title),
             subtitle: Text(
               '${card.role.name} · ${_chilies(card.chiliLevel)} · ${card.personalValue}/20',
@@ -105,136 +146,273 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         ),
         const SizedBox(height: 8),
       ],
-      const SizedBox(height: 8),
       FilledButton(
         key: const Key('confirm-network-card'),
         onPressed:
             controller.selectedCard != null &&
-                controller.state == NetworkDuelViewState.choosing
+                controller.viewState == NetworkGameViewState.choosing
             ? controller.confirmSelection
             : null,
-        child: Text(
-          controller.state == NetworkDuelViewState.committing
-              ? 'Validation…'
-              : 'Valider ce choix',
-        ),
+        child: const Text('Valider ce choix'),
       ),
     ],
   );
 
-  Widget _waiting() => Center(
+  Widget _waiting() => _centerMessage(
+    controller.viewState == NetworkGameViewState.revealing
+        ? 'Validation sécurisée des choix…'
+        : 'En attente de ton partenaire…',
+    key: const Key('network-duel-waiting'),
+  );
+
+  Widget _counterDecision() {
+    final initial = controller.initialResolution!;
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _initialResult(initial),
+        const SizedBox(height: 16),
+        if (!controller.isInitialLoser)
+          _waitingCard('Ton partenaire choisit s’il contre-enchérit.')
+        else ...[
+          FilledButton.tonal(
+            key: const Key('accept-initial-result'),
+            onPressed: controller.acceptInitialResult,
+            child: const Text('Accepter le résultat'),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            key: const Key('counter-amount'),
+            controller: counterController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Montant de la contre-enchère',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          RadioGroup<AuctionTarget>(
+            groupValue: counterTarget,
+            onChanged: (value) => setState(() => counterTarget = value!),
+            child: Column(
+              children: [
+                const RadioListTile(
+                  value: AuctionTarget.OWN_INITIAL_ACTION,
+                  title: Text('Défendre ma carte'),
+                ),
+                if (controller.inversionAllowed)
+                  const RadioListTile(
+                    value: AuctionTarget.INVERT_WINNING_ACTION,
+                    title: Text('Inverser la carte gagnante'),
+                  ),
+              ],
+            ),
+          ),
+          FilledButton(
+            key: const Key('submit-counter-bid'),
+            onPressed: _submitCounter,
+            child: const Text('Contre-enchérir'),
+          ),
+        ],
+        if (actionError case final message?) _errorText(message),
+      ],
+    );
+  }
+
+  Widget _finalDefense() {
+    final initial = controller.initialResolution!;
+    final counter = controller.round!.counterBid!;
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _initialResult(initial),
+        Text('Contre-enchère : ${counter.amount} PA'),
+        const SizedBox(height: 16),
+        if (!controller.isInitialWinner)
+          _waitingCard('Ton partenaire choisit sa défense finale.')
+        else ...[
+          FilledButton.tonal(
+            key: const Key('yield-final-defense'),
+            onPressed: controller.yieldFinalDefense,
+            child: const Text('Laisser gagner'),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            key: const Key('defense-amount'),
+            controller: defenseController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText:
+                  'Défense finale (minimum ${controller.minimumDefense})',
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          FilledButton(
+            key: const Key('submit-final-defense'),
+            onPressed: _submitDefense,
+            child: const Text('Défendre'),
+          ),
+        ],
+        if (actionError case final message?) _errorText(message),
+      ],
+    );
+  }
+
+  Widget _tieDecision() => ListView(
+    padding: const EdgeInsets.all(16),
+    children: [
+      _initialResult(controller.initialResolution!),
+      const SizedBox(height: 16),
+      FilledButton.tonal(
+        key: const Key('concede-tie'),
+        onPressed: controller.hasSubmittedTieDecision
+            ? null
+            : controller.concedeTie,
+        child: const Text('Concéder'),
+      ),
+      const SizedBox(height: 12),
+      OutlinedButton(
+        key: const Key('abandon-tie'),
+        onPressed: controller.hasSubmittedTieDecision
+            ? null
+            : controller.abandonTie,
+        child: const Text('Abandonner ce round'),
+      ),
+      if (controller.round!.tieDecisions[controller.playerId] ==
+          TieDecision.abandon)
+        const Padding(
+          padding: EdgeInsets.only(top: 16),
+          child: Text('En attente de la décision du partenaire…'),
+        ),
+    ],
+  );
+
+  Widget _finalResult() {
+    final result = controller.finalResolution!;
+    final title = result.mutualAbandon
+        ? 'Round abandonné mutuellement'
+        : result.retainedPlayerId == controller.playerId
+        ? 'Ton action est retenue'
+        : 'Action du partenaire retenue';
+    return ListView(
+      key: const Key('network-final-result'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(title, style: Theme.of(context).textTheme.headlineSmall),
+        if (!result.mutualAbandon) ...[
+          const SizedBox(height: 12),
+          Text('Carte : ${_title(result.cardId!)}'),
+          Text('Variante : ${result.variantId}'),
+          if (result.inverted) const Text('Rôles physiques inversés'),
+        ],
+        const SizedBox(height: 20),
+        FilledButton(
+          key: const Key('ready-next-round'),
+          onPressed: controller.readyForNextRound,
+          child: const Text('Tour suivant'),
+        ),
+      ],
+    );
+  }
+
+  Widget _waitingNext() => _centerMessage(
+    'Prêt pour le prochain tour — En attente de ton partenaire…',
+    key: const Key('waiting-next-round'),
+  );
+
+  Widget _initialResult(NetworkInitialResolutionDto initial) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Text(
+            initial.tied
+                ? 'Égalité'
+                : initial.winnerPlayerId == controller.playerId
+                ? 'Tu remportes le duel initial'
+                : 'Ton partenaire remporte le duel initial',
+            style: Theme.of(context).textTheme.titleLarge,
+            textAlign: TextAlign.center,
+          ),
+          Text('Écart : ${initial.gap} · Coût PA : ${initial.gapCost}'),
+        ],
+      ),
+    ),
+  );
+
+  Widget _waitingCard(String message) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(20),
+      child: Text(message, textAlign: TextAlign.center),
+    ),
+  );
+
+  Widget _centerMessage(String message, {required Key key}) => Center(
     child: Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const CircularProgressIndicator(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Text(
-            controller.state == NetworkDuelViewState.revealing
-                ? 'Validation sécurisée des choix…'
-                : 'En attente de ton partenaire…',
-            key: const Key('network-duel-waiting'),
+            message,
+            key: key,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Les cartes restent secrètes jusqu’à la révélation des deux choix.',
-            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
         ],
       ),
     ),
   );
 
-  Widget _result() {
-    final duel = controller.resolution!;
-    final own = controller.localRevealedChoice!;
-    final other = controller.opponentRevealedChoice!;
-    final ownSnapshot = duel.first.snapshot.playerId == controller.playerId
-        ? duel.first.snapshot
-        : duel.second.snapshot;
-    final otherSnapshot = duel.first.snapshot.playerId == controller.playerId
-        ? duel.second.snapshot
-        : duel.first.snapshot;
-    final winner = duel.winnerPlayerId;
-    final resultText = duel.tied
-        ? 'Égalité'
-        : winner == controller.playerId
-        ? 'Tu remportes le duel'
-        : 'Ton partenaire remporte le duel';
-    return ListView(
-      key: const Key('network-duel-result'),
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(
-          'Cartes révélées',
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 16),
-        _revealedCard('Ta carte', own.choice.cardId, ownSnapshot.personalValue),
-        _revealedCard(
-          'Carte du partenaire',
-          other.choice.cardId,
-          otherSnapshot.personalValue,
-        ),
-        const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Text(
-                  resultText,
-                  key: const Key('network-duel-outcome'),
-                  style: Theme.of(context).textTheme.titleLarge,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text('Écart : ${duel.gap} · Coût PA : ${duel.gapCost}'),
-                Text(
-                  'PA : ${duel.actionPoints[controller.playerId]} · '
-                  'Partenaire : ${duel.actionPoints[controller.opponentId]}',
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
+  Widget _error() => _centerMessage(
+    'Impossible de poursuivre la partie.\n${controller.errorMessage ?? ''}',
+    key: const Key('network-game-error'),
+  );
+
+  Widget _errorText(String message) => Padding(
+    padding: const EdgeInsets.only(top: 12),
+    child: Text(
+      message,
+      style: TextStyle(color: Theme.of(context).colorScheme.error),
+    ),
+  );
+
+  Future<void> _submitCounter() async {
+    final amount = int.tryParse(counterController.text);
+    if (amount == null) {
+      setState(() => actionError = 'Montant invalide.');
+      return;
+    }
+    try {
+      await controller.submitCounterBid(amount, counterTarget);
+      if (mounted) setState(() => actionError = null);
+    } catch (error) {
+      if (mounted) setState(() => actionError = error.toString());
+    }
   }
 
-  Widget _revealedCard(String label, String cardId, int value) {
+  Future<void> _submitDefense() async {
+    final amount = int.tryParse(defenseController.text);
+    if (amount == null) {
+      setState(() => actionError = 'Montant invalide.');
+      return;
+    }
+    try {
+      await controller.submitFinalDefense(amount);
+      if (mounted) setState(() => actionError = null);
+    } catch (error) {
+      if (mounted) setState(() => actionError = error.toString());
+    }
+  }
+
+  String _title(String cardId) {
     final card = widget.catalog.cards.firstWhere(
       (item) => item.stableId == cardId,
     );
-    final variant = card.variants.firstWhere(
-      (item) =>
-          item.stableId ==
-          (label == 'Ta carte'
-              ? controller.localRevealedChoice!.choice.variantId
-              : controller.opponentRevealedChoice!.choice.variantId),
-    );
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.auto_awesome),
-        title: Text('$label — ${card.title ?? card.titleKey ?? cardId}'),
-        subtitle: Text('${_chilies(variant.chiliLevel)} · Puissance $value/20'),
-      ),
-    );
+    return card.title ?? card.titleKey ?? cardId;
   }
-
-  Widget _error() => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Text(
-        'Impossible de poursuivre ce duel.\n${controller.errorMessage ?? ''}',
-        key: const Key('network-duel-error'),
-        textAlign: TextAlign.center,
-      ),
-    ),
-  );
 
   String _chilies(int level) => List.filled(level, '🌶️').join();
 }

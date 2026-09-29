@@ -198,7 +198,7 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
           builder: (_) => NetworkDuelScreen(
             session: controller.session!,
             playerId: results[0] as String,
-            repository: repository.roundRepository,
+            repository: repository.gameRepository,
             catalog: results[1] as Catalog,
           ),
         ),

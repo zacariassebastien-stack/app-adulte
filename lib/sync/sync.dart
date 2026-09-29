@@ -3,3 +3,4 @@ export 'projection/network_visibility_projection.dart';
 export 'protocol/idempotency.dart';
 export 'protocol/network_dtos.dart';
 export 'rounds/network_round.dart';
+export 'rounds/network_game.dart';

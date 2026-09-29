@@ -2,7 +2,66 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../domain/game/game_models.dart';
+import '../../domain/session/session_state.dart';
+import '../../engines/draw/draw_engine.dart';
 import '../../sync/commit_reveal/commit_reveal.dart';
+
+final class NetworkPrivateGameState {
+  NetworkPrivateGameState({
+    required this.roundNumber,
+    required List<CardRuntimeState> cards,
+    required Map<String, CardHistoryState> history,
+    this.activeReveal,
+    this.nextRoundPrepared = false,
+  }) : cards = List.unmodifiable(cards),
+       history = Map.unmodifiable(history);
+
+  final int roundNumber;
+  final List<CardRuntimeState> cards;
+  final Map<String, CardHistoryState> history;
+  final ChoiceRevealDto? activeReveal;
+  final bool nextRoundPrepared;
+
+  Map<String, Object?> toJson() => {
+    'round_number': roundNumber,
+    'cards': [
+      for (final card in cards)
+        {'card_id': card.cardId, 'zone': card.zone.name, 'locked': card.locked},
+    ],
+    'history': {
+      for (final entry in history.entries) entry.key: entry.value.name,
+    },
+    'active_reveal': activeReveal?.toJson(),
+    'next_round_prepared': nextRoundPrepared,
+  };
+
+  factory NetworkPrivateGameState.fromJson(Map<String, Object?> json) =>
+      NetworkPrivateGameState(
+        roundNumber: json['round_number']! as int,
+        cards: [
+          for (final value in json['cards']! as List)
+            if (Map<String, Object?>.from(value! as Map) case final card)
+              CardRuntimeState(
+                cardId: card['card_id']! as String,
+                zone: CardZone.values.byName(card['zone']! as String),
+                locked: card['locked']! as bool,
+              ),
+        ],
+        history: {
+          for (final entry in (json['history']! as Map).entries)
+            entry.key as String: CardHistoryState.values.byName(
+              entry.value! as String,
+            ),
+        },
+        activeReveal: json['active_reveal'] == null
+            ? null
+            : ChoiceRevealDto.fromJson(
+                Map<String, Object?>.from(json['active_reveal']! as Map),
+              ),
+        nextRoundPrepared: json['next_round_prepared']! as bool,
+      );
+}
 
 abstract interface class NetworkDuelSecretStore {
   Future<void> save({
@@ -17,6 +76,17 @@ abstract interface class NetworkDuelSecretStore {
   });
 
   Future<void> clear({required String sessionId, required String playerId});
+
+  Future<void> saveGame({
+    required String sessionId,
+    required String playerId,
+    required NetworkPrivateGameState state,
+  });
+
+  Future<NetworkPrivateGameState?> loadGame({
+    required String sessionId,
+    required String playerId,
+  });
 }
 
 final class SharedPreferencesNetworkDuelSecretStore
@@ -25,6 +95,8 @@ final class SharedPreferencesNetworkDuelSecretStore
 
   String _key(String sessionId, String playerId) =>
       'network_duel_secret.$sessionId.$playerId';
+  String _gameKey(String sessionId, String playerId) =>
+      'network_game_private.$sessionId.$playerId';
 
   @override
   Future<void> save({
@@ -60,10 +132,38 @@ final class SharedPreferencesNetworkDuelSecretStore
     final preferences = await SharedPreferences.getInstance();
     await preferences.remove(_key(sessionId, playerId));
   }
+
+  @override
+  Future<void> saveGame({
+    required String sessionId,
+    required String playerId,
+    required NetworkPrivateGameState state,
+  }) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(
+      _gameKey(sessionId, playerId),
+      jsonEncode(state.toJson()),
+    );
+  }
+
+  @override
+  Future<NetworkPrivateGameState?> loadGame({
+    required String sessionId,
+    required String playerId,
+  }) async {
+    final preferences = await SharedPreferences.getInstance();
+    final encoded = preferences.getString(_gameKey(sessionId, playerId));
+    return encoded == null
+        ? null
+        : NetworkPrivateGameState.fromJson(
+            Map<String, Object?>.from(jsonDecode(encoded) as Map),
+          );
+  }
 }
 
 final class MemoryNetworkDuelSecretStore implements NetworkDuelSecretStore {
   final Map<String, ChoiceRevealDto> _values = {};
+  final Map<String, NetworkPrivateGameState> _games = {};
 
   String _key(String sessionId, String playerId) => '$sessionId/$playerId';
 
@@ -85,4 +185,17 @@ final class MemoryNetworkDuelSecretStore implements NetworkDuelSecretStore {
     required String sessionId,
     required String playerId,
   }) async => _values.remove(_key(sessionId, playerId));
+
+  @override
+  Future<void> saveGame({
+    required String sessionId,
+    required String playerId,
+    required NetworkPrivateGameState state,
+  }) async => _games[_key(sessionId, playerId)] = state;
+
+  @override
+  Future<NetworkPrivateGameState?> loadGame({
+    required String sessionId,
+    required String playerId,
+  }) async => _games[_key(sessionId, playerId)];
 }

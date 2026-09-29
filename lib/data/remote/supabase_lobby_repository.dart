@@ -6,6 +6,8 @@ import '../../features/lobby/join_code.dart';
 import '../../features/lobby/lobby_models.dart';
 import '../../features/lobby/lobby_repository.dart';
 import '../../sync/rounds/network_round.dart';
+import '../../sync/rounds/network_game.dart';
+import 'supabase_network_game_repository.dart';
 import 'supabase_network_round_repository.dart';
 
 final class SupabaseLobbyRepository implements NetworkLobbyRepository {
@@ -20,6 +22,10 @@ final class SupabaseLobbyRepository implements NetworkLobbyRepository {
   @override
   NetworkRoundRepository get roundRepository =>
       SupabaseNetworkRoundRepository(client: client);
+
+  @override
+  NetworkGameRepository get gameRepository =>
+      SupabaseNetworkGameRepository(client: client);
 
   @override
   Future<String> currentPlayerId() => _identity();
