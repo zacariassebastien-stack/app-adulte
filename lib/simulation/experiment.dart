@@ -17,6 +17,7 @@ final class BalanceExperiment {
     DecisionPolicy policy = const DecisionPolicy(),
     Map<ConsentPool, SyntheticProfileSpec> profileSpecs = defaultProfileSpecs,
     void Function(int)? progress,
+    void Function(StoredEvent)? onEvent,
   }) {
     if (sessions < 1 || scenarios.isEmpty) {
       throw ArgumentError('A campaign requires sessions and scenarios');
@@ -27,6 +28,7 @@ final class BalanceExperiment {
       limits: limits,
       policy: policy,
       profileSpecs: profileSpecs,
+      onEvent: onEvent,
     );
     final aggregate = SimulationMetrics(),
         groups = <String, SimulationMetrics>{};

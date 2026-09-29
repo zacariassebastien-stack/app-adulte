@@ -1,4 +1,28 @@
-# Vérification locale — Phase 4, 28 septembre 2026
+# Vérification locale — Phase 4.5, 29 septembre 2026
+
+Validation Phase 4.5 : Flutter 3.47.5 / Dart 3.13.4 sous Windows.
+
+| Vérification | Résultat Phase 4.5 |
+|---|---|
+| Baseline avant modification | 196 tests Flutter réussis |
+| Format lib/test/tool | Réussi |
+| `dart analyze` et `flutter analyze --no-pub` | Aucun problème |
+| Tests Dart domaine/catalogue/stockage/engines/simulation/analytics | 277 réussis |
+| `flutter test --no-pub` | 278 réussis, dont 82 nouveaux tests analytiques/intégration |
+| Audit catalogue | 100 cartes / 134 variantes / 133 éléments de profil / 105 tags, zéro erreur |
+| Régression seeds 410000–410999 | 1 000 sessions, 46 304 duels, égalité exacte de toutes les métriques métier globales et par scénario |
+| Collecte synthétique | 1 318 722 événements, 1 000 sessions analysées |
+| Migration SQL | Aucune ; base version 2 conservée, enveloppe événement version 2, anciennes données lisibles |
+
+Le [contrat Phase 4.5](phase45_analytics.md) précise les cas neutres, les limites
+du simulateur et les axes insuffisamment observés. Le
+[rapport de régression](phase45_regression.json) contient les comparaisons et
+valeurs exactes. Aucun paramètre BalanceConfig, règle moteur, contenu catalogue,
+UI Phase 5, média ou réseau n'a été ajouté/modifié. La CI inclut les analytics ;
+son exécution distante n'est pas revendiquée. Les limites natives ci-dessous
+restent celles de la Phase 4 ; aucun nouveau build natif n'est revendiqué ici.
+
+## Relevé conservé Phase 4 — 28 septembre 2026
 
 Environnement : Windows, Flutter 3.47.5 / Dart 3.13.4.
 

@@ -22,10 +22,10 @@ Restent volontairement à décider ou calibrer :
   plus précis, clés de traduction et versions sur certains objets) ;
 - la migration de l'historique catalogue V1 vers V2 pour les variantes retirées
   ou réinterprétées ;
-- les seuils de preuve du futur profil final ; les métriques de simulation
-  sont disponibles, mais les seuls événements Phase 3 ne suffisent pas à tous
-  les axes. Il faut décider d'un contrat explicite pour le style, l'intensité,
-  les sources d'action et les opportunités de décision (voir Phase 4) ;
+- les seuils de preuve, pondérations et noms du futur profil final. Le contrat
+  explicite style/intensité/sources/opportunités est désormais fourni par la
+  [Phase 4.5](phase45_analytics.md), mais son seuil technique de trois
+  observations n'est pas une validation statistique ;
 - les choix de présentation du mode discret, notamment le rythme d'affichage
   des PA, qui ne changent pas la projection de sécurité du moteur.
 
@@ -41,3 +41,10 @@ La Phase 4 ajoute les points à valider suivants, sans réouvrir les règles mé
   décisions de rôle plus larges et variantes conditionnelles ;
 - examiner les mains détenues mais partiellement jouables lorsque le contexte
   change : aucun mulligan ou assouplissement du consentement n'a été ajouté.
+
+La Phase 4.5 laisse aussi à décider la durée de conservation du journal privé,
+la protection du fichier local et l'opt-in de partage d'un futur profil. La
+campagne conservée ne fournit pas d'observations de rôles FAIRE/RECEVOIR : les
+axes INITIATIVE/RECEPTIVITE sont préparés et testés mais restent insuffisants sur
+cette baseline. Les contrôleurs Phase 5 devront intégrer le collecteur aux
+transactions état/journal et utiliser les projections, jamais le journal brut.

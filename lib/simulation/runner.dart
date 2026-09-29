@@ -20,6 +20,7 @@ final class SimulationRunner {
     this.policy = const DecisionPolicy(),
     this.failOnInvariant = true,
     this.profileSpecs = defaultProfileSpecs,
+    this.onEvent,
   }) : cards = catalog.cards.map(const CatalogEngineAdapter().card).toList(),
        hierarchy = ProfileHierarchy({
          for (final e in catalog.profileElements) e.stableId: e.parentId,
@@ -41,6 +42,7 @@ final class SimulationRunner {
   final DecisionPolicy policy;
   final bool failOnInvariant;
   final Map<ConsentPool, SyntheticProfileSpec> profileSpecs;
+  final void Function(StoredEvent)? onEvent;
   SimulationMetrics run({
     required int seed,
     required SimulationScenario scenario,
@@ -55,6 +57,13 @@ final class _Session {
       lifecycle = LifecycleEngine(config: runner.config),
       recovery = RecoveryEngine(config: runner.config),
       intensity = IntensityEngine(config: runner.config) {
+    telemetry = runner.onEvent == null
+        ? null
+        : SessionTelemetry(
+            sessionId: 'simulation.$seed',
+            clock: () => DateTime.utc(2026).add(Duration(seconds: round)),
+            sink: runner.onEvent!,
+          );
     final a = syntheticProfile(
       runner.catalog,
       'a',
@@ -154,6 +163,93 @@ final class _Session {
   bool firstRecovery = false;
   _Choice? invertedAction;
   bool sequenceStopped = false;
+  late final SessionTelemetry? telemetry;
+  ActionSource resultSource = ActionSource.NORMAL_DUEL;
+  String? invertedVoluntaryPlayer;
+
+  void spendEvidence(String playerId, String source, int before, int after) {
+    if (before == after) return;
+    final op = telemetry?.opportunity(playerId, 'PA_$source', [
+      BehaviorAxis.DEPENSE_PA,
+      BehaviorAxis.ECONOMIE_PA,
+    ], availableAmount: before);
+    if (op != null) {
+      telemetry!.decision(
+        op,
+        GameEventType.PA_SPENT,
+        {'source': source, 'pa_before': before, 'pa_after': after},
+        attempted: true,
+        completed: true,
+        amount: before - after,
+      );
+    }
+  }
+
+  void executionEvidence(
+    _Choice c,
+    int i,
+    ActionSource source,
+    ActionExecutionStatus status, {
+    DecisionOpportunity? promise,
+    NonPerformanceReason reason = NonPerformanceReason.NONE,
+  }) {
+    final id = players[i].profile.playerId;
+    final op =
+        promise ??
+        telemetry?.opportunity(id, 'ACTION_${source.name}', [
+          BehaviorAxis.REALISATION,
+          if (c.rule.role == ProfileRole.FAIRE) BehaviorAxis.INITIATIVE,
+          if (c.rule.role == ProfileRole.RECEVOIR) BehaviorAxis.RECEPTIVITE,
+        ]);
+    if (op == null) return;
+    final roles = {
+      id: c.rule.role,
+      players[1 - i].profile.playerId: switch (c.rule.role) {
+        ProfileRole.FAIRE => ProfileRole.RECEVOIR,
+        ProfileRole.RECEVOIR => ProfileRole.FAIRE,
+        _ => ProfileRole.GENERAL,
+      },
+    };
+    telemetry!.executed(
+      op,
+      actionId: op.id,
+      cardId: c.card.id,
+      variantId: c.variant.id,
+      source: source,
+      voluntaryPlayerId: source == ActionSource.AUCTION_RESULT
+          ? (invertedVoluntaryPlayer ?? id)
+          : id,
+      plannedRoles: roles,
+      actualRoles: status == ActionExecutionStatus.COMPLETED ? roles : const {},
+      status: status.name,
+      reason: reason,
+    );
+    final partner = players[1 - i].profile.playerId;
+    final partnerRole = roles[partner]!;
+    if (partnerRole != ProfileRole.GENERAL) {
+      final partnerOp = telemetry!.opportunity(partner, 'EXECUTED_ROLE', [
+        partnerRole == ProfileRole.FAIRE
+            ? BehaviorAxis.INITIATIVE
+            : BehaviorAxis.RECEPTIVITE,
+      ]);
+      telemetry!.executed(
+        partnerOp,
+        actionId: op.id,
+        cardId: c.card.id,
+        variantId: c.variant.id,
+        source: source,
+        voluntaryPlayerId: source == ActionSource.AUCTION_RESULT
+            ? (invertedVoluntaryPlayer ?? id)
+            : id,
+        plannedRoles: roles,
+        actualRoles: status == ActionExecutionStatus.COMPLETED
+            ? roles
+            : const {},
+        status: status.name,
+        reason: reason,
+      );
+    }
+  }
 
   void tick() {
     if (actions >= runner.limits.maxActions) throw _Limit();
@@ -179,6 +275,10 @@ final class _Session {
   void events(Iterable<GameEvent> events) {
     for (final e in events) {
       metrics.frequency('events', e.type.name);
+      if (e.type == GameEventType.ROUND_STARTED ||
+          e.type == GameEventType.ROUND_CLOSED) {
+        telemetry?.record(e.type, e.payload, visibility: DataVisibility.PUBLIC);
+      }
     }
   }
 
@@ -289,6 +389,8 @@ final class _Session {
     metrics.increment('sessions');
     try {
       for (round = 1; round <= runner.limits.maxRounds; round++) {
+        telemetry?.roundId = 'sim.$round';
+        resultSource = ActionSource.NORMAL_DUEL;
         tick();
         events([lifecycle.startRound('sim.$round')]);
         for (var i = 0; i < 2; i++) {
@@ -296,6 +398,12 @@ final class _Session {
         }
         changeIntensity();
         observeThresholds();
+        final extensionOps = [
+          for (final p in players)
+            telemetry?.opportunity(p.profile.playerId, 'MUTUAL_EXTENSION', [
+              BehaviorAxis.PROLONGATION,
+            ]),
+        ];
         if (players[0].decide('extension', random) &&
             players[1].decide('agreeExtension', random)) {
           tick();
@@ -304,7 +412,18 @@ final class _Session {
             amount: 10,
             mutualAgreement: true,
           );
+          final beforeExtension = pa;
           pa = extension.actionPoints;
+          for (final op in extensionOps) {
+            if (op != null) {
+              telemetry!.extension(
+                op,
+                amount: 10,
+                before: beforeExtension,
+                after: pa,
+              );
+            }
+          }
           events([extension.event]);
           metrics.increment('extensions');
           for (final id in ['a', 'b']) {
@@ -346,11 +465,33 @@ final class _Session {
           metrics.frequency('termination', 'no_playable_hand');
           break;
         }
+        final renunciationOps = {
+          for (final p in players)
+            p.profile.playerId: telemetry?.opportunity(
+              p.profile.playerId,
+              'RENUNCIATION',
+              [BehaviorAxis.RENONCEMENT_STRATEGIQUE],
+            ),
+        };
         final renouncing = players
             .where((p) => p.decide('renounce', random))
             .toList();
         if (renouncing.isNotEmpty) {
           for (final p in renouncing) {
+            final op = renunciationOps[p.profile.playerId];
+            if (op != null) {
+              telemetry!.decision(
+                op,
+                GameEventType.STRATEGIC_RENUNCIATION,
+                {
+                  'round_id': 'sim.$round',
+                  'duel_context': 'PRE_COMMIT',
+                  'selected_card_id': selected[players.indexOf(p)]!.card.id,
+                },
+                attempted: true,
+                completed: true,
+              );
+            }
             events([duel.strategicRenunciation(p.profile.playerId)]);
           }
           metrics.increment('strategicRenunciations');
@@ -363,6 +504,27 @@ final class _Session {
         for (var i = 0; i < 2; i++) {
           tick();
           final c = selected[i]!;
+          final selectable = runner.cards
+              .where(
+                (card) =>
+                    zones[i].any(
+                      (z) => z.cardId == card.id && z.zone == CardZone.HAND,
+                    ) &&
+                    choice(card, i) != null,
+              )
+              .toList();
+          final selectionOp = telemetry?.opportunity(
+            players[i].profile.playerId,
+            'VOLUNTARY_COMMIT',
+            [
+              BehaviorAxis.AUDACE,
+              BehaviorAxis.PRUDENCE,
+              BehaviorAxis.VARIETE,
+              BehaviorAxis.SPECIALISATION,
+            ],
+            cards: selectable.map((c) => c.id),
+            tags: selectable.expand((c) => c.tags),
+          );
           check(
             evaluate(
               c.card,
@@ -374,6 +536,13 @@ final class _Session {
             !context.exhaustedCardIds.contains(c.card.id),
             'exhausted_selected',
           );
+          if (zones[i].any((z) => z.cardId == c.card.id && z.locked)) {
+            telemetry?.lockChanged(
+              players[i].profile.playerId,
+              c.card.id,
+              false,
+            );
+          }
           zones[i] = lifecycle.engage(zones[i], c.card.id);
           final since = lockSince[i].remove(c.card.id);
           if (since != null) {
@@ -398,6 +567,9 @@ final class _Session {
             cardInvertible: c.variant.invertible,
           );
           commits.add(commit);
+          if (selectionOp != null) {
+            telemetry!.committed(selectionOp, commit.snapshot, c.variant.tags);
+          }
           events(commit.events);
           metrics.sample(
             'selection.value.${players[i].profile.playerId}',
@@ -429,6 +601,7 @@ final class _Session {
           metrics.increment('duel.cap');
         }
         for (final id in ['a', 'b']) {
+          spendEvidence(id, 'NORMAL_DUEL', before[id]!, pa[id]!);
           metrics.increment('pa.$id.duelSpent', before[id]! - pa[id]!);
           if (before[id] != pa[id]) metrics.increment('pa.$id.duelPayments');
         }
@@ -445,6 +618,7 @@ final class _Session {
             metrics.increment('duel.winnerAtZero');
           }
           invertedAction = null;
+          invertedVoluntaryPlayer = null;
           sequenceStopped = false;
           winner = runAuction(winner, selected);
           winner = runCorruption(winner, selected);
@@ -542,6 +716,11 @@ final class _Session {
       drawIndex++;
       check(!context.exhaustedCardIds.contains(c.id), 'exhausted_draw');
       check(evaluate(c, i).eligible, 'ineligible_draw');
+      telemetry?.drawn(
+        players[i].profile.playerId,
+        c,
+        evaluate(c, i).eligibleVariants,
+      );
       final state = zones[i].where((s) => s.cardId == c.id).firstOrNull;
       check(
         state == null || state.zone == CardZone.DISCARD,
@@ -608,11 +787,21 @@ final class _Session {
     if (!locked && hand.isNotEmpty && players[i].decide('lock', random)) {
       final c = hand[(random.nextDouble() * hand.length).floor()];
       zones[i] = lifecycle.lock(zones[i], c.id);
+      telemetry?.lockChanged(players[i].profile.playerId, c.id, true);
       lockSince[i][c.id] = round;
       metrics.increment('lock.used');
     }
+    final styleOp = telemetry?.opportunity(
+      players[i].profile.playerId,
+      'STYLE',
+      [BehaviorAxis.CHANGEMENT_STYLE],
+    );
     if (players[i].decide('changeStyle', random)) {
+      final previous = players[i].style;
       players[i].style = PlayerStyle.values[(players[i].style.index + 1) % 3];
+      if (styleOp != null) {
+        telemetry!.styleChanged(styleOp, previous, players[i].style);
+      }
       metrics.increment('style.changed');
     }
   }
@@ -665,7 +854,17 @@ final class _Session {
     final loser = 1 - winner;
     final wid = players[winner].profile.playerId,
         lid = players[loser].profile.playerId;
+    final counterOp = pa[lid]! >= 1
+        ? telemetry?.opportunity(lid, 'COUNTER', [
+            BehaviorAxis.NEGOCIATION,
+          ], availableAmount: pa[lid])
+        : null;
     if (pa[lid]! < 1 || !players[loser].decide('counter', random)) {
+      if (counterOp != null) {
+        telemetry!.decision(counterOp, GameEventType.DECISION_PASSED, {
+          'kind': 'COUNTER',
+        });
+      }
       return winner;
     }
     tick();
@@ -689,6 +888,28 @@ final class _Session {
     final target = canInvert && players[loser].decide('invert', random)
         ? AuctionTarget.INVERT_WINNING_ACTION
         : AuctionTarget.OWN_INITIAL_ACTION;
+    final targetName = target == AuctionTarget.OWN_INITIAL_ACTION
+        ? 'OWN_CARD'
+        : 'INVERT_WINNER_CARD';
+    final inversionOp = canInvert
+        ? telemetry?.opportunity(lid, 'INVERSION', [BehaviorAxis.INVERSION])
+        : null;
+    final rolesBefore = {
+      wid: winningAction.rule.role.name,
+      lid: switch (winningAction.rule.role) {
+        ProfileRole.FAIRE => 'RECEVOIR',
+        ProfileRole.RECEVOIR => 'FAIRE',
+        _ => 'GENERAL',
+      },
+    };
+    final rolesAfter = {wid: rolesBefore[lid], lid: rolesBefore[wid]};
+    if (inversionOp != null && target == AuctionTarget.INVERT_WINNING_ACTION) {
+      telemetry!.decision(inversionOp, GameEventType.INVERSION_ATTEMPTED, {
+        'roles_before': rolesBefore,
+        'roles_after': rolesAfter,
+        'variant_id': winningAction.variant.id,
+      }, attempted: true);
+    }
     a = auction.counter(
       a,
       amount: amount,
@@ -697,10 +918,45 @@ final class _Session {
     );
     metrics.sample('auction.bid', amount);
     metrics.increment('pa.$lid.auctionSpent', amount);
+    resultSource = ActionSource.AUCTION_RESULT;
+    if (counterOp != null) {
+      telemetry!.decision(
+        counterOp,
+        GameEventType.AUCTION_COMMITTED,
+        {
+          'kind': 'COUNTER',
+          'amount': amount,
+          'target': targetName,
+          'initial_winner_id': wid,
+        },
+        attempted: true,
+        amount: amount,
+      );
+    }
+    final defenseOp = a.actionPoints[wid]! > amount
+        ? telemetry?.opportunity(wid, 'FINAL_DEFENSE', [
+            BehaviorAxis.NEGOCIATION,
+          ], availableAmount: a.actionPoints[wid])
+        : null;
     var spend = amount;
     if (a.actionPoints[wid]! > amount &&
         players[winner].decide('defend', random)) {
       a = auction.defend(a, amount: amount + 1);
+      if (defenseOp != null) {
+        telemetry!.decision(
+          defenseOp,
+          GameEventType.AUCTION_COMMITTED,
+          {
+            'kind': 'FINAL_DEFENSE',
+            'amount': amount + 1,
+            'target': targetName,
+            'success': true,
+          },
+          attempted: true,
+          completed: true,
+          amount: amount + 1,
+        );
+      }
       metrics.increment('auction.defense');
       metrics.increment('auction.initiatorFailed');
       metrics.sample('auction.bid', amount + 1);
@@ -710,10 +966,34 @@ final class _Session {
       metrics.increment('auction.reversal');
       if (target == AuctionTarget.INVERT_WINNING_ACTION) {
         invertedAction = winningAction;
+        invertedVoluntaryPlayer = wid;
+        if (inversionOp != null) {
+          telemetry!.decision(inversionOp, GameEventType.INVERSION_RETAINED, {
+            'roles_before': rolesBefore,
+            'roles_after': rolesAfter,
+            'variant_id': winningAction.variant.id,
+          }, completed: true);
+        }
         metrics.increment('auction.inversion');
       }
     }
     events(a.events);
+    if (counterOp != null) {
+      telemetry!.decision(counterOp, GameEventType.AUCTION_RESOLVED, {
+        'kind': 'COUNTER',
+        'target': targetName,
+        'winner_player_id': a.winnerId,
+        'success': a.winnerId == lid,
+      }, completed: a.winnerId == lid);
+    }
+    if (defenseOp != null && a.defenseBid == null) {
+      telemetry!.decision(defenseOp, GameEventType.DECISION_PASSED, {
+        'kind': 'FINAL_DEFENSE',
+      });
+    }
+    for (final id in [wid, lid]) {
+      spendEvidence(id, 'AUCTION', pa[id]!, a.actionPoints[id]!);
+    }
     metrics.sample('auction.totalSpent', spend);
     pa = a.actionPoints;
     observeThresholds();
@@ -722,7 +1002,6 @@ final class _Session {
 
   int runCorruption(int winner, List<_Choice?> selected) {
     final loser = 1 - winner;
-    if (!players[loser].decide('corrupt', random)) return winner;
     final discards = zones[loser]
         .where((c) => c.zone == CardZone.DISCARD)
         .map((c) => c.cardId)
@@ -732,6 +1011,15 @@ final class _Session {
         .map((c) => choice(c, loser))
         .whereType<_Choice>()
         .toList();
+    final negotiationOp = options.isNotEmpty
+        ? telemetry?.opportunity(
+            players[loser].profile.playerId,
+            'CORRUPTION',
+            [BehaviorAxis.TENTATION],
+            cards: options.map((c) => c.card.id),
+          )
+        : null;
+    if (!players[loser].decide('corrupt', random)) return winner;
     if (options.isEmpty) return winner;
     tick();
     final c = options[(random.nextDouble() * options.length).floor()];
@@ -750,6 +1038,37 @@ final class _Session {
         ),
       ],
     );
+    final promise = telemetry?.opportunity(
+      players[loser].profile.playerId,
+      'PROMISE',
+      [BehaviorAxis.PROMESSE, BehaviorAxis.REALISATION],
+      correlationId: '${negotiationOp!.id}.action.0',
+    );
+    if (negotiationOp != null) {
+      telemetry!.corruptionProposed(
+        negotiationOp,
+        offer,
+        players[winner].profile.playerId,
+        variantByCard: {c.card.id: c.variant.id},
+      );
+    }
+    if (promise != null) {
+      telemetry!.decision(
+        promise,
+        GameEventType.CORRUPTION_RESOLVED,
+        {
+          'offered_by': players[loser].profile.playerId,
+          'recipient_id': players[winner].profile.playerId,
+          'accepted': accepted,
+          'action_id': promise.id,
+        },
+        attempted: accepted,
+        accepted: accepted,
+        neutralReason: accepted
+            ? NonPerformanceReason.NONE
+            : NonPerformanceReason.PRACTICE_REFUSAL,
+      );
+    }
     check(corruption.power(offer) == 0, 'promise_has_power');
     final result = corruption.resolve(
       offer: offer,
@@ -763,10 +1082,22 @@ final class _Session {
     if (accepted) {
       metrics.increment('corruption.accepted');
       applyAction(c, loser, status);
+      executionEvidence(
+        c,
+        loser,
+        ActionSource.CORRUPTION,
+        status,
+        promise: promise,
+        reason: status == ActionExecutionStatus.SKIPPED
+            ? NonPerformanceReason.PRACTICE_REFUSAL
+            : NonPerformanceReason.NONE,
+      );
     }
     syncExhausted();
     if (accepted && status == ActionExecutionStatus.COMPLETED) {
       invertedAction = null;
+      invertedVoluntaryPlayer = null;
+      resultSource = ActionSource.CORRUPTION;
       return loser;
     }
     return winner;
@@ -788,11 +1119,27 @@ final class _Session {
     ).eligibleVariants.any((v) => v.id == c.variant.id)) {
       metrics.increment('execution.contextChanged');
       events([lifecycle.actionEvent(ActionExecutionStatus.SKIPPED, c.card.id)]);
+      executionEvidence(
+        c,
+        i,
+        resultSource,
+        ActionExecutionStatus.SKIPPED,
+        reason: NonPerformanceReason.CONTEXTUAL,
+      );
       return;
     }
     final status = actionStatus(i);
     events([lifecycle.actionEvent(status, c.card.id)]);
     applyAction(c, i, status);
+    executionEvidence(
+      c,
+      i,
+      resultSource,
+      status,
+      reason: status == ActionExecutionStatus.SKIPPED
+          ? NonPerformanceReason.PRACTICE_REFUSAL
+          : NonPerformanceReason.NONE,
+    );
   }
 
   void applyAction(_Choice c, int i, ActionExecutionStatus status) {
@@ -825,18 +1172,33 @@ final class _Session {
 
   void tryRecovery(int i) {
     final id = players[i].profile.playerId;
-    if (!recovery.available(currentPa: pa[id]!, gate: gates[i]) ||
-        !players[i].decide('recover', random)) {
+    final available = recovery.available(currentPa: pa[id]!, gate: gates[i]);
+    final options = available
+        ? runner.cards
+              .map((c) => choice(c, i, recovering: true))
+              .whereType<_Choice>()
+              .toList()
+        : <_Choice>[];
+    final recoveryOp =
+        available &&
+            options.isNotEmpty &&
+            recoveries < runner.limits.maxRecoveryCycles
+        ? telemetry?.opportunity(id, 'RECOVERY', [
+            BehaviorAxis.RECOVERY_RISK,
+          ], cards: options.map((c) => c.card.id))
+        : null;
+    if (!available || !players[i].decide('recover', random)) {
+      if (recoveryOp != null) {
+        telemetry!.decision(recoveryOp, GameEventType.DECISION_PASSED, {
+          'kind': 'RECOVERY',
+        });
+      }
       return;
     }
     if (recoveries >= runner.limits.maxRecoveryCycles) {
       metrics.increment('recovery.limitReached');
       return;
     }
-    final options = runner.cards
-        .map((c) => choice(c, i, recovering: true))
-        .whereType<_Choice>()
-        .toList();
     if (options.isEmpty) {
       metrics.increment('recovery.noEligibleAction');
       return;
@@ -847,6 +1209,13 @@ final class _Session {
       'illegal_recovery',
     );
     final c = options[(random.nextDouble() * options.length).floor()];
+    if (recoveryOp != null) {
+      telemetry!.decision(recoveryOp, GameEventType.RECOVERY_PROPOSED, {
+        'card_id': c.card.id,
+        'variant_id': c.variant.id,
+        'recipient_id': players[1 - i].profile.playerId,
+      }, attempted: true);
+    }
     check(
       recovery
           .actionEligibility(
@@ -947,6 +1316,61 @@ final class _Session {
       CardZone.DISCARD => RecoverySource.DISCARD,
       _ => RecoverySource.CATALOG,
     };
+    if (recoveryOp != null) {
+      telemetry!.decision(
+        recoveryOp,
+        GameEventType.RECOVERY_RESOLVED,
+        {
+          'response': response.name,
+          'card_id': c.card.id,
+          'variant_id': c.variant.id,
+          'card_source': source.name,
+          'condition_card_id': condition?.card.id,
+          'condition_variant_id': condition?.variant.id,
+          'chili_active': context.chiliActive,
+          'chili_variant': c.variant.chiliLevel,
+          'chili_exception': c.variant.chiliLevel > context.chiliActive,
+          'pa_before': before,
+          'gain': resolved.gain,
+          'pa_after': resolved.actionPoints,
+          'status': status.name,
+        },
+        accepted: response != RecoveryResponse.REFUSE,
+        completed: status == ActionExecutionStatus.COMPLETED,
+        neutralReason: response == RecoveryResponse.REFUSE
+            ? NonPerformanceReason.PRACTICE_REFUSAL
+            : status == ActionExecutionStatus.STOPPED
+            ? NonPerformanceReason.CONSENT_STOP
+            : status == ActionExecutionStatus.SKIPPED
+            ? NonPerformanceReason.PRACTICE_REFUSAL
+            : NonPerformanceReason.NONE,
+      );
+    }
+    executionEvidence(
+      c,
+      i,
+      ActionSource.RECOVERY,
+      status,
+      reason: status == ActionExecutionStatus.SKIPPED
+          ? NonPerformanceReason.PRACTICE_REFUSAL
+          : NonPerformanceReason.NONE,
+    );
+    if (condition != null) {
+      executionEvidence(
+        condition,
+        i,
+        ActionSource.RECOVERY_CONDITION,
+        conditionStatus!,
+        reason: conditionStatus == ActionExecutionStatus.SKIPPED
+            ? NonPerformanceReason.CONTEXTUAL
+            : NonPerformanceReason.NONE,
+      );
+    }
+    if (source == RecoverySource.HAND &&
+        status == ActionExecutionStatus.COMPLETED &&
+        zones[i].any((z) => z.cardId == c.card.id && z.locked)) {
+      telemetry?.lockChanged(id, c.card.id, false);
+    }
     zones[i] = recovery.applyLifecycle(
       cards: zones[i],
       cardId: c.card.id,
@@ -981,15 +1405,47 @@ final class _Session {
     final proposer = (random.nextDouble() * 2).floor(), other = 1 - proposer;
     final p = players[proposer];
     var target = context.chiliActive;
+    final increaseOp = target < 5
+        ? telemetry?.opportunity(p.profile.playerId, 'CHILI_INCREASE', [
+            BehaviorAxis.ESCALADE,
+          ])
+        : null;
+    final decreaseOp = target > 1
+        ? telemetry?.opportunity(p.profile.playerId, 'CHILI_DECREASE', [
+            BehaviorAxis.MODERATION,
+          ])
+        : null;
     if (p.decide('climb', random) && target < 5) {
       target++;
       metrics.increment('chili.proposals');
+      if (increaseOp != null) {
+        telemetry!.decision(increaseOp, GameEventType.CHILI_INCREASE_PROPOSED, {
+          'previous_level': context.chiliActive,
+          'target_level': target,
+          'recipient_id': players[other].profile.playerId,
+        }, attempted: true);
+      }
       if (!players[other].decide('agreeClimb', random)) {
         metrics.increment('chili.refused');
+        if (increaseOp != null) {
+          telemetry!
+              .decision(increaseOp, GameEventType.CHILI_INCREASE_DECLINED, {
+                'target_level': target,
+                'recipient_id': players[other].profile.playerId,
+                'decision_kind': 'INTENSITY_ONLY',
+              });
+        }
         return;
       }
     } else if (p.decide('lower', random) && target > 1) {
       target--;
+      if (decreaseOp != null) {
+        telemetry!.decision(decreaseOp, GameEventType.CHILI_DECREASE_PROPOSED, {
+          'previous_level': context.chiliActive,
+          'target_level': target,
+          'recipient_id': players[other].profile.playerId,
+        }, attempted: true);
+      }
     } else {
       return;
     }
@@ -1014,6 +1470,29 @@ final class _Session {
       actionPoints: pa,
       payments: payment,
     );
+    final intensityOp = target < context.chiliActive ? decreaseOp : increaseOp;
+    if (intensityOp != null) {
+      telemetry!.decision(
+        intensityOp,
+        target < context.chiliActive
+            ? GameEventType.CHILI_DECREASE_ACCEPTED
+            : GameEventType.CHILI_INCREASE_ACCEPTED,
+        {
+          'target_level': target,
+          'recipient_id': players[other].profile.playerId,
+          'payments': payment,
+        },
+        accepted: true,
+        completed: true,
+      );
+    }
+    telemetry?.record(GameEventType.CHILI_LEVEL_CHANGED, {
+      'previous_level': context.chiliActive,
+      'new_level': target,
+    }, visibility: DataVisibility.PUBLIC);
+    for (final id in pa.keys) {
+      spendEvidence(id, 'CHILI', pa[id]!, result.actionPoints[id]!);
+    }
     for (final e in payment.entries) {
       metrics.increment('pa.${e.key}.chiliSpent', e.value);
     }

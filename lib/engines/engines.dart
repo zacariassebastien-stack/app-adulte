@@ -1,4 +1,6 @@
 export 'auction/auction_engine.dart';
+export 'analytics/analytics_engine.dart';
+export 'analytics/session_telemetry.dart';
 export 'corruption/corruption_engine.dart';
 export 'draw/draw_engine.dart';
 export 'duel/duel_engine.dart';

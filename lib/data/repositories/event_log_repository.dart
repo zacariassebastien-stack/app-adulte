@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../../domain/session/session_state.dart';
+import '../../domain/game/events.dart';
 import '../local/app_database.dart';
 import '../local/media_guard.dart';
 
@@ -26,6 +27,9 @@ final class EventLogRepository {
 
   Future<bool> _append(StoredEvent event) async {
     assertNoPersistedMedia(event.payload);
+    if (event.payload.containsKey('event_version')) {
+      GameEvent.fromStored(event);
+    }
     final payloadJson = jsonEncode(event.payload);
     final existingQuery = database.select(database.eventLogs)
       ..where(
@@ -76,4 +80,11 @@ final class EventLogRepository {
         )
         .toList(growable: false);
   }
+
+  /// Local internal reader, never a partner-facing projection. Unknown future
+  /// versions fail explicitly; forSession retains access to the original row.
+  Future<List<GameEvent>> gameEventsForSession(String sessionId) async =>
+      (await forSession(
+        sessionId,
+      )).map(GameEvent.fromStored).toList(growable: false);
 }

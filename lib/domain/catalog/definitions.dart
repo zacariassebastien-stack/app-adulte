@@ -66,6 +66,7 @@ abstract base class ActionDefinition extends ContentDefinition {
     enabled;
     title;
     titleKey;
+    illustrationKey;
     profileRequirements = reader.objects(
       'profile_requirements',
       ProfileRequirement.read,
@@ -86,6 +87,7 @@ abstract base class ActionDefinition extends ContentDefinition {
   bool get enabled => reader.boolean('enabled');
   String? get title => reader.optionalString('title');
   String? get titleKey => reader.optionalString('title_key');
+  String? get illustrationKey => reader.optionalString('illustration_key');
   late final List<ProfileRequirement> profileRequirements;
   late final List<TechnicalRequirement> technicalRequirements;
   late final List<CardParameterDefinition> parameters;

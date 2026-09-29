@@ -7,6 +7,8 @@ export 'catalog/parameter.dart';
 export 'catalog/requirements.dart';
 export 'game/balance_config.dart';
 export 'game/events.dart';
+export 'game/analytics_models.dart';
+export 'game/game_screen_data.dart';
 export 'game/game_models.dart';
 export 'game/projection.dart';
 export 'profile/preferences.dart';

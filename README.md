@@ -110,7 +110,7 @@ dart format lib test tool
 dart format --output=none --set-exit-if-changed lib test tool
 dart analyze
 flutter analyze
-dart test test/domain test/catalog test/storage test/engines test/simulation
+dart test test/domain test/catalog test/storage test/engines test/simulation test/analytics
 flutter test
 flutter build bundle --debug --target-platform android-arm64
 flutter build apk --debug
@@ -140,6 +140,9 @@ Voir [le relevé de vérification](docs/verification.md) pour les résultats loc
 et les limites de compilation native. La CI est définie mais n'a pas été
 exécutée sur un serveur distant depuis cette session.
 
-La **phase 4** est terminée. Voir [les simulations](docs/phase4_simulation.md)
+La **phase 4.5** est terminée : [contrat des événements privés et statistiques](docs/phase45_analytics.md),
+[régression exacte sur 1 000 sessions](docs/phase45_regression.json).
+Les 19 axes disposent de métriques descriptives, sans profils humoristiques finaux.
+Voir aussi [les simulations Phase 4](docs/phase4_simulation.md)
 et [l'architecture des moteurs conservés](docs/phase3_engines.md).
 Aucune UI de Phase 5 n'a été ajoutée.
