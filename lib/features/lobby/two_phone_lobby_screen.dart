@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../app/asset_catalog.dart';
+import '../../domain/catalog/catalog.dart';
+import '../game/network_duel_screen.dart';
 import 'lobby_controller.dart';
 import 'lobby_repository.dart';
 
@@ -15,6 +18,8 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
   late final LobbyController controller;
   final codeController = TextEditingController();
   bool joining = false;
+  bool startingDuel = false;
+  String? duelError;
 
   @override
   void initState() {
@@ -145,6 +150,23 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
           ),
         ),
         Text('${session.players.length}/2 joueurs connectés'),
+        if (session.ready && widget.repository is NetworkLobbyRepository) ...[
+          const SizedBox(height: 24),
+          FilledButton.icon(
+            key: const Key('launch-network-duel'),
+            onPressed: startingDuel ? null : _launchDuel,
+            icon: const Icon(Icons.style),
+            label: Text(startingDuel ? 'Préparation…' : 'Lancer le duel'),
+          ),
+          if (duelError case final message?) ...[
+            const SizedBox(height: 12),
+            Text(
+              message,
+              key: const Key('duel-launch-error'),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
+        ],
         if (controller.state == LobbyViewState.offline) ...[
           const SizedBox(height: 16),
           Text(controller.errorMessage!, key: const Key('lobby-offline')),
@@ -156,5 +178,39 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
         ],
       ],
     );
+  }
+
+  Future<void> _launchDuel() async {
+    final repository = widget.repository;
+    if (repository is! NetworkLobbyRepository) return;
+    setState(() {
+      startingDuel = true;
+      duelError = null;
+    });
+    try {
+      final results = await Future.wait<Object>([
+        repository.currentPlayerId(),
+        loadAssetCatalog(),
+      ]);
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => NetworkDuelScreen(
+            session: controller.session!,
+            playerId: results[0] as String,
+            repository: repository.roundRepository,
+            catalog: results[1] as Catalog,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          duelError = 'Impossible de préparer le duel réseau.';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => startingDuel = false);
+    }
   }
 }

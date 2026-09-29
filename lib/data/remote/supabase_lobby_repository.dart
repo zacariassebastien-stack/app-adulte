@@ -5,8 +5,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/lobby/join_code.dart';
 import '../../features/lobby/lobby_models.dart';
 import '../../features/lobby/lobby_repository.dart';
+import '../../sync/rounds/network_round.dart';
+import 'supabase_network_round_repository.dart';
 
-final class SupabaseLobbyRepository implements LobbyRepository {
+final class SupabaseLobbyRepository implements NetworkLobbyRepository {
   SupabaseLobbyRepository({
     required this.client,
     JoinCodeGenerator? codeGenerator,
@@ -14,6 +16,13 @@ final class SupabaseLobbyRepository implements LobbyRepository {
 
   final SupabaseClient client;
   final JoinCodeGenerator codeGenerator;
+
+  @override
+  NetworkRoundRepository get roundRepository =>
+      SupabaseNetworkRoundRepository(client: client);
+
+  @override
+  Future<String> currentPlayerId() => _identity();
 
   Future<String> _identity() async {
     final existing = client.auth.currentUser;
