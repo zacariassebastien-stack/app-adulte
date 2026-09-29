@@ -2,19 +2,90 @@ import 'package:flutter/material.dart';
 
 import '../../domain/game/game_screen_data.dart';
 
-/// Static V1 game layout. Gameplay interactions are intentionally left to a
-/// later phase; this widget only presents already-projected view data.
-class GameScreen extends StatelessWidget {
+/// Game layout with local-only hand interactions. Selection and locking are
+/// deliberately not connected to gameplay engines yet.
+class GameScreen extends StatefulWidget {
   const GameScreen({
     required this.data,
     this.privacyTransition = false,
+    this.temporarilyUnavailableCardIds = const {},
+    this.onCardSelected,
     super.key,
   });
 
   final GameScreenData data;
   final bool privacyTransition;
+  final Set<String> temporarilyUnavailableCardIds;
+  final ValueChanged<GameCardView>? onCardSelected;
 
-  bool get _hidePrivateData => privacyTransition || data.privateDataHidden;
+  @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  String? _lockedCardId;
+  String? _selectedCardId;
+  bool _detailOpen = false;
+
+  bool get _hidePrivateData =>
+      widget.privacyTransition || widget.data.privateDataHidden;
+
+  @override
+  void initState() {
+    super.initState();
+    _lockedCardId = widget.data.hand
+        .where((card) => card.locked)
+        .firstOrNull
+        ?.cardId;
+  }
+
+  @override
+  void didUpdateWidget(covariant GameScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_hidePrivateData && _detailOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _detailOpen) Navigator.of(context).maybePop();
+      });
+    }
+  }
+
+  Future<void> _openCard(GameCardView card) async {
+    if (_hidePrivateData) return;
+    _detailOpen = true;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          final locked = _lockedCardId == card.cardId;
+          final unavailable = widget.temporarilyUnavailableCardIds.contains(
+            card.cardId,
+          );
+          return _CardDetail(
+            card: card,
+            locked: locked,
+            unavailable: unavailable,
+            selected: _selectedCardId == card.cardId,
+            onToggleLock: () {
+              if (_hidePrivateData) return;
+              setState(() => _lockedCardId = locked ? null : card.cardId);
+              setSheetState(() {});
+            },
+            onSelect: unavailable || _hidePrivateData
+                ? null
+                : () {
+                    setState(() => _selectedCardId = card.cardId);
+                    widget.onCardSelected?.call(card);
+                    Navigator.of(sheetContext).pop();
+                  },
+          );
+        },
+      ),
+    );
+    _detailOpen = false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,22 +98,29 @@ class GameScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _GameHeader(data: data, hidePrivateData: _hidePrivateData),
+              _GameHeader(data: widget.data, hidePrivateData: _hidePrivateData),
               const SizedBox(height: 10),
               Expanded(
                 child: _CentralArea(
-                  action: data.centralActions.firstOrNull,
+                  action: widget.data.centralActions.firstOrNull,
                   hidePrivateData: _hidePrivateData,
                 ),
               ),
               const SizedBox(height: 10),
-              _DiscardAccess(count: data.discard.length),
+              _DiscardAccess(count: widget.data.discard.length),
               const SizedBox(height: 10),
               SizedBox(
                 height: 168,
                 child: _hidePrivateData
                     ? const _PrivacyPlaceholder()
-                    : _PlayerHand(cards: data.hand),
+                    : _PlayerHand(
+                        cards: widget.data.hand,
+                        lockedCardId: _lockedCardId,
+                        selectedCardId: _selectedCardId,
+                        unavailableCardIds:
+                            widget.temporarilyUnavailableCardIds,
+                        onCardTap: _openCard,
+                      ),
               ),
             ],
           ),
@@ -222,9 +300,18 @@ class _DiscardAccess extends StatelessWidget {
 }
 
 class _PlayerHand extends StatelessWidget {
-  const _PlayerHand({required this.cards});
+  const _PlayerHand({
+    required this.cards,
+    required this.lockedCardId,
+    required this.selectedCardId,
+    required this.unavailableCardIds,
+    required this.onCardTap,
+  });
 
   final List<GameCardView> cards;
+  final String? lockedCardId, selectedCardId;
+  final Set<String> unavailableCardIds;
+  final ValueChanged<GameCardView> onCardTap;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -243,10 +330,22 @@ class _PlayerHand extends StatelessWidget {
               if (index > 0) const SizedBox(width: 6),
               Expanded(
                 child: index < cards.length
-                    ? GameCard(
-                        key: Key('hand-card-$index'),
-                        card: cards[index],
-                        compact: true,
+                    ? Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          key: Key('hand-card-$index'),
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () => onCardTap(cards[index]),
+                          child: GameCard(
+                            card: cards[index],
+                            compact: true,
+                            locked: lockedCardId == cards[index].cardId,
+                            selected: selectedCardId == cards[index].cardId,
+                            unavailable: unavailableCardIds.contains(
+                              cards[index].cardId,
+                            ),
+                          ),
+                        ),
                       )
                     : const _EmptyHandSlot(),
               ),
@@ -299,17 +398,186 @@ class _PrivacyPlaceholder extends StatelessWidget {
   );
 }
 
+class _CardDetail extends StatelessWidget {
+  const _CardDetail({
+    required this.card,
+    required this.locked,
+    required this.unavailable,
+    required this.selected,
+    required this.onToggleLock,
+    required this.onSelect,
+  });
+
+  final GameCardView card;
+  final bool locked, unavailable, selected;
+  final VoidCallback onToggleLock;
+  final VoidCallback? onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final description = card.descriptionKey ?? 'Description à venir';
+    final chili = card.chiliLevels.isEmpty
+        ? 'Non précisé'
+        : card.chiliLevels.map((level) => '🌶️ $level').join('  ');
+    return FractionallySizedBox(
+      heightFactor: 0.9,
+      child: SingleChildScrollView(
+        key: const Key('card-detail-scroll'),
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    card.category,
+                    key: const Key('detail-category'),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: colors.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                Icon(
+                  locked ? Icons.lock_rounded : Icons.lock_open_rounded,
+                  key: const Key('detail-lock-status'),
+                  semanticLabel: locked ? 'Verrouillée' : 'Déverrouillée',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              key: const Key('detail-illustration'),
+              height: 220,
+              decoration: BoxDecoration(
+                color: colors.secondaryContainer,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(
+                Icons.image_outlined,
+                size: 68,
+                color: colors.onSecondaryContainer.withValues(alpha: 0.55),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              card.titleKey ?? 'Carte',
+              key: const Key('detail-title'),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              description,
+              key: const Key('detail-description'),
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Chip(
+                  key: const Key('detail-chili'),
+                  avatar: const Icon(Icons.local_fire_department_outlined),
+                  label: Text(chili),
+                ),
+                if (card.personalValue != null)
+                  Chip(
+                    key: const Key('detail-personal-value'),
+                    avatar: const Icon(Icons.favorite_outline),
+                    label: Text('${card.personalValue}/20'),
+                  ),
+                Chip(
+                  key: const Key('detail-lock-label'),
+                  avatar: Icon(
+                    locked ? Icons.lock_rounded : Icons.lock_open_rounded,
+                  ),
+                  label: Text(locked ? 'Verrouillée' : 'Déverrouillée'),
+                ),
+              ],
+            ),
+            if (unavailable) ...[
+              const SizedBox(height: 14),
+              Container(
+                key: const Key('unavailable-explanation'),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        "Cette carte n'est pas disponible dans la situation actuelle.",
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (card.instructionKeys.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Text(
+                'En savoir plus',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
+              for (final information in card.instructionKeys)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(information),
+                ),
+            ],
+            const SizedBox(height: 22),
+            OutlinedButton.icon(
+              key: const Key('lock-card-button'),
+              onPressed: onToggleLock,
+              icon: Icon(locked ? Icons.lock_open_rounded : Icons.lock_rounded),
+              label: Text(
+                locked ? 'Déverrouiller la carte' : 'Verrouiller la carte',
+              ),
+            ),
+            const SizedBox(height: 10),
+            FilledButton(
+              key: const Key('choose-card-button'),
+              onPressed: onSelect,
+              child: Text(
+                selected ? 'Carte sélectionnée' : 'Choisir cette carte',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class GameCard extends StatelessWidget {
   const GameCard({
     required this.card,
     this.compact = false,
     this.prominent = false,
     this.hidePersonalValue = false,
+    this.locked,
+    this.selected = false,
+    this.unavailable = false,
     super.key,
   });
 
   final GameCardView card;
   final bool compact, prominent, hidePersonalValue;
+  final bool? locked;
+  final bool selected, unavailable;
 
   @override
   Widget build(BuildContext context) {
@@ -320,111 +588,125 @@ class GameCard extends StatelessWidget {
         card.instructionKeys.firstOrNull ??
         'Description à venir';
     final chili = card.chiliLevels.isEmpty ? '—' : card.chiliLevels.join(' · ');
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(prominent ? 22 : 14),
-        border: Border.all(color: colors.outlineVariant),
-        boxShadow: prominent
-            ? [
-                BoxShadow(
-                  color: colors.shadow.withValues(alpha: 0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : null,
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: EdgeInsets.all(compact ? 7 : 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    card.category,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: colors.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
+    final isLocked = locked ?? card.locked;
+    return Opacity(
+      opacity: unavailable ? 0.48 : 1,
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(prominent ? 22 : 14),
+          border: Border.all(
+            color: selected ? colors.primary : colors.outlineVariant,
+            width: selected ? 3 : 1,
+          ),
+          boxShadow: prominent
+              ? [
+                  BoxShadow(
+                    color: colors.shadow.withValues(alpha: 0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-                if (card.locked)
-                  Icon(
-                    Icons.lock_rounded,
-                    key: Key('card-lock-${card.cardId}'),
-                    size: compact ? 15 : 20,
-                    semanticLabel: 'Carte verrouillée',
-                  ),
-              ],
-            ),
-            SizedBox(height: compact ? 4 : 8),
-            Expanded(
-              flex: prominent ? 3 : 2,
-              child: Container(
-                key: Key('illustration-${card.cardId}'),
-                decoration: BoxDecoration(
-                  color: colors.secondaryContainer,
-                  borderRadius: BorderRadius.circular(compact ? 8 : 14),
-                ),
-                child: Icon(
-                  Icons.image_outlined,
-                  size: compact ? 22 : 42,
-                  color: colors.onSecondaryContainer.withValues(alpha: 0.55),
-                ),
-              ),
-            ),
-            SizedBox(height: compact ? 4 : 8),
-            Text(
-              title,
-              maxLines: compact ? 1 : 2,
-              overflow: TextOverflow.ellipsis,
-              style:
-                  (compact
-                          ? Theme.of(context).textTheme.labelMedium
-                          : Theme.of(context).textTheme.titleMedium)
-                      ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            if (!compact) ...[
-              const SizedBox(height: 3),
-              Text(
-                description,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-            SizedBox(height: compact ? 3 : 6),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+                ]
+              : null,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: EdgeInsets.all(compact ? 7 : 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
                 children: [
-                  Text(
-                    '🌶️ $chili',
-                    maxLines: 1,
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                  if (!hidePersonalValue && card.personalValue != null) ...[
-                    const SizedBox(width: 6),
-                    Text(
-                      '${card.personalValue}/20',
-                      key: Key('personal-value-${card.cardId}'),
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
+                  Expanded(
+                    child: Text(
+                      card.category,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: colors.primary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ],
+                  ),
+                  if (selected)
+                    Icon(
+                      Icons.check_circle_rounded,
+                      key: Key('card-selected-${card.cardId}'),
+                      size: compact ? 15 : 20,
+                      color: colors.primary,
+                      semanticLabel: 'Carte sélectionnée',
+                    ),
+                  if (isLocked)
+                    Icon(
+                      Icons.lock_rounded,
+                      key: Key('card-lock-${card.cardId}'),
+                      size: compact ? 15 : 20,
+                      semanticLabel: 'Carte verrouillée',
+                    ),
                 ],
               ),
-            ),
-          ],
+              SizedBox(height: compact ? 4 : 8),
+              Expanded(
+                flex: prominent ? 3 : 2,
+                child: Container(
+                  key: Key('illustration-${card.cardId}'),
+                  decoration: BoxDecoration(
+                    color: colors.secondaryContainer,
+                    borderRadius: BorderRadius.circular(compact ? 8 : 14),
+                  ),
+                  child: Icon(
+                    Icons.image_outlined,
+                    size: compact ? 22 : 42,
+                    color: colors.onSecondaryContainer.withValues(alpha: 0.55),
+                  ),
+                ),
+              ),
+              SizedBox(height: compact ? 4 : 8),
+              Text(
+                title,
+                maxLines: compact ? 1 : 2,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    (compact
+                            ? Theme.of(context).textTheme.labelMedium
+                            : Theme.of(context).textTheme.titleMedium)
+                        ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              if (!compact) ...[
+                const SizedBox(height: 3),
+                Text(
+                  description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+              SizedBox(height: compact ? 3 : 6),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '🌶️ $chili',
+                      maxLines: 1,
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                    if (!hidePersonalValue && card.personalValue != null) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        '${card.personalValue}/20',
+                        key: Key('personal-value-${card.cardId}'),
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

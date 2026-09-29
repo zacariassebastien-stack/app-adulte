@@ -10,7 +10,8 @@ Voir [questions ouvertes](docs/open_questions.md) et [audit](docs/catalog_audit.
 ## Architecture
 
 - `lib/app/` : application Flutter et adaptateur AssetBundle.
-- `lib/features/game/` : écran statique V1 alimenté par `GameScreenData`.
+- `lib/features/game/` : écran V1 alimenté par `GameScreenData`, détail des
+  cartes et interactions locales de sélection/verrouillage.
 - `lib/core/` : lecture JSON stricte, copie immuable, erreurs typées.
 - `lib/domain/` : définitions de contenu, enums, préférences privées et snapshot.
 - `lib/data/catalog_loader/` : chargement JSON et validation référentielle.
@@ -48,8 +49,9 @@ dart run tool/simulation_report.dart
 dart test test/simulation
 ```
 
-La campagne longue est explicite et séparée des tests CI. Le premier écran de
-partie reste un squelette statique : aucune mécanique ni navigation complète.
+La campagne longue est explicite et séparée des tests CI. L'écran de partie
+gère seulement le détail, la sélection et le verrouillage locaux des cartes :
+aucune mécanique de duel ni navigation complète.
 
 Les onze modèles demandés sont immuables, avec enums et codecs sans perte :
 CardDefinition, CardVariantDefinition, ProfileElementDefinition, TagDefinition,
@@ -145,5 +147,5 @@ La **phase 4.5** est terminée : [contrat des événements privés et statistiqu
 [régression exacte sur 1 000 sessions](docs/phase45_regression.json).
 Les 19 axes disposent de métriques descriptives, sans profils humoristiques finaux.
 Voir aussi [les simulations Phase 4](docs/phase4_simulation.md)
-et [l'architecture des moteurs conservés](docs/phase3_engines.md).
-Aucune UI de Phase 5 n'a été ajoutée.
+et [l'architecture des moteurs conservés](docs/phase3_engines.md). L'interface
+Phase 5.2 reste locale et ne déclenche aucune règle de jeu.

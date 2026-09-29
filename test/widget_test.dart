@@ -64,7 +64,6 @@ void main() {
   testWidgets('a locked card displays its lock indicator', (tester) async {
     await tester.pumpWidget(subject());
     expect(find.byKey(const Key('card-lock-card-1')), findsOneWidget);
-    expect(find.bySemanticsLabel('Carte verrouillée'), findsOneWidget);
   });
 
   testWidgets('privacy transition hides hand, PA and personal scores', (

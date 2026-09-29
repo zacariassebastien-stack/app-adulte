@@ -18,7 +18,10 @@ class CoupleCardsApp extends StatelessWidget {
       scaffoldBackgroundColor: const Color(0xFFF9F7F8),
       useMaterial3: true,
     ),
-    home: GameScreen(data: _fixture()),
+    home: GameScreen(
+      data: _fixture(),
+      temporarilyUnavailableCardIds: const {'hand-3'},
+    ),
   );
 
   static GameScreenData _fixture() => GameScreenData(
@@ -54,7 +57,12 @@ class CoupleCardsApp extends StatelessWidget {
           chiliLevels: [index % 3 + 1],
           locked: index == 1,
           titleKey: 'Carte ${index + 1}',
+          descriptionKey:
+              'Une description complète de la carte, visible dans son détail.',
           personalValue: 12 + index,
+          instructionKeys: index == 0
+              ? const ['Informations complémentaires pour cette action.']
+              : const [],
         ),
     ],
   );
