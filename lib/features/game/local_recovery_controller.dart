@@ -342,8 +342,15 @@ final class LocalRecoveryController {
     phase = LocalRecoveryPhase.complete;
   }
 
-  void resetCompletedFlow() {
+  void resetCompletedFlow({
+    required Map<String, int> actionPoints,
+    required Map<String, List<CardRuntimeState>> runtime,
+  }) {
     _require(LocalRecoveryPhase.complete);
+    _actionPoints = Map.of(actionPoints);
+    _runtime = {
+      for (final entry in runtime.entries) entry.key: List.of(entry.value),
+    };
     _resetFlow();
   }
 

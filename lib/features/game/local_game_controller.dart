@@ -495,7 +495,10 @@ final class LocalGameController {
         _partnerCards = _refill(partner, local, _partnerCards, _partnerHistory);
       }
     }
-    recoveryController.resetCompletedFlow();
+    recoveryController.resetCompletedFlow(
+      actionPoints: _actionPoints,
+      runtime: {local.playerId: _localCards, partner.playerId: _partnerCards},
+    );
   }
 
   void startNextRound() {

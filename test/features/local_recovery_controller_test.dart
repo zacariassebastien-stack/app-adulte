@@ -236,6 +236,46 @@ void main() {
     );
   });
 
+  test('successive Recoveries preserve the first player refill', () {
+    final controller = lowController(partnerPa: 20);
+    final localOption = controller
+        .recoveryOptionsFor(controller.local.playerId)
+        .firstWhere((item) => item.source == RecoverySource.HAND);
+    controller.startRecovery(controller.local.playerId);
+    controller.selectRecoveryAction(
+      localOption.card.id,
+      localOption.variant.id,
+    );
+    acceptAndFinish(controller, ActionExecutionStatus.COMPLETED);
+    controller.finishBetweenRoundAction();
+    final localHandAfterRefill = controller.screenData.hand
+        .map((card) => card.cardId)
+        .toSet();
+    expect(localHandAfterRefill, hasLength(4));
+
+    final partnerOption = controller
+        .recoveryOptionsFor(controller.partner.playerId)
+        .firstWhere((item) => item.source == RecoverySource.HAND);
+    controller.startRecovery(controller.partner.playerId);
+    controller.selectRecoveryAction(
+      partnerOption.card.id,
+      partnerOption.variant.id,
+    );
+    controller.answerRecovery(RecoveryResponse.ACCEPT);
+    controller.recordRecoveryAction(ActionExecutionStatus.COMPLETED);
+    controller.finishRecoveryExecution();
+    controller.finishBetweenRoundAction();
+
+    expect(
+      controller.screenData.hand.map((card) => card.cardId).toSet(),
+      localHandAfterRefill,
+    );
+    expect(
+      controller.partnerCards.where((card) => card.zone == CardZone.HAND),
+      hasLength(4),
+    );
+  });
+
   test('STOP is free, neutral and grants no gain for stopped action', () {
     final controller = lowController();
     select(controller, 'local-card-4');
