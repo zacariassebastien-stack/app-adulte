@@ -17,8 +17,13 @@
   ],
   "legacy_mappings": {
     "total": 105,
-    "mapped": 103,
-    "without_v3_target": 2,
+    "mapped": 93,
+    "without_v3_target": 12,
+    "by_status": {
+      "mapped": 93,
+      "scenario_pending": 10,
+      "deprecated": 2
+    },
     "unmapped_tags_used_by_playable_cards": [
       "tag.duration.long",
       "tag.simulation.guided"
@@ -151,7 +156,7 @@
         "variant_count": 6,
         "direction_coverage": {
           "FAIRE": 2,
-          "RECEVOIR": 2,
+          "RECEVOIR": 1,
           "SOLO": 2,
           "MUTUEL": 1,
           "SIMULTANE": 0
@@ -403,20 +408,21 @@
         "stable_id": "v3.preference.controle",
         "key": "CONTROLE",
         "scoreable": true,
-        "card_count": 11,
-        "variant_count": 11,
+        "card_count": 12,
+        "variant_count": 14,
         "direction_coverage": {
           "FAIRE": 9,
-          "RECEVOIR": 10,
+          "RECEVOIR": 13,
           "SOLO": 0,
           "MUTUEL": 0,
           "SIMULTANE": 0
         },
-        "distance_compatible_variants": 9,
+        "distance_compatible_variants": 12,
         "cards": [
           "card.choose_my_photo",
           "card.choose_pose",
           "card.choose_sex_position",
+          "card.dominate_me",
           "card.i_decide",
           "card.imposed_position",
           "card.make_wait",
@@ -431,18 +437,17 @@
         "stable_id": "v3.preference.servir",
         "key": "SERVIR",
         "scoreable": true,
-        "card_count": 2,
-        "variant_count": 5,
+        "card_count": 1,
+        "variant_count": 2,
         "direction_coverage": {
           "FAIRE": 1,
-          "RECEVOIR": 3,
+          "RECEVOIR": 0,
           "SOLO": 0,
           "MUTUEL": 0,
           "SIMULTANE": 0
         },
-        "distance_compatible_variants": 5,
+        "distance_compatible_variants": 2,
         "cards": [
-          "card.dominate_me",
           "card.submit"
         ]
       },
@@ -541,21 +546,18 @@
         "stable_id": "v3.preference.regarder",
         "key": "REGARDER",
         "scoreable": true,
-        "card_count": 6,
-        "variant_count": 6,
+        "card_count": 3,
+        "variant_count": 3,
         "direction_coverage": {
-          "FAIRE": 4,
-          "RECEVOIR": 4,
-          "SOLO": 1,
+          "FAIRE": 2,
+          "RECEVOIR": 3,
+          "SOLO": 0,
           "MUTUEL": 0,
           "SIMULTANE": 0
         },
-        "distance_compatible_variants": 6,
+        "distance_compatible_variants": 3,
         "cards": [
-          "card.let_me_watch",
           "card.look_at_me",
-          "card.masturbate_self_visible",
-          "card.masturbation",
           "card.private_voyeur",
           "card.watch_no_touch"
         ]
@@ -568,7 +570,7 @@
         "variant_count": 13,
         "direction_coverage": {
           "FAIRE": 9,
-          "RECEVOIR": 10,
+          "RECEVOIR": 9,
           "SOLO": 0,
           "MUTUEL": 0,
           "SIMULTANE": 0
@@ -1177,6 +1179,22 @@
         },
         "distance_compatible_variants": 0,
         "cards": []
+      },
+      {
+        "stable_id": "v3.preference.jeu_role",
+        "key": "JEU_ROLE",
+        "scoreable": true,
+        "card_count": 0,
+        "variant_count": 0,
+        "direction_coverage": {
+          "FAIRE": 0,
+          "RECEVOIR": 0,
+          "SOLO": 0,
+          "MUTUEL": 0,
+          "SIMULTANE": 0
+        },
+        "distance_compatible_variants": 0,
+        "cards": []
       }
     ],
     "ZONE": [
@@ -1513,10 +1531,10 @@
         "stable_id": "v3.direction.faire",
         "key": "FAIRE",
         "scoreable": false,
-        "card_count": 5,
-        "variant_count": 5,
+        "card_count": 6,
+        "variant_count": 6,
         "direction_coverage": {
-          "FAIRE": 5,
+          "FAIRE": 6,
           "RECEVOIR": 2,
           "SOLO": 0,
           "MUTUEL": 0,
@@ -1526,6 +1544,7 @@
         "cards": [
           "card.give_order",
           "card.i_decide",
+          "card.masturbate_partner",
           "card.oral_give",
           "card.remote_instruction",
           "card.submit"
@@ -1535,11 +1554,11 @@
         "stable_id": "v3.direction.recevoir",
         "key": "RECEVOIR",
         "scoreable": false,
-        "card_count": 8,
-        "variant_count": 10,
+        "card_count": 5,
+        "variant_count": 7,
         "direction_coverage": {
-          "FAIRE": 5,
-          "RECEVOIR": 10,
+          "FAIRE": 3,
+          "RECEVOIR": 7,
           "SOLO": 0,
           "MUTUEL": 1,
           "SIMULTANE": 0
@@ -1547,12 +1566,9 @@
         "distance_compatible_variants": 6,
         "cards": [
           "card.dominate_me",
-          "card.masturbate_partner",
           "card.obey_order",
           "card.oral_receive",
           "card.sexting",
-          "card.undress_me",
-          "card.undress_partner",
           "card.you_decide"
         ]
       },
@@ -1796,22 +1812,6 @@
     ],
     "SESSION_PREF": [
       {
-        "stable_id": "v3.session_pref.jeu_role",
-        "key": "JEU_ROLE",
-        "scoreable": false,
-        "card_count": 0,
-        "variant_count": 0,
-        "direction_coverage": {
-          "FAIRE": 0,
-          "RECEVOIR": 0,
-          "SOLO": 0,
-          "MUTUEL": 0,
-          "SIMULTANE": 0
-        },
-        "distance_compatible_variants": 0,
-        "cards": []
-      },
-      {
         "stable_id": "v3.session_pref.surprise_party",
         "key": "SURPRISE_PARTY",
         "scoreable": false,
@@ -1845,6 +1845,7 @@
     "v3.preference.cracher",
     "v3.preference.deguisement",
     "v3.preference.ejaculation",
+    "v3.preference.jeu_role",
     "v3.preference.lieu_expose",
     "v3.preference.lieu_inhabituel",
     "v3.preference.maintien_cou",
@@ -1867,7 +1868,6 @@
     "v3.preference.tenue_legere",
     "v3.preference.tirer",
     "v3.preference.vibrant",
-    "v3.session_pref.jeu_role",
     "v3.session_pref.surprise_party",
     "v3.technique.distance_exclue",
     "v3.zone.bras",

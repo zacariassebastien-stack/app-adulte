@@ -57,6 +57,27 @@ final class V3LegacyMapping {
   final String status;
 }
 
+final class V3LegacyProfileMapping {
+  const V3LegacyProfileMapping({
+    required this.legacyProfileId,
+    required this.v3TagIds,
+    required this.status,
+  });
+
+  factory V3LegacyProfileMapping.fromJson(JsonMap json) =>
+      V3LegacyProfileMapping(
+        legacyProfileId: json['legacy_profile_id']! as String,
+        v3TagIds: List.unmodifiable(
+          (json['v3_tag_ids']! as List).cast<String>(),
+        ),
+        status: json['status']! as String,
+      );
+
+  final String legacyProfileId;
+  final List<String> v3TagIds;
+  final String status;
+}
+
 /// Additive V3 contract. The active V1/V2 catalogue remains the runtime source
 /// until cards and profiles are migrated in the next catalogue step.
 final class V3Taxonomy {
@@ -64,6 +85,7 @@ final class V3Taxonomy {
     required this.schemaVersion,
     required this.tags,
     required this.legacyMappings,
+    required this.legacyProfileMappings,
     required this.roleplayScenarioCardIds,
   }) {
     if (schemaVersion != 3) {
@@ -92,6 +114,19 @@ final class V3Taxonomy {
         }
       }
     }
+    final profileMappingIds = <String>{};
+    for (final mapping in legacyProfileMappings) {
+      if (!profileMappingIds.add(mapping.legacyProfileId)) {
+        throw FormatException(
+          'Duplicate legacy profile mapping: ${mapping.legacyProfileId}',
+        );
+      }
+      for (final id in mapping.v3TagIds) {
+        if (!tagIds.contains(id)) {
+          throw FormatException('Unknown V3 profile mapping target: $id');
+        }
+      }
+    }
   }
 
   factory V3Taxonomy.fromJson(JsonMap json) {
@@ -103,10 +138,15 @@ final class V3Taxonomy {
         .cast<JsonMap>()
         .map(V3LegacyMapping.fromJson)
         .toList(growable: false);
+    final profileMappings = (json['legacy_profile_mappings']! as List)
+        .cast<JsonMap>()
+        .map(V3LegacyProfileMapping.fromJson)
+        .toList(growable: false);
     return V3Taxonomy(
       schemaVersion: json['schema_version']! as int,
       tags: List.unmodifiable(tags),
       legacyMappings: List.unmodifiable(mappings),
+      legacyProfileMappings: List.unmodifiable(profileMappings),
       roleplayScenarioCardIds: List.unmodifiable(
         (json['roleplay_scenario_card_ids']! as List).cast<String>(),
       ),
@@ -119,5 +159,6 @@ final class V3Taxonomy {
   final int schemaVersion;
   final List<V3TagDefinition> tags;
   final List<V3LegacyMapping> legacyMappings;
+  final List<V3LegacyProfileMapping> legacyProfileMappings;
   final List<String> roleplayScenarioCardIds;
 }

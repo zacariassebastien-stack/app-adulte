@@ -53,6 +53,90 @@ void main() {
         expect(legacyProfileIds, contains(mapping.legacyProfileId));
       }
     }
+    expect(
+      taxonomy.legacyProfileMappings.single.legacyProfileId,
+      'profile.roleplay',
+    );
+    expect(taxonomy.legacyProfileMappings.single.v3TagIds, [
+      'v3.preference.jeu_role',
+    ]);
+  });
+
+  test('sensitive legacy semantics keep actor and receiver distinct', () {
+    List<String> targets(String legacyId) => taxonomy.legacyMappings
+        .singleWhere((mapping) => mapping.legacyTagId == legacyId)
+        .v3TagIds;
+
+    expect(targets('tag.observation.be_watched'), [
+      'v3.direction.etre_regarde',
+    ]);
+    expect(targets('tag.observation.watch'), ['v3.preference.regarder']);
+    expect(targets('tag.intimate.masturbation.partner'), [
+      'v3.preference.masturbation',
+      'v3.direction.faire',
+    ]);
+    expect(targets('tag.intimate.masturbation.mutual'), [
+      'v3.preference.masturbation',
+      'v3.direction.mutuel',
+    ]);
+    expect(
+      targets('tag.intimate.masturbation.mutual'),
+      isNot(contains('v3.direction.simultane')),
+    );
+    expect(targets('tag.power.order.give'), [
+      'v3.preference.ordres',
+      'v3.direction.faire',
+    ]);
+    expect(targets('tag.power.order.receive'), [
+      'v3.preference.ordres',
+      'v3.direction.recevoir',
+    ]);
+    expect(targets('tag.power.decision.give'), [
+      'v3.preference.controle',
+      'v3.direction.faire',
+    ]);
+    expect(targets('tag.power.decision.receive'), [
+      'v3.preference.controle',
+      'v3.direction.recevoir',
+    ]);
+    expect(targets('tag.power.domination.receive'), [
+      'v3.preference.controle',
+      'v3.direction.recevoir',
+    ]);
+    expect(targets('tag.media.photo.send'), [
+      'v3.preference.photo',
+      'v3.preference.envoyer',
+    ]);
+    expect(targets('tag.media.video.send'), [
+      'v3.preference.video',
+      'v3.preference.envoyer',
+    ]);
+    expect(targets('tag.clothing.partner_remove'), ['v3.preference.enlever']);
+  });
+
+  test('roleplay and exposed-place preference semantics are preserved', () {
+    final roleplay = taxonomy.tags.singleWhere((tag) => tag.key == 'JEU_ROLE');
+    expect(roleplay.category, V3TagCategory.PREFERENCE);
+    expect(roleplay.scoreable, isTrue);
+    final exposedPlace = taxonomy.tags.singleWhere(
+      (tag) => tag.key == 'LIEU_EXPOSE',
+    );
+    expect(exposedPlace.category, V3TagCategory.PREFERENCE);
+    expect(exposedPlace.scoreable, isTrue);
+
+    final scenarioMappings = taxonomy.legacyMappings.where(
+      (mapping) => mapping.legacyTagId.startsWith('tag.roleplay.'),
+    );
+    expect(scenarioMappings, hasLength(10));
+    expect(
+      scenarioMappings,
+      everyElement(
+        predicate<V3LegacyMapping>(
+          (mapping) =>
+              mapping.status == 'scenario_pending' && mapping.v3TagIds.isEmpty,
+        ),
+      ),
+    );
   });
 
   test('engagement clothing modifier only applies to levels 1 to 3', () {

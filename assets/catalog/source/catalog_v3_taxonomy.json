@@ -579,10 +579,10 @@
       "scoreable": false
     },
     {
-      "stable_id": "v3.session_pref.jeu_role",
+      "stable_id": "v3.preference.jeu_role",
       "key": "JEU_ROLE",
-      "category": "SESSION_PREF",
-      "scoreable": false
+      "category": "PREFERENCE",
+      "scoreable": true
     },
     {
       "stable_id": "v3.session_pref.surprise_party",
@@ -652,8 +652,7 @@
       "legacy_tag_id": "tag.clothing.partner_remove",
       "legacy_profile_id": "profile.clothing.partner_remove",
       "v3_tag_ids": [
-        "v3.preference.enlever",
-        "v3.direction.recevoir"
+        "v3.preference.enlever"
       ],
       "status": "mapped"
     },
@@ -872,7 +871,7 @@
       "legacy_profile_id": "profile.intimate.masturbation.partner",
       "v3_tag_ids": [
         "v3.preference.masturbation",
-        "v3.direction.recevoir"
+        "v3.direction.faire"
       ],
       "status": "mapped"
     },
@@ -1056,7 +1055,6 @@
       "legacy_tag_id": "tag.observation.be_watched",
       "legacy_profile_id": "profile.observation.be_watched",
       "v3_tag_ids": [
-        "v3.preference.regarder",
         "v3.direction.etre_regarde"
       ],
       "status": "mapped"
@@ -1107,7 +1105,7 @@
       "legacy_tag_id": "tag.power.domination.receive",
       "legacy_profile_id": "profile.power.domination.receive",
       "v3_tag_ids": [
-        "v3.preference.servir",
+        "v3.preference.controle",
         "v3.direction.recevoir"
       ],
       "status": "mapped"
@@ -1166,81 +1164,61 @@
     {
       "legacy_tag_id": "tag.roleplay.bar_meeting",
       "legacy_profile_id": "profile.roleplay.bar_meeting",
-      "v3_tag_ids": [
-        "v3.session_pref.jeu_role"
-      ],
+      "v3_tag_ids": [],
       "status": "scenario_pending"
     },
     {
       "legacy_tag_id": "tag.roleplay.boss_employee",
       "legacy_profile_id": "profile.roleplay.boss_employee",
-      "v3_tag_ids": [
-        "v3.session_pref.jeu_role"
-      ],
+      "v3_tag_ids": [],
       "status": "scenario_pending"
     },
     {
       "legacy_tag_id": "tag.roleplay.celebrity_fan",
       "legacy_profile_id": "profile.roleplay.celebrity_fan",
-      "v3_tag_ids": [
-        "v3.session_pref.jeu_role"
-      ],
+      "v3_tag_ids": [],
       "status": "scenario_pending"
     },
     {
       "legacy_tag_id": "tag.roleplay.delivery",
       "legacy_profile_id": "profile.roleplay.delivery",
-      "v3_tag_ids": [
-        "v3.session_pref.jeu_role"
-      ],
+      "v3_tag_ids": [],
       "status": "scenario_pending"
     },
     {
       "legacy_tag_id": "tag.roleplay.masseur_client",
       "legacy_profile_id": "profile.roleplay.masseur_client",
-      "v3_tag_ids": [
-        "v3.session_pref.jeu_role"
-      ],
+      "v3_tag_ids": [],
       "status": "scenario_pending"
     },
     {
       "legacy_tag_id": "tag.roleplay.master_servant",
       "legacy_profile_id": "profile.roleplay.master_servant",
-      "v3_tag_ids": [
-        "v3.session_pref.jeu_role"
-      ],
+      "v3_tag_ids": [],
       "status": "scenario_pending"
     },
     {
       "legacy_tag_id": "tag.roleplay.medical",
       "legacy_profile_id": "profile.roleplay.medical",
-      "v3_tag_ids": [
-        "v3.session_pref.jeu_role"
-      ],
+      "v3_tag_ids": [],
       "status": "scenario_pending"
     },
     {
       "legacy_tag_id": "tag.roleplay.photographer_model",
       "legacy_profile_id": "profile.roleplay.photographer_model",
-      "v3_tag_ids": [
-        "v3.session_pref.jeu_role"
-      ],
+      "v3_tag_ids": [],
       "status": "scenario_pending"
     },
     {
       "legacy_tag_id": "tag.roleplay.royalty_servant",
       "legacy_profile_id": "profile.roleplay.royalty_servant",
-      "v3_tag_ids": [
-        "v3.session_pref.jeu_role"
-      ],
+      "v3_tag_ids": [],
       "status": "scenario_pending"
     },
     {
       "legacy_tag_id": "tag.roleplay.strangers",
       "legacy_profile_id": "profile.roleplay.strangers",
-      "v3_tag_ids": [
-        "v3.session_pref.jeu_role"
-      ],
+      "v3_tag_ids": [],
       "status": "scenario_pending"
     },
     {
@@ -1472,6 +1450,15 @@
       "legacy_profile_id": "profile.power.order",
       "v3_tag_ids": [
         "v3.preference.ordres"
+      ],
+      "status": "mapped"
+    }
+  ],
+  "legacy_profile_mappings": [
+    {
+      "legacy_profile_id": "profile.roleplay",
+      "v3_tag_ids": [
+        "v3.preference.jeu_role"
       ],
       "status": "mapped"
     }

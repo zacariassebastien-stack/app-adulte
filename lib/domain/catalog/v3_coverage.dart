@@ -69,6 +69,14 @@ final class V3CoverageReportBuilder {
     final legacyMapped = taxonomy.legacyMappings
         .where((mapping) => mapping.v3TagIds.isNotEmpty)
         .length;
+    final mappingsByStatus = <String, int>{};
+    for (final mapping in taxonomy.legacyMappings) {
+      mappingsByStatus.update(
+        mapping.status,
+        (count) => count + 1,
+        ifAbsent: () => 1,
+      );
+    }
 
     return {
       'schema_version': 3,
@@ -80,6 +88,7 @@ final class V3CoverageReportBuilder {
         'total': taxonomy.legacyMappings.length,
         'mapped': legacyMapped,
         'without_v3_target': taxonomy.legacyMappings.length - legacyMapped,
+        'by_status': mappingsByStatus,
         'unmapped_tags_used_by_playable_cards': unmapped.toList()..sort(),
       },
       'coverage_by_category': grouped,

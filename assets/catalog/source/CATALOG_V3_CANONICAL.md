@@ -26,6 +26,18 @@ migration ; elle ne remplace pas la révision éditoriale des cartes de l'étape
 `PAPOUILLE` est supprimé. `DISTANCE_COMPATIBLE` n'existe pas : la distance est
 compatible par défaut.
 
+`JEU_ROLE` est une préférence générale scoreable. Les scénarios précis ne sont
+pas des préférences permanentes : `profile.roleplay` migre vers `JEU_ROLE`,
+tandis que les dix anciens tags de scénario restent `scenario_pending` sans
+cible de préférence. `LIEU_EXPOSE` reste également une préférence personnelle
+scoreable ; seul le lieu concret choisi appartient au contexte de session.
+
+Les mappings directionnels décrivent le sens du concept : regarder et être
+regardé, donner et recevoir un ordre, décider et laisser décider restent
+distincts. Lorsqu'un ancien tag est réutilisé dans les deux sens, comme
+`tag.clothing.partner_remove`, la direction historique de la carte fait foi et
+le mapping du tag n'en invente aucune.
+
 ## PA
 
 Seules les préférences V3 participent à la valeur personnelle. La valeur de
