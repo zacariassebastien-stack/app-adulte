@@ -564,6 +564,13 @@ void main() {
       setup.backend.notify();
       await _settle();
 
+      final playedCardId = setup.alice.runtime
+          .singleWhere((item) => item.zone == CardZone.DISCARD)
+          .cardId;
+      expect(
+        setup.alice.history[playedCardId],
+        CardHistoryState.playedOrDiscarded,
+      );
       expect(setup.alice.recoveryAvailable, isTrue);
       expect(setup.bob.recoveryAvailable, isFalse);
       final option = setup.alice.recoveryCards.first;
@@ -571,6 +578,8 @@ void main() {
       await setup.alice.recoverWith(option.id);
       await setup.alice.recoverWith(option.id);
       await _settle();
+      expect(setup.backend.round.recoveries['alice']!.gain, 0);
+      expect(setup.backend.round.recoveries['alice']!.completed, isFalse);
       expect(setup.bob.viewState, NetworkGameViewState.recoveryResponse);
       await setup.bob.respondToRecovery(RecoveryResponse.ACCEPT);
       await _settle();
@@ -698,6 +707,14 @@ void main() {
       expect(next, contains('auth.uid()'));
       expect(next, contains('ROUND_RECOVERY_NOT_ELIGIBLE'));
       expect(next, isNot(contains('service_role')));
+      final privacy = File(
+        'supabase/migrations/202609300003_recovery_proposal_privacy.sql',
+      ).readAsStringSync();
+      expect(privacy, contains('ROUND_RECOVERY_PROPOSAL_PRIVATE'));
+      expect(privacy, contains("old.phase = 'RECOVERY'"));
+      expect(privacy, contains("new.phase = 'RECOVERY_RESPONSE'"));
+      expect(privacy, contains("v_proposal->>'gain'"));
+      expect(privacy, isNot(contains('service_role')));
       expect(next, isNot(contains('private_hand')));
     },
   );

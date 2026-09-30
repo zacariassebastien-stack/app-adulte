@@ -428,7 +428,7 @@ final class NetworkGameController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> recoverWith(String cardId, {bool completed = true}) async {
+  Future<void> recoverWith(String cardId) async {
     if (viewState != NetworkGameViewState.recovery || !recoveryAvailable) {
       return;
     }
@@ -440,33 +440,13 @@ final class NetworkGameController extends ChangeNotifier {
       CardZone.DISCARD => RecoverySource.DISCARD,
       _ => RecoverySource.CATALOG,
     };
-    final result = recoveryEngine.resolve(
-      currentPa: actionPoints[playerId]!,
-      response: RecoveryResponse.ACCEPT,
-      performedRoles: [
-        (
-          PreferenceValue(
-            status: PreferenceStatus.ACCEPTED,
-            general: card.role == ProfileRole.GENERAL
-                ? card.personalValue
-                : null,
-            faire: card.role == ProfileRole.FAIRE ? card.personalValue : null,
-            recevoir: card.role == ProfileRole.RECEVOIR
-                ? card.personalValue
-                : null,
-          ),
-          card.role,
-          completed,
-        ),
-      ],
-    );
     final recovery = NetworkRecoveryDto(
       playerId: playerId,
       cardId: card.id,
       variantId: card.variant.id,
       source: source,
-      completed: completed,
-      gain: result.gain,
+      completed: false,
+      gain: 0,
     );
     await _networkAction(
       repository.submitRecovery(
@@ -504,7 +484,7 @@ final class NetworkGameController extends ChangeNotifier {
       variantId: proposal.variantId,
       source: proposal.source,
       completed: completed,
-      gain: completed ? proposal.gain : 0,
+      gain: completed ? _recoveryGain(proposal.cardId) : 0,
       response: proposal.response,
     );
     await _networkAction(
@@ -596,6 +576,7 @@ final class NetworkGameController extends ChangeNotifier {
       return;
     }
     round = value;
+    await _closeNormalRoundForRecovery(value);
     await _reconcilePublicLifecycle(value);
     if (_disposed) return;
     switch (value.phase) {
@@ -662,6 +643,26 @@ final class NetworkGameController extends ChangeNotifier {
         return;
     }
     notifyListeners();
+  }
+
+  Future<void> _closeNormalRoundForRecovery(
+    NetworkGameRoundStateDto value,
+  ) async {
+    if (value.phase != NetworkGamePhase.recovery &&
+        value.phase != NetworkGamePhase.recoveryResponse &&
+        value.phase != NetworkGamePhase.recoveryExecution) {
+      return;
+    }
+    final played = _runtime
+        .where((card) => card.zone == CardZone.ENGAGED)
+        .map((card) => card.cardId)
+        .toList();
+    if (played.isEmpty) return;
+    _runtime = lifecycleEngine.closeRound(_runtime);
+    for (final id in played) {
+      _history[id] = CardHistoryState.playedOrDiscarded;
+    }
+    await _persist();
   }
 
   Future<void> _reconcilePublicLifecycle(NetworkGameRoundStateDto value) async {
@@ -994,6 +995,35 @@ final class NetworkGameController extends ChangeNotifier {
         _fixtureValue(playerId, elementId, role),
       ),
     );
+  }
+
+  int _recoveryGain(String cardId) {
+    final card = _networkRecoveryCard(cardId);
+    if (card == null) return 0;
+    return recoveryEngine
+        .resolve(
+          currentPa: actionPoints[playerId]!,
+          response: RecoveryResponse.ACCEPT,
+          performedRoles: [
+            (
+              PreferenceValue(
+                status: PreferenceStatus.ACCEPTED,
+                general: card.role == ProfileRole.GENERAL
+                    ? card.personalValue
+                    : null,
+                faire: card.role == ProfileRole.FAIRE
+                    ? card.personalValue
+                    : null,
+                recevoir: card.role == ProfileRole.RECEVOIR
+                    ? card.personalValue
+                    : null,
+              ),
+              card.role,
+              true,
+            ),
+          ],
+        )
+        .gain;
   }
 
   PlayerGameProfile _profile(String id) => PlayerGameProfile(

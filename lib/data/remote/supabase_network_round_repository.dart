@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../sync/commit_reveal/commit_reveal.dart';
@@ -173,7 +173,7 @@ final class SupabaseNetworkRoundRepository implements NetworkRoundRepository {
     );
     final diagnostic =
         '$operation: PostgREST ${error.code} ${_safeMessage(error.message)}';
-    if (kDebugMode) debugPrint('Network round RPC failed: $diagnostic');
+    developer.log('Network round RPC failed: $diagnostic');
     return NetworkRoundException(publicCode, diagnostic: diagnostic);
   }
 

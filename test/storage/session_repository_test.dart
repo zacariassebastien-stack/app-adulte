@@ -33,28 +33,34 @@ void main() {
             const [
               PersistedCardState(
                 playerId: 'alice',
+                cardId: 'card.pool',
+                zone: CardZone.POOL,
+                ordinal: 0,
+              ),
+              PersistedCardState(
+                playerId: 'alice',
                 cardId: 'card.hand',
                 zone: CardZone.HAND,
-                ordinal: 0,
+                ordinal: 1,
                 locked: true,
               ),
               PersistedCardState(
                 playerId: 'alice',
                 cardId: 'card.engaged',
                 zone: CardZone.ENGAGED,
-                ordinal: 1,
+                ordinal: 2,
               ),
               PersistedCardState(
                 playerId: 'alice',
                 cardId: 'card.discard',
                 zone: CardZone.DISCARD,
-                ordinal: 2,
+                ordinal: 3,
               ),
               PersistedCardState(
                 playerId: 'alice',
                 cardId: 'card.exhausted',
                 zone: CardZone.EXHAUSTED,
-                ordinal: 3,
+                ordinal: 4,
               ),
             ],
         rounds: [
@@ -98,7 +104,10 @@ void main() {
     expect(saved.players.map((p) => p.chiliLevel), [3, 4]);
     expect(saved.players.map((p) => p.style), ['TACTICAL', 'PLAYFUL']);
     expect(saved.cards.map((c) => c.zone), CardZone.values);
-    expect(saved.cards.first.locked, isTrue);
+    expect(
+      saved.cards.singleWhere((card) => card.cardId == 'card.hand').locked,
+      isTrue,
+    );
     expect(saved.interruptedRoundId, 'round.7');
     expect(saved.rounds.single.status, RoundPersistenceStatus.INTERRUPTED);
     expect(saved.snapshots.single.snapshot.personalValue, 17);
@@ -113,7 +122,12 @@ void main() {
       cardId: 'card.hand',
       locked: false,
     );
-    expect((await sessions.load('session.1'))!.cards.first.locked, isFalse);
+    expect(
+      (await sessions.load(
+        'session.1',
+      ))!.cards.singleWhere((card) => card.cardId == 'card.hand').locked,
+      isFalse,
+    );
   });
 
   test('failed checkpoint replacement rolls back atomically', () async {
@@ -129,8 +143,8 @@ void main() {
       throwsA(anything),
     );
     final saved = (await sessions.load('session.1'))!;
-    expect(saved.cards.length, 4);
-    expect(saved.cards.first.cardId, 'card.hand');
+    expect(saved.cards.length, 5);
+    expect(saved.cards.first.cardId, 'card.pool');
   });
 
   test('session deletion also removes its EventLog', () async {

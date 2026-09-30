@@ -297,6 +297,7 @@ final class SupabaseNetworkGameRepository implements NetworkGameRepository {
       'ROUND_RESOLUTION_MISMATCH',
       'ROUND_CORRUPTION_FORBIDDEN',
       'ROUND_RECOVERY_NOT_ELIGIBLE',
+      'ROUND_RECOVERY_PROPOSAL_PRIVATE',
     ];
     return codes.firstWhere(
       marker.contains,
