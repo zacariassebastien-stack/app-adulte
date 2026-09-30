@@ -239,9 +239,9 @@ void main() {
     );
   });
 
-  test('only cards 1 to 30 have explicit V3 editorial data in this batch', () {
+  test('only cards 1 to 60 have explicit V3 editorial data after batch 2B', () {
     for (final card in catalog.cards) {
-      if (card.order! <= 30) {
+      if (card.order! <= 60) {
         expect(card.v3, isNotNull, reason: card.stableId);
         expect(
           card.variants,
@@ -263,17 +263,19 @@ void main() {
 
   test('migrated cards only reference canonical V3 tags', () {
     final tags = {for (final tag in taxonomy.tags) tag.stableId: tag};
-    for (final card in catalog.cards.where((card) => card.order! <= 30)) {
+    for (final card in catalog.cards.where((card) => card.order! <= 60)) {
       for (final data in [
         card.v3!,
         ...card.variants.map((variant) => variant.v3!),
       ]) {
         expect(data.tags, everyElement(startsWith('v3.')));
         expect(data.tags, everyElement(isIn(tags.keys)));
-        expect(
-          data.tags.any((id) => tags[id]!.category == V3TagCategory.PREFERENCE),
-          isTrue,
+        final hasPreference = data.tags.any(
+          (id) => tags[id]!.category == V3TagCategory.PREFERENCE,
         );
+        if (!hasPreference) {
+          expect(data.ambiguities, isNotEmpty, reason: card.stableId);
+        }
       }
     }
   });
@@ -289,10 +291,16 @@ void main() {
     expect(card(29).v3!.tags, contains('v3.direction.mutuel'));
     expect(card(29).v3!.tags, contains('v3.direction.simultane'));
     for (final order in [28, 29]) {
-      expect(card(order).v3!.tags, contains('v3.zone.buccal'));
+      expect(card(order).v3!.tags, isNot(contains('v3.zone.buccal')));
       expect(card(order).v3!.tags, isNot(contains('v3.preference.lecher')));
       expect(card(order).v3!.tags, isNot(contains('v3.preference.sucer')));
     }
+    expect(card(28).v3!.ambiguities, [
+      'Les futures variantes devront préciser LECHER ou SUCER si l’action orale est explicitée.',
+    ]);
+    expect(card(29).v3!.ambiguities, [
+      'Les futures variantes devront préciser les actions orales réellement simulées.',
+    ]);
     expect(card(30).v3!.tags, isNot(contains('v3.preference.position_a')));
     expect(card(30).v3!.tags, isNot(contains('v3.zone.fesses')));
     expect(card(30).v3!.tags, isNot(contains('v3.zone.tete')));
@@ -333,5 +341,98 @@ void main() {
     expect(cards.first['order'], 1);
     expect(cards.last['order'], 30);
     expect(cards.expand((card) => card['variants']! as List), hasLength(41));
+
+    final secondReport =
+        jsonDecode(File('docs/catalog_v3_cards_31_60.json').readAsStringSync())
+            as JsonMap;
+    final secondCards = (secondReport['cards']! as List).cast<JsonMap>();
+    expect(secondCards, hasLength(30));
+    expect(secondCards.first['order'], 31);
+    expect(secondCards.last['order'], 60);
+    expect(
+      secondCards.expand((card) => card['variants']! as List),
+      hasLength(37),
+    );
+  });
+
+  test('cards 31 to 60 preserve the reviewed semantic distinctions', () {
+    CardDefinition card(int order) =>
+        catalog.cards.singleWhere((card) => card.order == order);
+    Set<String> tags(int order) => card(order).v3!.tags.toSet();
+
+    final masturbation = card(31);
+    final solo = masturbation.variants.singleWhere(
+      (variant) => variant.stableId == 'variant.masturbation.self',
+    );
+    final visible = masturbation.variants.singleWhere(
+      (variant) => variant.stableId == 'variant.masturbation.visible',
+    );
+    expect(
+      solo.v3!.tags,
+      containsAll(['v3.preference.masturbation', 'v3.direction.solo']),
+    );
+    expect(solo.v3!.requirements.isDistanceCompatible, isTrue);
+    expect(
+      visible.v3!.tags,
+      containsAll(['v3.direction.solo', 'v3.direction.etre_regarde']),
+    );
+    expect(visible.v3!.requirements.isDistanceCompatible, isTrue);
+    expect(card(32).v3!.requirements.isDistanceCompatible, isTrue);
+
+    expect(tags(33), {'v3.preference.masturbation', 'v3.direction.faire'});
+    expect(card(33).v3!.requirements.distanceExcluded, isTrue);
+    expect(tags(34), contains('v3.direction.mutuel'));
+    expect(tags(34), isNot(contains('v3.direction.simultane')));
+    expect(card(34).v3!.splitCandidate, isTrue);
+    expect(card(34).v3!.requirements.distanceExcluded, isTrue);
+
+    for (final order in [36, 37, 38, 45]) {
+      expect(tags(order), isNot(contains('v3.zone.buccal')));
+    }
+    expect(card(36).v3!.baseEngagementLevel, 4);
+    expect(card(37).v3!.baseEngagementLevel, 4);
+    expect(
+      tags(38),
+      containsAll(['v3.direction.mutuel', 'v3.direction.simultane']),
+    );
+    expect(
+      tags(39),
+      containsAll(['v3.preference.penetrer', 'v3.zone.vaginal']),
+    );
+    expect(tags(42), containsAll(['v3.preference.caresser', 'v3.zone.anal']));
+    final manualAnal = card(41).variants.singleWhere(
+      (variant) => variant.stableId == 'variant.anal_play.manual',
+    );
+    expect(
+      manualAnal.v3!.tags,
+      containsAll([
+        'v3.preference.penetrer',
+        'v3.preference.doigts',
+        'v3.zone.anal',
+      ]),
+    );
+    expect(manualAnal.v3!.baseEngagementLevel, 5);
+    expect(tags(44), containsAll(['v3.preference.penetrer', 'v3.zone.anal']));
+    expect(
+      tags(47),
+      containsAll([
+        'v3.preference.frotter',
+        'v3.zone.parties_intimes',
+        'v3.direction.mutuel',
+      ]),
+    );
+    expect(tags(49), contains('v3.zone.tetons'));
+    expect(tags(49), isNot(contains('v3.zone.poitrine')));
+    expect(
+      tags(51),
+      containsAll(['v3.preference.controle', 'v3.direction.recevoir']),
+    );
+    expect(tags(53), {'v3.preference.ordres', 'v3.direction.recevoir'});
+    expect(tags(54), {'v3.preference.ordres', 'v3.direction.faire'});
+    expect(tags(55), {'v3.preference.controle', 'v3.direction.faire'});
+    expect(tags(56), {'v3.preference.controle', 'v3.direction.recevoir'});
+    expect(card(59).v3!.requirements.requiresConstraintAccessory, isTrue);
+    expect(tags(60), {'v3.preference.attacher', 'v3.direction.recevoir'});
+    expect(card(60).v3!.requirements.requiresConstraintAccessory, isTrue);
   });
 }

@@ -6,9 +6,11 @@ import 'package:couple_cards/domain/domain.dart';
 
 void main(List<String> args) {
   const source = 'assets/catalog/source';
-  final outputPath = args.isEmpty
-      ? 'docs/catalog_v3_cards_1_30.json'
-      : args.first;
+  final from = args.isEmpty ? 1 : int.parse(args[0]);
+  final to = args.length < 2 ? 30 : int.parse(args[1]);
+  final outputPath = args.length < 3
+      ? 'docs/catalog_v3_cards_${from}_$to.json'
+      : args[2];
   final catalog = const CatalogLoader().loadJson(
     cardsJson: File('$source/cards.v2.fr.json').readAsStringSync(),
     profilesJson: File(
@@ -37,12 +39,13 @@ void main(List<String> args) {
     'requirements': raw['requirements']! as Map<String, Object?>,
     'clothingDelta': raw['clothingDelta'],
     'mergeCandidateWith': data.mergeCandidateWith,
+    'splitCandidate': data.splitCandidate,
     'ambiguities': data.ambiguities,
   };
 
   final cards = <Map<String, Object?>>[];
   for (final card in catalog.cards.where(
-    (card) => card.order != null && card.order! <= 30,
+    (card) => card.order != null && card.order! >= from && card.order! <= to,
   )) {
     final data = card.v3!;
     final raw = card.toJson()['v3']! as Map<String, Object?>;
@@ -63,7 +66,7 @@ void main(List<String> args) {
   final report = {
     'schema_version': 1,
     'catalogue_taxonomy_version': 3,
-    'range': {'from': 1, 'to': 30},
+    'range': {'from': from, 'to': to},
     'cards': cards,
   };
   final encoded = const JsonEncoder.withIndent('  ').convert(report);

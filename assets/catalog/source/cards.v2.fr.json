@@ -2439,13 +2439,12 @@
             "tags": [
               "v3.preference.simuler",
               "v3.direction.faire",
-              "v3.direction.recevoir",
-              "v3.zone.buccal"
+              "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 3,
             "requirements": {},
             "ambiguities": [
-              "Le texte ne tranche pas entre LECHER et SUCER."
+              "Les futures variantes devront préciser LECHER ou SUCER si l’action orale est explicitée."
             ]
           }
         }
@@ -2458,13 +2457,12 @@
         "tags": [
           "v3.preference.simuler",
           "v3.direction.faire",
-          "v3.direction.recevoir",
-          "v3.zone.buccal"
+          "v3.direction.recevoir"
         ],
         "baseEngagementLevel": 3,
         "requirements": {},
         "ambiguities": [
-          "Le texte ne tranche pas entre LECHER et SUCER."
+          "Les futures variantes devront préciser LECHER ou SUCER si l’action orale est explicitée."
         ]
       }
     },
@@ -2512,15 +2510,14 @@
             "tags": [
               "v3.preference.simuler",
               "v3.direction.mutuel",
-              "v3.direction.simultane",
-              "v3.zone.buccal"
+              "v3.direction.simultane"
             ],
             "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
             },
             "ambiguities": [
-              "Le texte 69 est oral mais ne tranche pas entre LECHER et SUCER."
+              "Les futures variantes devront préciser les actions orales réellement simulées."
             ]
           }
         }
@@ -2533,15 +2530,14 @@
         "tags": [
           "v3.preference.simuler",
           "v3.direction.mutuel",
-          "v3.direction.simultane",
-          "v3.zone.buccal"
+          "v3.direction.simultane"
         ],
         "baseEngagementLevel": 3,
         "requirements": {
           "DISTANCE_EXCLUE": true
         },
         "ambiguities": [
-          "Le texte 69 est oral mais ne tranche pas entre LECHER et SUCER."
+          "Les futures variantes devront préciser les actions orales réellement simulées."
         ]
       }
     },
@@ -2653,7 +2649,18 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masturbation"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {},
+            "ambiguities": [
+              "La carte générique ne précise pas qui pratique la masturbation."
+            ]
+          }
         },
         {
           "stable_id": "variant.masturbation.self",
@@ -2681,7 +2688,16 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masturbation",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {}
+          }
         },
         {
           "stable_id": "variant.masturbation.visible",
@@ -2710,12 +2726,33 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masturbation",
+              "v3.direction.solo",
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.masturbation"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {},
+        "ambiguities": [
+          "La carte générique ne précise pas qui pratique la masturbation."
+        ]
+      }
     },
     {
       "stable_id": "card.masturbate_self_visible",
@@ -2762,12 +2799,32 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masturbation",
+              "v3.direction.solo",
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.masturbation",
+          "v3.direction.solo",
+          "v3.direction.etre_regarde"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.masturbate_partner",
@@ -2807,12 +2864,34 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masturbation",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE"
+      "directionality": "FAIRE",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.masturbation",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.mutual_masturbation",
@@ -2853,12 +2932,42 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masturbation",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "splitCandidate": true,
+            "ambiguities": [
+              "La formulation ne distingue pas une action réciproque physique de deux actions SOLO simultanées."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "MUTUAL"
+      "directionality": "MUTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.masturbation",
+          "v3.direction.mutuel"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "splitCandidate": true,
+        "ambiguities": [
+          "La formulation ne distingue pas une action réciproque physique de deux actions SOLO simultanées."
+        ]
+      }
     },
     {
       "stable_id": "card.manual_intimate",
@@ -2898,12 +3007,42 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.zone.parties_intimes",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Le texte ne permet pas de choisir entre CARESSER, MASTURBATION ou PENETRER avec les DOIGTS."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.zone.parties_intimes",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Le texte ne permet pas de choisir entre CARESSER, MASTURBATION ou PENETRER avec les DOIGTS."
+        ]
+      }
     },
     {
       "stable_id": "card.oral_give",
@@ -2943,12 +3082,40 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.zone.parties_intimes",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Le texte ne tranche pas entre LECHER et SUCER."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE"
+      "directionality": "FAIRE",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.zone.parties_intimes",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Le texte ne tranche pas entre LECHER et SUCER."
+        ]
+      }
     },
     {
       "stable_id": "card.oral_receive",
@@ -2988,12 +3155,40 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.zone.parties_intimes",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Le texte ne tranche pas entre LECHER et SUCER."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.zone.parties_intimes",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Le texte ne tranche pas entre LECHER et SUCER."
+        ]
+      }
     },
     {
       "stable_id": "card.sixty_nine",
@@ -3033,12 +3228,40 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.mutuel",
+              "v3.direction.simultane"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Le texte ne précise pas les actions orales réellement pratiquées."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "MUTUAL"
+      "directionality": "MUTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.direction.mutuel",
+          "v3.direction.simultane"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Le texte ne précise pas les actions orales réellement pratiquées."
+        ]
+      }
     },
     {
       "stable_id": "card.vaginal_penetration",
@@ -3078,12 +3301,44 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.zone.vaginal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 5,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Le moyen de pénétration n’est pas précisé."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.penetrer",
+          "v3.zone.vaginal",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 5,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Le moyen de pénétration n’est pas précisé."
+        ]
+      }
     },
     {
       "stable_id": "card.choose_sex_position",
@@ -3123,12 +3378,40 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "La formulation ne précise ni position ni degré de difficulté."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.controle",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "La formulation ne précise ni position ni degré de difficulté."
+        ]
+      }
     },
     {
       "stable_id": "card.anal_play",
@@ -3168,7 +3451,20 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.zone.anal"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "La carte générique ne précise pas l’action anale."
+            ]
+          }
         },
         {
           "stable_id": "variant.anal_play.external",
@@ -3195,7 +3491,18 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.anal"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         },
         {
           "stable_id": "variant.anal_play.manual",
@@ -3222,12 +3529,38 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.preference.doigts",
+              "v3.zone.anal"
+            ],
+            "baseEngagementLevel": 5,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": []
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.zone.anal"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "La carte générique ne précise pas l’action anale."
+        ]
+      }
     },
     {
       "stable_id": "card.anal_caress",
@@ -3267,12 +3600,38 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.anal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.caresser",
+          "v3.zone.anal",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.anal_manual",
@@ -3312,12 +3671,44 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.doigts",
+              "v3.zone.anal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Le texte ne distingue pas stimulation externe et pénétration digitale."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.doigts",
+          "v3.zone.anal",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Le texte ne distingue pas stimulation externe et pénétration digitale."
+        ]
+      }
     },
     {
       "stable_id": "card.anal_penetration",
@@ -3357,12 +3748,44 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.zone.anal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 5,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Le moyen de pénétration n’est pas précisé."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.penetrer",
+          "v3.zone.anal",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 5,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Le moyen de pénétration n’est pas précisé."
+        ]
+      }
     },
     {
       "stable_id": "card.anal_oral",
@@ -3402,12 +3825,42 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.zone.anal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Le texte ne tranche pas entre LECHER et SUCER."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.zone.anal",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Le texte ne tranche pas entre LECHER et SUCER."
+        ]
+      }
     },
     {
       "stable_id": "card.facesitting",
@@ -3447,12 +3900,40 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Le contenu est trop ouvert pour attribuer une préférence, une zone ou une position précise."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Le contenu est trop ouvert pour attribuer une préférence, une zone ou une position précise."
+        ]
+      }
     },
     {
       "stable_id": "card.genital_rubbing",
@@ -3492,12 +3973,36 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.frotter",
+              "v3.zone.parties_intimes",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.frotter",
+          "v3.zone.parties_intimes",
+          "v3.direction.mutuel"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.chest_play",
@@ -3537,12 +4042,42 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.zone.poitrine",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "L’action appliquée à la poitrine n’est pas précisée."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.zone.poitrine",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "L’action appliquée à la poitrine n’est pas précisée."
+        ]
+      }
     },
     {
       "stable_id": "card.nipple_stimulation",
@@ -3582,12 +4117,42 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.zone.tetons",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "L’action appliquée aux tétons n’est pas précisée."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.zone.tetons",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "L’action appliquée aux tétons n’est pas précisée."
+        ]
+      }
     },
     {
       "stable_id": "card.feet_play",
@@ -3627,12 +4192,42 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.zone.pieds",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "L’action impliquant les pieds n’est pas précisée."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.zone.pieds",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "L’action impliquant les pieds n’est pas précisée."
+        ]
+      }
     },
     {
       "stable_id": "card.dominate_me",
@@ -3673,7 +4268,16 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
         },
         {
           "stable_id": "variant.dominate_me.orders",
@@ -3701,7 +4305,17 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.preference.ordres",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
         },
         {
           "stable_id": "variant.dominate_me.restraint",
@@ -3729,12 +4343,33 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.preference.immobiliser",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "RECEVOIR"
+      "directionality": "RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.controle",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.submit",
@@ -3775,7 +4410,19 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.preference.servir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {},
+            "ambiguities": [
+              "La perspective du texte ne permet pas d’attribuer FAIRE ou RECEVOIR sans contexte."
+            ]
+          }
         },
         {
           "stable_id": "variant.submit.orders",
@@ -3803,12 +4450,36 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.preference.servir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {},
+            "ambiguities": [
+              "La perspective du texte ne permet pas d’attribuer FAIRE ou RECEVOIR sans contexte."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.controle",
+          "v3.preference.servir"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {},
+        "ambiguities": [
+          "La perspective du texte ne permet pas d’attribuer FAIRE ou RECEVOIR sans contexte."
+        ]
+      }
     },
     {
       "stable_id": "card.give_order",
@@ -3849,12 +4520,30 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.ordres",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "RECEVOIR"
+      "directionality": "RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.ordres",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.obey_order",
@@ -3895,12 +4584,30 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.ordres",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE"
+      "directionality": "FAIRE",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.ordres",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.i_decide",
@@ -3941,12 +4648,30 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "RECEVOIR"
+      "directionality": "RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.controle",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.you_decide",
@@ -3987,12 +4712,30 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE"
+      "directionality": "FAIRE",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.controle",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.no_touch",
@@ -4033,12 +4776,40 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.preference.ordres",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {},
+            "ambiguities": [
+              "La carte permet selon le contexte d’imposer ou de recevoir la décision."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.controle",
+          "v3.preference.ordres",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {},
+        "ambiguities": [
+          "La carte permet selon le contexte d’imposer ou de recevoir la décision."
+        ]
+      }
     },
     {
       "stable_id": "card.watch_no_touch",
@@ -4085,12 +4856,38 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.regarder",
+              "v3.preference.controle",
+              "v3.preference.ordres"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {},
+            "ambiguities": [
+              "La direction acteur/cible dépend de la consigne donnée pendant la scène."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.regarder",
+          "v3.preference.controle",
+          "v3.preference.ordres"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {},
+        "ambiguities": [
+          "La direction acteur/cible dépend de la consigne donnée pendant la scène."
+        ]
+      }
     },
     {
       "stable_id": "card.hands_bound",
@@ -4130,12 +4927,46 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.attacher",
+              "v3.zone.mains",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "requiresConstraintAccessory": true
+            },
+            "ambiguities": [
+              "La formulation ne fixe pas qui attache qui."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.attacher",
+          "v3.zone.mains",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {
+          "DISTANCE_EXCLUE": true,
+          "requiresConstraintAccessory": true
+        },
+        "ambiguities": [
+          "La formulation ne fixe pas qui attache qui."
+        ]
+      }
     },
     {
       "stable_id": "card.tie_me",
@@ -4175,12 +5006,36 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.attacher",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "requiresConstraintAccessory": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.attacher",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {
+          "DISTANCE_EXCLUE": true,
+          "requiresConstraintAccessory": true
+        }
+      }
     },
     {
       "stable_id": "card.blindfold",

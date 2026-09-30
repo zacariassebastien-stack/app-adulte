@@ -1,0 +1,1488 @@
+{
+  "schema_version": 1,
+  "catalogue_taxonomy_version": 3,
+  "range": {
+    "from": 31,
+    "to": 60
+  },
+  "cards": [
+    {
+      "order": 31,
+      "title": "Masturbation",
+      "id": "card.masturbation",
+      "tags": [
+        "v3.preference.masturbation"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "La carte générique ne précise pas qui pratique la masturbation."
+      ],
+      "variants": [
+        {
+          "id": "variant.masturbation.base",
+          "tags": [
+            "v3.preference.masturbation"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "La carte générique ne précise pas qui pratique la masturbation."
+          ]
+        },
+        {
+          "id": "variant.masturbation.self",
+          "tags": [
+            "v3.preference.masturbation",
+            "v3.direction.solo"
+          ],
+          "directions": [
+            "SOLO"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.masturbation.visible",
+          "tags": [
+            "v3.preference.masturbation",
+            "v3.direction.solo",
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "SOLO",
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 32,
+      "title": "Masturbe-toi devant moi",
+      "id": "card.masturbate_self_visible",
+      "tags": [
+        "v3.preference.masturbation",
+        "v3.direction.solo",
+        "v3.direction.etre_regarde"
+      ],
+      "directions": [
+        "SOLO",
+        "ETRE_REGARDE"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.masturbate_self_visible.base",
+          "tags": [
+            "v3.preference.masturbation",
+            "v3.direction.solo",
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "SOLO",
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 33,
+      "title": "Masturbe ton partenaire",
+      "id": "card.masturbate_partner",
+      "tags": [
+        "v3.preference.masturbation",
+        "v3.direction.faire"
+      ],
+      "directions": [
+        "FAIRE"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.masturbate_partner.base",
+          "tags": [
+            "v3.preference.masturbation",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 34,
+      "title": "Masturbation mutuelle",
+      "id": "card.mutual_masturbation",
+      "tags": [
+        "v3.preference.masturbation",
+        "v3.direction.mutuel"
+      ],
+      "directions": [
+        "MUTUEL"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": true,
+      "ambiguities": [
+        "La formulation ne distingue pas une action réciproque physique de deux actions SOLO simultanées."
+      ],
+      "variants": [
+        {
+          "id": "variant.mutual_masturbation.base",
+          "tags": [
+            "v3.preference.masturbation",
+            "v3.direction.mutuel"
+          ],
+          "directions": [
+            "MUTUEL"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": true,
+          "ambiguities": [
+            "La formulation ne distingue pas une action réciproque physique de deux actions SOLO simultanées."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 35,
+      "title": "Jeu manuel intime",
+      "id": "card.manual_intimate",
+      "tags": [
+        "v3.zone.parties_intimes",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "Le texte ne permet pas de choisir entre CARESSER, MASTURBATION ou PENETRER avec les DOIGTS."
+      ],
+      "variants": [
+        {
+          "id": "variant.manual_intimate.base",
+          "tags": [
+            "v3.zone.parties_intimes",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "Le texte ne permet pas de choisir entre CARESSER, MASTURBATION ou PENETRER avec les DOIGTS."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 36,
+      "title": "Sexe oral",
+      "id": "card.oral_give",
+      "tags": [
+        "v3.zone.parties_intimes",
+        "v3.direction.faire"
+      ],
+      "directions": [
+        "FAIRE"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "Le texte ne tranche pas entre LECHER et SUCER."
+      ],
+      "variants": [
+        {
+          "id": "variant.oral_give.base",
+          "tags": [
+            "v3.zone.parties_intimes",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "Le texte ne tranche pas entre LECHER et SUCER."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 37,
+      "title": "Reçois du sexe oral",
+      "id": "card.oral_receive",
+      "tags": [
+        "v3.zone.parties_intimes",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "Le texte ne tranche pas entre LECHER et SUCER."
+      ],
+      "variants": [
+        {
+          "id": "variant.oral_receive.base",
+          "tags": [
+            "v3.zone.parties_intimes",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "Le texte ne tranche pas entre LECHER et SUCER."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 38,
+      "title": "69",
+      "id": "card.sixty_nine",
+      "tags": [
+        "v3.direction.mutuel",
+        "v3.direction.simultane"
+      ],
+      "directions": [
+        "MUTUEL",
+        "SIMULTANE"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "Le texte ne précise pas les actions orales réellement pratiquées."
+      ],
+      "variants": [
+        {
+          "id": "variant.sixty_nine.base",
+          "tags": [
+            "v3.direction.mutuel",
+            "v3.direction.simultane"
+          ],
+          "directions": [
+            "MUTUEL",
+            "SIMULTANE"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "Le texte ne précise pas les actions orales réellement pratiquées."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 39,
+      "title": "Pénétration vaginale",
+      "id": "card.vaginal_penetration",
+      "tags": [
+        "v3.preference.penetrer",
+        "v3.zone.vaginal",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 5,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "Le moyen de pénétration n’est pas précisé."
+      ],
+      "variants": [
+        {
+          "id": "variant.vaginal_penetration.base",
+          "tags": [
+            "v3.preference.penetrer",
+            "v3.zone.vaginal",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 5,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "Le moyen de pénétration n’est pas précisé."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 40,
+      "title": "Choisis une position sexuelle",
+      "id": "card.choose_sex_position",
+      "tags": [
+        "v3.preference.controle",
+        "v3.direction.faire"
+      ],
+      "directions": [
+        "FAIRE"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "La formulation ne précise ni position ni degré de difficulté."
+      ],
+      "variants": [
+        {
+          "id": "variant.choose_sex_position.base",
+          "tags": [
+            "v3.preference.controle",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "La formulation ne précise ni position ni degré de difficulté."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 41,
+      "title": "Jeu anal",
+      "id": "card.anal_play",
+      "tags": [
+        "v3.zone.anal"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "La carte générique ne précise pas l’action anale."
+      ],
+      "variants": [
+        {
+          "id": "variant.anal_play.base",
+          "tags": [
+            "v3.zone.anal"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "La carte générique ne précise pas l’action anale."
+          ]
+        },
+        {
+          "id": "variant.anal_play.external",
+          "tags": [
+            "v3.preference.caresser",
+            "v3.zone.anal"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.anal_play.manual",
+          "tags": [
+            "v3.preference.penetrer",
+            "v3.preference.doigts",
+            "v3.zone.anal"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 5,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 42,
+      "title": "Caresse anale",
+      "id": "card.anal_caress",
+      "tags": [
+        "v3.preference.caresser",
+        "v3.zone.anal",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.anal_caress.base",
+          "tags": [
+            "v3.preference.caresser",
+            "v3.zone.anal",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 43,
+      "title": "Stimulation anale manuelle",
+      "id": "card.anal_manual",
+      "tags": [
+        "v3.preference.doigts",
+        "v3.zone.anal",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "Le texte ne distingue pas stimulation externe et pénétration digitale."
+      ],
+      "variants": [
+        {
+          "id": "variant.anal_manual.base",
+          "tags": [
+            "v3.preference.doigts",
+            "v3.zone.anal",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "Le texte ne distingue pas stimulation externe et pénétration digitale."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 44,
+      "title": "Pénétration anale",
+      "id": "card.anal_penetration",
+      "tags": [
+        "v3.preference.penetrer",
+        "v3.zone.anal",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 5,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "Le moyen de pénétration n’est pas précisé."
+      ],
+      "variants": [
+        {
+          "id": "variant.anal_penetration.base",
+          "tags": [
+            "v3.preference.penetrer",
+            "v3.zone.anal",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 5,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "Le moyen de pénétration n’est pas précisé."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 45,
+      "title": "Sexe oral anal",
+      "id": "card.anal_oral",
+      "tags": [
+        "v3.zone.anal",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "Le texte ne tranche pas entre LECHER et SUCER."
+      ],
+      "variants": [
+        {
+          "id": "variant.anal_oral.base",
+          "tags": [
+            "v3.zone.anal",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "Le texte ne tranche pas entre LECHER et SUCER."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 46,
+      "title": "Facesitting",
+      "id": "card.facesitting",
+      "tags": [
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "Le contenu est trop ouvert pour attribuer une préférence, une zone ou une position précise."
+      ],
+      "variants": [
+        {
+          "id": "variant.facesitting.base",
+          "tags": [
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "Le contenu est trop ouvert pour attribuer une préférence, une zone ou une position précise."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 47,
+      "title": "Frottement génital",
+      "id": "card.genital_rubbing",
+      "tags": [
+        "v3.preference.frotter",
+        "v3.zone.parties_intimes",
+        "v3.direction.mutuel"
+      ],
+      "directions": [
+        "MUTUEL"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.genital_rubbing.base",
+          "tags": [
+            "v3.preference.frotter",
+            "v3.zone.parties_intimes",
+            "v3.direction.mutuel"
+          ],
+          "directions": [
+            "MUTUEL"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 48,
+      "title": "Jeu avec les seins / torse",
+      "id": "card.chest_play",
+      "tags": [
+        "v3.zone.poitrine",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "L’action appliquée à la poitrine n’est pas précisée."
+      ],
+      "variants": [
+        {
+          "id": "variant.chest_play.base",
+          "tags": [
+            "v3.zone.poitrine",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "L’action appliquée à la poitrine n’est pas précisée."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 49,
+      "title": "Stimulation des tétons",
+      "id": "card.nipple_stimulation",
+      "tags": [
+        "v3.zone.tetons",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "L’action appliquée aux tétons n’est pas précisée."
+      ],
+      "variants": [
+        {
+          "id": "variant.nipple_stimulation.base",
+          "tags": [
+            "v3.zone.tetons",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "L’action appliquée aux tétons n’est pas précisée."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 50,
+      "title": "Jeu avec les pieds",
+      "id": "card.feet_play",
+      "tags": [
+        "v3.zone.pieds",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "L’action impliquant les pieds n’est pas précisée."
+      ],
+      "variants": [
+        {
+          "id": "variant.feet_play.base",
+          "tags": [
+            "v3.zone.pieds",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "L’action impliquant les pieds n’est pas précisée."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 51,
+      "title": "Domine-moi",
+      "id": "card.dominate_me",
+      "tags": [
+        "v3.preference.controle",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.dominate_me.base",
+          "tags": [
+            "v3.preference.controle",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.dominate_me.orders",
+          "tags": [
+            "v3.preference.controle",
+            "v3.preference.ordres",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.dominate_me.restraint",
+          "tags": [
+            "v3.preference.controle",
+            "v3.preference.immobiliser",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 52,
+      "title": "Soumets-toi",
+      "id": "card.submit",
+      "tags": [
+        "v3.preference.controle",
+        "v3.preference.servir"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "La perspective du texte ne permet pas d’attribuer FAIRE ou RECEVOIR sans contexte."
+      ],
+      "variants": [
+        {
+          "id": "variant.submit.base",
+          "tags": [
+            "v3.preference.controle",
+            "v3.preference.servir"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "La perspective du texte ne permet pas d’attribuer FAIRE ou RECEVOIR sans contexte."
+          ]
+        },
+        {
+          "id": "variant.submit.orders",
+          "tags": [
+            "v3.preference.controle",
+            "v3.preference.servir"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "La perspective du texte ne permet pas d’attribuer FAIRE ou RECEVOIR sans contexte."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 53,
+      "title": "Donne-moi un ordre",
+      "id": "card.give_order",
+      "tags": [
+        "v3.preference.ordres",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.give_order.base",
+          "tags": [
+            "v3.preference.ordres",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 54,
+      "title": "Obéis à mon ordre",
+      "id": "card.obey_order",
+      "tags": [
+        "v3.preference.ordres",
+        "v3.direction.faire"
+      ],
+      "directions": [
+        "FAIRE"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.obey_order.base",
+          "tags": [
+            "v3.preference.ordres",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 55,
+      "title": "Je décide",
+      "id": "card.i_decide",
+      "tags": [
+        "v3.preference.controle",
+        "v3.direction.faire"
+      ],
+      "directions": [
+        "FAIRE"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.i_decide.base",
+          "tags": [
+            "v3.preference.controle",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 56,
+      "title": "Tu décides",
+      "id": "card.you_decide",
+      "tags": [
+        "v3.preference.controle",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.you_decide.base",
+          "tags": [
+            "v3.preference.controle",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 57,
+      "title": "Interdiction de toucher",
+      "id": "card.no_touch",
+      "tags": [
+        "v3.preference.controle",
+        "v3.preference.ordres",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "La carte permet selon le contexte d’imposer ou de recevoir la décision."
+      ],
+      "variants": [
+        {
+          "id": "variant.no_touch.base",
+          "tags": [
+            "v3.preference.controle",
+            "v3.preference.ordres",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "La carte permet selon le contexte d’imposer ou de recevoir la décision."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 58,
+      "title": "Regarde sans toucher",
+      "id": "card.watch_no_touch",
+      "tags": [
+        "v3.preference.regarder",
+        "v3.preference.controle",
+        "v3.preference.ordres"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "La direction acteur/cible dépend de la consigne donnée pendant la scène."
+      ],
+      "variants": [
+        {
+          "id": "variant.watch_no_touch.base",
+          "tags": [
+            "v3.preference.regarder",
+            "v3.preference.controle",
+            "v3.preference.ordres"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "La direction acteur/cible dépend de la consigne donnée pendant la scène."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 59,
+      "title": "Mains attachées",
+      "id": "card.hands_bound",
+      "tags": [
+        "v3.preference.attacher",
+        "v3.zone.mains",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true,
+        "requiresConstraintAccessory": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [
+        "La formulation ne fixe pas qui attache qui."
+      ],
+      "variants": [
+        {
+          "id": "variant.hands_bound.base",
+          "tags": [
+            "v3.preference.attacher",
+            "v3.zone.mains",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true,
+            "requiresConstraintAccessory": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": [
+            "La formulation ne fixe pas qui attache qui."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 60,
+      "title": "Attache-moi",
+      "id": "card.tie_me",
+      "tags": [
+        "v3.preference.attacher",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true,
+        "requiresConstraintAccessory": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.tie_me.base",
+          "tags": [
+            "v3.preference.attacher",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true,
+            "requiresConstraintAccessory": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    }
+  ]
+}

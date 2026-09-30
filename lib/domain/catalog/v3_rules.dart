@@ -165,6 +165,7 @@ final class V3EditorialData {
     required this.requirements,
     this.clothingDelta,
     this.mergeCandidateWith,
+    this.splitCandidate = false,
     List<String> ambiguities = const [],
   }) : tags = List.unmodifiable(tags),
        ambiguities = List.unmodifiable(ambiguities) {
@@ -193,6 +194,7 @@ final class V3EditorialData {
         ? V3ClothingDelta.fromJson(json['clothingDelta']!)
         : null,
     mergeCandidateWith: json['mergeCandidateWith'] as String?,
+    splitCandidate: json['splitCandidate'] as bool? ?? false,
     ambiguities:
         (json['ambiguities'] as List?)?.cast<String>() ?? const <String>[],
   );
@@ -203,6 +205,7 @@ final class V3EditorialData {
   final V3Requirements requirements;
   final V3ClothingDelta? clothingDelta;
   final String? mergeCandidateWith;
+  final bool splitCandidate;
   final List<String> ambiguities;
 }
 
