@@ -21,6 +21,12 @@ enum NetworkGameViewState {
   finalDefenseDecision,
   tieDecision,
   finalResult,
+  corruptionDecision,
+  corruptionResponse,
+  corruptionExecution,
+  recovery,
+  recoveryResponse,
+  recoveryExecution,
   waitingNext,
   error,
 }
@@ -37,6 +43,8 @@ final class NetworkGameController extends ChangeNotifier {
     this.auctionEngine = const AuctionEngine(),
     this.lifecycleEngine = const LifecycleEngine(),
     this.drawEngine = const DrawEngine(),
+    this.corruptionEngine = const CorruptionEngine(),
+    this.recoveryEngine = const RecoveryEngine(),
     DateTime Function()? clock,
     String Function()? nonceFactory,
   }) : _catalog = catalog,
@@ -75,6 +83,8 @@ final class NetworkGameController extends ChangeNotifier {
   final AuctionEngine auctionEngine;
   final LifecycleEngine lifecycleEngine;
   final DrawEngine drawEngine;
+  final CorruptionEngine corruptionEngine;
+  final RecoveryEngine recoveryEngine;
   final DateTime Function() clock;
   final String Function() nonceFactory;
   final Catalog _catalog;
@@ -99,6 +109,7 @@ final class NetworkGameController extends ChangeNotifier {
   bool _revealing = false;
   bool _resolving = false;
   bool _transitioning = false;
+  bool _disposed = false;
 
   String get opponentId => playerIds.firstWhere((id) => id != playerId);
   int get roundNumber => round?.roundNumber ?? 1;
@@ -106,6 +117,10 @@ final class NetworkGameController extends ChangeNotifier {
   NetworkInitialResolutionDto? get initialResolution =>
       round?.initialResolution;
   NetworkFinalResolutionDto? get finalResolution => round?.finalResolution;
+  NetworkCorruptionDto? get corruption => round?.corruption;
+  NetworkRecoveryDto? get pendingRecovery => round?.recoveryByPlayer.values
+      .where((item) => !round!.recoveryDonePlayerIds.contains(item.playerId))
+      .firstOrNull;
   bool get isInitialLoser => initialResolution?.loserPlayerId == playerId;
   bool get isInitialWinner => initialResolution?.winnerPlayerId == playerId;
   bool get inversionAllowed => initialResolution?.inversionAllowed ?? false;
@@ -122,6 +137,32 @@ final class NetworkGameController extends ChangeNotifier {
   List<NetworkDuelCard> get hand => [
     for (final item in _runtime.where((card) => card.zone == CardZone.HAND))
       ?_networkCard(item.cardId),
+  ];
+
+  String? get corruptionActorId {
+    final retained = finalResolution?.retainedPlayerId;
+    if (retained == null) return null;
+    return playerIds.firstWhere((id) => id != retained);
+  }
+
+  bool get isCorruptionActor => corruptionActorId == playerId;
+  List<NetworkDuelCard> get corruptionCards => [
+    for (final item in _runtime)
+      if (lifecycleEngine.canUseForCorruption(item)) ?_networkCard(item.cardId),
+  ];
+
+  bool get recoveryAvailable => recoveryEngine.available(
+    currentPa: actionPoints[playerId] ?? const BalanceConfig().initialPa,
+    gate: RecoveryGate(
+      betweenRounds: round?.phase == NetworkGamePhase.recovery,
+      usedSinceLastNormalDuel:
+          round?.recoveryDonePlayerIds.contains(playerId) ?? false,
+    ),
+  );
+
+  List<NetworkDuelCard> get recoveryCards => [
+    for (final item in _runtime)
+      if (item.zone != CardZone.EXHAUSTED) ?_networkRecoveryCard(item.cardId),
   ];
 
   Future<void> start() async {
@@ -311,6 +352,187 @@ final class NetworkGameController extends ChangeNotifier {
     );
   }
 
+  Future<void> proposeCorruption(
+    String cardId,
+    CorruptionObjective objective,
+  ) async {
+    if (viewState != NetworkGameViewState.corruptionDecision ||
+        !isCorruptionActor ||
+        !corruptionCards.any((card) => card.id == cardId)) {
+      return;
+    }
+    await _networkAction(
+      repository.submitCorruptionOffer(
+        command: _command('CORRUPTION_OFFER'),
+        objective: objective,
+        cardIds: [cardId],
+      ),
+    );
+  }
+
+  Future<void> skipCorruption() async {
+    if (viewState != NetworkGameViewState.corruptionDecision ||
+        !isCorruptionActor) {
+      return;
+    }
+    await _networkAction(
+      repository.skipCorruption(command: _command('CORRUPTION_SKIP')),
+    );
+  }
+
+  Future<void> respondToCorruption({required bool accepted}) async {
+    if (viewState != NetworkGameViewState.corruptionResponse ||
+        corruption?.offeredBy == playerId) {
+      return;
+    }
+    await _networkAction(
+      repository.respondCorruption(
+        command: _command('CORRUPTION_RESPONSE'),
+        accepted: accepted,
+      ),
+    );
+  }
+
+  Future<void> completeCorruption({required bool completed}) async {
+    final offer = corruption;
+    if (viewState != NetworkGameViewState.corruptionExecution ||
+        offer == null ||
+        offer.offeredBy != playerId) {
+      return;
+    }
+    final actions = [
+      for (final action in offer.actions)
+        action.copyWith(
+          status: completed
+              ? ActionExecutionStatus.COMPLETED
+              : ActionExecutionStatus.SKIPPED,
+        ),
+    ];
+    final resolution = corruptionEngine.resolve(
+      offer: CorruptionOffer(
+        offeredBy: offer.offeredBy,
+        objective: offer.objective,
+        actions: actions,
+      ),
+      accepted: true,
+      cards: _runtime,
+    );
+    await _networkAction(
+      repository.resolveCorruption(
+        command: _command('CORRUPTION_RESOLVE'),
+        actions: actions,
+      ),
+    );
+    _runtime = resolution.cards;
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> recoverWith(String cardId, {bool completed = true}) async {
+    if (viewState != NetworkGameViewState.recovery || !recoveryAvailable) {
+      return;
+    }
+    final card = recoveryCards.where((item) => item.id == cardId).firstOrNull;
+    final runtime = _runtime.where((item) => item.cardId == cardId).firstOrNull;
+    if (card == null || runtime == null) return;
+    final source = switch (runtime.zone) {
+      CardZone.HAND => RecoverySource.HAND,
+      CardZone.DISCARD => RecoverySource.DISCARD,
+      _ => RecoverySource.CATALOG,
+    };
+    final result = recoveryEngine.resolve(
+      currentPa: actionPoints[playerId]!,
+      response: RecoveryResponse.ACCEPT,
+      performedRoles: [
+        (
+          PreferenceValue(
+            status: PreferenceStatus.ACCEPTED,
+            general: card.role == ProfileRole.GENERAL
+                ? card.personalValue
+                : null,
+            faire: card.role == ProfileRole.FAIRE ? card.personalValue : null,
+            recevoir: card.role == ProfileRole.RECEVOIR
+                ? card.personalValue
+                : null,
+          ),
+          card.role,
+          completed,
+        ),
+      ],
+    );
+    final recovery = NetworkRecoveryDto(
+      playerId: playerId,
+      cardId: card.id,
+      variantId: card.variant.id,
+      source: source,
+      completed: completed,
+      gain: result.gain,
+    );
+    await _networkAction(
+      repository.submitRecovery(
+        command: _command('RECOVERY'),
+        recovery: recovery,
+      ),
+    );
+  }
+
+  Future<void> respondToRecovery(RecoveryResponse response) async {
+    final proposal = pendingRecovery;
+    if (viewState != NetworkGameViewState.recoveryResponse ||
+        proposal == null ||
+        proposal.playerId == playerId) {
+      return;
+    }
+    await _networkAction(
+      repository.respondRecovery(
+        command: _command('RECOVERY_RESPONSE'),
+        response: response,
+      ),
+    );
+  }
+
+  Future<void> completeRecovery({required bool completed}) async {
+    final proposal = pendingRecovery;
+    if (viewState != NetworkGameViewState.recoveryExecution ||
+        proposal == null ||
+        proposal.playerId != playerId) {
+      return;
+    }
+    final resolved = NetworkRecoveryDto(
+      playerId: proposal.playerId,
+      cardId: proposal.cardId,
+      variantId: proposal.variantId,
+      source: proposal.source,
+      completed: completed,
+      gain: completed ? proposal.gain : 0,
+      response: proposal.response,
+    );
+    await _networkAction(
+      repository.resolveRecovery(
+        command: _command('RECOVERY_RESOLVE'),
+        recovery: resolved,
+      ),
+    );
+    _runtime = recoveryEngine.applyLifecycle(
+      cards: _runtime,
+      cardId: proposal.cardId,
+      source: proposal.source,
+      completed: completed,
+    );
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> skipRecovery() async {
+    if (viewState != NetworkGameViewState.recovery ||
+        round?.recoveryDonePlayerIds.contains(playerId) == true) {
+      return;
+    }
+    await _networkAction(
+      repository.skipRecovery(command: _command('RECOVERY_SKIP')),
+    );
+  }
+
   Future<void> readyForNextRound() async {
     final current = round;
     if (current == null ||
@@ -363,6 +585,7 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   Future<void> _apply(NetworkGameRoundStateDto value) async {
+    if (_disposed) return;
     if (value.sessionId != session.id) {
       _fail(const NetworkRoundException('ROUND_NOT_FOUND'));
       return;
@@ -373,6 +596,8 @@ final class NetworkGameController extends ChangeNotifier {
       return;
     }
     round = value;
+    await _reconcilePublicLifecycle(value);
+    if (_disposed) return;
     switch (value.phase) {
       case NetworkGamePhase.commit:
         if (value.ownCommitRecorded) {
@@ -407,6 +632,24 @@ final class NetworkGameController extends ChangeNotifier {
       case NetworkGamePhase.finalResolved:
         viewState = NetworkGameViewState.finalResult;
         break;
+      case NetworkGamePhase.corruptionDecision:
+        viewState = NetworkGameViewState.corruptionDecision;
+        break;
+      case NetworkGamePhase.corruptionResponse:
+        viewState = NetworkGameViewState.corruptionResponse;
+        break;
+      case NetworkGamePhase.corruptionExecution:
+        viewState = NetworkGameViewState.corruptionExecution;
+        break;
+      case NetworkGamePhase.recovery:
+        viewState = NetworkGameViewState.recovery;
+        break;
+      case NetworkGamePhase.recoveryResponse:
+        viewState = NetworkGameViewState.recoveryResponse;
+        break;
+      case NetworkGamePhase.recoveryExecution:
+        viewState = NetworkGameViewState.recoveryExecution;
+        break;
       case NetworkGamePhase.waitingNext:
         viewState = NetworkGameViewState.waitingNext;
         break;
@@ -419,6 +662,61 @@ final class NetworkGameController extends ChangeNotifier {
         return;
     }
     notifyListeners();
+  }
+
+  Future<void> _reconcilePublicLifecycle(NetworkGameRoundStateDto value) async {
+    var changed = false;
+    final publicCorruption = value.corruption;
+    if (publicCorruption != null &&
+        publicCorruption.offeredBy == playerId &&
+        publicCorruption.accepted == true &&
+        publicCorruption.actions.every(
+          (action) =>
+              action.status != ActionExecutionStatus.PROPOSED &&
+              action.status != ActionExecutionStatus.ACCEPTED,
+        )) {
+      final reconciled = corruptionEngine
+          .resolve(
+            offer: CorruptionOffer(
+              offeredBy: publicCorruption.offeredBy,
+              objective: publicCorruption.objective,
+              actions: publicCorruption.actions,
+            ),
+            accepted: true,
+            cards: _runtime,
+          )
+          .cards;
+      changed = !_sameRuntime(_runtime, reconciled);
+      _runtime = reconciled;
+    }
+    final publicRecovery = value.recoveryByPlayer[playerId];
+    if (publicRecovery != null &&
+        value.recoveryDonePlayerIds.contains(playerId)) {
+      final reconciled = recoveryEngine.applyLifecycle(
+        cards: _runtime,
+        cardId: publicRecovery.cardId,
+        source: publicRecovery.source,
+        completed: publicRecovery.completed,
+      );
+      changed = changed || !_sameRuntime(_runtime, reconciled);
+      _runtime = reconciled;
+    }
+    if (changed) await _persist();
+  }
+
+  bool _sameRuntime(
+    List<CardRuntimeState> first,
+    List<CardRuntimeState> second,
+  ) {
+    if (first.length != second.length) return false;
+    for (var index = 0; index < first.length; index++) {
+      final a = first[index];
+      final b = second[index];
+      if (a.cardId != b.cardId || a.zone != b.zone || a.locked != b.locked) {
+        return false;
+      }
+    }
+    return true;
   }
 
   Future<void> _revealOnce(NetworkGameRoundStateDto value) async {
@@ -648,6 +946,56 @@ final class NetworkGameController extends ChangeNotifier {
     );
   }
 
+  NetworkDuelCard? _networkRecoveryCard(String cardId) {
+    final definition = _definitions[cardId];
+    final engine = _engineCards[cardId];
+    if (definition == null || engine == null) return null;
+    final recoveryContext = _context.copyWith(
+      exhaustedCardIds: {
+        ..._context.exhaustedCardIds,
+        for (final card in _runtime)
+          if (card.zone == CardZone.EXHAUSTED) card.cardId,
+      },
+    );
+    final eligible = recoveryEngine
+        .actionEligibility(
+          card: engine,
+          context: recoveryContext,
+          actor: _profile(playerId),
+          partner: _profile(opponentId),
+          hierarchy: _hierarchy,
+        )
+        .eligibleVariants
+        .firstOrNull;
+    if (eligible == null) return null;
+    final variant = definition.variants.firstWhere(
+      (item) => item.stableId == eligible.id,
+    );
+    final role = _roleFor(definition, variant);
+    final requirements = [
+      ...definition.profileRequirements,
+      ...variant.profileRequirements,
+    ];
+    final elementId =
+        requirements
+            .where((item) => item.role == role)
+            .map((item) => item.elementId)
+            .firstOrNull ??
+        requirements.map((item) => item.elementId).firstOrNull ??
+        'network.prototype';
+    return NetworkDuelCard(
+      definition: definition,
+      engine: engine,
+      variant: eligible,
+      role: role,
+      preference: _preference(
+        elementId,
+        role,
+        _fixtureValue(playerId, elementId, role),
+      ),
+    );
+  }
+
   PlayerGameProfile _profile(String id) => PlayerGameProfile(
     playerId: id,
     preferences: {
@@ -687,6 +1035,7 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   void _fail(Object error) {
+    if (_disposed) return;
     viewState = NetworkGameViewState.error;
     errorMessage = error is NetworkRoundException
         ? error.code
@@ -747,6 +1096,7 @@ final class NetworkGameController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _subscription?.cancel();
     super.dispose();
   }

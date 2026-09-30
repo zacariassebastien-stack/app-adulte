@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../engines/auction/auction_engine.dart';
+import '../../engines/corruption/corruption_engine.dart';
+import '../../engines/recovery/recovery_engine.dart';
 import '../../sync/sync.dart';
 
 final class SupabaseNetworkGameRepository implements NetworkGameRepository {
@@ -119,6 +121,87 @@ final class SupabaseNetworkGameRepository implements NetworkGameRepository {
   );
 
   @override
+  Future<NetworkGameRoundStateDto> submitCorruptionOffer({
+    required NetworkCommandDto command,
+    required CorruptionObjective objective,
+    required List<String> cardIds,
+  }) => _rpc(
+    'submit_network_corruption_offer',
+    command,
+    extra: {'p_objective': objective.name, 'p_card_ids': cardIds},
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> respondCorruption({
+    required NetworkCommandDto command,
+    required bool accepted,
+  }) => _rpc(
+    'respond_network_corruption',
+    command,
+    extra: {'p_accepted': accepted},
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> resolveCorruption({
+    required NetworkCommandDto command,
+    required List<ActionPromise> actions,
+  }) => _rpc(
+    'resolve_network_corruption',
+    command,
+    extra: {
+      'p_actions': [
+        for (final action in actions)
+          {
+            'card_id': action.cardId,
+            'source': action.source.name,
+            'status': action.status.name,
+            'visibility': action.visibility.name,
+          },
+      ],
+    },
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> skipCorruption({
+    required NetworkCommandDto command,
+  }) => _rpc('skip_network_corruption', command);
+
+  @override
+  Future<NetworkGameRoundStateDto> submitRecovery({
+    required NetworkCommandDto command,
+    required NetworkRecoveryDto recovery,
+  }) => _rpc(
+    'submit_network_recovery',
+    command,
+    extra: {'p_recovery': recovery.toJson()},
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> respondRecovery({
+    required NetworkCommandDto command,
+    required RecoveryResponse response,
+  }) => _rpc(
+    'respond_network_recovery',
+    command,
+    extra: {'p_response': response.name},
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> resolveRecovery({
+    required NetworkCommandDto command,
+    required NetworkRecoveryDto recovery,
+  }) => _rpc(
+    'resolve_network_recovery',
+    command,
+    extra: {'p_recovery': recovery.toJson()},
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> skipRecovery({
+    required NetworkCommandDto command,
+  }) => _rpc('skip_network_recovery', command);
+
+  @override
   Future<NetworkGameRoundStateDto> readyNextRound({
     required NetworkCommandDto command,
   }) => _rpc('ready_network_next_round', command);
@@ -165,7 +248,7 @@ final class SupabaseNetworkGameRepository implements NetworkGameRepository {
     } on PostgrestException catch (error) {
       final diagnostic =
           '$function: PostgREST ${error.code} ${_safeMessage(error.message)}';
-      if (kDebugMode) debugPrint('Network game RPC failed: $diagnostic');
+      developer.log('Network game RPC failed: $diagnostic');
       throw NetworkRoundException(
         _knownCode('${error.message} ${error.details ?? ''}'),
         diagnostic: diagnostic,
@@ -212,6 +295,8 @@ final class SupabaseNetworkGameRepository implements NetworkGameRepository {
       'ROUND_INSUFFICIENT_PA',
       'ROUND_INVERSION_FORBIDDEN',
       'ROUND_RESOLUTION_MISMATCH',
+      'ROUND_CORRUPTION_FORBIDDEN',
+      'ROUND_RECOVERY_NOT_ELIGIBLE',
     ];
     return codes.firstWhere(
       marker.contains,

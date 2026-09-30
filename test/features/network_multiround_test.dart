@@ -462,6 +462,210 @@ void main() {
   );
 
   test(
+    'corruption refusal is public, idempotent and leaves discard untouched',
+    () async {
+      final setup = await _setup(session, catalog);
+      await _reachSecondResolved(setup);
+      setup.backend.round.phase = NetworkGamePhase.corruptionDecision;
+      setup.backend.notify();
+      await _settle();
+      final actor = setup.alice.isCorruptionActor ? setup.alice : setup.bob;
+      final partner = identical(actor, setup.alice) ? setup.bob : setup.alice;
+      final card = actor.corruptionCards.single;
+      final before = actor.runtime.singleWhere(
+        (item) => item.cardId == card.id,
+      );
+      expect(before.zone, CardZone.DISCARD);
+
+      await actor.proposeCorruption(
+        card.id,
+        CorruptionObjective.OWN_INITIAL_ACTION,
+      );
+      await _settle();
+      expect(partner.viewState, NetworkGameViewState.corruptionResponse);
+      expect(partner.corruption!.actions.map((item) => item.cardId), [card.id]);
+
+      final reconnect = _controller(
+        setup.backend,
+        session,
+        catalog,
+        actor.playerId,
+        actor.privateStore,
+      );
+      await reconnect.start();
+      expect(reconnect.viewState, NetworkGameViewState.corruptionResponse);
+      reconnect.dispose();
+
+      await partner.respondToCorruption(accepted: false);
+      await partner.respondToCorruption(accepted: false);
+      await _settle();
+      expect(setup.backend.phase, NetworkGamePhase.recovery);
+      expect(
+        actor.runtime.singleWhere((item) => item.cardId == card.id).zone,
+        CardZone.DISCARD,
+      );
+      setup.dispose();
+    },
+  );
+
+  test(
+    'accepted corruption exhausts only the completed proposed discard once',
+    () async {
+      final setup = await _setup(session, catalog);
+      await _reachSecondResolved(setup);
+      setup.backend.round.phase = NetworkGamePhase.corruptionDecision;
+      setup.backend.notify();
+      await _settle();
+      final actor = setup.alice.isCorruptionActor ? setup.alice : setup.bob;
+      final partner = identical(actor, setup.alice) ? setup.bob : setup.alice;
+      final offered = actor.corruptionCards.single;
+      final unrelated = actor.runtime
+          .where((item) => item.zone == CardZone.HAND)
+          .first;
+
+      await actor.proposeCorruption(
+        offered.id,
+        CorruptionObjective.OWN_INITIAL_ACTION,
+      );
+      await _settle();
+      await partner.respondToCorruption(accepted: true);
+      await _settle();
+      expect(actor.viewState, NetworkGameViewState.corruptionExecution);
+      await actor.completeCorruption(completed: true);
+      await actor.completeCorruption(completed: true);
+      await _settle();
+
+      expect(
+        actor.runtime.singleWhere((item) => item.cardId == offered.id).zone,
+        CardZone.EXHAUSTED,
+      );
+      expect(
+        actor.runtime
+            .singleWhere((item) => item.cardId == unrelated.cardId)
+            .zone,
+        CardZone.HAND,
+      );
+      expect(setup.backend.phase, NetworkGamePhase.recovery);
+      setup.dispose();
+    },
+  );
+
+  test(
+    'recovery honors threshold, applies gain once and resumes next round',
+    () async {
+      final setup = await _setup(session, catalog);
+      await _playUnequal(setup);
+      final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+      await loser.acceptInitialResult();
+      await _settle();
+      setup.backend.points['alice'] = 20;
+      setup.backend.points['bob'] = 21;
+      setup.backend.round.phase = NetworkGamePhase.recovery;
+      setup.backend.notify();
+      await _settle();
+
+      expect(setup.alice.recoveryAvailable, isTrue);
+      expect(setup.bob.recoveryAvailable, isFalse);
+      final option = setup.alice.recoveryCards.first;
+      final before = setup.backend.points['alice']!;
+      await setup.alice.recoverWith(option.id);
+      await setup.alice.recoverWith(option.id);
+      await _settle();
+      expect(setup.bob.viewState, NetworkGameViewState.recoveryResponse);
+      await setup.bob.respondToRecovery(RecoveryResponse.ACCEPT);
+      await _settle();
+      expect(setup.alice.viewState, NetworkGameViewState.recoveryExecution);
+      await setup.alice.completeRecovery(completed: true);
+      await setup.alice.completeRecovery(completed: true);
+      await _settle();
+      expect(setup.backend.points['alice'], before + option.personalValue);
+      expect(setup.backend.round.recoveryDone, contains('alice'));
+
+      setup.alice.dispose();
+      final alice = _controller(
+        setup.backend,
+        session,
+        catalog,
+        'alice',
+        setup.alice.privateStore,
+      );
+      await alice.start();
+      expect(alice.round!.recoveryDonePlayerIds, contains('alice'));
+      await setup.bob.skipRecovery();
+      await _settle();
+      expect(setup.backend.phase, NetworkGamePhase.finalResolved);
+      await setup.backend
+          .repository('alice')
+          .readyNextRound(
+            command: _command(
+              'recovery-ready-alice',
+              'alice',
+              'READY_NEXT',
+              setup.backend.round.id,
+            ),
+          );
+      await setup.backend
+          .repository('bob')
+          .readyNextRound(
+            command: _command(
+              'recovery-ready-bob',
+              'bob',
+              'READY_NEXT',
+              setup.backend.round.id,
+            ),
+          );
+      await _settle();
+      expect(setup.backend.currentRound, 2);
+      alice.dispose();
+      setup.bob.dispose();
+    },
+  );
+
+  test(
+    'corruption/recovery projection contains no unrelated private state',
+    () {
+      final state = NetworkGameRoundStateDto(
+        roundId: 'round',
+        sessionId: 'session',
+        sessionRound: 'session.round-2',
+        roundNumber: 2,
+        phase: NetworkGamePhase.recovery,
+        playerId: 'alice',
+        commits: const {},
+        actionPoints: const {'alice': 12, 'bob': 40},
+        readyNextPlayerIds: const {},
+        tieDecisions: const {},
+        corruption: NetworkCorruptionDto(
+          offeredBy: 'alice',
+          objective: CorruptionObjective.OWN_INITIAL_ACTION,
+          actions: const [
+            ActionPromise(cardId: 'shown-card', source: CardZone.DISCARD),
+          ],
+        ),
+        recoveryByPlayer: const {
+          'alice': NetworkRecoveryDto(
+            playerId: 'alice',
+            cardId: 'recovery-card',
+            variantId: 'variant',
+            source: RecoverySource.CATALOG,
+            completed: true,
+            gain: 8,
+          ),
+        },
+        recoveryDonePlayerIds: const {'alice'},
+      );
+      final encoded = jsonEncode(state.toJson());
+      expect(encoded, contains('shown-card'));
+      expect(encoded, isNot(contains('private_hand')));
+      expect(encoded, isNot(contains('locked')));
+      expect(encoded, isNot(contains('profile')));
+      expect(encoded, isNot(contains('preference')));
+      expect(encoded, isNot(contains('draw_history')));
+      expect(encoded, isNot(contains('nonce')));
+    },
+  );
+
+  test(
     'migration defines RLS, phases, idempotent commands and no private state',
     () {
       final sql = File(
@@ -484,6 +688,17 @@ void main() {
       );
       expect(sql, isNot(contains('service_role')));
       expect(sql, isNot(contains('private_hand')));
+      final next = File(
+        'supabase/migrations/202609300002_network_corruption_recovery.sql',
+      ).readAsStringSync();
+      expect(next, contains("'CORRUPTION_RESPONSE'"));
+      expect(next, contains("'CORRUPTION_EXECUTION'"));
+      expect(next, contains("'RECOVERY'"));
+      expect(next, contains('pg_advisory_xact_lock'));
+      expect(next, contains('auth.uid()'));
+      expect(next, contains('ROUND_RECOVERY_NOT_ELIGIBLE'));
+      expect(next, isNot(contains('service_role')));
+      expect(next, isNot(contains('private_hand')));
     },
   );
 }
@@ -574,6 +789,20 @@ Future<void> _chooseUnequalPartner(
   await bob.confirmSelection();
 }
 
+Future<void> _reachSecondResolved(_Setup setup) async {
+  await _playUnequal(setup);
+  final firstLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+  await firstLoser.acceptInitialResult();
+  await _settle();
+  await setup.alice.readyForNextRound();
+  await setup.bob.readyForNextRound();
+  await _settle();
+  await _playUnequal(setup);
+  final secondLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+  await secondLoser.acceptInitialResult();
+  await _settle();
+}
+
 Future<void> _primeTie(_Backend backend) async {
   final alice = backend.repository('alice');
   final opened = await alice.openCurrentRound(
@@ -658,6 +887,9 @@ final class _RoundRecord {
   NetworkAuctionBidDto? counter;
   NetworkAuctionBidDto? defense;
   NetworkFinalResolutionDto? finalResolution;
+  NetworkCorruptionDto? corruption;
+  final recoveries = <String, NetworkRecoveryDto>{};
+  final recoveryDone = <String>{};
   final ready = <String>{};
   final ties = <String, TieDecision>{};
 }
@@ -701,6 +933,9 @@ final class _Backend {
     counterBid: round.counter,
     finalDefense: round.defense,
     finalResolution: round.finalResolution,
+    corruption: round.corruption,
+    recoveryByPlayer: round.recoveries,
+    recoveryDonePlayerIds: round.recoveryDone,
   );
 
   bool get _revealsPublic => round.phase == NetworkGamePhase.ready;
@@ -922,6 +1157,156 @@ final class _Repository implements NetworkGameRepository {
       backend.round.finalResolution = const NetworkFinalResolutionDto(
         mutualAbandon: true,
       );
+      backend.round.phase = NetworkGamePhase.finalResolved;
+    }
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> submitCorruptionOffer({
+    required NetworkCommandDto command,
+    required CorruptionObjective objective,
+    required List<String> cardIds,
+  }) async {
+    if (!_accept(command)) return backend.state(player);
+    if (backend.phase != NetworkGamePhase.corruptionDecision ||
+        cardIds.isEmpty) {
+      throw const NetworkRoundException('ROUND_INVALID_PHASE');
+    }
+    backend.round.corruption = NetworkCorruptionDto(
+      offeredBy: player,
+      objective: objective,
+      actions: [
+        for (final id in cardIds)
+          ActionPromise(cardId: id, source: CardZone.DISCARD),
+      ],
+    );
+    backend.round.phase = NetworkGamePhase.corruptionResponse;
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> respondCorruption({
+    required NetworkCommandDto command,
+    required bool accepted,
+  }) async {
+    if (!_accept(command)) return backend.state(player);
+    final offer = backend.round.corruption!;
+    backend.round.corruption = NetworkCorruptionDto(
+      offeredBy: offer.offeredBy,
+      objective: offer.objective,
+      actions: offer.actions,
+      accepted: accepted,
+    );
+    backend.round.phase = accepted
+        ? NetworkGamePhase.corruptionExecution
+        : NetworkGamePhase.recovery;
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> resolveCorruption({
+    required NetworkCommandDto command,
+    required List<ActionPromise> actions,
+  }) async {
+    if (!_accept(command)) return backend.state(player);
+    final offer = backend.round.corruption!;
+    backend.round.corruption = NetworkCorruptionDto(
+      offeredBy: offer.offeredBy,
+      objective: offer.objective,
+      actions: actions,
+      accepted: true,
+    );
+    backend.round.phase = NetworkGamePhase.recovery;
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> skipCorruption({
+    required NetworkCommandDto command,
+  }) async {
+    if (!_accept(command)) return backend.state(player);
+    backend.round.phase = NetworkGamePhase.recovery;
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> submitRecovery({
+    required NetworkCommandDto command,
+    required NetworkRecoveryDto recovery,
+  }) async {
+    if (!_accept(command)) return backend.state(player);
+    if (backend.phase != NetworkGamePhase.recovery ||
+        backend.round.recoveryDone.contains(player) ||
+        backend.points[player]! > 20) {
+      throw const NetworkRoundException('ROUND_RECOVERY_NOT_ELIGIBLE');
+    }
+    backend.round.recoveries[player] = recovery;
+    backend.round.phase = NetworkGamePhase.recoveryResponse;
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> respondRecovery({
+    required NetworkCommandDto command,
+    required RecoveryResponse response,
+  }) async {
+    if (!_accept(command)) return backend.state(player);
+    final entry = backend.round.recoveries.entries.singleWhere(
+      (item) => !backend.round.recoveryDone.contains(item.key),
+    );
+    final proposal = entry.value;
+    backend.round.recoveries[entry.key] = NetworkRecoveryDto(
+      playerId: proposal.playerId,
+      cardId: proposal.cardId,
+      variantId: proposal.variantId,
+      source: proposal.source,
+      completed: false,
+      gain: proposal.gain,
+      response: response,
+    );
+    if (response == RecoveryResponse.REFUSE) {
+      backend.round.recoveryDone.add(entry.key);
+      backend.round.phase = backend.round.recoveryDone.length == 2
+          ? NetworkGamePhase.finalResolved
+          : NetworkGamePhase.recovery;
+    } else {
+      backend.round.phase = NetworkGamePhase.recoveryExecution;
+    }
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> resolveRecovery({
+    required NetworkCommandDto command,
+    required NetworkRecoveryDto recovery,
+  }) async {
+    if (!_accept(command)) return backend.state(player);
+    backend.round.recoveries[recovery.playerId] = recovery;
+    backend.round.recoveryDone.add(recovery.playerId);
+    backend.points[recovery.playerId] =
+        backend.points[recovery.playerId]! + recovery.gain;
+    backend.round.phase = backend.round.recoveryDone.length == 2
+        ? NetworkGamePhase.finalResolved
+        : NetworkGamePhase.recovery;
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> skipRecovery({
+    required NetworkCommandDto command,
+  }) async {
+    if (!_accept(command)) return backend.state(player);
+    backend.round.recoveryDone.add(player);
+    if (backend.round.recoveryDone.length == 2) {
       backend.round.phase = NetworkGamePhase.finalResolved;
     }
     _notify();

@@ -1,4 +1,8 @@
 import '../../engines/auction/auction_engine.dart';
+import '../../engines/corruption/corruption_engine.dart';
+import '../../engines/lifecycle/lifecycle_engine.dart';
+import '../../engines/recovery/recovery_engine.dart';
+import '../../domain/session/session_state.dart';
 import '../commit_reveal/commit_reveal.dart';
 import '../protocol/idempotency.dart';
 import '../protocol/network_dtos.dart';
@@ -11,6 +15,12 @@ enum NetworkGamePhase {
   finalDefenseDecision,
   tieDecision,
   finalResolved,
+  corruptionDecision,
+  corruptionResponse,
+  corruptionExecution,
+  recovery,
+  recoveryResponse,
+  recoveryExecution,
   waitingNext,
   closed,
 }
@@ -20,6 +30,101 @@ enum CounterDecision { accept, bid }
 enum FinalDefenseDecision { renounce, defend }
 
 enum TieDecision { concede, abandon }
+
+final class NetworkCorruptionDto {
+  NetworkCorruptionDto({
+    required this.offeredBy,
+    required this.objective,
+    required List<ActionPromise> actions,
+    this.accepted,
+  }) : actions = List.unmodifiable(actions);
+
+  final String offeredBy;
+  final CorruptionObjective objective;
+  final List<ActionPromise> actions;
+  final bool? accepted;
+
+  Map<String, Object?> toJson() => {
+    'offered_by': offeredBy,
+    'objective': objective.name,
+    'accepted': accepted,
+    'actions': [
+      for (final action in actions)
+        {
+          'card_id': action.cardId,
+          'source': action.source.name,
+          'status': action.status.name,
+          'visibility': action.visibility.name,
+        },
+    ],
+  };
+
+  factory NetworkCorruptionDto.fromJson(Map<String, Object?> json) =>
+      NetworkCorruptionDto(
+        offeredBy: json['offered_by']! as String,
+        objective: CorruptionObjective.values.byName(
+          json['objective']! as String,
+        ),
+        accepted: json['accepted'] as bool?,
+        actions: [
+          for (final raw in json['actions']! as List)
+            if (Map<String, Object?>.from(raw! as Map) case final action)
+              ActionPromise(
+                cardId: action['card_id']! as String,
+                source: CardZone.values.byName(action['source']! as String),
+                status: ActionExecutionStatus.values.byName(
+                  action['status']! as String,
+                ),
+                visibility: PromiseVisibility.values.byName(
+                  action['visibility']! as String,
+                ),
+              ),
+        ],
+      );
+}
+
+final class NetworkRecoveryDto {
+  const NetworkRecoveryDto({
+    required this.playerId,
+    required this.cardId,
+    required this.variantId,
+    required this.source,
+    required this.completed,
+    required this.gain,
+    this.response,
+  });
+
+  final String playerId;
+  final String cardId;
+  final String variantId;
+  final RecoverySource source;
+  final bool completed;
+  final int gain;
+  final RecoveryResponse? response;
+
+  Map<String, Object?> toJson() => {
+    'player_id': playerId,
+    'card_id': cardId,
+    'variant_id': variantId,
+    'source': source.name,
+    'completed': completed,
+    'gain': gain,
+    'response': response?.name,
+  };
+
+  factory NetworkRecoveryDto.fromJson(Map<String, Object?> json) =>
+      NetworkRecoveryDto(
+        playerId: json['player_id']! as String,
+        cardId: json['card_id']! as String,
+        variantId: json['variant_id']! as String,
+        source: RecoverySource.values.byName(json['source']! as String),
+        completed: json['completed']! as bool,
+        gain: json['gain']! as int,
+        response: json['response'] == null
+            ? null
+            : RecoveryResponse.values.byName(json['response']! as String),
+      );
+}
 
 final class NetworkInitialResolutionDto {
   NetworkInitialResolutionDto({
@@ -138,10 +243,17 @@ final class NetworkGameRoundStateDto {
     this.counterBid,
     this.finalDefense,
     this.finalResolution,
+    this.corruption,
+    Map<String, NetworkRecoveryDto>? recoveryByPlayer,
+    Set<String>? recoveryDonePlayerIds,
   }) : commits = Map.unmodifiable(commits),
        actionPoints = Map.unmodifiable(actionPoints),
        readyNextPlayerIds = Set.unmodifiable(readyNextPlayerIds),
-       tieDecisions = Map.unmodifiable(tieDecisions);
+       tieDecisions = Map.unmodifiable(tieDecisions),
+       recoveryByPlayer = Map.unmodifiable(recoveryByPlayer ?? const {}),
+       recoveryDonePlayerIds = Set.unmodifiable(
+         recoveryDonePlayerIds ?? const {},
+       );
 
   final String roundId;
   final String sessionId;
@@ -159,6 +271,9 @@ final class NetworkGameRoundStateDto {
   final NetworkAuctionBidDto? counterBid;
   final NetworkAuctionBidDto? finalDefense;
   final NetworkFinalResolutionDto? finalResolution;
+  final NetworkCorruptionDto? corruption;
+  final Map<String, NetworkRecoveryDto> recoveryByPlayer;
+  final Set<String> recoveryDonePlayerIds;
 
   bool get ownCommitRecorded => commits.containsKey(playerId);
   bool get ownRevealRecorded => ownReveal != null;
@@ -183,6 +298,12 @@ final class NetworkGameRoundStateDto {
     'counter_bid': counterBid?.toJson(),
     'final_defense': finalDefense?.toJson(),
     'final_resolution': finalResolution?.toJson(),
+    'corruption': corruption?.toJson(),
+    'recovery_by_player': {
+      for (final entry in recoveryByPlayer.entries)
+        entry.key: entry.value.toJson(),
+    },
+    'recovery_done': {for (final id in recoveryDonePlayerIds) id: true},
   };
 
   factory NetworkGameRoundStateDto.fromJson(Map<String, Object?> json) {
@@ -200,6 +321,12 @@ final class NetworkGameRoundStateDto {
     );
     final ties = Map<String, Object?>.from(
       (json['tie_decisions'] as Map?) ?? const {},
+    );
+    final recoveries = Map<String, Object?>.from(
+      (json['recovery_by_player'] as Map?) ?? const {},
+    );
+    final recoveryDone = Map<String, Object?>.from(
+      (json['recovery_done'] as Map?) ?? const {},
     );
     return NetworkGameRoundStateDto(
       roundId: json['round_id']! as String,
@@ -230,6 +357,17 @@ final class NetworkGameRoundStateDto {
         'final_resolution',
         NetworkFinalResolutionDto.fromJson,
       ),
+      corruption: optional('corruption', NetworkCorruptionDto.fromJson),
+      recoveryByPlayer: {
+        for (final entry in recoveries.entries)
+          entry.key: NetworkRecoveryDto.fromJson(
+            Map<String, Object?>.from(entry.value! as Map),
+          ),
+      },
+      recoveryDonePlayerIds: {
+        for (final entry in recoveryDone.entries)
+          if (entry.value == true) entry.key,
+      },
     );
   }
 }
@@ -274,6 +412,45 @@ abstract interface class NetworkGameRepository {
     required TieDecision decision,
   });
 
+  Future<NetworkGameRoundStateDto> submitCorruptionOffer({
+    required NetworkCommandDto command,
+    required CorruptionObjective objective,
+    required List<String> cardIds,
+  });
+
+  Future<NetworkGameRoundStateDto> respondCorruption({
+    required NetworkCommandDto command,
+    required bool accepted,
+  });
+
+  Future<NetworkGameRoundStateDto> resolveCorruption({
+    required NetworkCommandDto command,
+    required List<ActionPromise> actions,
+  });
+
+  Future<NetworkGameRoundStateDto> skipCorruption({
+    required NetworkCommandDto command,
+  });
+
+  Future<NetworkGameRoundStateDto> submitRecovery({
+    required NetworkCommandDto command,
+    required NetworkRecoveryDto recovery,
+  });
+
+  Future<NetworkGameRoundStateDto> respondRecovery({
+    required NetworkCommandDto command,
+    required RecoveryResponse response,
+  });
+
+  Future<NetworkGameRoundStateDto> resolveRecovery({
+    required NetworkCommandDto command,
+    required NetworkRecoveryDto recovery,
+  });
+
+  Future<NetworkGameRoundStateDto> skipRecovery({
+    required NetworkCommandDto command,
+  });
+
   Future<NetworkGameRoundStateDto> readyNextRound({
     required NetworkCommandDto command,
   });
@@ -292,6 +469,12 @@ String _phaseWire(NetworkGamePhase phase) => switch (phase) {
   NetworkGamePhase.finalDefenseDecision => 'FINAL_DEFENSE_DECISION',
   NetworkGamePhase.tieDecision => 'TIE_DECISION',
   NetworkGamePhase.finalResolved => 'FINAL_RESOLVED',
+  NetworkGamePhase.corruptionDecision => 'CORRUPTION_DECISION',
+  NetworkGamePhase.corruptionResponse => 'CORRUPTION_RESPONSE',
+  NetworkGamePhase.corruptionExecution => 'CORRUPTION_EXECUTION',
+  NetworkGamePhase.recovery => 'RECOVERY',
+  NetworkGamePhase.recoveryResponse => 'RECOVERY_RESPONSE',
+  NetworkGamePhase.recoveryExecution => 'RECOVERY_EXECUTION',
   NetworkGamePhase.waitingNext => 'WAITING_NEXT',
   NetworkGamePhase.closed => 'CLOSED',
 };
@@ -304,6 +487,12 @@ NetworkGamePhase _phaseFromWire(String value) => switch (value) {
   'FINAL_DEFENSE_DECISION' => NetworkGamePhase.finalDefenseDecision,
   'TIE_DECISION' => NetworkGamePhase.tieDecision,
   'FINAL_RESOLVED' => NetworkGamePhase.finalResolved,
+  'CORRUPTION_DECISION' => NetworkGamePhase.corruptionDecision,
+  'CORRUPTION_RESPONSE' => NetworkGamePhase.corruptionResponse,
+  'CORRUPTION_EXECUTION' => NetworkGamePhase.corruptionExecution,
+  'RECOVERY' => NetworkGamePhase.recovery,
+  'RECOVERY_RESPONSE' => NetworkGamePhase.recoveryResponse,
+  'RECOVERY_EXECUTION' => NetworkGamePhase.recoveryExecution,
   'WAITING_NEXT' => NetworkGamePhase.waitingNext,
   'CLOSED' => NetworkGamePhase.closed,
   _ => throw FormatException('Unknown network game phase: $value'),

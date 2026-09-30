@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../domain/catalog/catalog.dart';
 import '../../engines/auction/auction_engine.dart';
+import '../../engines/corruption/corruption_engine.dart';
+import '../../engines/recovery/recovery_engine.dart';
 import '../../sync/rounds/network_game.dart';
 import '../lobby/lobby_models.dart';
 import 'network_duel_secret_store.dart';
@@ -99,6 +101,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     NetworkGameViewState.finalDefenseDecision => _finalDefense(),
     NetworkGameViewState.tieDecision => _tieDecision(),
     NetworkGameViewState.finalResult => _finalResult(),
+    NetworkGameViewState.corruptionDecision => _corruptionDecision(),
+    NetworkGameViewState.corruptionResponse => _corruptionResponse(),
+    NetworkGameViewState.corruptionExecution => _corruptionExecution(),
+    NetworkGameViewState.recovery => _recovery(),
+    NetworkGameViewState.recoveryResponse => _recoveryResponse(),
+    NetworkGameViewState.recoveryExecution => _recoveryExecution(),
     NetworkGameViewState.waitingNext => _waitingNext(),
     NetworkGameViewState.error => _error(),
   };
@@ -311,6 +319,188 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           onPressed: controller.readyForNextRound,
           child: const Text('Tour suivant'),
         ),
+      ],
+    );
+  }
+
+  Widget _corruptionDecision() => ListView(
+    key: const Key('network-corruption-decision'),
+    padding: const EdgeInsets.all(16),
+    children: [
+      Text('Corruption', style: Theme.of(context).textTheme.headlineSmall),
+      const Text('Seule la carte proposée est rendue publique.'),
+      const SizedBox(height: 16),
+      if (!controller.isCorruptionActor)
+        _waitingCard('Ton partenaire décide s’il propose une corruption.')
+      else ...[
+        for (final card in controller.corruptionCards)
+          ListTile(
+            key: Key('corruption-card-${card.id}'),
+            title: Text(card.title),
+            subtitle: const Text('Carte de la défausse'),
+            trailing: FilledButton.tonal(
+              onPressed: () => controller.proposeCorruption(
+                card.id,
+                CorruptionObjective.OWN_INITIAL_ACTION,
+              ),
+              child: const Text('Proposer'),
+            ),
+          ),
+        OutlinedButton(
+          key: const Key('skip-network-corruption'),
+          onPressed: controller.skipCorruption,
+          child: const Text('Continuer sans corruption'),
+        ),
+      ],
+    ],
+  );
+
+  Widget _corruptionResponse() {
+    final offer = controller.corruption!;
+    return ListView(
+      key: const Key('network-corruption-response'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          'Proposition de corruption',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        for (final action in offer.actions)
+          Text('Carte : ${_title(action.cardId)}'),
+        const SizedBox(height: 16),
+        if (offer.offeredBy == controller.playerId)
+          _waitingCard('En attente de la réponse du partenaire…')
+        else ...[
+          FilledButton(
+            key: const Key('accept-network-corruption'),
+            onPressed: () => controller.respondToCorruption(accepted: true),
+            child: const Text('Accepter'),
+          ),
+          OutlinedButton(
+            key: const Key('refuse-network-corruption'),
+            onPressed: () => controller.respondToCorruption(accepted: false),
+            child: const Text('Refuser'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _corruptionExecution() => ListView(
+    key: const Key('network-corruption-execution'),
+    padding: const EdgeInsets.all(16),
+    children: [
+      const Text('Corruption acceptée'),
+      if (controller.corruption!.offeredBy != controller.playerId)
+        _waitingCard('Le partenaire exécute l’action convenue…')
+      else ...[
+        FilledButton(
+          key: const Key('complete-network-corruption'),
+          onPressed: () => controller.completeCorruption(completed: true),
+          child: const Text('Action exécutée'),
+        ),
+        OutlinedButton(
+          key: const Key('skip-network-corruption-action'),
+          onPressed: () => controller.completeCorruption(completed: false),
+          child: const Text('Action non exécutée'),
+        ),
+      ],
+    ],
+  );
+
+  Widget _recovery() {
+    final done = controller.round!.recoveryDonePlayerIds.contains(
+      controller.playerId,
+    );
+    return ListView(
+      key: const Key('network-recovery'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          'Entre les rounds',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        if (done)
+          _waitingCard('Recovery enregistré — attente du partenaire.')
+        else if (controller.recoveryAvailable) ...[
+          const Text('PA faibles — Recovery disponible'),
+          for (final card in controller.recoveryCards.take(4))
+            ListTile(
+              title: Text(card.title),
+              subtitle: Text('Gain si exécutée : ${card.personalValue} PA'),
+              trailing: FilledButton.tonal(
+                key: Key('recover-with-${card.id}'),
+                onPressed: () => controller.recoverWith(card.id),
+                child: const Text('Recovery'),
+              ),
+            ),
+          OutlinedButton(
+            key: const Key('skip-network-recovery'),
+            onPressed: controller.skipRecovery,
+            child: const Text('Passer'),
+          ),
+        ] else
+          FilledButton(
+            key: const Key('continue-without-recovery'),
+            onPressed: controller.skipRecovery,
+            child: const Text('Continuer'),
+          ),
+      ],
+    );
+  }
+
+  Widget _recoveryResponse() {
+    final proposal = controller.pendingRecovery!;
+    return ListView(
+      key: const Key('network-recovery-response'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          'Proposition Recovery',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        Text('Carte : ${_title(proposal.cardId)}'),
+        if (proposal.playerId == controller.playerId)
+          _waitingCard('En attente du consentement du partenaire…')
+        else ...[
+          FilledButton(
+            key: const Key('accept-network-recovery'),
+            onPressed: () =>
+                controller.respondToRecovery(RecoveryResponse.ACCEPT),
+            child: const Text('Accepter'),
+          ),
+          OutlinedButton(
+            key: const Key('refuse-network-recovery'),
+            onPressed: () =>
+                controller.respondToRecovery(RecoveryResponse.REFUSE),
+            child: const Text('Refuser'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _recoveryExecution() {
+    final proposal = controller.pendingRecovery!;
+    return ListView(
+      key: const Key('network-recovery-execution'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        const Text('Recovery accepté'),
+        if (proposal.playerId != controller.playerId)
+          _waitingCard('Le partenaire exécute l’action Recovery…')
+        else ...[
+          FilledButton(
+            key: const Key('complete-network-recovery'),
+            onPressed: () => controller.completeRecovery(completed: true),
+            child: const Text('Action exécutée'),
+          ),
+          OutlinedButton(
+            key: const Key('skip-network-recovery-action'),
+            onPressed: () => controller.completeRecovery(completed: false),
+            child: const Text('Action non exécutée'),
+          ),
+        ],
       ],
     );
   }
