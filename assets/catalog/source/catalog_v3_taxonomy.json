@@ -1,0 +1,1491 @@
+{
+  "schema_version": 3,
+  "taxonomy_version": 1,
+  "tags": [
+    {
+      "stable_id": "v3.preference.embrasser",
+      "key": "EMBRASSER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.caresser",
+      "key": "CARESSER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.masser",
+      "key": "MASSER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.proximite_physique",
+      "key": "PROXIMITE_PHYSIQUE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.lecher",
+      "key": "LECHER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.sucer",
+      "key": "SUCER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.masturbation",
+      "key": "MASTURBATION",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.penetrer",
+      "key": "PENETRER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.frotter",
+      "key": "FROTTER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.mordre",
+      "key": "MORDRE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.griffer",
+      "key": "GRIFFER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.frapper",
+      "key": "FRAPPER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.pincer",
+      "key": "PINCER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.tirer",
+      "key": "TIRER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.souffler",
+      "key": "SOUFFLER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.cracher",
+      "key": "CRACHER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.avaler",
+      "key": "AVALER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.attacher",
+      "key": "ATTACHER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.immobiliser",
+      "key": "IMMOBILISER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.ordres",
+      "key": "ORDRES",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.controle",
+      "key": "CONTROLE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.servir",
+      "key": "SERVIR",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.supplier",
+      "key": "SUPPLIER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.permission",
+      "key": "PERMISSION",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.provoquer",
+      "key": "PROVOQUER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.danser",
+      "key": "DANSER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.simuler",
+      "key": "SIMULER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.regarder",
+      "key": "REGARDER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.enlever",
+      "key": "ENLEVER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.ajouter",
+      "key": "AJOUTER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.envoyer",
+      "key": "ENVOYER",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.maintien_cou",
+      "key": "MAINTIEN_COU",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.langue",
+      "key": "LANGUE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.doigts",
+      "key": "DOIGTS",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.sexe",
+      "key": "SEXE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.sextoy",
+      "key": "SEXTOY",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.vibrant",
+      "key": "VIBRANT",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.controle_distance",
+      "key": "CONTROLE_DISTANCE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.temperature",
+      "key": "TEMPERATURE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.texture",
+      "key": "TEXTURE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.privation_auditive",
+      "key": "PRIVATION_AUDITIVE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.privation_parole",
+      "key": "PRIVATION_PAROLE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.yeux_bandes",
+      "key": "YEUX_BANDES",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.tenue",
+      "key": "TENUE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.tenue_legere",
+      "key": "TENUE_LEGERE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.sous_vetements",
+      "key": "SOUS_VETEMENTS",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.deguisement",
+      "key": "DEGUISEMENT",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.photo",
+      "key": "PHOTO",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.video",
+      "key": "VIDEO",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.audio",
+      "key": "AUDIO",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.contenu_adulte",
+      "key": "CONTENU_ADULTE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.regard_exterieur",
+      "key": "REGARD_EXTERIEUR",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.lieu_expose",
+      "key": "LIEU_EXPOSE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.paroles_coquines",
+      "key": "PAROLES_COQUINES",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.paroles_degradantes",
+      "key": "PAROLES_DEGRADANTES",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.orgasme",
+      "key": "ORGASME",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.ejaculation",
+      "key": "EJACULATION",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.position_s",
+      "key": "POSITION_S",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.position_a",
+      "key": "POSITION_A",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.position_e",
+      "key": "POSITION_E",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.lieu_inhabituel",
+      "key": "LIEU_INHABITUEL",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.nourriture",
+      "key": "NOURRITURE",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.preference.boisson",
+      "key": "BOISSON",
+      "category": "PREFERENCE",
+      "scoreable": true
+    },
+    {
+      "stable_id": "v3.zone.cou",
+      "key": "COU",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.corps",
+      "key": "CORPS",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.parties_intimes",
+      "key": "PARTIES_INTIMES",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.pieds",
+      "key": "PIEDS",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.fesses",
+      "key": "FESSES",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.poitrine",
+      "key": "POITRINE",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.tetons",
+      "key": "TETONS",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.cuisses",
+      "key": "CUISSES",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.ventre",
+      "key": "VENTRE",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.dos",
+      "key": "DOS",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.jambes",
+      "key": "JAMBES",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.mains",
+      "key": "MAINS",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.bras",
+      "key": "BRAS",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.epaules",
+      "key": "EPAULES",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.tete",
+      "key": "TETE",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.vaginal",
+      "key": "VAGINAL",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.anal",
+      "key": "ANAL",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.zone.buccal",
+      "key": "BUCCAL",
+      "category": "ZONE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.direction.faire",
+      "key": "FAIRE",
+      "category": "DIRECTION",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.direction.recevoir",
+      "key": "RECEVOIR",
+      "category": "DIRECTION",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.direction.solo",
+      "key": "SOLO",
+      "category": "DIRECTION",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.direction.mutuel",
+      "key": "MUTUEL",
+      "category": "DIRECTION",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.direction.simultane",
+      "key": "SIMULTANE",
+      "category": "DIRECTION",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.direction.etre_regarde",
+      "key": "ETRE_REGARDE",
+      "category": "DIRECTION",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.direction.etre_entendu",
+      "key": "ETRE_ENTENDU",
+      "category": "DIRECTION",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.materiel.accessoire",
+      "key": "ACCESSOIRE",
+      "category": "MATERIEL",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.materiel.accessoire_contrainte",
+      "key": "ACCESSOIRE_CONTRAINTE",
+      "category": "MATERIEL",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.materiel.huile",
+      "key": "HUILE",
+      "category": "MATERIEL",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.materiel.lubrifiant",
+      "key": "LUBRIFIANT",
+      "category": "MATERIEL",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.materiel.protection",
+      "key": "PROTECTION",
+      "category": "MATERIEL",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.materiel.alcool",
+      "key": "ALCOOL",
+      "category": "MATERIEL",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.technique.distance_exclue",
+      "key": "DISTANCE_EXCLUE",
+      "category": "TECHNIQUE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.contexte.lieu_habituel",
+      "key": "LIEU_HABITUEL",
+      "category": "CONTEXTE",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.session_pref.jeu_role",
+      "key": "JEU_ROLE",
+      "category": "SESSION_PREF",
+      "scoreable": false
+    },
+    {
+      "stable_id": "v3.session_pref.surprise_party",
+      "key": "SURPRISE_PARTY",
+      "category": "SESSION_PREF",
+      "scoreable": false
+    }
+  ],
+  "legacy_mappings": [
+    {
+      "legacy_tag_id": "tag.affection.hug",
+      "legacy_profile_id": "profile.affection.hug",
+      "v3_tag_ids": [
+        "v3.preference.proximite_physique"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.body.chest_play",
+      "legacy_profile_id": "profile.body.chest_play",
+      "v3_tag_ids": [
+        "v3.zone.poitrine"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.body.feet_play",
+      "legacy_profile_id": "profile.body.feet_play",
+      "v3_tag_ids": [
+        "v3.zone.pieds"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.body.nipple_stimulation",
+      "legacy_profile_id": "profile.body.nipple_stimulation",
+      "v3_tag_ids": [
+        "v3.zone.tetons"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.clothing.clothed",
+      "legacy_profile_id": "profile.clothing.clothed",
+      "v3_tag_ids": [
+        "v3.preference.tenue"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.clothing.nudity",
+      "legacy_profile_id": "profile.clothing.nudity",
+      "v3_tag_ids": [
+        "v3.preference.enlever"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.clothing.outfit_choice",
+      "legacy_profile_id": "profile.clothing.outfit_choice",
+      "v3_tag_ids": [
+        "v3.preference.tenue"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.clothing.partner_remove",
+      "legacy_profile_id": "profile.clothing.partner_remove",
+      "v3_tag_ids": [
+        "v3.preference.enlever",
+        "v3.direction.recevoir"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.clothing.remove",
+      "legacy_profile_id": "profile.clothing.remove",
+      "v3_tag_ids": [
+        "v3.preference.enlever"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.clothing.striptease",
+      "legacy_profile_id": "profile.clothing.striptease",
+      "v3_tag_ids": [
+        "v3.preference.enlever",
+        "v3.preference.danser"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.clothing.underwear",
+      "legacy_profile_id": "profile.clothing.underwear",
+      "v3_tag_ids": [
+        "v3.preference.sous_vetements"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.clothing.undressing",
+      "legacy_profile_id": "profile.clothing.undressing",
+      "v3_tag_ids": [
+        "v3.preference.enlever"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.contact.body",
+      "legacy_profile_id": "profile.contact.body",
+      "v3_tag_ids": [
+        "v3.zone.corps"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.contact.rubbing",
+      "legacy_profile_id": "profile.contact.rubbing",
+      "v3_tag_ids": [
+        "v3.preference.frotter"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.context.bath",
+      "legacy_profile_id": "profile.context.bath",
+      "v3_tag_ids": [
+        "v3.contexte.lieu_habituel"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.context.shower",
+      "legacy_profile_id": "profile.context.shower",
+      "v3_tag_ids": [
+        "v3.contexte.lieu_habituel"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.control.no_touch",
+      "legacy_profile_id": "profile.control.no_touch",
+      "v3_tag_ids": [
+        "v3.preference.controle"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.control.position",
+      "legacy_profile_id": "profile.control.position",
+      "v3_tag_ids": [
+        "v3.preference.controle"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.control.waiting",
+      "legacy_profile_id": "profile.control.waiting",
+      "v3_tag_ids": [
+        "v3.preference.controle"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.distance.instruction.give",
+      "legacy_profile_id": "profile.distance.instruction.give",
+      "v3_tag_ids": [
+        "v3.preference.ordres",
+        "v3.direction.faire"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.distance.message",
+      "legacy_profile_id": "profile.distance.message",
+      "v3_tag_ids": [
+        "v3.preference.envoyer"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.distance.sexting",
+      "legacy_profile_id": "profile.distance.sexting",
+      "v3_tag_ids": [
+        "v3.preference.envoyer",
+        "v3.preference.paroles_coquines"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.impact.spanking",
+      "legacy_profile_id": "profile.impact.spanking",
+      "v3_tag_ids": [
+        "v3.preference.frapper",
+        "v3.zone.fesses"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.anal.external",
+      "legacy_profile_id": "profile.intimate.anal.external",
+      "v3_tag_ids": [
+        "v3.zone.anal"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.anal.general",
+      "legacy_profile_id": "profile.intimate.anal.general",
+      "v3_tag_ids": [
+        "v3.zone.anal"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.anal.manual",
+      "legacy_profile_id": "profile.intimate.anal.manual",
+      "v3_tag_ids": [
+        "v3.zone.anal",
+        "v3.preference.doigts"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.anal.oral",
+      "legacy_profile_id": "profile.intimate.anal.oral",
+      "v3_tag_ids": [
+        "v3.zone.anal",
+        "v3.preference.lecher"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.anal.penetration",
+      "legacy_profile_id": "profile.intimate.anal.penetration",
+      "v3_tag_ids": [
+        "v3.zone.anal",
+        "v3.preference.penetrer"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.facesitting",
+      "legacy_profile_id": "profile.intimate.facesitting",
+      "v3_tag_ids": [
+        "v3.zone.buccal"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.genital_rubbing",
+      "legacy_profile_id": "profile.intimate.genital_rubbing",
+      "v3_tag_ids": [
+        "v3.preference.frotter",
+        "v3.zone.parties_intimes"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.manual",
+      "legacy_profile_id": "profile.intimate.manual",
+      "v3_tag_ids": [
+        "v3.preference.doigts",
+        "v3.zone.parties_intimes"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.masturbation",
+      "legacy_profile_id": "profile.intimate.masturbation",
+      "v3_tag_ids": [
+        "v3.preference.masturbation"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.masturbation.mutual",
+      "legacy_profile_id": "profile.intimate.masturbation.mutual",
+      "v3_tag_ids": [
+        "v3.preference.masturbation",
+        "v3.direction.mutuel"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.masturbation.partner",
+      "legacy_profile_id": "profile.intimate.masturbation.partner",
+      "v3_tag_ids": [
+        "v3.preference.masturbation",
+        "v3.direction.recevoir"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.masturbation.self",
+      "legacy_profile_id": "profile.intimate.masturbation.self",
+      "v3_tag_ids": [
+        "v3.preference.masturbation",
+        "v3.direction.solo"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.oral.give",
+      "legacy_profile_id": "profile.intimate.oral.give",
+      "v3_tag_ids": [
+        "v3.preference.sucer",
+        "v3.direction.faire",
+        "v3.zone.buccal"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.oral.mutual",
+      "legacy_profile_id": "profile.intimate.oral.mutual",
+      "v3_tag_ids": [
+        "v3.preference.sucer",
+        "v3.direction.mutuel",
+        "v3.zone.buccal"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.oral.receive",
+      "legacy_profile_id": "profile.intimate.oral.receive",
+      "v3_tag_ids": [
+        "v3.preference.sucer",
+        "v3.direction.recevoir",
+        "v3.zone.buccal"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.penetration.vaginal",
+      "legacy_profile_id": "profile.intimate.penetration.vaginal",
+      "v3_tag_ids": [
+        "v3.preference.penetrer",
+        "v3.zone.vaginal"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.intimate.position_choice",
+      "legacy_profile_id": "profile.intimate.position_choice",
+      "v3_tag_ids": [
+        "v3.preference.controle"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.kiss.general",
+      "legacy_profile_id": "profile.kiss.general",
+      "v3_tag_ids": [
+        "v3.preference.embrasser"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.kiss.prolonged",
+      "legacy_profile_id": "profile.kiss.prolonged",
+      "v3_tag_ids": [
+        "v3.preference.embrasser"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.kiss.tongue",
+      "legacy_profile_id": "profile.kiss.tongue",
+      "v3_tag_ids": [
+        "v3.preference.embrasser",
+        "v3.preference.langue"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.kiss.zone.neck",
+      "legacy_profile_id": "profile.kiss.zone.neck",
+      "v3_tag_ids": [
+        "v3.preference.embrasser",
+        "v3.zone.cou"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.massage.general",
+      "legacy_profile_id": "profile.massage.general",
+      "v3_tag_ids": [
+        "v3.preference.masser"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.massage.intimate",
+      "legacy_profile_id": "profile.massage.intimate",
+      "v3_tag_ids": [
+        "v3.preference.masser",
+        "v3.zone.parties_intimes"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.massage.sensual",
+      "legacy_profile_id": "profile.massage.sensual",
+      "v3_tag_ids": [
+        "v3.preference.masser"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.media.live.call",
+      "legacy_profile_id": "profile.media.live.call",
+      "v3_tag_ids": [
+        "v3.preference.video"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.media.live.nude",
+      "legacy_profile_id": "profile.media.live.nude",
+      "v3_tag_ids": [
+        "v3.preference.video",
+        "v3.preference.contenu_adulte"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.media.photo.nude",
+      "legacy_profile_id": "profile.media.photo.nude",
+      "v3_tag_ids": [
+        "v3.preference.photo",
+        "v3.preference.contenu_adulte"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.media.photo.send",
+      "legacy_profile_id": "profile.media.photo.send",
+      "v3_tag_ids": [
+        "v3.preference.photo",
+        "v3.preference.envoyer"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.media.photo.suggestive",
+      "legacy_profile_id": "profile.media.photo.suggestive",
+      "v3_tag_ids": [
+        "v3.preference.photo"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.media.photo.underwear",
+      "legacy_profile_id": "profile.media.photo.underwear",
+      "v3_tag_ids": [
+        "v3.preference.photo",
+        "v3.preference.sous_vetements"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.media.video.send",
+      "legacy_profile_id": "profile.media.video.send",
+      "v3_tag_ids": [
+        "v3.preference.video",
+        "v3.preference.envoyer"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.observation.be_watched",
+      "legacy_profile_id": "profile.observation.be_watched",
+      "v3_tag_ids": [
+        "v3.preference.regarder",
+        "v3.direction.etre_regarde"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.observation.exhibition_private",
+      "legacy_profile_id": "profile.observation.exhibition_private",
+      "v3_tag_ids": [
+        "v3.direction.etre_regarde"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.observation.voyeur_private",
+      "legacy_profile_id": "profile.observation.voyeur_private",
+      "v3_tag_ids": [
+        "v3.preference.regarder"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.observation.watch",
+      "legacy_profile_id": "profile.observation.watch",
+      "v3_tag_ids": [
+        "v3.preference.regarder"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.power.decision.give",
+      "legacy_profile_id": "profile.power.decision.give",
+      "v3_tag_ids": [
+        "v3.preference.controle",
+        "v3.direction.faire"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.power.decision.receive",
+      "legacy_profile_id": "profile.power.decision.receive",
+      "v3_tag_ids": [
+        "v3.preference.controle",
+        "v3.direction.recevoir"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.power.domination.receive",
+      "legacy_profile_id": "profile.power.domination.receive",
+      "v3_tag_ids": [
+        "v3.preference.servir",
+        "v3.direction.recevoir"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.power.order.give",
+      "legacy_profile_id": "profile.power.order.give",
+      "v3_tag_ids": [
+        "v3.preference.ordres",
+        "v3.direction.faire"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.power.order.receive",
+      "legacy_profile_id": "profile.power.order.receive",
+      "v3_tag_ids": [
+        "v3.preference.ordres",
+        "v3.direction.recevoir"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.power.submission",
+      "legacy_profile_id": "profile.power.submission",
+      "v3_tag_ids": [
+        "v3.preference.servir"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.restraint.general",
+      "legacy_profile_id": "profile.restraint.general",
+      "v3_tag_ids": [
+        "v3.preference.attacher"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.restraint.hands",
+      "legacy_profile_id": "profile.restraint.hands",
+      "v3_tag_ids": [
+        "v3.preference.attacher",
+        "v3.zone.mains"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.restraint.immobilize",
+      "legacy_profile_id": "profile.restraint.immobilize",
+      "v3_tag_ids": [
+        "v3.preference.immobiliser"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.roleplay.bar_meeting",
+      "legacy_profile_id": "profile.roleplay.bar_meeting",
+      "v3_tag_ids": [
+        "v3.session_pref.jeu_role"
+      ],
+      "status": "scenario_pending"
+    },
+    {
+      "legacy_tag_id": "tag.roleplay.boss_employee",
+      "legacy_profile_id": "profile.roleplay.boss_employee",
+      "v3_tag_ids": [
+        "v3.session_pref.jeu_role"
+      ],
+      "status": "scenario_pending"
+    },
+    {
+      "legacy_tag_id": "tag.roleplay.celebrity_fan",
+      "legacy_profile_id": "profile.roleplay.celebrity_fan",
+      "v3_tag_ids": [
+        "v3.session_pref.jeu_role"
+      ],
+      "status": "scenario_pending"
+    },
+    {
+      "legacy_tag_id": "tag.roleplay.delivery",
+      "legacy_profile_id": "profile.roleplay.delivery",
+      "v3_tag_ids": [
+        "v3.session_pref.jeu_role"
+      ],
+      "status": "scenario_pending"
+    },
+    {
+      "legacy_tag_id": "tag.roleplay.masseur_client",
+      "legacy_profile_id": "profile.roleplay.masseur_client",
+      "v3_tag_ids": [
+        "v3.session_pref.jeu_role"
+      ],
+      "status": "scenario_pending"
+    },
+    {
+      "legacy_tag_id": "tag.roleplay.master_servant",
+      "legacy_profile_id": "profile.roleplay.master_servant",
+      "v3_tag_ids": [
+        "v3.session_pref.jeu_role"
+      ],
+      "status": "scenario_pending"
+    },
+    {
+      "legacy_tag_id": "tag.roleplay.medical",
+      "legacy_profile_id": "profile.roleplay.medical",
+      "v3_tag_ids": [
+        "v3.session_pref.jeu_role"
+      ],
+      "status": "scenario_pending"
+    },
+    {
+      "legacy_tag_id": "tag.roleplay.photographer_model",
+      "legacy_profile_id": "profile.roleplay.photographer_model",
+      "v3_tag_ids": [
+        "v3.session_pref.jeu_role"
+      ],
+      "status": "scenario_pending"
+    },
+    {
+      "legacy_tag_id": "tag.roleplay.royalty_servant",
+      "legacy_profile_id": "profile.roleplay.royalty_servant",
+      "v3_tag_ids": [
+        "v3.session_pref.jeu_role"
+      ],
+      "status": "scenario_pending"
+    },
+    {
+      "legacy_tag_id": "tag.roleplay.strangers",
+      "legacy_profile_id": "profile.roleplay.strangers",
+      "v3_tag_ids": [
+        "v3.session_pref.jeu_role"
+      ],
+      "status": "scenario_pending"
+    },
+    {
+      "legacy_tag_id": "tag.sensory.bite",
+      "legacy_profile_id": "profile.sensory.bite",
+      "v3_tag_ids": [
+        "v3.preference.mordre"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.sensory.blindfold",
+      "legacy_profile_id": "profile.sensory.blindfold",
+      "v3_tag_ids": [
+        "v3.preference.yeux_bandes"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.sensory.eyes_closed",
+      "legacy_profile_id": "profile.sensory.eyes_closed",
+      "v3_tag_ids": [
+        "v3.preference.yeux_bandes"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.sensory.general",
+      "legacy_profile_id": "profile.sensory.general",
+      "v3_tag_ids": [
+        "v3.preference.texture"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.sensory.scratch",
+      "legacy_profile_id": "profile.sensory.scratch",
+      "v3_tag_ids": [
+        "v3.preference.griffer"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.sensory.temperature",
+      "legacy_profile_id": "profile.sensory.temperature",
+      "v3_tag_ids": [
+        "v3.preference.temperature"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.sensory.touch_guess",
+      "legacy_profile_id": "profile.sensory.touch_guess",
+      "v3_tag_ids": [
+        "v3.preference.caresser",
+        "v3.preference.yeux_bandes"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.simulation.69",
+      "legacy_profile_id": "profile.simulation.69",
+      "v3_tag_ids": [
+        "v3.preference.simuler",
+        "v3.direction.simultane"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.simulation.facesitting",
+      "legacy_profile_id": "profile.simulation.facesitting",
+      "v3_tag_ids": [
+        "v3.preference.simuler",
+        "v3.zone.buccal"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.simulation.intimate",
+      "legacy_profile_id": "profile.simulation.intimate",
+      "v3_tag_ids": [
+        "v3.preference.simuler",
+        "v3.zone.parties_intimes"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.simulation.oral",
+      "legacy_profile_id": "profile.simulation.oral",
+      "v3_tag_ids": [
+        "v3.preference.simuler",
+        "v3.zone.buccal"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.simulation.penetration",
+      "legacy_profile_id": "profile.simulation.penetration",
+      "v3_tag_ids": [
+        "v3.preference.simuler",
+        "v3.preference.penetrer"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.staging.dance",
+      "legacy_profile_id": "profile.staging.dance",
+      "v3_tag_ids": [
+        "v3.preference.danser"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.staging.performance",
+      "legacy_profile_id": "profile.staging.performance",
+      "v3_tag_ids": [
+        "v3.direction.etre_regarde"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.staging.pose",
+      "legacy_profile_id": "profile.staging.pose",
+      "v3_tag_ids": [
+        "v3.direction.etre_regarde"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.staging.pose_choice",
+      "legacy_profile_id": "profile.staging.pose_choice",
+      "v3_tag_ids": [
+        "v3.preference.controle",
+        "v3.direction.etre_regarde"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.staging.position",
+      "legacy_profile_id": "profile.staging.position",
+      "v3_tag_ids": [
+        "v3.direction.etre_regarde"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.staging.runway",
+      "legacy_profile_id": "profile.staging.runway",
+      "v3_tag_ids": [
+        "v3.preference.danser",
+        "v3.preference.tenue"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.touch.caress",
+      "legacy_profile_id": "profile.touch.caress",
+      "v3_tag_ids": [
+        "v3.preference.caresser"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.touch.caress.intimate",
+      "legacy_profile_id": "profile.touch.caress.intimate",
+      "v3_tag_ids": [
+        "v3.preference.caresser",
+        "v3.zone.parties_intimes"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.touch.caress.sensual",
+      "legacy_profile_id": "profile.touch.caress.sensual",
+      "v3_tag_ids": [
+        "v3.preference.caresser"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.duration.long",
+      "legacy_profile_id": null,
+      "v3_tag_ids": [],
+      "status": "deprecated"
+    },
+    {
+      "legacy_tag_id": "tag.simulation.guided",
+      "legacy_profile_id": null,
+      "v3_tag_ids": [],
+      "status": "deprecated"
+    },
+    {
+      "legacy_tag_id": "tag.distance.instruction.receive",
+      "legacy_profile_id": "profile.distance.instruction.receive",
+      "v3_tag_ids": [
+        "v3.preference.ordres",
+        "v3.direction.recevoir"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.media.video.suggestive",
+      "legacy_profile_id": "profile.media.video.suggestive",
+      "v3_tag_ids": [
+        "v3.preference.video"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.media.video.nude",
+      "legacy_profile_id": "profile.media.video.nude",
+      "v3_tag_ids": [
+        "v3.preference.video",
+        "v3.preference.contenu_adulte"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.media.live.instruction",
+      "legacy_profile_id": "profile.media.live.instruction",
+      "v3_tag_ids": [
+        "v3.preference.video",
+        "v3.preference.ordres"
+      ],
+      "status": "mapped"
+    },
+    {
+      "legacy_tag_id": "tag.power.order",
+      "legacy_profile_id": "profile.power.order",
+      "v3_tag_ids": [
+        "v3.preference.ordres"
+      ],
+      "status": "mapped"
+    }
+  ],
+  "roleplay_scenario_card_ids": [
+    "card.rp_strangers",
+    "card.rp_photographer",
+    "card.rp_masseur",
+    "card.rp_master_servant",
+    "card.rp_royalty_servant",
+    "card.rp_celebrity_fan",
+    "card.rp_delivery",
+    "card.rp_boss_employee",
+    "card.rp_medical",
+    "card.rp_bar"
+  ]
+}
