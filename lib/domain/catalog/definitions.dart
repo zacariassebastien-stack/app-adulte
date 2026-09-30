@@ -2,6 +2,7 @@ import '../../core/json.dart';
 import 'enums.dart';
 import 'parameter.dart';
 import 'requirements.dart';
+import 'v3_rules.dart';
 
 abstract base class ContentDefinition extends JsonModel {
   ContentDefinition(super.reader) {
@@ -122,6 +123,7 @@ final class CardDefinition extends ActionDefinition {
     descriptionKey;
     directionality;
     order;
+    v3;
     variants = reader.objects(
       'variants',
       CardVariantDefinition.read,
@@ -150,6 +152,9 @@ final class CardDefinition extends ActionDefinition {
       ? reader.enumeration('directionality', CardDirectionality.values)
       : null;
   int? get order => reader.optionalInteger('order', min: 0);
+  V3EditorialData? get v3 => reader.json['v3'] == null
+      ? null
+      : V3EditorialData.fromJson(reader.json['v3']! as JsonMap);
   late final List<CardVariantDefinition> variants;
 }
 
@@ -164,6 +169,7 @@ final class CardVariantDefinition extends ActionDefinition {
     removedTags;
     participantOverrides;
     inversionOverride;
+    v3;
     stateEffects = reader.objects(
       'state_effects',
       StateEffect.read,
@@ -182,5 +188,8 @@ final class CardVariantDefinition extends ActionDefinition {
       reader.json['inversion_override'] == null
       ? null
       : reader.enumeration('inversion_override', InversionPolicy.values);
+  V3EditorialData? get v3 => reader.json['v3'] == null
+      ? null
+      : V3EditorialData.fromJson(reader.json['v3']! as JsonMap);
   late final List<StateEffect> stateEffects;
 }

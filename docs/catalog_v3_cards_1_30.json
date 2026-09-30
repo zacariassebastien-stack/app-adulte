@@ -1,0 +1,1439 @@
+{
+  "schema_version": 1,
+  "catalogue_taxonomy_version": 3,
+  "range": {
+    "from": 1,
+    "to": 30
+  },
+  "cards": [
+    {
+      "order": 1,
+      "title": "Câlin",
+      "id": "card.hug",
+      "tags": [
+        "v3.preference.proximite_physique",
+        "v3.direction.mutuel"
+      ],
+      "directions": [
+        "MUTUEL"
+      ],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.hug.base",
+          "tags": [
+            "v3.preference.proximite_physique",
+            "v3.direction.mutuel"
+          ],
+          "directions": [
+            "MUTUEL"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.hug.long",
+          "tags": [
+            "v3.preference.proximite_physique",
+            "v3.direction.mutuel"
+          ],
+          "directions": [
+            "MUTUEL"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Embrasse-moi",
+      "id": "card.kiss_me",
+      "tags": [
+        "v3.preference.embrasser",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.kiss_me.base",
+          "tags": [
+            "v3.preference.embrasser",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.kiss_me.lingering",
+          "tags": [
+            "v3.preference.embrasser",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Baiser langoureux",
+      "id": "card.deep_kiss",
+      "tags": [
+        "v3.preference.embrasser",
+        "v3.preference.langue",
+        "v3.direction.mutuel"
+      ],
+      "directions": [
+        "MUTUEL"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.deep_kiss.base",
+          "tags": [
+            "v3.preference.embrasser",
+            "v3.preference.langue",
+            "v3.direction.mutuel"
+          ],
+          "directions": [
+            "MUTUEL"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "title": "Bisous dans le cou",
+      "id": "card.neck_kisses",
+      "tags": [
+        "v3.preference.embrasser",
+        "v3.zone.cou",
+        "v3.direction.faire"
+      ],
+      "directions": [
+        "FAIRE"
+      ],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.neck_kisses.base",
+          "tags": [
+            "v3.preference.embrasser",
+            "v3.zone.cou",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "title": "Caresse",
+      "id": "card.caress",
+      "tags": [
+        "v3.preference.caresser"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [
+        "Direction à préciser lors de la réécriture éditoriale."
+      ],
+      "variants": [
+        {
+          "id": "variant.caress.base",
+          "tags": [
+            "v3.preference.caresser"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Direction à préciser lors de la réécriture éditoriale."
+          ]
+        },
+        {
+          "id": "variant.caress.sensual",
+          "tags": [
+            "v3.preference.caresser"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Direction à préciser lors de la réécriture éditoriale."
+          ]
+        },
+        {
+          "id": "variant.caress.intimate",
+          "tags": [
+            "v3.preference.caresser",
+            "v3.zone.parties_intimes"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Direction à préciser lors de la réécriture éditoriale."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "title": "Caresse sensuelle",
+      "id": "card.sensual_caress",
+      "tags": [
+        "v3.preference.caresser",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.sensual_caress.base",
+          "tags": [
+            "v3.preference.caresser",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 7,
+      "title": "Caresse intime",
+      "id": "card.intimate_caress",
+      "tags": [
+        "v3.preference.caresser",
+        "v3.zone.parties_intimes",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.intimate_caress.base",
+          "tags": [
+            "v3.preference.caresser",
+            "v3.zone.parties_intimes",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 8,
+      "title": "Massage",
+      "id": "card.massage",
+      "tags": [
+        "v3.preference.masser"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [
+        "Direction à préciser lors de la réécriture éditoriale."
+      ],
+      "variants": [
+        {
+          "id": "variant.massage.base",
+          "tags": [
+            "v3.preference.masser"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Direction à préciser lors de la réécriture éditoriale."
+          ]
+        },
+        {
+          "id": "variant.massage.sensual",
+          "tags": [
+            "v3.preference.masser"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Direction à préciser lors de la réécriture éditoriale."
+          ]
+        },
+        {
+          "id": "variant.massage.intimate",
+          "tags": [
+            "v3.preference.masser",
+            "v3.zone.parties_intimes"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Direction à préciser lors de la réécriture éditoriale."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 9,
+      "title": "Massage sensuel",
+      "id": "card.sensual_massage",
+      "tags": [
+        "v3.preference.masser",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.sensual_massage.base",
+          "tags": [
+            "v3.preference.masser",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 10,
+      "title": "Massage intime",
+      "id": "card.intimate_massage",
+      "tags": [
+        "v3.preference.masser",
+        "v3.zone.parties_intimes",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 4,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.intimate_massage.base",
+          "tags": [
+            "v3.preference.masser",
+            "v3.zone.parties_intimes",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 11,
+      "title": "Effeuillage",
+      "id": "card.undressing",
+      "tags": [
+        "v3.preference.enlever",
+        "v3.preference.tenue"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": "ASK_PLAYER",
+      "mergeCandidateWith": null,
+      "ambiguities": [
+        "Direction à préciser lors de la réécriture éditoriale."
+      ],
+      "variants": [
+        {
+          "id": "variant.undressing.base",
+          "tags": [
+            "v3.preference.enlever",
+            "v3.preference.tenue"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": "ASK_PLAYER",
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Direction à préciser lors de la réécriture éditoriale."
+          ]
+        },
+        {
+          "id": "variant.undressing.one",
+          "tags": [
+            "v3.preference.enlever",
+            "v3.preference.tenue"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true,
+            "minimumRemovableClothing": 1
+          },
+          "clothingDelta": -1,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Direction à préciser lors de la réécriture éditoriale."
+          ]
+        },
+        {
+          "id": "variant.undressing.two",
+          "tags": [
+            "v3.preference.enlever",
+            "v3.preference.tenue"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true,
+            "minimumRemovableClothing": 2
+          },
+          "clothingDelta": -2,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Direction à préciser lors de la réécriture éditoriale."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 12,
+      "title": "Enlève un vêtement",
+      "id": "card.remove_one_clothing",
+      "tags": [
+        "v3.preference.enlever",
+        "v3.preference.tenue",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true,
+        "minimumRemovableClothing": 1
+      },
+      "clothingDelta": -1,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.remove_one_clothing.base",
+          "tags": [
+            "v3.preference.enlever",
+            "v3.preference.tenue",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true,
+            "minimumRemovableClothing": 1
+          },
+          "clothingDelta": -1,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 13,
+      "title": "Enlève deux vêtements",
+      "id": "card.remove_two_clothing",
+      "tags": [
+        "v3.preference.enlever",
+        "v3.preference.tenue",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true,
+        "minimumRemovableClothing": 2
+      },
+      "clothingDelta": -2,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.remove_two_clothing.base",
+          "tags": [
+            "v3.preference.enlever",
+            "v3.preference.tenue",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true,
+            "minimumRemovableClothing": 2
+          },
+          "clothingDelta": -2,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 14,
+      "title": "Déshabille-moi",
+      "id": "card.undress_me",
+      "tags": [
+        "v3.preference.enlever",
+        "v3.preference.tenue",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": "ASK_PLAYER",
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.undress_me.base",
+          "tags": [
+            "v3.preference.enlever",
+            "v3.preference.tenue",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": "ASK_PLAYER",
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 15,
+      "title": "Déshabille ton partenaire",
+      "id": "card.undress_partner",
+      "tags": [
+        "v3.preference.enlever",
+        "v3.preference.tenue",
+        "v3.direction.faire"
+      ],
+      "directions": [
+        "FAIRE"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": "ASK_PLAYER",
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.undress_partner.base",
+          "tags": [
+            "v3.preference.enlever",
+            "v3.preference.tenue",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": "ASK_PLAYER",
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 16,
+      "title": "Reste en sous-vêtements",
+      "id": "card.underwear_only",
+      "tags": [
+        "v3.preference.sous_vetements"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [
+        "La formulation ne précise ni retrait ni direction de préférence."
+      ],
+      "variants": [
+        {
+          "id": "variant.underwear_only.base",
+          "tags": [
+            "v3.preference.sous_vetements"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "La formulation ne précise ni retrait ni direction de préférence."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 17,
+      "title": "Mets-toi nu(e)",
+      "id": "card.nudity",
+      "tags": [
+        "v3.preference.enlever",
+        "v3.preference.tenue",
+        "v3.direction.solo"
+      ],
+      "directions": [
+        "SOLO"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": "ASK_PLAYER",
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.nudity.base",
+          "tags": [
+            "v3.preference.enlever",
+            "v3.preference.tenue",
+            "v3.direction.solo"
+          ],
+          "directions": [
+            "SOLO"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": "ASK_PLAYER",
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 18,
+      "title": "Strip-tease",
+      "id": "card.striptease",
+      "tags": [
+        "v3.preference.danser",
+        "v3.preference.enlever",
+        "v3.preference.tenue",
+        "v3.direction.etre_regarde"
+      ],
+      "directions": [
+        "ETRE_REGARDE"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": "ASK_PLAYER",
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.striptease.base",
+          "tags": [
+            "v3.preference.danser",
+            "v3.preference.enlever",
+            "v3.preference.tenue",
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": "ASK_PLAYER",
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.striptease.underwear",
+          "tags": [
+            "v3.preference.danser",
+            "v3.preference.enlever",
+            "v3.preference.tenue",
+            "v3.preference.sous_vetements",
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": "ASK_PLAYER",
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.striptease.full",
+          "tags": [
+            "v3.preference.danser",
+            "v3.preference.enlever",
+            "v3.preference.tenue",
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": "ASK_PLAYER",
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 19,
+      "title": "Strip-tease intégral",
+      "id": "card.full_striptease",
+      "tags": [
+        "v3.preference.danser",
+        "v3.preference.enlever",
+        "v3.preference.tenue",
+        "v3.direction.etre_regarde"
+      ],
+      "directions": [
+        "ETRE_REGARDE"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": "ASK_PLAYER",
+      "mergeCandidateWith": "card.striptease",
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.full_striptease.base",
+          "tags": [
+            "v3.preference.danser",
+            "v3.preference.enlever",
+            "v3.preference.tenue",
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": "ASK_PLAYER",
+          "mergeCandidateWith": "card.striptease",
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 20,
+      "title": "Choisis ma tenue",
+      "id": "card.choose_outfit",
+      "tags": [
+        "v3.preference.tenue",
+        "v3.preference.controle"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [
+        "Le rôle exact de la personne qui choisit dépend de la reformulation future."
+      ],
+      "variants": [
+        {
+          "id": "variant.choose_outfit.base",
+          "tags": [
+            "v3.preference.tenue",
+            "v3.preference.controle"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Le rôle exact de la personne qui choisit dépend de la reformulation future."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 21,
+      "title": "Assieds-toi sur mes genoux",
+      "id": "card.lap_sit",
+      "tags": [
+        "v3.preference.proximite_physique"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.lap_sit.base",
+          "tags": [
+            "v3.preference.proximite_physique"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 22,
+      "title": "Corps contre corps",
+      "id": "card.body_to_body",
+      "tags": [
+        "v3.preference.proximite_physique",
+        "v3.zone.corps",
+        "v3.direction.mutuel"
+      ],
+      "directions": [
+        "MUTUEL"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.body_to_body.base",
+          "tags": [
+            "v3.preference.proximite_physique",
+            "v3.zone.corps",
+            "v3.direction.mutuel"
+          ],
+          "directions": [
+            "MUTUEL"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 23,
+      "title": "Frottements habillés",
+      "id": "card.clothed_rubbing",
+      "tags": [
+        "v3.preference.frotter",
+        "v3.preference.tenue",
+        "v3.direction.mutuel"
+      ],
+      "directions": [
+        "MUTUEL"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.clothed_rubbing.base",
+          "tags": [
+            "v3.preference.frotter",
+            "v3.preference.tenue",
+            "v3.direction.mutuel"
+          ],
+          "directions": [
+            "MUTUEL"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 24,
+      "title": "Position imposée",
+      "id": "card.imposed_position",
+      "tags": [
+        "v3.preference.controle",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.imposed_position.base",
+          "tags": [
+            "v3.preference.controle",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 25,
+      "title": "Copie ma position",
+      "id": "card.copy_position",
+      "tags": [
+        "v3.preference.ordres"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [
+        "Instruction de mise en scène ; direction à préciser sans créer de tag COPIER."
+      ],
+      "variants": [
+        {
+          "id": "variant.copy_position.base",
+          "tags": [
+            "v3.preference.ordres"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Instruction de mise en scène ; direction à préciser sans créer de tag COPIER."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 26,
+      "title": "Simule un acte sexuel",
+      "id": "card.simulate_act",
+      "tags": [
+        "v3.preference.simuler"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.simulate_act.base",
+          "tags": [
+            "v3.preference.simuler"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.simulate_act.guided",
+          "tags": [
+            "v3.preference.simuler",
+            "v3.preference.ordres"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Direction de la consigne à préciser."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 27,
+      "title": "Simule une pénétration",
+      "id": "card.simulate_penetration",
+      "tags": [
+        "v3.preference.simuler",
+        "v3.preference.penetrer",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.simulate_penetration.base",
+          "tags": [
+            "v3.preference.simuler",
+            "v3.preference.penetrer",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 28,
+      "title": "Simule un acte oral",
+      "id": "card.simulate_oral",
+      "tags": [
+        "v3.preference.simuler",
+        "v3.direction.faire",
+        "v3.direction.recevoir",
+        "v3.zone.buccal"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [
+        "Le texte ne tranche pas entre LECHER et SUCER."
+      ],
+      "variants": [
+        {
+          "id": "variant.simulate_oral.base",
+          "tags": [
+            "v3.preference.simuler",
+            "v3.direction.faire",
+            "v3.direction.recevoir",
+            "v3.zone.buccal"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Le texte ne tranche pas entre LECHER et SUCER."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 29,
+      "title": "Simule un 69",
+      "id": "card.simulate_69",
+      "tags": [
+        "v3.preference.simuler",
+        "v3.direction.mutuel",
+        "v3.direction.simultane",
+        "v3.zone.buccal"
+      ],
+      "directions": [
+        "MUTUEL",
+        "SIMULTANE"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [
+        "Le texte 69 est oral mais ne tranche pas entre LECHER et SUCER."
+      ],
+      "variants": [
+        {
+          "id": "variant.simulate_69.base",
+          "tags": [
+            "v3.preference.simuler",
+            "v3.direction.mutuel",
+            "v3.direction.simultane",
+            "v3.zone.buccal"
+          ],
+          "directions": [
+            "MUTUEL",
+            "SIMULTANE"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": [
+            "Le texte 69 est oral mais ne tranche pas entre LECHER et SUCER."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 30,
+      "title": "Simule un facesitting",
+      "id": "card.simulate_facesitting",
+      "tags": [
+        "v3.preference.simuler",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.simulate_facesitting.base",
+          "tags": [
+            "v3.preference.simuler",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "ambiguities": []
+        }
+      ]
+    }
+  ]
+}

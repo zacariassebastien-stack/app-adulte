@@ -95,3 +95,16 @@ L'audit exclut les cartes 91–100 de la couverture du deck jouable, tout en les
 listant comme scénarios futurs. Les deux anciens tags techniques
 `tag.duration.long` et `tag.simulation.guided` restent sans cible : leurs
 informations doivent devenir des paramètres/requirements lors de l'étape 2.
+
+## Migration éditoriale progressive
+
+Chaque carte migrée porte un bloc `v3` et chaque variante porte sa résolution
+V3 complète : `tags`, `baseEngagementLevel`, `requirements`, éventuel
+`clothingDelta`, candidat de fusion et ambiguïtés. Le runtime historique peut
+ainsi continuer à lire ses champs legacy sans que le calcul V3 dépende de tags
+monolithiques.
+
+Le lot 2A couvre les cartes 1–30 et leurs 41 variantes. Les cartes 31–90 restent
+sur la projection legacy jusqu'aux lots suivants. Le rapport détaillé du lot est
+`docs/catalog_v3_cards_1_30.json` et peut être régénéré avec
+`dart run tool/audit_catalog_v3_batch.dart`.

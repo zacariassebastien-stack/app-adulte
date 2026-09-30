@@ -47,7 +47,18 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.proximite_physique",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         },
         {
           "stable_id": "variant.hug.long",
@@ -68,12 +79,34 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.proximite_physique",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "MUTUAL"
+      "directionality": "MUTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.proximite_physique",
+          "v3.direction.mutuel"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.kiss_me",
@@ -113,7 +146,18 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         },
         {
           "stable_id": "variant.kiss_me.lingering",
@@ -141,12 +185,34 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "RECEVOIR"
+      "directionality": "RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.embrasser",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.deep_kiss",
@@ -192,12 +258,36 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.preference.langue",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "MUTUAL"
+      "directionality": "MUTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.embrasser",
+          "v3.preference.langue",
+          "v3.direction.mutuel"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.neck_kisses",
@@ -237,12 +327,36 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.zone.cou",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE"
+      "directionality": "FAIRE",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.embrasser",
+          "v3.zone.cou",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.caress",
@@ -282,7 +396,20 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Direction à préciser lors de la réécriture éditoriale."
+            ]
+          }
         },
         {
           "stable_id": "variant.caress.sensual",
@@ -310,7 +437,20 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Direction à préciser lors de la réécriture éditoriale."
+            ]
+          }
         },
         {
           "stable_id": "variant.caress.intimate",
@@ -337,12 +477,39 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.parties_intimes"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Direction à préciser lors de la réécriture éditoriale."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.caresser"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Direction à préciser lors de la réécriture éditoriale."
+        ]
+      }
     },
     {
       "stable_id": "card.sensual_caress",
@@ -382,12 +549,36 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.caresser",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.intimate_caress",
@@ -427,12 +618,38 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.parties_intimes",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.caresser",
+          "v3.zone.parties_intimes",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.massage",
@@ -472,7 +689,20 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Direction à préciser lors de la réécriture éditoriale."
+            ]
+          }
         },
         {
           "stable_id": "variant.massage.sensual",
@@ -500,7 +730,20 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Direction à préciser lors de la réécriture éditoriale."
+            ]
+          }
         },
         {
           "stable_id": "variant.massage.intimate",
@@ -527,12 +770,39 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.zone.parties_intimes"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Direction à préciser lors de la réécriture éditoriale."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.masser"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Direction à préciser lors de la réécriture éditoriale."
+        ]
+      }
     },
     {
       "stable_id": "card.sensual_massage",
@@ -572,12 +842,36 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.masser",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.intimate_massage",
@@ -617,12 +911,38 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.zone.parties_intimes",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.masser",
+          "v3.zone.parties_intimes",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.undressing",
@@ -662,7 +982,22 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.enlever",
+              "v3.preference.tenue"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "clothingDelta": "ASK_PLAYER",
+            "ambiguities": [
+              "Direction à préciser lors de la réécriture éditoriale."
+            ]
+          }
         },
         {
           "stable_id": "variant.undressing.one",
@@ -701,7 +1036,23 @@
               "delta": -1
             }
           ],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.enlever",
+              "v3.preference.tenue"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "minimumRemovableClothing": 1
+            },
+            "clothingDelta": -1,
+            "ambiguities": [
+              "Direction à préciser lors de la réécriture éditoriale."
+            ]
+          }
         },
         {
           "stable_id": "variant.undressing.two",
@@ -740,12 +1091,43 @@
               "delta": -2
             }
           ],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.enlever",
+              "v3.preference.tenue"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "minimumRemovableClothing": 2
+            },
+            "clothingDelta": -2,
+            "ambiguities": [
+              "Direction à préciser lors de la réécriture éditoriale."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.enlever",
+          "v3.preference.tenue"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "clothingDelta": "ASK_PLAYER",
+        "ambiguities": [
+          "Direction à préciser lors de la réécriture éditoriale."
+        ]
+      }
     },
     {
       "stable_id": "card.remove_one_clothing",
@@ -796,12 +1178,42 @@
               "delta": -1
             }
           ],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "minimumRemovableClothing": 1
+            },
+            "clothingDelta": -1
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.enlever",
+          "v3.preference.tenue",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {
+          "DISTANCE_EXCLUE": true,
+          "minimumRemovableClothing": 1
+        },
+        "clothingDelta": -1
+      }
     },
     {
       "stable_id": "card.remove_two_clothing",
@@ -852,12 +1264,42 @@
               "delta": -2
             }
           ],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "minimumRemovableClothing": 2
+            },
+            "clothingDelta": -2
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.enlever",
+          "v3.preference.tenue",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true,
+          "minimumRemovableClothing": 2
+        },
+        "clothingDelta": -2
+      }
     },
     {
       "stable_id": "card.undress_me",
@@ -897,12 +1339,38 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "clothingDelta": "ASK_PLAYER"
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "RECEVOIR"
+      "directionality": "RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.enlever",
+          "v3.preference.tenue",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "clothingDelta": "ASK_PLAYER"
+      }
     },
     {
       "stable_id": "card.undress_partner",
@@ -942,12 +1410,38 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "clothingDelta": "ASK_PLAYER"
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE"
+      "directionality": "FAIRE",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.enlever",
+          "v3.preference.tenue",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "clothingDelta": "ASK_PLAYER"
+      }
     },
     {
       "stable_id": "card.underwear_only",
@@ -988,12 +1482,34 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sous_vetements"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {},
+            "ambiguities": [
+              "La formulation ne précise ni retrait ni direction de préférence."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.sous_vetements"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {},
+        "ambiguities": [
+          "La formulation ne précise ni retrait ni direction de préférence."
+        ]
+      }
     },
     {
       "stable_id": "card.nudity",
@@ -1034,12 +1550,34 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {},
+            "clothingDelta": "ASK_PLAYER"
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.enlever",
+          "v3.preference.tenue",
+          "v3.direction.solo"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {},
+        "clothingDelta": "ASK_PLAYER"
+      }
     },
     {
       "stable_id": "card.striptease",
@@ -1086,7 +1624,19 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.danser",
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {},
+            "clothingDelta": "ASK_PLAYER"
+          }
         },
         {
           "stable_id": "variant.striptease.underwear",
@@ -1114,7 +1664,20 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.danser",
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.preference.sous_vetements",
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {},
+            "clothingDelta": "ASK_PLAYER"
+          }
         },
         {
           "stable_id": "variant.striptease.full",
@@ -1142,12 +1705,36 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.danser",
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {},
+            "clothingDelta": "ASK_PLAYER"
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.danser",
+          "v3.preference.enlever",
+          "v3.preference.tenue",
+          "v3.direction.etre_regarde"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {},
+        "clothingDelta": "ASK_PLAYER"
+      }
     },
     {
       "stable_id": "card.full_striptease",
@@ -1194,12 +1781,38 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.danser",
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {},
+            "clothingDelta": "ASK_PLAYER",
+            "mergeCandidateWith": "card.striptease"
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.danser",
+          "v3.preference.enlever",
+          "v3.preference.tenue",
+          "v3.direction.etre_regarde"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {},
+        "clothingDelta": "ASK_PLAYER",
+        "mergeCandidateWith": "card.striptease"
+      }
     },
     {
       "stable_id": "card.choose_outfit",
@@ -1240,12 +1853,36 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.tenue",
+              "v3.preference.controle"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {},
+            "ambiguities": [
+              "Le rôle exact de la personne qui choisit dépend de la reformulation future."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.tenue",
+          "v3.preference.controle"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {},
+        "ambiguities": [
+          "Le rôle exact de la personne qui choisit dépend de la reformulation future."
+        ]
+      }
     },
     {
       "stable_id": "card.lap_sit",
@@ -1291,12 +1928,32 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.proximite_physique"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.proximite_physique"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.body_to_body",
@@ -1336,12 +1993,36 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.proximite_physique",
+              "v3.zone.corps",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "MUTUAL"
+      "directionality": "MUTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.proximite_physique",
+          "v3.zone.corps",
+          "v3.direction.mutuel"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.clothed_rubbing",
@@ -1387,12 +2068,36 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.frotter",
+              "v3.preference.tenue",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "MUTUAL"
+      "directionality": "MUTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.frotter",
+          "v3.preference.tenue",
+          "v3.direction.mutuel"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.imposed_position",
@@ -1432,12 +2137,32 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.controle",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.copy_position",
@@ -1478,12 +2203,34 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.ordres"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {},
+            "ambiguities": [
+              "Instruction de mise en scène ; direction à préciser sans créer de tag COPIER."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.ordres"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {},
+        "ambiguities": [
+          "Instruction de mise en scène ; direction à préciser sans créer de tag COPIER."
+        ]
+      }
     },
     {
       "stable_id": "card.simulate_act",
@@ -1524,7 +2271,15 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
         },
         {
           "stable_id": "variant.simulate_act.guided",
@@ -1546,12 +2301,32 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler",
+              "v3.preference.ordres"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {},
+            "ambiguities": [
+              "Direction de la consigne à préciser."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.simuler"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.simulate_penetration",
@@ -1591,12 +2366,34 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler",
+              "v3.preference.penetrer",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.simuler",
+          "v3.preference.penetrer",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.simulate_oral",
@@ -1636,12 +2433,40 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler",
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.zone.buccal"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {},
+            "ambiguities": [
+              "Le texte ne tranche pas entre LECHER et SUCER."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.simuler",
+          "v3.direction.faire",
+          "v3.direction.recevoir",
+          "v3.zone.buccal"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {},
+        "ambiguities": [
+          "Le texte ne tranche pas entre LECHER et SUCER."
+        ]
+      }
     },
     {
       "stable_id": "card.simulate_69",
@@ -1681,12 +2506,44 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler",
+              "v3.direction.mutuel",
+              "v3.direction.simultane",
+              "v3.zone.buccal"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Le texte 69 est oral mais ne tranche pas entre LECHER et SUCER."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.simuler",
+          "v3.direction.mutuel",
+          "v3.direction.simultane",
+          "v3.zone.buccal"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Le texte 69 est oral mais ne tranche pas entre LECHER et SUCER."
+        ]
+      }
     },
     {
       "stable_id": "card.simulate_facesitting",
@@ -1726,12 +2583,36 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.simuler",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.masturbation",

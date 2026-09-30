@@ -2,6 +2,8 @@
 // initializing formal suggested by this lint.
 // ignore_for_file: prefer_initializing_formals
 
+import '../../core/json.dart';
+
 enum V3ClothingDeltaKind { fixed, askPlayer }
 
 final class V3ClothingDelta {
@@ -151,6 +153,57 @@ final class V3CardMechanics {
     baseEngagementLevel: baseEngagementLevel,
     clothingModifier: clothingModifier,
   );
+}
+
+/// Explicit, fully resolved V3 editorial data attached to a card or variant.
+/// Legacy fields remain available during the staged catalogue migration.
+final class V3EditorialData {
+  V3EditorialData({
+    required this.taxonomyVersion,
+    required List<String> tags,
+    required this.baseEngagementLevel,
+    required this.requirements,
+    this.clothingDelta,
+    this.mergeCandidateWith,
+    List<String> ambiguities = const [],
+  }) : tags = List.unmodifiable(tags),
+       ambiguities = List.unmodifiable(ambiguities) {
+    if (taxonomyVersion != 1) {
+      throw const FormatException('Unsupported V3 taxonomy version');
+    }
+    if (tags.isEmpty || tags.toSet().length != tags.length) {
+      throw const FormatException('V3 tags must be non-empty and unique');
+    }
+    if (tags.any((tag) => !tag.startsWith('v3.'))) {
+      throw const FormatException('V3 tags must use v3 stable IDs');
+    }
+    if (baseEngagementLevel < 1 || baseEngagementLevel > 5) {
+      throw RangeError.range(baseEngagementLevel, 1, 5, 'baseEngagementLevel');
+    }
+  }
+
+  factory V3EditorialData.fromJson(JsonMap json) => V3EditorialData(
+    taxonomyVersion: json['taxonomy_version']! as int,
+    tags: (json['tags']! as List).cast<String>(),
+    baseEngagementLevel: json['baseEngagementLevel']! as int,
+    requirements: V3Requirements.fromJson(
+      (json['requirements'] as JsonMap?) ?? const {},
+    ),
+    clothingDelta: json.containsKey('clothingDelta')
+        ? V3ClothingDelta.fromJson(json['clothingDelta']!)
+        : null,
+    mergeCandidateWith: json['mergeCandidateWith'] as String?,
+    ambiguities:
+        (json['ambiguities'] as List?)?.cast<String>() ?? const <String>[],
+  );
+
+  final int taxonomyVersion;
+  final List<String> tags;
+  final int baseEngagementLevel;
+  final V3Requirements requirements;
+  final V3ClothingDelta? clothingDelta;
+  final String? mergeCandidateWith;
+  final List<String> ambiguities;
 }
 
 int v3EffectiveEngagementLevel({

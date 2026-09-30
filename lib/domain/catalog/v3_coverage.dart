@@ -30,18 +30,36 @@ final class V3CoverageReportBuilder {
       if (excludedCards.contains(card.stableId)) continue;
       for (final variant in card.variants) {
         variantCount++;
-        final legacyIds = _effectiveLegacyTags(card, variant);
+        final explicitV3 = variant.v3 ?? card.v3;
         final v3Ids = <String>{};
-        for (final legacyId in legacyIds) {
-          final targets = mappings[legacyId];
-          if (targets == null || targets.isEmpty) {
-            unmapped.add(legacyId);
-          } else {
-            v3Ids.addAll(targets);
+        if (explicitV3 != null) {
+          v3Ids.addAll(explicitV3.tags);
+          final unknown = v3Ids.where((id) => !entries.containsKey(id));
+          if (unknown.isNotEmpty) {
+            throw StateError(
+              '${variant.stableId} references unknown V3 tags: '
+              '${unknown.join(', ')}',
+            );
+          }
+        } else {
+          final legacyIds = _effectiveLegacyTags(card, variant);
+          for (final legacyId in legacyIds) {
+            final targets = mappings[legacyId];
+            if (targets == null || targets.isEmpty) {
+              unmapped.add(legacyId);
+            } else {
+              v3Ids.addAll(targets);
+            }
           }
         }
-        final directions = _directions(card.directionality, v3Ids, entries);
-        final distanceCompatible = _distanceCompatible(card, variant);
+        final directions = _directions(
+          explicitV3 == null ? card.directionality : null,
+          v3Ids,
+          entries,
+        );
+        final distanceCompatible =
+            explicitV3?.requirements.isDistanceCompatible ??
+            _distanceCompatible(card, variant);
         for (final id in v3Ids) {
           final entry = entries[id];
           if (entry == null) continue;

@@ -238,4 +238,100 @@ void main() {
       report,
     );
   });
+
+  test('only cards 1 to 30 have explicit V3 editorial data in this batch', () {
+    for (final card in catalog.cards) {
+      if (card.order! <= 30) {
+        expect(card.v3, isNotNull, reason: card.stableId);
+        expect(
+          card.variants,
+          everyElement(
+            predicate<CardVariantDefinition>((variant) => variant.v3 != null),
+          ),
+          reason: card.stableId,
+        );
+      } else {
+        expect(card.v3, isNull, reason: card.stableId);
+        expect(
+          card.variants.every((variant) => variant.v3 == null),
+          isTrue,
+          reason: card.stableId,
+        );
+      }
+    }
+  });
+
+  test('migrated cards only reference canonical V3 tags', () {
+    final tags = {for (final tag in taxonomy.tags) tag.stableId: tag};
+    for (final card in catalog.cards.where((card) => card.order! <= 30)) {
+      for (final data in [
+        card.v3!,
+        ...card.variants.map((variant) => variant.v3!),
+      ]) {
+        expect(data.tags, everyElement(startsWith('v3.')));
+        expect(data.tags, everyElement(isIn(tags.keys)));
+        expect(
+          data.tags.any((id) => tags[id]!.category == V3TagCategory.PREFERENCE),
+          isTrue,
+        );
+      }
+    }
+  });
+
+  test('critical engagement and direction decisions are explicit', () {
+    CardDefinition card(int order) =>
+        catalog.cards.singleWhere((card) => card.order == order);
+    expect(card(7).v3!.baseEngagementLevel, 4);
+    expect(card(10).v3!.baseEngagementLevel, 4);
+    expect(card(7).v3!.clothingDelta, isNull);
+    expect(card(10).v3!.clothingDelta, isNull);
+    expect(card(21).v3!.tags, isNot(contains('v3.preference.position_s')));
+    expect(card(29).v3!.tags, contains('v3.direction.mutuel'));
+    expect(card(29).v3!.tags, contains('v3.direction.simultane'));
+    for (final order in [28, 29]) {
+      expect(card(order).v3!.tags, contains('v3.zone.buccal'));
+      expect(card(order).v3!.tags, isNot(contains('v3.preference.lecher')));
+      expect(card(order).v3!.tags, isNot(contains('v3.preference.sucer')));
+    }
+    expect(card(30).v3!.tags, isNot(contains('v3.preference.position_a')));
+    expect(card(30).v3!.tags, isNot(contains('v3.zone.fesses')));
+    expect(card(30).v3!.tags, isNot(contains('v3.zone.tete')));
+  });
+
+  test('cards 11 to 19 encode coherent clothing effects', () {
+    CardDefinition card(int order) =>
+        catalog.cards.singleWhere((card) => card.order == order);
+    Object? delta(CardDefinition card) => card.v3!.clothingDelta?.toJson();
+
+    expect(delta(card(11)), 'ASK_PLAYER');
+    expect(
+      card(11).variants.map((variant) => variant.v3!.clothingDelta?.toJson()),
+      ['ASK_PLAYER', -1, -2],
+    );
+    expect(delta(card(12)), -1);
+    expect(card(12).v3!.requirements.minimumRemovableClothing, 1);
+    expect(delta(card(13)), -2);
+    expect(card(13).v3!.requirements.minimumRemovableClothing, 2);
+    expect(delta(card(14)), 'ASK_PLAYER');
+    expect(delta(card(15)), 'ASK_PLAYER');
+    expect(delta(card(16)), isNull);
+    expect(delta(card(17)), 'ASK_PLAYER');
+    expect(
+      card(18).variants.map((variant) => variant.v3!.clothingDelta?.toJson()),
+      everyElement('ASK_PLAYER'),
+    );
+    expect(delta(card(19)), 'ASK_PLAYER');
+    expect(card(19).v3!.mergeCandidateWith, 'card.striptease');
+  });
+
+  test('batch audit report covers every migrated card and variant', () {
+    final report =
+        jsonDecode(File('docs/catalog_v3_cards_1_30.json').readAsStringSync())
+            as JsonMap;
+    final cards = (report['cards']! as List).cast<JsonMap>();
+    expect(cards, hasLength(30));
+    expect(cards.first['order'], 1);
+    expect(cards.last['order'], 30);
+    expect(cards.expand((card) => card['variants']! as List), hasLength(41));
+  });
 }
