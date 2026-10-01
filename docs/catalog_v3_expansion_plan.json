@@ -1,0 +1,1270 @@
+{
+  "schema_version": 1,
+  "source_commit": "e897c76ad237acbd19b9b3b4ef3633ae1a1294ba",
+  "status": "PLAN_ONLY_DO_NOT_IMPORT_INTO_PLAYABLE_CATALOG",
+  "estimates": {
+    "new_cards": 18,
+    "new_card_variants": 38,
+    "extension_variants": 21,
+    "total_new_variants": 59,
+    "estimated_playable_cards": 103,
+    "estimated_playable_variants": 207,
+    "zero_tags_covered_by_plan": 37,
+    "estimated_remaining_zero_coverage_tags": 11
+  },
+  "planned_zero_tag_coverage": [
+    "v3.direction.etre_entendu",
+    "v3.preference.audio",
+    "v3.preference.avaler",
+    "v3.preference.boisson",
+    "v3.preference.contenu_adulte",
+    "v3.preference.controle_distance",
+    "v3.preference.cracher",
+    "v3.preference.deguisement",
+    "v3.preference.ejaculation",
+    "v3.preference.jeu_role",
+    "v3.preference.lieu_expose",
+    "v3.preference.lieu_inhabituel",
+    "v3.preference.maintien_cou",
+    "v3.preference.nourriture",
+    "v3.preference.orgasme",
+    "v3.preference.paroles_degradantes",
+    "v3.preference.permission",
+    "v3.preference.position_a",
+    "v3.preference.position_e",
+    "v3.preference.position_s",
+    "v3.preference.privation_auditive",
+    "v3.preference.privation_parole",
+    "v3.preference.regard_exterieur",
+    "v3.preference.sexe",
+    "v3.preference.sextoy",
+    "v3.preference.souffler",
+    "v3.preference.supplier",
+    "v3.preference.tenue_legere",
+    "v3.preference.texture",
+    "v3.preference.tirer",
+    "v3.preference.vibrant",
+    "v3.zone.bras",
+    "v3.zone.cuisses",
+    "v3.zone.dos",
+    "v3.zone.epaules",
+    "v3.zone.jambes",
+    "v3.zone.ventre"
+  ],
+  "remaining_zero_coverage_after_plan": [
+    "v3.contexte.lieu_habituel",
+    "v3.materiel.accessoire",
+    "v3.materiel.accessoire_contrainte",
+    "v3.materiel.alcool",
+    "v3.materiel.huile",
+    "v3.materiel.lubrifiant",
+    "v3.materiel.protection",
+    "v3.preference.ajouter",
+    "v3.session_pref.surprise_party",
+    "v3.technique.distance_exclue",
+    "v3.zone.buccal"
+  ],
+  "proposed_cards": [
+    {
+      "proposed_stable_id": "card.v3.sextoy_play",
+      "title_fr": "Jeu avec un sextoy",
+      "objective": "Séparer utiliser un sextoy et le recevoir.",
+      "family": "SEXTOYS",
+      "tags_v3": [
+        "v3.direction.faire",
+        "v3.direction.recevoir",
+        "v3.preference.sextoy"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 4,
+      "distance_excluded": true,
+      "requirements": {
+        "requiresSextoy": true
+      },
+      "justification": "Le matériel est un requirement; SEXTOY reste scoreable.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.sextoy_play.give",
+          "title_fr": "Utilise le sextoy sur ton partenaire",
+          "tags_v3": [
+            "v3.preference.sextoy",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 4,
+          "requirements": {
+            "requiresSextoy": true
+          }
+        },
+        {
+          "stable_id": "variant.v3.sextoy_play.receive",
+          "title_fr": "Laisse le sextoy être utilisé sur toi",
+          "tags_v3": [
+            "v3.preference.sextoy",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 4,
+          "requirements": {
+            "requiresSextoy": true
+          }
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.remote_toy_control",
+      "title_fr": "Contrôle à distance",
+      "objective": "Séparer contrôler et confier un jouet vibrant distant.",
+      "family": "SEXTOYS",
+      "tags_v3": [
+        "v3.direction.faire",
+        "v3.direction.recevoir",
+        "v3.preference.controle",
+        "v3.preference.controle_distance",
+        "v3.preference.sextoy",
+        "v3.preference.vibrant"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 4,
+      "distance_excluded": false,
+      "requirements": {
+        "requiresSextoy": true,
+        "requiresVibratingToy": true,
+        "requiresRemoteControlToy": true
+      },
+      "justification": "Rôles, requirements et compatibilité distance spécifiques.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.remote_toy_control.give",
+          "title_fr": "Prends le contrôle du jouet distant",
+          "tags_v3": [
+            "v3.preference.sextoy",
+            "v3.preference.vibrant",
+            "v3.preference.controle_distance",
+            "v3.preference.controle",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 4,
+          "requirements": {
+            "requiresSextoy": true,
+            "requiresVibratingToy": true,
+            "requiresRemoteControlToy": true
+          }
+        },
+        {
+          "stable_id": "variant.v3.remote_toy_control.receive",
+          "title_fr": "Confie le contrôle du jouet distant",
+          "tags_v3": [
+            "v3.preference.sextoy",
+            "v3.preference.vibrant",
+            "v3.preference.controle_distance",
+            "v3.preference.controle",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 4,
+          "requirements": {
+            "requiresSextoy": true,
+            "requiresVibratingToy": true,
+            "requiresRemoteControlToy": true
+          }
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.shared_adult_content",
+      "title_fr": "Contenu adulte partagé",
+      "objective": "Choisir ou laisser choisir un contenu à regarder ensemble.",
+      "family": "MEDIA_CONTENU",
+      "tags_v3": [
+        "v3.direction.mutuel",
+        "v3.direction.recevoir",
+        "v3.preference.contenu_adulte",
+        "v3.preference.controle",
+        "v3.preference.regarder"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 3,
+      "distance_excluded": false,
+      "requirements": {},
+      "justification": "Choix et rôle de décision distincts, possibles à distance.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.shared_adult_content.together",
+          "title_fr": "Choisissez ensemble un contenu adulte",
+          "tags_v3": [
+            "v3.preference.contenu_adulte",
+            "v3.preference.regarder",
+            "v3.direction.mutuel"
+          ],
+          "direction": "MUTUEL",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.shared_adult_content.partner_choice",
+          "title_fr": "Laisse ton partenaire choisir le contenu",
+          "tags_v3": [
+            "v3.preference.contenu_adulte",
+            "v3.preference.regarder",
+            "v3.preference.controle",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.external_gaze",
+      "title_fr": "Sous un regard extérieur",
+      "objective": "Explorer lieu exposé et regard tiers dans des limites explicites.",
+      "family": "EXHIBITION",
+      "tags_v3": [
+        "v3.direction.mutuel",
+        "v3.direction.solo",
+        "v3.preference.etre_regarde",
+        "v3.preference.lieu_expose",
+        "v3.preference.regard_exterieur"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 3,
+      "distance_excluded": true,
+      "requirements": {},
+      "justification": "Ne pas confondre regard public et regard privé du partenaire.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.external_gaze.be_seen",
+          "title_fr": "Sois visible dans un lieu exposé convenu",
+          "tags_v3": [
+            "v3.preference.lieu_expose",
+            "v3.preference.regard_exterieur",
+            "v3.preference.etre_regarde",
+            "v3.direction.solo"
+          ],
+          "direction": "SOLO",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.external_gaze.together",
+          "title_fr": "Choisissez un lieu exposé autorisé",
+          "tags_v3": [
+            "v3.preference.lieu_expose",
+            "v3.preference.regard_exterieur",
+            "v3.direction.mutuel"
+          ],
+          "direction": "MUTUEL",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.orgasm_permission",
+      "title_fr": "Permission finale",
+      "objective": "Demander ou donner la permission d’atteindre l’orgasme.",
+      "family": "FINALITE",
+      "tags_v3": [
+        "v3.direction.faire",
+        "v3.direction.recevoir",
+        "v3.preference.controle",
+        "v3.preference.orgasme",
+        "v3.preference.permission"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 4,
+      "distance_excluded": false,
+      "requirements": {},
+      "justification": "Permission et finalité sont explicites et directionnelles.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.orgasm_permission.ask",
+          "title_fr": "Demande la permission pour ton orgasme",
+          "tags_v3": [
+            "v3.preference.orgasme",
+            "v3.preference.permission",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.orgasm_permission.grant",
+          "title_fr": "Décide quand ton partenaire peut atteindre l’orgasme",
+          "tags_v3": [
+            "v3.preference.orgasme",
+            "v3.preference.permission",
+            "v3.preference.controle",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.ejaculation_choice",
+      "title_fr": "Choix d’éjaculation",
+      "objective": "Exprimer séparément donner et recevoir cette finalité.",
+      "family": "FINALITE",
+      "tags_v3": [
+        "v3.direction.faire",
+        "v3.direction.recevoir",
+        "v3.preference.ejaculation"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 4,
+      "distance_excluded": true,
+      "requirements": {},
+      "justification": "Accord explicite sans engagement 5 automatique.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.ejaculation_choice.give",
+          "title_fr": "Propose une éjaculation convenue",
+          "tags_v3": [
+            "v3.preference.ejaculation",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.ejaculation_choice.receive",
+          "title_fr": "Choisis de recevoir une éjaculation convenue",
+          "tags_v3": [
+            "v3.preference.ejaculation",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.fluids_choice",
+      "title_fr": "Choix autour des fluides",
+      "objective": "Séparer avaler et cracher comme préférences.",
+      "family": "FINALITE_FLUIDES",
+      "tags_v3": [
+        "v3.direction.faire",
+        "v3.preference.avaler",
+        "v3.preference.cracher"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 4,
+      "distance_excluded": true,
+      "requirements": {},
+      "justification": "Deux actes différents ne doivent pas être fusionnés.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.fluids_choice.swallow",
+          "title_fr": "Choisis d’avaler dans les limites convenues",
+          "tags_v3": [
+            "v3.preference.avaler",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.fluids_choice.spit",
+          "title_fr": "Choisis de cracher dans les limites convenues",
+          "tags_v3": [
+            "v3.preference.cracher",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.degrading_words",
+      "title_fr": "Paroles dégradantes consenties",
+      "objective": "Séparer prononcer et recevoir les paroles.",
+      "family": "VERBAL",
+      "tags_v3": [
+        "v3.direction.faire",
+        "v3.direction.recevoir",
+        "v3.preference.paroles_degradantes"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 3,
+      "distance_excluded": false,
+      "requirements": {},
+      "justification": "Les deux rôles ont des limites différentes.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.degrading_words.give",
+          "title_fr": "Prononce les mots dégradants convenus",
+          "tags_v3": [
+            "v3.preference.paroles_degradantes",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.degrading_words.receive",
+          "title_fr": "Reçois les mots dégradants convenus",
+          "tags_v3": [
+            "v3.preference.paroles_degradantes",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.beg_for_it",
+      "title_fr": "Supplie-moi",
+      "objective": "Mettre en scène le fait de supplier volontairement.",
+      "family": "DYNAMIQUES",
+      "tags_v3": [
+        "v3.direction.faire",
+        "v3.preference.supplier"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 3,
+      "distance_excluded": false,
+      "requirements": {},
+      "justification": "Action distincte de servir et obéir.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.beg_for_it.perform",
+          "title_fr": "Supplie avec les mots convenus",
+          "tags_v3": [
+            "v3.preference.supplier",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.roleplay_scene",
+      "title_fr": "Entre dans le rôle",
+      "objective": "Activer le scénario choisi dans la session.",
+      "family": "JEU_ROLE",
+      "tags_v3": [
+        "v3.direction.mutuel",
+        "v3.direction.recevoir",
+        "v3.preference.jeu_role",
+        "v3.preference.controle"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 3,
+      "distance_excluded": false,
+      "requirements": {
+        "requiresRoleplay": true
+      },
+      "justification": "La préférence est scoreable; le scénario reste donnée de session.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.roleplay_scene.mutual",
+          "title_fr": "Jouez ensemble le scénario choisi",
+          "tags_v3": [
+            "v3.preference.jeu_role",
+            "v3.direction.mutuel"
+          ],
+          "direction": "MUTUEL",
+          "baseEngagementLevel": 3,
+          "requirements": {
+            "requiresRoleplay": true
+          }
+        },
+        {
+          "stable_id": "variant.v3.roleplay_scene.guided",
+          "title_fr": "Laisse ton partenaire guider le scénario",
+          "tags_v3": [
+            "v3.preference.jeu_role",
+            "v3.preference.controle",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 3,
+          "requirements": {
+            "requiresRoleplay": true
+          }
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.unusual_private_place",
+      "title_fr": "Ailleurs, en privé",
+      "objective": "Choisir un lieu privé inhabituel.",
+      "family": "LIEUX_SESSION",
+      "tags_v3": [
+        "v3.direction.mutuel",
+        "v3.preference.lieu_inhabituel"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 3,
+      "distance_excluded": true,
+      "requirements": {},
+      "justification": "Couvre l’inhabituel sans supposer un public.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.unusual_private_place.mutual",
+          "title_fr": "Choisissez un lieu privé inhabituel",
+          "tags_v3": [
+            "v3.preference.lieu_inhabituel",
+            "v3.direction.mutuel"
+          ],
+          "direction": "MUTUEL",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.costume_and_light_outfit",
+      "title_fr": "Change de tenue",
+      "objective": "Séparer déguisement et tenue légère.",
+      "family": "TENUES_SESSION",
+      "tags_v3": [
+        "v3.direction.solo",
+        "v3.preference.deguisement",
+        "v3.preference.etre_regarde",
+        "v3.preference.tenue",
+        "v3.preference.tenue_legere"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 2,
+      "distance_excluded": false,
+      "requirements": {},
+      "justification": "Deux mises en scène réelles et montrables à distance.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.costume_and_light_outfit.costume",
+          "title_fr": "Présente-toi dans un déguisement choisi",
+          "tags_v3": [
+            "v3.preference.deguisement",
+            "v3.preference.tenue",
+            "v3.preference.etre_regarde",
+            "v3.direction.solo"
+          ],
+          "direction": "SOLO",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.costume_and_light_outfit.light",
+          "title_fr": "Présente-toi dans une tenue légère",
+          "tags_v3": [
+            "v3.preference.tenue_legere",
+            "v3.preference.tenue",
+            "v3.preference.etre_regarde",
+            "v3.direction.solo"
+          ],
+          "direction": "SOLO",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.texture_and_breath",
+      "title_fr": "Textures et souffle",
+      "objective": "Explorer texture et souffle dans les deux directions.",
+      "family": "SENSORIEL",
+      "tags_v3": [
+        "v3.direction.faire",
+        "v3.direction.recevoir",
+        "v3.preference.souffler",
+        "v3.preference.texture"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 2,
+      "distance_excluded": true,
+      "requirements": {},
+      "justification": "Stimuli distincts avec rôles séparés.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.texture_and_breath.texture_give",
+          "title_fr": "Fais découvrir une texture convenue",
+          "tags_v3": [
+            "v3.preference.texture",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.texture_and_breath.texture_receive",
+          "title_fr": "Découvre une texture choisie",
+          "tags_v3": [
+            "v3.preference.texture",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.texture_and_breath.breath_give",
+          "title_fr": "Souffle doucement sur la peau",
+          "tags_v3": [
+            "v3.preference.souffler",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.texture_and_breath.breath_receive",
+          "title_fr": "Reçois un souffle doux sur la peau",
+          "tags_v3": [
+            "v3.preference.souffler",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.auditory_deprivation",
+      "title_fr": "Coupe le son",
+      "objective": "Séparer imposer et recevoir une privation auditive.",
+      "family": "SENSORIEL",
+      "tags_v3": [
+        "v3.direction.faire",
+        "v3.direction.recevoir",
+        "v3.preference.controle",
+        "v3.preference.privation_auditive"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 3,
+      "distance_excluded": true,
+      "requirements": {
+        "requiresConstraintAccessory": true
+      },
+      "justification": "Retirer un canal sensoriel requiert un consentement propre.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.auditory_deprivation.give",
+          "title_fr": "Prive temporairement ton partenaire du son",
+          "tags_v3": [
+            "v3.preference.privation_auditive",
+            "v3.preference.controle",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 3,
+          "requirements": {
+            "requiresConstraintAccessory": true
+          }
+        },
+        {
+          "stable_id": "variant.v3.auditory_deprivation.receive",
+          "title_fr": "Accepte une privation auditive temporaire",
+          "tags_v3": [
+            "v3.preference.privation_auditive",
+            "v3.preference.controle",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 3,
+          "requirements": {
+            "requiresConstraintAccessory": true
+          }
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.silence_rule",
+      "title_fr": "Règle de silence",
+      "objective": "Créer une privation de parole sans imposer d’accessoire.",
+      "family": "SENSORIEL",
+      "tags_v3": [
+        "v3.direction.faire",
+        "v3.direction.recevoir",
+        "v3.preference.controle",
+        "v3.preference.privation_parole"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 3,
+      "distance_excluded": false,
+      "requirements": {},
+      "justification": "Une consigne verbale suffit et fonctionne à distance.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.silence_rule.give",
+          "title_fr": "Impose une courte règle de silence",
+          "tags_v3": [
+            "v3.preference.privation_parole",
+            "v3.preference.controle",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.silence_rule.receive",
+          "title_fr": "Respecte une courte règle de silence",
+          "tags_v3": [
+            "v3.preference.privation_parole",
+            "v3.preference.controle",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.neck_hold",
+      "title_fr": "Maintien du cou",
+      "objective": "Séparer exercer et recevoir un maintien du cou.",
+      "family": "SENSATIONS_FORTES",
+      "tags_v3": [
+        "v3.direction.faire",
+        "v3.direction.recevoir",
+        "v3.preference.controle",
+        "v3.preference.maintien_cou"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 4,
+      "distance_excluded": true,
+      "requirements": {},
+      "justification": "Pratique sensible, bornée et soumise à revue produit.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.neck_hold.give",
+          "title_fr": "Maintiens doucement le cou selon les limites",
+          "tags_v3": [
+            "v3.preference.maintien_cou",
+            "v3.preference.controle",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.neck_hold.receive",
+          "title_fr": "Reçois un maintien doux du cou convenu",
+          "tags_v3": [
+            "v3.preference.maintien_cou",
+            "v3.preference.controle",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.gentle_pull",
+      "title_fr": "Tire-moi vers toi",
+      "objective": "Séparer tirer doucement et être tiré.",
+      "family": "SENSATIONS_FORTES",
+      "tags_v3": [
+        "v3.direction.faire",
+        "v3.direction.recevoir",
+        "v3.preference.tirer"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 3,
+      "distance_excluded": true,
+      "requirements": {},
+      "justification": "Geste borné, intensité précisée et rôles séparés.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.gentle_pull.give",
+          "title_fr": "Tire doucement ton partenaire vers toi",
+          "tags_v3": [
+            "v3.preference.tirer",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.gentle_pull.receive",
+          "title_fr": "Laisse ton partenaire te tirer doucement",
+          "tags_v3": [
+            "v3.preference.tirer",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.sensual_tasting",
+      "title_fr": "Dégustation sensuelle",
+      "objective": "Explorer nourriture et boisson non alcoolisée.",
+      "family": "NOURRITURE_BOISSON",
+      "tags_v3": [
+        "v3.direction.faire",
+        "v3.direction.recevoir",
+        "v3.preference.boisson",
+        "v3.preference.nourriture"
+      ],
+      "direction": "VARIANT_SPECIFIC",
+      "baseEngagementLevel": 2,
+      "distance_excluded": true,
+      "requirements": {},
+      "justification": "Requirements et préférences restent séparés.",
+      "variants": [
+        {
+          "stable_id": "variant.v3.sensual_tasting.food_give",
+          "title_fr": "Fais goûter un aliment choisi",
+          "tags_v3": [
+            "v3.preference.nourriture",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 2,
+          "requirements": {
+            "requiresFood": true
+          }
+        },
+        {
+          "stable_id": "variant.v3.sensual_tasting.food_receive",
+          "title_fr": "Goûte un aliment proposé",
+          "tags_v3": [
+            "v3.preference.nourriture",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 2,
+          "requirements": {
+            "requiresFood": true
+          }
+        },
+        {
+          "stable_id": "variant.v3.sensual_tasting.drink_give",
+          "title_fr": "Fais goûter une boisson non alcoolisée",
+          "tags_v3": [
+            "v3.preference.boisson",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 2,
+          "requirements": {
+            "requiresDrink": true
+          }
+        },
+        {
+          "stable_id": "variant.v3.sensual_tasting.drink_receive",
+          "title_fr": "Goûte une boisson non alcoolisée",
+          "tags_v3": [
+            "v3.preference.boisson",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 2,
+          "requirements": {
+            "requiresDrink": true
+          }
+        }
+      ]
+    }
+  ],
+  "existing_card_extensions": [
+    {
+      "target_card_id": "card.flirty_message",
+      "family": "MEDIA_CONTENU",
+      "justification": "La voix change le média et l’exposition.",
+      "new_variants": [
+        {
+          "stable_id": "variant.v3.flirty_message.voice_send",
+          "title_fr": "Envoie un message vocal coquin",
+          "tags_v3": [
+            "v3.preference.audio",
+            "v3.preference.paroles_coquines",
+            "v3.preference.envoyer",
+            "v3.direction.etre_entendu"
+          ],
+          "direction": "ETRE_ENTENDU",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.flirty_message.voice_receive",
+          "title_fr": "Écoute le message vocal coquin",
+          "tags_v3": [
+            "v3.preference.audio",
+            "v3.preference.paroles_coquines",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "target_card_id": "card.choose_sex_position",
+      "family": "POSITIONS",
+      "justification": "S, A et E qualifient une vraie position sexuelle.",
+      "new_variants": [
+        {
+          "stable_id": "variant.v3.choose_sex_position.s",
+          "title_fr": "Choisis une position sexuelle S",
+          "tags_v3": [
+            "v3.preference.position_s",
+            "v3.preference.controle",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.choose_sex_position.a",
+          "title_fr": "Choisis une position sexuelle A",
+          "tags_v3": [
+            "v3.preference.position_a",
+            "v3.preference.controle",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.choose_sex_position.e",
+          "title_fr": "Choisis une position sexuelle E",
+          "tags_v3": [
+            "v3.preference.position_e",
+            "v3.preference.controle",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "target_card_id": "card.caress",
+      "family": "ZONES_CARESSES",
+      "justification": "Trois zones aux limites corporelles distinctes.",
+      "new_variants": [
+        {
+          "stable_id": "variant.v3.caress.bras_give",
+          "title_fr": "Caresse les bras de ton partenaire",
+          "tags_v3": [
+            "v3.preference.caresser",
+            "v3.zone.bras",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.caress.bras_receive",
+          "title_fr": "Reçois des caresses sur les bras",
+          "tags_v3": [
+            "v3.preference.caresser",
+            "v3.zone.bras",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.caress.cuisses_give",
+          "title_fr": "Caresse les cuisses de ton partenaire",
+          "tags_v3": [
+            "v3.preference.caresser",
+            "v3.zone.cuisses",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.caress.cuisses_receive",
+          "title_fr": "Reçois des caresses sur les cuisses",
+          "tags_v3": [
+            "v3.preference.caresser",
+            "v3.zone.cuisses",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 3,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.caress.ventre_give",
+          "title_fr": "Caresse le ventre de ton partenaire",
+          "tags_v3": [
+            "v3.preference.caresser",
+            "v3.zone.ventre",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.caress.ventre_receive",
+          "title_fr": "Reçois des caresses sur le ventre",
+          "tags_v3": [
+            "v3.preference.caresser",
+            "v3.zone.ventre",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "target_card_id": "card.massage",
+      "family": "ZONES_MASSAGE",
+      "justification": "Trois massages réellement ciblés.",
+      "new_variants": [
+        {
+          "stable_id": "variant.v3.massage.dos_give",
+          "title_fr": "Masse dos de ton partenaire",
+          "tags_v3": [
+            "v3.preference.masser",
+            "v3.zone.dos",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.massage.dos_receive",
+          "title_fr": "Reçois un massage de dos",
+          "tags_v3": [
+            "v3.preference.masser",
+            "v3.zone.dos",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.massage.epaules_give",
+          "title_fr": "Masse épaules de ton partenaire",
+          "tags_v3": [
+            "v3.preference.masser",
+            "v3.zone.epaules",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.massage.epaules_receive",
+          "title_fr": "Reçois un massage de épaules",
+          "tags_v3": [
+            "v3.preference.masser",
+            "v3.zone.epaules",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.massage.jambes_give",
+          "title_fr": "Masse jambes de ton partenaire",
+          "tags_v3": [
+            "v3.preference.masser",
+            "v3.zone.jambes",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.massage.jambes_receive",
+          "title_fr": "Reçois un massage de jambes",
+          "tags_v3": [
+            "v3.preference.masser",
+            "v3.zone.jambes",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 2,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "target_card_id": "card.vaginal_penetration",
+      "family": "PENETRATION_MOYEN",
+      "justification": "Ajoute explicitement le moyen SEXE.",
+      "new_variants": [
+        {
+          "stable_id": "variant.v3.vaginal_penetration.sex_give",
+          "title_fr": "Pénètre vaginalement avec ton sexe",
+          "tags_v3": [
+            "v3.preference.penetrer",
+            "v3.preference.sexe",
+            "v3.zone.vaginal",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.vaginal_penetration.sex_receive",
+          "title_fr": "Reçois une pénétration vaginale avec le sexe",
+          "tags_v3": [
+            "v3.preference.penetrer",
+            "v3.preference.sexe",
+            "v3.zone.vaginal",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        }
+      ]
+    },
+    {
+      "target_card_id": "card.anal_penetration",
+      "family": "PENETRATION_MOYEN",
+      "justification": "Ajoute explicitement le moyen SEXE sans le généraliser.",
+      "new_variants": [
+        {
+          "stable_id": "variant.v3.anal_penetration.sex_give",
+          "title_fr": "Pénètre analement avec ton sexe",
+          "tags_v3": [
+            "v3.preference.penetrer",
+            "v3.preference.sexe",
+            "v3.zone.anal",
+            "v3.direction.faire"
+          ],
+          "direction": "FAIRE",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        },
+        {
+          "stable_id": "variant.v3.anal_penetration.sex_receive",
+          "title_fr": "Reçois une pénétration anale avec le sexe",
+          "tags_v3": [
+            "v3.preference.penetrer",
+            "v3.preference.sexe",
+            "v3.zone.anal",
+            "v3.direction.recevoir"
+          ],
+          "direction": "RECEVOIR",
+          "baseEngagementLevel": 4,
+          "requirements": {}
+        }
+      ]
+    }
+  ],
+  "similarity_review": [
+    {
+      "proposal_ids": [
+        "card.v3.sextoy_play",
+        "card.v3.remote_toy_control"
+      ],
+      "risk": "Même famille matérielle.",
+      "resolution": "Présence physique et contrôle distant diffèrent par rôles, requirements et distance."
+    },
+    {
+      "proposal_ids": [
+        "card.v3.orgasm_permission",
+        "card.v3.ejaculation_choice"
+      ],
+      "risk": "Finalités proches.",
+      "resolution": "Orgasme et éjaculation ne sont ni synonymes ni nécessairement simultanés."
+    },
+    {
+      "proposal_ids": [
+        "card.v3.external_gaze",
+        "card.private_exhibition"
+      ],
+      "risk": "Exposition proche.",
+      "resolution": "La proposition implique un regard extérieur; l’existante reste privée."
+    },
+    {
+      "proposal_ids": [
+        "card.v3.roleplay_scene",
+        "roleplay_scenarios.v1.fr.json"
+      ],
+      "risk": "Dupliquer les scénarios en préférences.",
+      "resolution": "Seul JEU_ROLE est noté; le scénario reste donnée de session."
+    },
+    {
+      "proposal_ids": [
+        "card.v3.texture_and_breath",
+        "card.caress"
+      ],
+      "risk": "Gestes sensoriels proches.",
+      "resolution": "Garder seulement si texture ou souffle est le stimulus principal."
+    },
+    {
+      "proposal_ids": [
+        "card.v3.fluids_choice",
+        "card.v3.ejaculation_choice"
+      ],
+      "risk": "Même moment possible.",
+      "resolution": "Séparer pour conserver des consentements indépendants."
+    }
+  ],
+  "human_product_decisions": [
+    {
+      "topic": "REGARD_EXTERIEUR et LIEU_EXPOSE",
+      "decision_needed": "Définir limites de tiers, lieu autorisé et absence de captation."
+    },
+    {
+      "topic": "MAINTIEN_COU",
+      "decision_needed": "Valider formulation, garde-fous et niveau avec une revue sécurité."
+    },
+    {
+      "topic": "AVALER, CRACHER et EJACULATION",
+      "decision_needed": "Valider précision éditoriale, limites et éventuels requirements de protection."
+    },
+    {
+      "topic": "ALCOOL",
+      "decision_needed": "Conserver comme facette ou retirer; aucune carte alcool proposée."
+    },
+    {
+      "topic": "PROTECTION",
+      "decision_needed": "Conserver comme filtre en plus de requiresProtection ou reclasser."
+    },
+    {
+      "topic": "POSITION_S, POSITION_A et POSITION_E",
+      "decision_needed": "Documenter la signification éditoriale avant rédaction finale."
+    }
+  ]
+}
+
+
+

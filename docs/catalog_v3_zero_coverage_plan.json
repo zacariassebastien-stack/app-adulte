@@ -1,0 +1,425 @@
+{
+  "schema_version": 1,
+  "source_commit": "e897c76ad237acbd19b9b3b4ef3633ae1a1294ba",
+  "source_catalog": {
+    "playable_cards": 85,
+    "playable_variants": 148,
+    "zero_coverage_tags": 48
+  },
+  "decision_definitions": {
+    "NEW_CONTENT": "Créer une ou plusieurs cartes dédiées.",
+    "EXTEND_EXISTING": "Ajouter une variante réellement distincte à une carte existante.",
+    "KEEP_UNCOVERED": "Conserver sans objectif immédiat de couverture.",
+    "REMOVE_OR_RECLASSIFY": "Retirer ou reclasser après validation de migration."
+  },
+  "decision_counts": {
+    "NEW_CONTENT": 25,
+    "EXTEND_EXISTING": 12,
+    "KEEP_UNCOVERED": 4,
+    "REMOVE_OR_RECLASSIFY": 7
+  },
+  "estimated_after_plan_implementation": {
+    "newly_covered_zero_tags": 37,
+    "remaining_zero_coverage_tags": 11
+  },
+  "classifications": [
+    {
+      "stable_id": "v3.contexte.lieu_habituel",
+      "key": "LIEU_HABITUEL",
+      "category": "CONTEXTE",
+      "decision": "KEEP_UNCOVERED",
+      "justification": "Contexte par défaut utile au filtrage; une carte dédiée n’apporterait aucun choix ludique."
+    },
+    {
+      "stable_id": "v3.direction.etre_entendu",
+      "key": "ETRE_ENTENDU",
+      "category": "DIRECTION",
+      "decision": "EXTEND_EXISTING",
+      "justification": "Une variante vocale couvre concrètement le fait d’être entendu.",
+      "target_card_ids": [
+        "card.flirty_message"
+      ]
+    },
+    {
+      "stable_id": "v3.materiel.accessoire",
+      "key": "ACCESSOIRE",
+      "category": "MATERIEL",
+      "decision": "REMOVE_OR_RECLASSIFY",
+      "justification": "Trop générique; les requirements matériels typés doivent rester la source de vérité."
+    },
+    {
+      "stable_id": "v3.materiel.accessoire_contrainte",
+      "key": "ACCESSOIRE_CONTRAINTE",
+      "category": "MATERIEL",
+      "decision": "REMOVE_OR_RECLASSIFY",
+      "justification": "Duplique requiresConstraintAccessory et ne constitue pas une préférence."
+    },
+    {
+      "stable_id": "v3.materiel.alcool",
+      "key": "ALCOOL",
+      "category": "MATERIEL",
+      "decision": "KEEP_UNCOVERED",
+      "justification": "Conserver comme facette éventuelle, sans contenu avant décision explicite sur alcool et consentement."
+    },
+    {
+      "stable_id": "v3.materiel.huile",
+      "key": "HUILE",
+      "category": "MATERIEL",
+      "decision": "REMOVE_OR_RECLASSIFY",
+      "justification": "Duplique requiresOil; il s’agit de disponibilité matérielle."
+    },
+    {
+      "stable_id": "v3.materiel.lubrifiant",
+      "key": "LUBRIFIANT",
+      "category": "MATERIEL",
+      "decision": "REMOVE_OR_RECLASSIFY",
+      "justification": "Duplique requiresLubricant; il s’agit de disponibilité matérielle."
+    },
+    {
+      "stable_id": "v3.materiel.protection",
+      "key": "PROTECTION",
+      "category": "MATERIEL",
+      "decision": "KEEP_UNCOVERED",
+      "justification": "Facette potentiellement utile aux filtres de sécurité, sans devoir créer une carte artificielle."
+    },
+    {
+      "stable_id": "v3.preference.ajouter",
+      "key": "AJOUTER",
+      "category": "PREFERENCE",
+      "decision": "REMOVE_OR_RECLASSIFY",
+      "justification": "Verbe abstrait: le contenu doit nommer ce qui est ajouté et sa préférence concrète."
+    },
+    {
+      "stable_id": "v3.preference.audio",
+      "key": "AUDIO",
+      "category": "PREFERENCE",
+      "decision": "EXTEND_EXISTING",
+      "justification": "Le message vocal change réellement le média et l’exposition personnelle.",
+      "target_card_ids": [
+        "card.flirty_message"
+      ]
+    },
+    {
+      "stable_id": "v3.preference.avaler",
+      "key": "AVALER",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Acte explicite avec consentement propre, à isoler dans une famille dédiée.",
+      "proposed_family": "FINALITE_FLUIDES"
+    },
+    {
+      "stable_id": "v3.preference.boisson",
+      "key": "BOISSON",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Expérience sensorielle concrète avec requiresDrink et deux directions.",
+      "proposed_family": "NOURRITURE_BOISSON"
+    },
+    {
+      "stable_id": "v3.preference.contenu_adulte",
+      "key": "CONTENU_ADULTE",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Choisir et regarder un contenu adulte forme une famille média distincte et compatible à distance.",
+      "proposed_family": "MEDIA_CONTENU"
+    },
+    {
+      "stable_id": "v3.preference.controle_distance",
+      "key": "CONTROLE_DISTANCE",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Change matériel, rôle et distance; mérite un contenu dédié.",
+      "proposed_family": "SEXTOYS"
+    },
+    {
+      "stable_id": "v3.preference.cracher",
+      "key": "CRACHER",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Acte explicite avec consentement propre, à isoler dans une famille dédiée.",
+      "proposed_family": "FINALITE_FLUIDES"
+    },
+    {
+      "stable_id": "v3.preference.deguisement",
+      "key": "DEGUISEMENT",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Crée une mise en scène distincte de la tenue légère.",
+      "proposed_family": "TENUES_SESSION"
+    },
+    {
+      "stable_id": "v3.preference.ejaculation",
+      "key": "EJACULATION",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Finalité explicite exigeant un choix et un consentement dédiés.",
+      "proposed_family": "FINALITE"
+    },
+    {
+      "stable_id": "v3.preference.jeu_role",
+      "key": "JEU_ROLE",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Préférence scoreable utilisant un scénario de session non scoreable.",
+      "proposed_family": "JEU_ROLE"
+    },
+    {
+      "stable_id": "v3.preference.lieu_expose",
+      "key": "LIEU_EXPOSE",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Mise en scène distincte à encadrer avec le regard extérieur.",
+      "proposed_family": "EXHIBITION"
+    },
+    {
+      "stable_id": "v3.preference.lieu_inhabituel",
+      "key": "LIEU_INHABITUEL",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Change réellement la préparation sans impliquer nécessairement un public.",
+      "proposed_family": "LIEUX_SESSION"
+    },
+    {
+      "stable_id": "v3.preference.maintien_cou",
+      "key": "MAINTIEN_COU",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Sensation forte exigeant direction, limites et consentement dédiés.",
+      "proposed_family": "SENSATIONS_FORTES"
+    },
+    {
+      "stable_id": "v3.preference.nourriture",
+      "key": "NOURRITURE",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Expérience sensorielle concrète avec requiresFood et deux directions.",
+      "proposed_family": "NOURRITURE_BOISSON"
+    },
+    {
+      "stable_id": "v3.preference.orgasme",
+      "key": "ORGASME",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Finalité distincte, notamment liée à permission et contrôle.",
+      "proposed_family": "FINALITE"
+    },
+    {
+      "stable_id": "v3.preference.paroles_degradantes",
+      "key": "PAROLES_DEGRADANTES",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Dire et entendre sont deux expériences personnelles distinctes.",
+      "proposed_family": "VERBAL"
+    },
+    {
+      "stable_id": "v3.preference.permission",
+      "key": "PERMISSION",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Demander et accorder une permission forment une dynamique jouable.",
+      "proposed_family": "DYNAMIQUES"
+    },
+    {
+      "stable_id": "v3.preference.position_a",
+      "key": "POSITION_A",
+      "category": "PREFERENCE",
+      "decision": "EXTEND_EXISTING",
+      "justification": "Ajouter une vraie position sexuelle de complexité A.",
+      "target_card_ids": [
+        "card.choose_sex_position"
+      ]
+    },
+    {
+      "stable_id": "v3.preference.position_e",
+      "key": "POSITION_E",
+      "category": "PREFERENCE",
+      "decision": "EXTEND_EXISTING",
+      "justification": "Ajouter une vraie position sexuelle de complexité E.",
+      "target_card_ids": [
+        "card.choose_sex_position"
+      ]
+    },
+    {
+      "stable_id": "v3.preference.position_s",
+      "key": "POSITION_S",
+      "category": "PREFERENCE",
+      "decision": "EXTEND_EXISTING",
+      "justification": "Ajouter une vraie position sexuelle de complexité S.",
+      "target_card_ids": [
+        "card.choose_sex_position"
+      ]
+    },
+    {
+      "stable_id": "v3.preference.privation_auditive",
+      "key": "PRIVATION_AUDITIVE",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Retirer un canal sensoriel nécessite son propre consentement.",
+      "proposed_family": "SENSORIEL"
+    },
+    {
+      "stable_id": "v3.preference.privation_parole",
+      "key": "PRIVATION_PAROLE",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Une règle de silence est une dynamique distincte, possible sans accessoire.",
+      "proposed_family": "SENSORIEL"
+    },
+    {
+      "stable_id": "v3.preference.regard_exterieur",
+      "key": "REGARD_EXTERIEUR",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Le regard tiers diffère du regard du partenaire et exige un cadrage propre.",
+      "proposed_family": "EXHIBITION"
+    },
+    {
+      "stable_id": "v3.preference.sexe",
+      "key": "SEXE",
+      "category": "PREFERENCE",
+      "decision": "EXTEND_EXISTING",
+      "justification": "Ajouter le moyen corporel aux pénétrations existantes évite leur duplication.",
+      "target_card_ids": [
+        "card.vaginal_penetration",
+        "card.anal_penetration"
+      ]
+    },
+    {
+      "stable_id": "v3.preference.sextoy",
+      "key": "SEXTOY",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Préférence scoreable distincte de la disponibilité requiresSextoy.",
+      "proposed_family": "SEXTOYS"
+    },
+    {
+      "stable_id": "v3.preference.souffler",
+      "key": "SOUFFLER",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Stimulation sensorielle légère avec rôles distincts.",
+      "proposed_family": "SENSORIEL"
+    },
+    {
+      "stable_id": "v3.preference.supplier",
+      "key": "SUPPLIER",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Action verbale active distincte de servir ou obéir.",
+      "proposed_family": "DYNAMIQUES"
+    },
+    {
+      "stable_id": "v3.preference.tenue_legere",
+      "key": "TENUE_LEGERE",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Présentation distincte du déguisement et exploitable à distance.",
+      "proposed_family": "TENUES_SESSION"
+    },
+    {
+      "stable_id": "v3.preference.texture",
+      "key": "TEXTURE",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Stimulus sensoriel avec choix et consentement spécifiques.",
+      "proposed_family": "SENSORIEL"
+    },
+    {
+      "stable_id": "v3.preference.tirer",
+      "key": "TIRER",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Sensation forte devant préciser geste, intensité et direction.",
+      "proposed_family": "SENSATIONS_FORTES"
+    },
+    {
+      "stable_id": "v3.preference.vibrant",
+      "key": "VIBRANT",
+      "category": "PREFERENCE",
+      "decision": "NEW_CONTENT",
+      "justification": "Préférence distincte du requirement requiresVibratingToy.",
+      "proposed_family": "SEXTOYS"
+    },
+    {
+      "stable_id": "v3.session_pref.surprise_party",
+      "key": "SURPRISE_PARTY",
+      "category": "SESSION_PREF",
+      "decision": "KEEP_UNCOVERED",
+      "justification": "Configuration privée utilisée par requiresSurpriseParty, pas contenu de deck."
+    },
+    {
+      "stable_id": "v3.technique.distance_exclue",
+      "key": "DISTANCE_EXCLUE",
+      "category": "TECHNIQUE",
+      "decision": "REMOVE_OR_RECLASSIFY",
+      "justification": "Duplique le requirement DISTANCE_EXCLUE, source de vérité de la compatibilité."
+    },
+    {
+      "stable_id": "v3.zone.bras",
+      "key": "BRAS",
+      "category": "ZONE",
+      "decision": "EXTEND_EXISTING",
+      "justification": "Cible claire pour une caresse déclinée donner/recevoir.",
+      "target_card_ids": [
+        "card.caress"
+      ]
+    },
+    {
+      "stable_id": "v3.zone.buccal",
+      "key": "BUCCAL",
+      "category": "ZONE",
+      "decision": "REMOVE_OR_RECLASSIFY",
+      "justification": "Ambigu avec LECHER/SUCER et les vraies zones cibles; ne doit pas signifier oral."
+    },
+    {
+      "stable_id": "v3.zone.cuisses",
+      "key": "CUISSES",
+      "category": "ZONE",
+      "decision": "EXTEND_EXISTING",
+      "justification": "Cible corporelle claire avec consentement distinct.",
+      "target_card_ids": [
+        "card.caress"
+      ]
+    },
+    {
+      "stable_id": "v3.zone.dos",
+      "key": "DOS",
+      "category": "ZONE",
+      "decision": "EXTEND_EXISTING",
+      "justification": "Extension naturelle et concrète du massage.",
+      "target_card_ids": [
+        "card.massage"
+      ]
+    },
+    {
+      "stable_id": "v3.zone.epaules",
+      "key": "EPAULES",
+      "category": "ZONE",
+      "decision": "EXTEND_EXISTING",
+      "justification": "Cible précise et non cosmétique pour le massage.",
+      "target_card_ids": [
+        "card.massage"
+      ]
+    },
+    {
+      "stable_id": "v3.zone.jambes",
+      "key": "JAMBES",
+      "category": "ZONE",
+      "decision": "EXTEND_EXISTING",
+      "justification": "Cible corporelle claire avec consentement distinct.",
+      "target_card_ids": [
+        "card.massage"
+      ]
+    },
+    {
+      "stable_id": "v3.zone.ventre",
+      "key": "VENTRE",
+      "category": "ZONE",
+      "decision": "EXTEND_EXISTING",
+      "justification": "Cible intime distincte pour une caresse donner/recevoir.",
+      "target_card_ids": [
+        "card.caress"
+      ]
+    }
+  ]
+}
