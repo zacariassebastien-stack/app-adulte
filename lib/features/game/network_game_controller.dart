@@ -10,6 +10,7 @@ import '../../sync/sync.dart';
 import '../lobby/lobby_models.dart';
 import 'network_duel_controller.dart' show NetworkDuelCard;
 import 'network_duel_secret_store.dart';
+import 'network_profile_learning.dart';
 
 enum NetworkGameViewState {
   loading,
@@ -45,6 +46,7 @@ final class NetworkGameController extends ChangeNotifier {
     this.drawEngine = const DrawEngine(),
     this.corruptionEngine = const CorruptionEngine(),
     this.recoveryEngine = const RecoveryEngine(),
+    NetworkProfileLearningStore? learningStore,
     DateTime Function()? clock,
     String Function()? nonceFactory,
   }) : _catalog = catalog,
@@ -58,7 +60,7 @@ final class NetworkGameController extends ChangeNotifier {
     _definitions = {for (final card in catalog.cards) card.stableId: card};
     _engineCards = {
       for (final card in catalog.cards)
-        card.stableId: const CatalogEngineAdapter().card(card),
+        card.stableId: const CatalogEngineAdapter.v3().card(card),
     };
     _hierarchy = ProfileHierarchy({
       for (final element in catalog.profileElements)
@@ -71,6 +73,11 @@ final class NetworkGameController extends ChangeNotifier {
       chiliUnlocked: 2,
       physicalStateByPlayer: {for (final id in playerIds) id: 'available'},
       clothesByPlayer: {for (final id in playerIds) id: 5},
+    );
+    learning = NetworkProfileLearningCoordinator(
+      playerId: playerId,
+      store:
+          learningStore ?? const SharedPreferencesNetworkProfileLearningStore(),
     );
   }
 
@@ -87,6 +94,7 @@ final class NetworkGameController extends ChangeNotifier {
   final RecoveryEngine recoveryEngine;
   final DateTime Function() clock;
   final String Function() nonceFactory;
+  late final NetworkProfileLearningCoordinator learning;
   final Catalog _catalog;
   late final List<String> playerIds;
   late final Map<String, CardDefinition> _definitions;
@@ -102,6 +110,7 @@ final class NetworkGameController extends ChangeNotifier {
 
   List<CardRuntimeState> _runtime = const [];
   Map<String, CardHistoryState> _history = {};
+  Set<int> _learningRecordedRounds = {};
   ChoiceRevealDto? _activeReveal;
   bool _nextRoundPrepared = false;
   StreamSubscription<NetworkGameRoundStateDto>? _subscription;
@@ -521,6 +530,7 @@ final class NetworkGameController extends ChangeNotifier {
       return;
     }
     try {
+      await _recordLearningForRound();
       await _prepareNextRound();
       await _apply(
         await repository.readyNextRound(command: _command('READY_NEXT')),
@@ -835,6 +845,7 @@ final class NetworkGameController extends ChangeNotifier {
       _history = Map.of(saved.history);
       _activeReveal = saved.activeReveal;
       _nextRoundPrepared = saved.nextRoundPrepared;
+      _learningRecordedRounds = Set.of(saved.learningRecordedRounds);
       if (_nextRoundPrepared && saved.roundNumber == current.roundNumber) {
         _nextRoundPrepared = false;
         await _persist(roundNumber: current.roundNumber);
@@ -846,6 +857,7 @@ final class NetworkGameController extends ChangeNotifier {
         CardRuntimeState(cardId: card.id, zone: CardZone.POOL),
     ];
     _history = {};
+    _learningRecordedRounds = {};
     _refill(current.roundNumber);
     await _persist(roundNumber: current.roundNumber);
   }
@@ -865,6 +877,93 @@ final class NetworkGameController extends ChangeNotifier {
     selectedCard = null;
     _nextRoundPrepared = true;
     await _persist(roundNumber: roundNumber + 1);
+  }
+
+  Future<void> _recordLearningForRound() async {
+    final result = finalResolution;
+    if (result == null || _learningRecordedRounds.contains(roundNumber)) return;
+    final visibleHand = <LearningCardDescriptor>[];
+    for (final runtimeCard in _runtime.where(
+      (card) => card.zone == CardZone.HAND || card.zone == CardZone.ENGAGED,
+    )) {
+      final definition = _definitions[runtimeCard.cardId];
+      final network = _networkCard(runtimeCard.cardId);
+      if (definition == null || network == null) continue;
+      final variant = definition.variants.singleWhere(
+        (item) => item.stableId == network.variant.id,
+      );
+      visibleHand.add(v3LearningDescriptor(definition, variant));
+    }
+    final reveal = _activeReveal;
+    await learning.recordHand(
+      cards: visibleHand,
+      played: {
+        if (reveal != null)
+          '${reveal.choice.cardId}|${reveal.choice.variantId}',
+      },
+      locked: {
+        for (final card in _runtime.where((card) => card.locked))
+          for (final descriptor in visibleHand)
+            if (descriptor.cardId == card.cardId) descriptor.identity,
+      },
+    );
+    if (!result.mutualAbandon &&
+        result.cardId != null &&
+        result.variantId != null &&
+        result.retainedPlayerId != null) {
+      final definition = _definitions[result.cardId!];
+      final variant = definition?.variants
+          .where((item) => item.stableId == result.variantId)
+          .firstOrNull;
+      if (definition != null && variant != null) {
+        await learning.recordAccepted([
+          _resolvedLearningCard(
+            v3LearningDescriptor(definition, variant),
+            ownerId: result.retainedPlayerId!,
+            inverted: result.inverted,
+          ),
+        ]);
+      }
+    }
+    _learningRecordedRounds.add(roundNumber);
+    await _persist();
+  }
+
+  ResolvedLearningCard _resolvedLearningCard(
+    LearningCardDescriptor card, {
+    required String ownerId,
+    required bool inverted,
+  }) {
+    if (card.tags.contains('v3.direction.mutuel')) {
+      return ResolvedLearningCard(
+        card: card,
+        participation: ResolvedParticipation.mutual,
+        participantPlayerIds: playerIds,
+      );
+    }
+    if (card.tags.contains('v3.direction.simultane')) {
+      return ResolvedLearningCard(
+        card: card,
+        participation: ResolvedParticipation.simultaneous,
+        participantPlayerIds: playerIds,
+      );
+    }
+    if (card.tags.contains('v3.direction.solo')) {
+      return ResolvedLearningCard(
+        card: card,
+        participation: ResolvedParticipation.solo,
+        soloPlayerId: ownerId,
+      );
+    }
+    final other = playerIds.firstWhere((id) => id != ownerId);
+    final ownerReceives = card.tags.contains('v3.direction.recevoir');
+    final ownerPerforms = inverted ? ownerReceives : !ownerReceives;
+    return ResolvedLearningCard(
+      card: card,
+      participation: ResolvedParticipation.directed,
+      performerPlayerId: ownerPerforms ? ownerId : other,
+      receiverPlayerId: ownerPerforms ? other : ownerId,
+    );
   }
 
   Future<void> _activatePreparedRound(NetworkGameRoundStateDto next) async {
@@ -925,17 +1024,11 @@ final class NetworkGameController extends ChangeNotifier {
       (item) => item.stableId == eligible.id,
     );
     final role = _roleFor(definition, variant);
-    final requirements = [
-      ...definition.profileRequirements,
-      ...variant.profileRequirements,
-    ];
     final elementId =
-        requirements
-            .where((item) => item.role == role)
-            .map((item) => item.elementId)
+        eligible.tags
+            .where((tag) => tag.startsWith('v3.preference.'))
             .firstOrNull ??
-        requirements.map((item) => item.elementId).firstOrNull ??
-        'network.prototype';
+        _legacyElementId(definition, variant, role);
     return NetworkDuelCard(
       definition: definition,
       engine: engine,
@@ -975,17 +1068,11 @@ final class NetworkGameController extends ChangeNotifier {
       (item) => item.stableId == eligible.id,
     );
     final role = _roleFor(definition, variant);
-    final requirements = [
-      ...definition.profileRequirements,
-      ...variant.profileRequirements,
-    ];
     final elementId =
-        requirements
-            .where((item) => item.role == role)
-            .map((item) => item.elementId)
+        eligible.tags
+            .where((tag) => tag.startsWith('v3.preference.'))
             .firstOrNull ??
-        requirements.map((item) => item.elementId).firstOrNull ??
-        'network.prototype';
+        _legacyElementId(definition, variant, role);
     return NetworkDuelCard(
       definition: definition,
       engine: engine,
@@ -1038,8 +1125,37 @@ final class NetworkGameController extends ChangeNotifier {
           faire: _fixtureValue(id, element.stableId, ProfileRole.FAIRE),
           recevoir: _fixtureValue(id, element.stableId, ProfileRole.RECEVOIR),
         ),
+      for (final tag
+          in _engineCards.values
+              .expand((card) => card.variants)
+              .expand((variant) => variant.tags)
+              .where((tag) => tag.startsWith('v3.preference.'))
+              .toSet())
+        tag: PreferenceValue(
+          status: PreferenceStatus.ACCEPTED,
+          general: _fixtureValue(id, tag, ProfileRole.GENERAL),
+          faire: _fixtureValue(id, tag, ProfileRole.FAIRE),
+          recevoir: _fixtureValue(id, tag, ProfileRole.RECEVOIR),
+        ),
     },
   );
+
+  String _legacyElementId(
+    CardDefinition definition,
+    CardVariantDefinition variant,
+    ProfileRole role,
+  ) {
+    final requirements = [
+      ...definition.profileRequirements,
+      ...variant.profileRequirements,
+    ];
+    return requirements
+            .where((item) => item.role == role)
+            .map((item) => item.elementId)
+            .firstOrNull ??
+        requirements.map((item) => item.elementId).firstOrNull ??
+        'network.prototype';
+  }
 
   Future<void> _persist({int? roundNumber}) => privateStore.saveGame(
     sessionId: session.id,
@@ -1050,6 +1166,7 @@ final class NetworkGameController extends ChangeNotifier {
       history: _history,
       activeReveal: _activeReveal,
       nextRoundPrepared: _nextRoundPrepared,
+      learningRecordedRounds: _learningRecordedRounds,
     ),
   );
 
@@ -1079,6 +1196,9 @@ final class NetworkGameController extends ChangeNotifier {
     CardDefinition card,
     CardVariantDefinition variant,
   ) {
+    final v3Tags = variant.v3?.tags ?? card.v3?.tags ?? const <String>[];
+    if (v3Tags.contains('v3.direction.faire')) return ProfileRole.FAIRE;
+    if (v3Tags.contains('v3.direction.recevoir')) return ProfileRole.RECEVOIR;
     final requirements = [
       ...card.profileRequirements,
       ...variant.profileRequirements,

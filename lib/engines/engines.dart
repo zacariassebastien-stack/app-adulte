@@ -4,6 +4,7 @@ export 'analytics/session_telemetry.dart';
 export 'corruption/corruption_engine.dart';
 export 'draw/draw_engine.dart';
 export 'draw/hybrid_draw_weighting.dart';
+export 'deck/session_deck_builder.dart';
 export 'duel/duel_engine.dart';
 export 'eligibility/catalog_engine_adapter.dart';
 export 'eligibility/eligibility_engine.dart';

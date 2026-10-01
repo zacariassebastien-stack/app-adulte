@@ -49,3 +49,14 @@ Le moteur stocke une estimation décimale, mais ne propose rien tant qu’elle r
 ## Pondération hybride
 
 Le composant pur `HybridDrawWeighting` répartit le poids sur le pool réellement éligible. En orientation distance, les groupes visent 70 % sans `DISTANCE_EXCLUE` et 30 % avec ; en orientation face à face, 30 % et 70 %. Chaque carte reçoit `part du groupe / taille du groupe`. Si un groupe est vide, le groupe restant reçoit uniformément tout le poids. Une carte `DISTANCE_EXCLUE` reste donc autorisée en hybride.
+# Intégration au parcours réseau
+
+`NetworkProfileLearningCoordinator` alimente le moteur existant sans créer de
+seconde formule. Il enregistre localement la main réellement exposée, la carte
+jouée, le verrou et la carte du résultat final accepté. Les rôles finaux sont
+projetés après inversion. MUTUEL, SOLO et SIMULTANE restent distincts.
+
+Chaque round possède un marqueur privé idempotent. La reconstruction du
+contrôleur ou une notification réseau répétée ne peut donc pas doubler les
+statistiques. Aucune entrée d’apprentissage, proposition ou exclusion n’entre
+dans les DTO publics.

@@ -80,7 +80,7 @@ void main() {
     expect(actual.gap, 5);
     expect(actual.gapCost, expected.gapCost);
     expect(controller.actionPoints, expected.actionPoints);
-    expect(controller.actionPoints[controller.local.playerId], 90);
+    expect(controller.actionPoints[controller.local.playerId], 95);
   });
 
   test('existing duel tie behavior is preserved', () {
@@ -188,8 +188,8 @@ void main() {
       await tester.pump();
 
       expect(find.text('Tu remportes le duel'), findsOneWidget);
-      expect(find.text('Écart : 5 · Coût : 10 PA'), findsOneWidget);
-      expect(find.text('PA : 100 → 90'), findsOneWidget);
+      expect(find.text('Écart : 5 · Coût : 5 PA'), findsOneWidget);
+      expect(find.text('PA : 100 → 95'), findsOneWidget);
       expect(find.text('11/20'), findsNothing);
       expect(tester.takeException(), isNull);
 
@@ -205,7 +205,7 @@ void main() {
       await tester.ensureVisible(find.byKey(const Key('finish-round-button')));
       await tester.tap(find.byKey(const Key('finish-round-button')));
       await tester.pump();
-      expect(find.text('90'), findsOneWidget);
+      expect(find.text('95'), findsOneWidget);
       expect(find.byKey(const Key('between-rounds-panel')), findsOneWidget);
       await tester.ensureVisible(find.byKey(const Key('start-next-round')));
       await tester.tap(find.byKey(const Key('start-next-round')));

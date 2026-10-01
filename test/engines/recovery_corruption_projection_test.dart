@@ -19,14 +19,14 @@ void main() {
     expect(result.eligible, isTrue);
   });
 
-  test('50 Recovery is available only at or below threshold', () {
+  test('50 Recovery is available only at fixed 10 PA threshold', () {
     const engine = RecoveryEngine();
     const gate = RecoveryGate(
       betweenRounds: true,
       usedSinceLastNormalDuel: false,
     );
-    expect(engine.available(currentPa: 20, gate: gate), isTrue);
-    expect(engine.available(currentPa: 21, gate: gate), isFalse);
+    expect(engine.available(currentPa: 10, gate: gate), isTrue);
+    expect(engine.available(currentPa: 11, gate: gate), isFalse);
   });
 
   test('51 Recovery is only available between rounds', () {
@@ -42,7 +42,7 @@ void main() {
     );
   });
 
-  test('52 only one Recovery is allowed between normal duels', () {
+  test('52 Recovery can repeat while the player remains eligible', () {
     expect(
       const RecoveryEngine().available(
         currentPa: 0,
@@ -51,7 +51,7 @@ void main() {
           usedSinceLastNormalDuel: true,
         ),
       ),
-      isFalse,
+      isTrue,
     );
   });
 
@@ -63,8 +63,8 @@ void main() {
         (accepted(faire: 7, recevoir: 3), ProfileRole.FAIRE, true),
       ],
     );
-    expect(result.gain, 7);
-    expect(result.actionPoints, 17);
+    expect(result.gain, 11);
+    expect(result.actionPoints, 21);
   });
 
   test('54 non-completed Recovery action gives no PA', () {
@@ -82,7 +82,7 @@ void main() {
       response: RecoveryResponse.ACCEPT,
       performedRoles: [(accepted(faire: 20), ProfileRole.FAIRE, true)],
     );
-    expect(result.actionPoints, 115);
+    expect(result.actionPoints, 125);
   });
 
   test('56 refused Recovery has no cost or negative event', () {

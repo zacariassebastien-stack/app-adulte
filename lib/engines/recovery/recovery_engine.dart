@@ -41,9 +41,7 @@ final class RecoveryEngine {
   final LifecycleEngine lifecycle;
 
   bool available({required int currentPa, required RecoveryGate gate}) =>
-      gate.betweenRounds &&
-      !gate.usedSinceLastNormalDuel &&
-      currentPa <= config.initialPa * config.recoveryThreshold;
+      gate.betweenRounds && currentPa <= config.recoveryThresholdPa;
 
   CardEligibility actionEligibility({
     required EngineCard card,
@@ -84,10 +82,11 @@ final class RecoveryEngine {
         events: const [],
       );
     }
-    var gain = 0;
+    var personalValue = 0;
     for (final item in performedRoles) {
-      if (item.$3) gain += item.$1.valueFor(item.$2) ?? 0;
+      if (item.$3) personalValue += item.$1.valueFor(item.$2) ?? 0;
     }
+    final gain = (personalValue * 1.5).ceil();
     return RecoveryActionResult(
       actionPoints: currentPa + gain,
       gain: gain,

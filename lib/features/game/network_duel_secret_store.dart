@@ -14,14 +14,17 @@ final class NetworkPrivateGameState {
     required Map<String, CardHistoryState> history,
     this.activeReveal,
     this.nextRoundPrepared = false,
+    Set<int> learningRecordedRounds = const {},
   }) : cards = List.unmodifiable(cards),
-       history = Map.unmodifiable(history);
+       history = Map.unmodifiable(history),
+       learningRecordedRounds = Set.unmodifiable(learningRecordedRounds);
 
   final int roundNumber;
   final List<CardRuntimeState> cards;
   final Map<String, CardHistoryState> history;
   final ChoiceRevealDto? activeReveal;
   final bool nextRoundPrepared;
+  final Set<int> learningRecordedRounds;
 
   Map<String, Object?> toJson() => {
     'round_number': roundNumber,
@@ -34,6 +37,7 @@ final class NetworkPrivateGameState {
     },
     'active_reveal': activeReveal?.toJson(),
     'next_round_prepared': nextRoundPrepared,
+    'learning_recorded_rounds': learningRecordedRounds.toList()..sort(),
   };
 
   factory NetworkPrivateGameState.fromJson(Map<String, Object?> json) =>
@@ -60,6 +64,10 @@ final class NetworkPrivateGameState {
                 Map<String, Object?>.from(json['active_reveal']! as Map),
               ),
         nextRoundPrepared: json['next_round_prepared']! as bool,
+        learningRecordedRounds:
+            ((json['learning_recorded_rounds'] as List?) ?? const [])
+                .cast<int>()
+                .toSet(),
       );
 }
 

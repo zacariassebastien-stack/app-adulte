@@ -26,7 +26,7 @@ void main() {
   }
 
   LocalGameController lowController({
-    int localPa = 20,
+    int localPa = 10,
     int partnerPa = 100,
     int localFaire = 16,
     int chiliActive = 2,
@@ -89,23 +89,23 @@ void main() {
     );
   });
 
-  test('Recovery is available at exactly 20 percent', () {
+  test('Recovery is available at the fixed 10 percent threshold', () {
     final controller = lowController();
 
-    expect(controller.actionPoints[controller.local.playerId], 20);
+    expect(controller.actionPoints[controller.local.playerId], 10);
     expect(controller.recoveryAvailableFor(controller.local.playerId), isTrue);
   });
 
-  test('only one Recovery is allowed before another normal duel', () {
+  test('Recovery can repeat while the player remains eligible', () {
     final controller = lowController();
     select(controller, 'local-card-4');
     controller.answerRecovery(RecoveryResponse.REFUSE);
     controller.finishBetweenRoundAction();
 
-    expect(controller.recoveryAvailableFor(controller.local.playerId), isFalse);
+    expect(controller.recoveryAvailableFor(controller.local.playerId), isTrue);
     expect(
       () => controller.startRecovery(controller.local.playerId),
-      throwsStateError,
+      returnsNormally,
     );
   });
 
@@ -165,8 +165,8 @@ void main() {
     select(controller, 'local-card-4');
     acceptAndFinish(controller, ActionExecutionStatus.COMPLETED);
 
-    expect(controller.recoveryController.lastGain, 17);
-    expect(controller.actionPoints[controller.local.playerId], 37);
+    expect(controller.recoveryController.lastGain, 26);
+    expect(controller.actionPoints[controller.local.playerId], 36);
     expect(controller.actionPoints[controller.partner.playerId], partnerBefore);
   });
 
@@ -184,7 +184,7 @@ void main() {
     controller.recordRecoveryAction(ActionExecutionStatus.COMPLETED);
     controller.finishRecoveryExecution();
 
-    expect(controller.recoveryController.lastGain, 32);
+    expect(controller.recoveryController.lastGain, 48);
     expect(
       controller.recoveryController.runtime[controller.local.playerId]!
           .singleWhere((card) => card.cardId == 'local-card-6')
@@ -199,7 +199,7 @@ void main() {
     acceptAndFinish(controller, ActionExecutionStatus.SKIPPED);
 
     expect(controller.recoveryController.lastGain, 0);
-    expect(controller.actionPoints[controller.local.playerId], 20);
+    expect(controller.actionPoints[controller.local.playerId], 10);
   });
 
   test('Recovery lifecycle handles hand, discard and catalog sources', () {
@@ -237,7 +237,7 @@ void main() {
   });
 
   test('successive Recoveries preserve the first player refill', () {
-    final controller = lowController(partnerPa: 20);
+    final controller = lowController(partnerPa: 10);
     final localOption = controller
         .recoveryOptionsFor(controller.local.playerId)
         .firstWhere((item) => item.source == RecoverySource.HAND);
@@ -296,7 +296,7 @@ void main() {
     select(controller, 'local-card-4');
     controller.answerRecovery(RecoveryResponse.REFUSE);
     controller.finishBetweenRoundAction();
-    expect(controller.recoveryAvailableFor(controller.local.playerId), isFalse);
+    expect(controller.recoveryAvailableFor(controller.local.playerId), isTrue);
     controller.startNextRound();
 
     reachBetweenRounds(controller);
@@ -306,7 +306,7 @@ void main() {
   test(
     'mutual extension applies the exact same amount after two approvals',
     () {
-      final controller = lowController(partnerPa: 20);
+      final controller = lowController(partnerPa: 10);
       final before = controller.actionPoints;
       controller.startMutualExtension(7);
       controller.confirmExtensionFirst();
@@ -331,7 +331,7 @@ void main() {
   );
 
   test('refused mutual extension changes no PA and emits no action event', () {
-    final controller = lowController(partnerPa: 20);
+    final controller = lowController(partnerPa: 10);
     final before = controller.actionPoints;
     controller.startMutualExtension(8);
     controller.confirmExtensionFirst();
@@ -408,7 +408,7 @@ void main() {
   testWidgets('mutual extension hides PA during phone transition', (
     tester,
   ) async {
-    final controller = lowController(partnerPa: 20);
+    final controller = lowController(partnerPa: 10);
     await tester.pumpWidget(
       MaterialApp(
         home: GameScreen(data: controller.screenData, controller: controller),
@@ -423,7 +423,7 @@ void main() {
 
     expect(find.text('Passe le téléphone à ton partenaire'), findsWidgets);
     expect(find.byKey(const Key('between-round-pa')), findsNothing);
-    expect(find.text('20'), findsNothing);
+    expect(find.text('10'), findsNothing);
     expect(find.text('16'), findsNothing);
     expect(find.byKey(const Key('confirm-extension-second')), findsNothing);
 

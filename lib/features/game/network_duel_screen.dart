@@ -430,7 +430,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           for (final card in controller.recoveryCards.take(4))
             ListTile(
               title: Text(card.title),
-              subtitle: Text('Gain si exécutée : ${card.personalValue} PA'),
+              subtitle: Text(
+                'Gain si acceptée : ${(card.personalValue * 1.5).ceil()} PA',
+              ),
               trailing: FilledButton.tonal(
                 key: Key('recover-with-${card.id}'),
                 onPressed: () => controller.recoverWith(card.id),

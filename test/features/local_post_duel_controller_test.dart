@@ -39,7 +39,7 @@ void main() {
 
     expect(controller.phase, LocalRoundPhase.corruption);
     expect(controller.actionPoints, afterDuel);
-    expect(controller.actionPoints[controller.local.playerId], 90);
+    expect(controller.actionPoints[controller.local.playerId], 95);
     expect(
       controller.roundEvents.map((event) => event.type),
       contains(GameEventType.STRATEGIC_RENUNCIATION),
@@ -80,7 +80,7 @@ void main() {
       ..submitFinalDefense(3);
 
     expect(controller.phase, LocalRoundPhase.corruption);
-    expect(controller.actionPoints[controller.local.playerId], 87);
+    expect(controller.actionPoints[controller.local.playerId], 92);
     expect(controller.actionPoints[controller.partner.playerId], 98);
     expect(controller.finalWinnerId, controller.local.playerId);
     expect(() => controller.submitFinalDefense(4), throwsStateError);
@@ -314,7 +314,7 @@ void main() {
     expect(find.text('Passe le téléphone à ton partenaire'), findsWidgets);
     expect(find.byKey(const Key('post-duel-pa')), findsNothing);
     expect(find.byKey(const Key('confirm-counter')), findsNothing);
-    expect(find.text('90'), findsNothing);
+    expect(find.text('95'), findsNothing);
     expect(find.text('100'), findsNothing);
   });
 }

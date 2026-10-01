@@ -7,6 +7,7 @@ import 'package:couple_cards/domain/domain.dart';
 import 'package:couple_cards/engines/engines.dart';
 import 'package:couple_cards/features/game/network_duel_secret_store.dart';
 import 'package:couple_cards/features/game/network_game_controller.dart';
+import 'package:couple_cards/features/game/network_profile_learning.dart';
 import 'package:couple_cards/features/lobby/lobby_models.dart';
 import 'package:couple_cards/sync/sync.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -570,8 +571,8 @@ void main() {
       final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
       await loser.acceptInitialResult();
       await _settle();
-      setup.backend.points['alice'] = 20;
-      setup.backend.points['bob'] = 21;
+      setup.backend.points['alice'] = 10;
+      setup.backend.points['bob'] = 11;
       setup.backend.round.phase = NetworkGamePhase.recovery;
       setup.backend.notify();
       await _settle();
@@ -599,7 +600,10 @@ void main() {
       await setup.alice.completeRecovery(completed: true);
       await setup.alice.completeRecovery(completed: true);
       await _settle();
-      expect(setup.backend.points['alice'], before + option.personalValue);
+      expect(
+        setup.backend.points['alice'],
+        before + (option.personalValue * 1.5).ceil(),
+      );
       expect(setup.backend.round.recoveryDone, contains('alice'));
 
       setup.alice.dispose();
@@ -774,6 +778,7 @@ NetworkGameController _controller(
   playerId: playerId,
   repository: backend.repository(playerId),
   privateStore: store,
+  learningStore: MemoryNetworkProfileLearningStore(),
   catalog: catalog,
   nonceFactory: () => 'nonce-$playerId-${backend.currentRound}',
   clock: () => DateTime.utc(2026, 9, 30, 12, backend.currentRound),

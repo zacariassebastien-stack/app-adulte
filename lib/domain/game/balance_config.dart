@@ -5,6 +5,12 @@ abstract interface class GapCostCurve {
   int costForGap(int gap);
 }
 
+final class LinearGapCostCurve implements GapCostCurve {
+  const LinearGapCostCurve();
+  @override
+  int costForGap(int gap) => gap.clamp(0, 20);
+}
+
 final class AcceleratingGapCostCurve implements GapCostCurve {
   const AcceleratingGapCostCurve();
   @override
@@ -40,9 +46,9 @@ final class BalanceConfig {
   const BalanceConfig({
     this.initialPa = 100,
     this.handSize = 4,
-    this.recoveryThreshold = 0.20,
-    this.gapCostCurve = const AcceleratingGapCostCurve(),
-    this.gapCostCapRatio = 0.25,
+    this.recoveryThreshold = 0.10,
+    this.gapCostCurve = const LinearGapCostCurve(),
+    this.gapCostCapRatio = 1.0,
     this.chiliUnlockCosts = const {2: 3, 3: 5, 4: 8, 5: 13},
     this.drawWeights = const DrawWeights(),
     this.antiRepeatDecay = 0.5,
@@ -67,4 +73,6 @@ final class BalanceConfig {
     final cap = (initialPa * gapCostCapRatio).floor();
     return raw.clamp(0, cap);
   }
+
+  int get recoveryThresholdPa => (initialPa * recoveryThreshold).floor();
 }
