@@ -3,6 +3,7 @@
 // ignore_for_file: prefer_initializing_formals
 
 import '../../core/json.dart';
+import 'roleplay_scenarios.dart';
 
 enum V3ClothingDeltaKind { fixed, askPlayer }
 
@@ -104,33 +105,67 @@ final class V3Requirements {
 }
 
 final class V3SessionData {
-  const V3SessionData({
+  factory V3SessionData({
+    required int removableClothingInitial,
+    required int removableClothingRemaining,
+    required bool roleplayEnabled,
+    required RoleplayScenarioLibrary roleplayScenarios,
+    String? roleplayScenarioId,
+    @Deprecated('Use roleplayScenarioId') String? roleplayScenario,
+  }) {
+    if (roleplayScenarioId != null && roleplayScenario != null) {
+      throw const FormatException('Provide only one roleplay scenario ID');
+    }
+    final resolved = roleplayScenarios.resolveScenarioId(
+      roleplayScenarioId ?? roleplayScenario,
+    );
+    if (!roleplayEnabled && resolved != null) {
+      throw const FormatException(
+        'A disabled roleplay session cannot select a scenario',
+      );
+    }
+    return V3SessionData._(
+      removableClothingInitial: removableClothingInitial,
+      removableClothingRemaining: removableClothingRemaining,
+      roleplayEnabled: roleplayEnabled,
+      roleplayScenarioId: resolved,
+    );
+  }
+
+  const V3SessionData._({
     required this.removableClothingInitial,
     required this.removableClothingRemaining,
     required this.roleplayEnabled,
-    this.roleplayScenario,
+    required this.roleplayScenarioId,
   }) : assert(removableClothingInitial >= 0),
        assert(removableClothingRemaining >= 0),
-       assert(removableClothingRemaining <= removableClothingInitial),
-       assert(roleplayEnabled || roleplayScenario == null);
+       assert(removableClothingRemaining <= removableClothingInitial);
 
   final int removableClothingInitial;
   final int removableClothingRemaining;
   final bool roleplayEnabled;
-  final String? roleplayScenario;
+  final String? roleplayScenarioId;
 
-  factory V3SessionData.fromJson(Map<String, Object?> json) => V3SessionData(
+  @Deprecated('Use roleplayScenarioId')
+  String? get roleplayScenario => roleplayScenarioId;
+
+  factory V3SessionData.fromJson(
+    Map<String, Object?> json, {
+    required RoleplayScenarioLibrary roleplayScenarios,
+  }) => V3SessionData(
     removableClothingInitial: json['removableClothingInitial']! as int,
     removableClothingRemaining: json['removableClothingRemaining']! as int,
     roleplayEnabled: json['roleplayEnabled']! as bool,
-    roleplayScenario: json['roleplayScenario'] as String?,
+    roleplayScenarios: roleplayScenarios,
+    roleplayScenarioId:
+        (json['roleplayScenarioId'] ?? json['roleplayScenario']) as String?,
   );
 
   Map<String, Object?> toJson() => {
     'removableClothingInitial': removableClothingInitial,
     'removableClothingRemaining': removableClothingRemaining,
     'roleplayEnabled': roleplayEnabled,
-    'roleplayScenario': roleplayScenario,
+    'roleplayScenarioId': roleplayScenarioId,
   };
 }
 

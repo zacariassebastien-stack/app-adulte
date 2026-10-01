@@ -1,7 +1,29 @@
 import 'package:flutter/services.dart';
 import '../data/catalog_loader/catalog_loader.dart';
-import '../domain/catalog/catalog.dart';
+import '../domain/domain.dart';
 
 /// Flutter adapter; the domain and data loader remain usable in pure Dart.
 Future<Catalog> loadAssetCatalog({AssetBundle? bundle}) => const CatalogLoader()
     .load((path) => (bundle ?? rootBundle).loadString(path));
+
+Future<RoleplayScenarioLibrary> loadAssetRoleplayScenarios({
+  AssetBundle? bundle,
+}) async => RoleplayScenarioLibrary.decode(
+  await (bundle ?? rootBundle).loadString(
+    'assets/catalog/source/roleplay_scenarios.v1.fr.json',
+  ),
+);
+
+Future<V3CatalogView> loadAssetV3Catalog({AssetBundle? bundle}) async {
+  final assets = bundle ?? rootBundle;
+  final values = await Future.wait([
+    loadAssetCatalog(bundle: assets),
+    assets.loadString('assets/catalog/source/catalog_v3_taxonomy.json'),
+    loadAssetRoleplayScenarios(bundle: assets),
+  ]);
+  return V3CatalogView(
+    catalog: values[0] as Catalog,
+    taxonomy: V3Taxonomy.decode(values[1] as String),
+    roleplayScenarios: values[2] as RoleplayScenarioLibrary,
+  );
+}

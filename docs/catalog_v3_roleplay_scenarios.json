@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "scenario_count": 10,
+  "scenarios": [
+    {
+      "stable_id": "roleplay.strangers",
+      "title": "Deux inconnus",
+      "enabled": true,
+      "roles": [
+        "Inconnu A",
+        "Inconnu B"
+      ],
+      "legacy_card_id": "card.rp_strangers",
+      "legacy_profile_id": "profile.roleplay.strangers",
+      "legacy_tag_id": "tag.roleplay.strangers"
+    },
+    {
+      "stable_id": "roleplay.photographer_model",
+      "title": "Photographe / Modèle",
+      "enabled": true,
+      "roles": [
+        "Photographe",
+        "Modèle"
+      ],
+      "legacy_card_id": "card.rp_photographer",
+      "legacy_profile_id": "profile.roleplay.photographer_model",
+      "legacy_tag_id": "tag.roleplay.photographer_model"
+    },
+    {
+      "stable_id": "roleplay.masseur_client",
+      "title": "Masseur / Client",
+      "enabled": true,
+      "roles": [
+        "Masseur",
+        "Client"
+      ],
+      "legacy_card_id": "card.rp_masseur",
+      "legacy_profile_id": "profile.roleplay.masseur_client",
+      "legacy_tag_id": "tag.roleplay.masseur_client"
+    },
+    {
+      "stable_id": "roleplay.master_servant",
+      "title": "Maître / Serviteur",
+      "enabled": true,
+      "roles": [
+        "Maître",
+        "Serviteur"
+      ],
+      "legacy_card_id": "card.rp_master_servant",
+      "legacy_profile_id": "profile.roleplay.master_servant",
+      "legacy_tag_id": "tag.roleplay.master_servant"
+    },
+    {
+      "stable_id": "roleplay.royalty_servant",
+      "title": "Royauté / Serviteur",
+      "enabled": true,
+      "roles": [
+        "Royauté",
+        "Serviteur"
+      ],
+      "legacy_card_id": "card.rp_royalty_servant",
+      "legacy_profile_id": "profile.roleplay.royalty_servant",
+      "legacy_tag_id": "tag.roleplay.royalty_servant"
+    },
+    {
+      "stable_id": "roleplay.celebrity_fan",
+      "title": "Célébrité / Fan",
+      "enabled": true,
+      "roles": [
+        "Célébrité",
+        "Fan"
+      ],
+      "legacy_card_id": "card.rp_celebrity_fan",
+      "legacy_profile_id": "profile.roleplay.celebrity_fan",
+      "legacy_tag_id": "tag.roleplay.celebrity_fan"
+    },
+    {
+      "stable_id": "roleplay.delivery",
+      "title": "Livraison inattendue",
+      "enabled": true,
+      "roles": [
+        "Livreur",
+        "Destinataire"
+      ],
+      "legacy_card_id": "card.rp_delivery",
+      "legacy_profile_id": "profile.roleplay.delivery",
+      "legacy_tag_id": "tag.roleplay.delivery"
+    },
+    {
+      "stable_id": "roleplay.boss_employee",
+      "title": "Patron / Employé adulte",
+      "enabled": true,
+      "roles": [
+        "Patron",
+        "Employé adulte"
+      ],
+      "legacy_card_id": "card.rp_boss_employee",
+      "legacy_profile_id": "profile.roleplay.boss_employee",
+      "legacy_tag_id": "tag.roleplay.boss_employee"
+    },
+    {
+      "stable_id": "roleplay.medical",
+      "title": "Scénario médical adulte",
+      "enabled": true,
+      "roles": [
+        "Praticien adulte",
+        "Patient adulte"
+      ],
+      "legacy_card_id": "card.rp_medical",
+      "legacy_profile_id": "profile.roleplay.medical",
+      "legacy_tag_id": "tag.roleplay.medical"
+    },
+    {
+      "stable_id": "roleplay.bar_meeting",
+      "title": "Rencontre au bar",
+      "enabled": true,
+      "roles": [
+        "Client A",
+        "Client B"
+      ],
+      "legacy_card_id": "card.rp_bar",
+      "legacy_profile_id": "profile.roleplay.bar_meeting",
+      "legacy_tag_id": "tag.roleplay.bar_meeting"
+    }
+  ]
+}

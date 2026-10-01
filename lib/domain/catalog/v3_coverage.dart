@@ -1,6 +1,7 @@
 import 'catalog.dart';
 import 'definitions.dart';
 import 'enums.dart';
+import 'roleplay_scenarios.dart';
 import 'v3_taxonomy.dart';
 
 const _reportedDirections = <String>[
@@ -14,8 +15,17 @@ const _reportedDirections = <String>[
 final class V3CoverageReportBuilder {
   const V3CoverageReportBuilder();
 
-  Map<String, Object?> build(Catalog catalog, V3Taxonomy taxonomy) {
-    final excludedCards = taxonomy.roleplayScenarioCardIds.toSet();
+  Map<String, Object?> build(
+    Catalog catalog,
+    V3Taxonomy taxonomy,
+    RoleplayScenarioLibrary roleplayScenarios,
+  ) {
+    final view = V3CatalogView(
+      catalog: catalog,
+      taxonomy: taxonomy,
+      roleplayScenarios: roleplayScenarios,
+    );
+    final excludedCards = roleplayScenarios.legacyCardIds;
     final mappings = {
       for (final mapping in taxonomy.legacyMappings)
         mapping.legacyTagId: mapping.v3TagIds,
@@ -26,8 +36,7 @@ final class V3CoverageReportBuilder {
     final unmapped = <String>{};
     var variantCount = 0;
 
-    for (final card in catalog.cards) {
-      if (excludedCards.contains(card.stableId)) continue;
+    for (final card in view.playableCards) {
       for (final variant in card.variants) {
         variantCount++;
         final explicitV3 = variant.v3 ?? card.v3;
@@ -99,9 +108,16 @@ final class V3CoverageReportBuilder {
     return {
       'schema_version': 3,
       'source_catalog_version': catalog.catalogVersion,
-      'playable_cards_analyzed': catalog.cards.length - excludedCards.length,
+      'playable_cards_analyzed': view.playableCards.length,
       'variants_analyzed': variantCount,
       'excluded_roleplay_scenario_cards': excludedCards.toList()..sort(),
+      'roleplay_scenarios': {
+        'count': roleplayScenarios.scenarios.length,
+        'enabled': roleplayScenarios.scenarios
+            .where((scenario) => scenario.enabled)
+            .length,
+        'ids': roleplayScenarios.scenarioIds.toList()..sort(),
+      },
       'legacy_mappings': {
         'total': taxonomy.legacyMappings.length,
         'mapped': legacyMapped,

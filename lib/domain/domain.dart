@@ -5,6 +5,7 @@ export 'catalog/definitions.dart';
 export 'catalog/enums.dart';
 export 'catalog/parameter.dart';
 export 'catalog/requirements.dart';
+export 'catalog/roleplay_scenarios.dart';
 export 'catalog/v3_rules.dart';
 export 'catalog/v3_coverage.dart';
 export 'catalog/v3_taxonomy.dart';

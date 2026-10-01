@@ -1,7 +1,6 @@
 # Catalogue V3 — contrat canonique
 
-Ce document décrit la cible de migration. Le catalogue V2 reste la source du
-runtime pendant l'étape 1 ; aucune des cartes 1–90 n'est réétiquetée ici.
+Ce document décrit la taxonomie V3 et sa transition depuis le catalogue V2.
 
 ## Taxonomie atomique
 
@@ -28,8 +27,8 @@ compatible par défaut.
 
 `JEU_ROLE` est une préférence générale scoreable. Les scénarios précis ne sont
 pas des préférences permanentes : `profile.roleplay` migre vers `JEU_ROLE`,
-tandis que les dix anciens tags de scénario restent `scenario_pending` sans
-cible de préférence. `LIEU_EXPOSE` reste également une préférence personnelle
+tandis que les dix anciens tags de scénario sont `scenario_migrated` sans cible
+de préférence. `LIEU_EXPOSE` reste également une préférence personnelle
 scoreable ; seul le lieu concret choisi appartient au contexte de session.
 
 Les mappings directionnels décrivent le sens du concept : regarder et être
@@ -67,10 +66,16 @@ disparaîtra après la migration des cartes.
 
 ## Jeu de rôle
 
-`roleplayEnabled` et `roleplayScenario` sont des données de session. Les cartes
-91–100 sont listées dans `roleplay_scenario_card_ids` comme scénarios à extraire
-du deck lors de l'étape 2. Elles restent dans le catalogue actif à cette étape
-pour ne pas casser le runtime.
+`roleplayEnabled` et `roleplayScenarioId` sont des données de session. La source
+canonique `roleplay_scenarios.v1.fr.json` contient dix contextes narratifs non
+scoreables. Un scénario peut être omis même lorsque le jeu de rôle est activé.
+Un identifiant sélectionné doit exister dans cette bibliothèque.
+
+Les anciennes cartes 91–100 restent physiquement présentes pour permettre la
+lecture des données historiques, avec `v3_deck_enabled: false`. `V3CatalogView`
+valide leur correspondance avec la bibliothèque et expose uniquement les 90
+cartes jouables. Le scénario actif ne modifie ni tags, ni consentement, ni PA,
+ni engagement, ni requirements d'une carte.
 
 ## Requirements V3
 
@@ -91,8 +96,8 @@ les couvertures `FAIRE`, `RECEVOIR`, `SOLO`, `MUTUEL`, `SIMULTANE`, le nombre de
 variantes compatibles à distance et les IDs des cartes. Les résultats sont
 groupés par catégorie et `zero_coverage_tags` rend tout manque explicite.
 
-L'audit exclut les cartes 91–100 de la couverture du deck jouable, tout en les
-listant comme scénarios futurs. Les deux anciens tags techniques
+L'audit construit la vue V3 validée, confirme les 90 cartes jouables et les dix
+scénarios, puis exclut les cartes legacy 91–100 de la couverture. Les deux anciens tags techniques
 `tag.duration.long` et `tag.simulation.guided` restent sans cible : leurs
 informations doivent devenir des paramètres/requirements lors de l'étape 2.
 
@@ -106,8 +111,8 @@ monolithiques.
 
 Le lot 2A couvre les cartes 1–30 et leurs 41 variantes. Le lot 2B couvre les
 cartes 31–60 et leurs 37 variantes. Le lot 2C couvre les cartes 61–90 et leurs
-40 variantes. Les cartes 91–100 restent réservées à la future extraction des
-scénarios de jeu de rôle. Les rapports détaillés sont
+41 variantes. Les anciennes cartes 91–100 sont maintenant remplacées dans le
+modèle V3 par la bibliothèque de scénarios de session. Les rapports détaillés sont
 `docs/catalog_v3_cards_1_30.json`, `docs/catalog_v3_cards_31_60.json` et
 `docs/catalog_v3_cards_61_90.json`.
 

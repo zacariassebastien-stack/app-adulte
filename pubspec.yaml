@@ -27,3 +27,4 @@ flutter:
     - assets/catalog/source/profile_elements.v1.fr.json
     - assets/catalog/source/tags.v1.json
     - assets/catalog/source/catalog_v3_taxonomy.json
+    - assets/catalog/source/roleplay_scenarios.v1.fr.json

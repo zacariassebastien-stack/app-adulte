@@ -15,13 +15,29 @@
     "card.rp_royalty_servant",
     "card.rp_strangers"
   ],
+  "roleplay_scenarios": {
+    "count": 10,
+    "enabled": 10,
+    "ids": [
+      "roleplay.bar_meeting",
+      "roleplay.boss_employee",
+      "roleplay.celebrity_fan",
+      "roleplay.delivery",
+      "roleplay.masseur_client",
+      "roleplay.master_servant",
+      "roleplay.medical",
+      "roleplay.photographer_model",
+      "roleplay.royalty_servant",
+      "roleplay.strangers"
+    ]
+  },
   "legacy_mappings": {
     "total": 105,
     "mapped": 93,
     "without_v3_target": 12,
     "by_status": {
       "mapped": 93,
-      "scenario_pending": 10,
+      "scenario_migrated": 10,
       "deprecated": 2
     },
     "unmapped_tags_used_by_playable_cards": []

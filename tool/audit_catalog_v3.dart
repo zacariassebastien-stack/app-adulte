@@ -17,8 +17,36 @@ void main(List<String> args) {
   final taxonomy = V3Taxonomy.decode(
     File('$source/catalog_v3_taxonomy.json').readAsStringSync(),
   );
-  final report = const V3CoverageReportBuilder().build(catalog, taxonomy);
+  final scenarios = RoleplayScenarioLibrary.decode(
+    File('$source/roleplay_scenarios.v1.fr.json').readAsStringSync(),
+  );
+  final report = const V3CoverageReportBuilder().build(
+    catalog,
+    taxonomy,
+    scenarios,
+  );
   final encoded = const JsonEncoder.withIndent('  ').convert(report);
   if (outputPath != null) File(outputPath).writeAsStringSync('$encoded\n');
+  if (args.length > 1) {
+    final scenarioReport = {
+      'schema_version': 1,
+      'scenario_count': scenarios.scenarios.length,
+      'scenarios': [
+        for (final scenario in scenarios.scenarios)
+          {
+            'stable_id': scenario.stableId,
+            'title': scenario.title,
+            'enabled': scenario.enabled,
+            'roles': scenario.roles,
+            'legacy_card_id': scenario.legacyCardId,
+            'legacy_profile_id': scenario.legacyProfileId,
+            'legacy_tag_id': scenario.legacyTagId,
+          },
+      ],
+    };
+    File(args[1]).writeAsStringSync(
+      '${const JsonEncoder.withIndent('  ').convert(scenarioReport)}\n',
+    );
+  }
   stdout.writeln(encoded);
 }

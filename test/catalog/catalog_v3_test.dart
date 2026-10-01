@@ -10,10 +10,14 @@ const source = 'assets/catalog/source';
 void main() {
   late V3Taxonomy taxonomy;
   late Catalog catalog;
+  late RoleplayScenarioLibrary roleplayScenarios;
 
   setUpAll(() async {
     taxonomy = V3Taxonomy.decode(
       File('$source/catalog_v3_taxonomy.json').readAsStringSync(),
+    );
+    roleplayScenarios = RoleplayScenarioLibrary.decode(
+      File('$source/roleplay_scenarios.v1.fr.json').readAsStringSync(),
     );
     catalog = await const CatalogLoader().load(
       (path) => File(path).readAsString(),
@@ -133,7 +137,7 @@ void main() {
       everyElement(
         predicate<V3LegacyMapping>(
           (mapping) =>
-              mapping.status == 'scenario_pending' && mapping.v3TagIds.isEmpty,
+              mapping.status == 'scenario_migrated' && mapping.v3TagIds.isEmpty,
         ),
       ),
     );
@@ -174,14 +178,15 @@ void main() {
     expect(asked.kind, V3ClothingDeltaKind.askPlayer);
     expect(asked.value, isNull);
 
-    const session = V3SessionData(
+    final session = V3SessionData(
       removableClothingInitial: 4,
       removableClothingRemaining: 2,
       roleplayEnabled: true,
+      roleplayScenarios: roleplayScenarios,
       roleplayScenario: 'card.rp_strangers',
     );
     expect(session.removableClothingRemaining, 2);
-    expect(session.roleplayScenario, 'card.rp_strangers');
+    expect(session.roleplayScenarioId, 'roleplay.strangers');
 
     const requirements = V3Requirements(
       requiresVideo: true,
@@ -205,7 +210,13 @@ void main() {
       V3Requirements.fromJson(requirements.toJson()).toJson(),
       requirements.toJson(),
     );
-    expect(V3SessionData.fromJson(session.toJson()).toJson(), session.toJson());
+    expect(
+      V3SessionData.fromJson(
+        session.toJson(),
+        roleplayScenarios: roleplayScenarios,
+      ).toJson(),
+      session.toJson(),
+    );
     expect(V3ClothingDelta.fromJson(asked.toJson()).kind, asked.kind);
 
     final mechanics = V3CardMechanics(
@@ -216,16 +227,121 @@ void main() {
     expect(mechanics.engagementLevelFor(-1), 4);
   });
 
-  test('cards 91 to 100 are marked as future roleplay scenarios', () {
-    final expected = catalog.cards
-        .where((card) => card.order != null && card.order! >= 91)
-        .map((card) => card.stableId)
-        .toSet();
-    expect(taxonomy.roleplayScenarioCardIds.toSet(), expected);
+  test('V3 deck has 90 cards and ten dedicated roleplay scenarios', () {
+    final view = V3CatalogView(
+      catalog: catalog,
+      taxonomy: taxonomy,
+      roleplayScenarios: roleplayScenarios,
+    );
+    expect(view.playableCards, hasLength(90));
+    expect(view.playableCards.every((card) => card.order! <= 90), isTrue);
+    expect(roleplayScenarios.scenarios, hasLength(10));
+    expect(
+      catalog.cards.where((card) => card.order! >= 91),
+      everyElement(predicate<CardDefinition>((card) => !card.v3DeckEnabled)),
+    );
+    expect(
+      roleplayScenarios.scenarios
+          .map((scenario) => scenario.legacyCardId)
+          .toSet(),
+      taxonomy.roleplayScenarioCardIds.toSet(),
+    );
+    expect(
+      roleplayScenarios.scenarios,
+      everyElement(
+        predicate<RoleplayScenario>(
+          (scenario) =>
+              scenario.enabled && scenario.stableId.startsWith('roleplay.'),
+        ),
+      ),
+    );
+    final scenarioSource =
+        jsonDecode(
+              File('$source/roleplay_scenarios.v1.fr.json').readAsStringSync(),
+            )
+            as JsonMap;
+    expect(
+      (scenarioSource['scenarios']! as List).cast<JsonMap>(),
+      everyElement(
+        predicate<JsonMap>(
+          (scenario) =>
+              !scenario.containsKey('scoreable') &&
+              !scenario.containsKey('tags') &&
+              !scenario.containsKey('profile_elements'),
+        ),
+      ),
+    );
+    expect(
+      taxonomy.tags.where((tag) => tag.key == 'JEU_ROLE').single.scoreable,
+      isTrue,
+    );
+    expect(
+      taxonomy.tags.where(
+        (tag) => tag.stableId.startsWith('v3.preference.roleplay.'),
+      ),
+      isEmpty,
+    );
+  });
+
+  test('roleplay session selection is validated and changes no card rules', () {
+    final card = catalog.cards.singleWhere((card) => card.order == 31);
+    final tags = List<String>.of(card.v3!.tags);
+    final engagement = card.v3!.baseEngagementLevel;
+    final requirements = card.v3!.requirements.toJson();
+
+    final withoutScenario = V3SessionData(
+      removableClothingInitial: 3,
+      removableClothingRemaining: 3,
+      roleplayEnabled: true,
+      roleplayScenarios: roleplayScenarios,
+    );
+    expect(withoutScenario.roleplayScenarioId, isNull);
+    final disabled = V3SessionData(
+      removableClothingInitial: 3,
+      removableClothingRemaining: 3,
+      roleplayEnabled: false,
+      roleplayScenarios: roleplayScenarios,
+    );
+    expect(disabled.roleplayScenarioId, isNull);
+    expect(
+      () => V3SessionData(
+        removableClothingInitial: 3,
+        removableClothingRemaining: 3,
+        roleplayEnabled: false,
+        roleplayScenarios: roleplayScenarios,
+        roleplayScenarioId: 'roleplay.strangers',
+      ),
+      throwsFormatException,
+    );
+    expect(
+      () => V3SessionData(
+        removableClothingInitial: 3,
+        removableClothingRemaining: 3,
+        roleplayEnabled: true,
+        roleplayScenarios: roleplayScenarios,
+        roleplayScenarioId: 'roleplay.unknown',
+      ),
+      throwsFormatException,
+    );
+    final active = V3SessionData(
+      removableClothingInitial: 3,
+      removableClothingRemaining: 3,
+      roleplayEnabled: true,
+      roleplayScenarios: roleplayScenarios,
+      roleplayScenarioId: 'roleplay.strangers',
+    );
+    expect(active.roleplayScenarioId, 'roleplay.strangers');
+    expect(card.v3!.tags, tags);
+    expect(card.v3!.baseEngagementLevel, engagement);
+    expect(card.v3!.requirements.toJson(), requirements);
   });
 
   test('inverse coverage report is deterministic and current', () {
-    final report = const V3CoverageReportBuilder().build(catalog, taxonomy);
+    final report = const V3CoverageReportBuilder().build(
+      catalog,
+      taxonomy,
+      roleplayScenarios,
+    );
     expect(report['playable_cards_analyzed'], 90);
     expect(report['coverage_by_category'], isA<Map<String, Object?>>());
     expect(

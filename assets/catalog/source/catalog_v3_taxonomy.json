@@ -1165,61 +1165,61 @@
       "legacy_tag_id": "tag.roleplay.bar_meeting",
       "legacy_profile_id": "profile.roleplay.bar_meeting",
       "v3_tag_ids": [],
-      "status": "scenario_pending"
+      "status": "scenario_migrated"
     },
     {
       "legacy_tag_id": "tag.roleplay.boss_employee",
       "legacy_profile_id": "profile.roleplay.boss_employee",
       "v3_tag_ids": [],
-      "status": "scenario_pending"
+      "status": "scenario_migrated"
     },
     {
       "legacy_tag_id": "tag.roleplay.celebrity_fan",
       "legacy_profile_id": "profile.roleplay.celebrity_fan",
       "v3_tag_ids": [],
-      "status": "scenario_pending"
+      "status": "scenario_migrated"
     },
     {
       "legacy_tag_id": "tag.roleplay.delivery",
       "legacy_profile_id": "profile.roleplay.delivery",
       "v3_tag_ids": [],
-      "status": "scenario_pending"
+      "status": "scenario_migrated"
     },
     {
       "legacy_tag_id": "tag.roleplay.masseur_client",
       "legacy_profile_id": "profile.roleplay.masseur_client",
       "v3_tag_ids": [],
-      "status": "scenario_pending"
+      "status": "scenario_migrated"
     },
     {
       "legacy_tag_id": "tag.roleplay.master_servant",
       "legacy_profile_id": "profile.roleplay.master_servant",
       "v3_tag_ids": [],
-      "status": "scenario_pending"
+      "status": "scenario_migrated"
     },
     {
       "legacy_tag_id": "tag.roleplay.medical",
       "legacy_profile_id": "profile.roleplay.medical",
       "v3_tag_ids": [],
-      "status": "scenario_pending"
+      "status": "scenario_migrated"
     },
     {
       "legacy_tag_id": "tag.roleplay.photographer_model",
       "legacy_profile_id": "profile.roleplay.photographer_model",
       "v3_tag_ids": [],
-      "status": "scenario_pending"
+      "status": "scenario_migrated"
     },
     {
       "legacy_tag_id": "tag.roleplay.royalty_servant",
       "legacy_profile_id": "profile.roleplay.royalty_servant",
       "v3_tag_ids": [],
-      "status": "scenario_pending"
+      "status": "scenario_migrated"
     },
     {
       "legacy_tag_id": "tag.roleplay.strangers",
       "legacy_profile_id": "profile.roleplay.strangers",
       "v3_tag_ids": [],
-      "status": "scenario_pending"
+      "status": "scenario_migrated"
     },
     {
       "legacy_tag_id": "tag.sensory.bite",

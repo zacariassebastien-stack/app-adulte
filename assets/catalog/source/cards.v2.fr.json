@@ -7587,7 +7587,8 @@
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.rp_photographer",
@@ -7689,7 +7690,8 @@
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.rp_masseur",
@@ -7762,7 +7764,8 @@
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.rp_master_servant",
@@ -7836,7 +7839,8 @@
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.rp_royalty_servant",
@@ -7882,7 +7886,8 @@
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.rp_celebrity_fan",
@@ -7928,7 +7933,8 @@
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.rp_delivery",
@@ -7974,7 +7980,8 @@
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.rp_boss_employee",
@@ -8020,7 +8027,8 @@
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.rp_medical",
@@ -8065,7 +8073,8 @@
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.rp_bar",
@@ -8140,7 +8149,8 @@
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3_deck_enabled": false
     }
   ]
 }

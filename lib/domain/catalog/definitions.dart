@@ -123,6 +123,7 @@ final class CardDefinition extends ActionDefinition {
     descriptionKey;
     directionality;
     order;
+    v3DeckEnabled;
     v3;
     variants = reader.objects(
       'variants',
@@ -152,6 +153,7 @@ final class CardDefinition extends ActionDefinition {
       ? reader.enumeration('directionality', CardDirectionality.values)
       : null;
   int? get order => reader.optionalInteger('order', min: 0);
+  bool get v3DeckEnabled => reader.boolean('v3_deck_enabled', fallback: true);
   V3EditorialData? get v3 => reader.json['v3'] == null
       ? null
       : V3EditorialData.fromJson(reader.json['v3']! as JsonMap);
