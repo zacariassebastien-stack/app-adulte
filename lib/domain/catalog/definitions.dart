@@ -124,6 +124,9 @@ final class CardDefinition extends ActionDefinition {
     directionality;
     order;
     v3DeckEnabled;
+    v3ReplacementCardId;
+    v3ReplacementVariantId;
+    v3ReplacementSessionField;
     v3;
     variants = reader.objects(
       'variants',
@@ -154,6 +157,12 @@ final class CardDefinition extends ActionDefinition {
       : null;
   int? get order => reader.optionalInteger('order', min: 0);
   bool get v3DeckEnabled => reader.boolean('v3_deck_enabled', fallback: true);
+  String? get v3ReplacementCardId =>
+      reader.optionalString('v3_replacement_card_id');
+  String? get v3ReplacementVariantId =>
+      reader.optionalString('v3_replacement_variant_id');
+  String? get v3ReplacementSessionField =>
+      reader.optionalString('v3_replacement_session_field');
   V3EditorialData? get v3 => reader.json['v3'] == null
       ? null
       : V3EditorialData.fromJson(reader.json['v3']! as JsonMap);
@@ -171,6 +180,9 @@ final class CardVariantDefinition extends ActionDefinition {
     removedTags;
     participantOverrides;
     inversionOverride;
+    v3DeckEnabled;
+    v3ReplacementCardId;
+    v3ReplacementVariantId;
     v3;
     stateEffects = reader.objects(
       'state_effects',
@@ -190,6 +202,11 @@ final class CardVariantDefinition extends ActionDefinition {
       reader.json['inversion_override'] == null
       ? null
       : reader.enumeration('inversion_override', InversionPolicy.values);
+  bool get v3DeckEnabled => reader.boolean('v3_deck_enabled', fallback: true);
+  String? get v3ReplacementCardId =>
+      reader.optionalString('v3_replacement_card_id');
+  String? get v3ReplacementVariantId =>
+      reader.optionalString('v3_replacement_variant_id');
   V3EditorialData? get v3 => reader.json['v3'] == null
       ? null
       : V3EditorialData.fromJson(reader.json['v3']! as JsonMap);

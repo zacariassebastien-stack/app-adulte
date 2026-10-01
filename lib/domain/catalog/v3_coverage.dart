@@ -37,7 +37,7 @@ final class V3CoverageReportBuilder {
     var variantCount = 0;
 
     for (final card in view.playableCards) {
-      for (final variant in card.variants) {
+      for (final variant in view.playableVariants(card)) {
         variantCount++;
         final explicitV3 = variant.v3 ?? card.v3;
         final v3Ids = <String>{};
@@ -187,6 +187,148 @@ final class V3CoverageReportBuilder {
     return legacyModeRequirements.every(
       (requirement) => requirement.sessionModes.contains(SessionMode.distance),
     );
+  }
+}
+
+final class V3ConsolidationReportBuilder {
+  const V3ConsolidationReportBuilder();
+
+  static const preferenceLessBefore = <String>[
+    'variant.manual_intimate.base',
+    'variant.oral_give.base',
+    'variant.oral_receive.base',
+    'variant.sixty_nine.base',
+    'variant.anal_play.base',
+    'variant.anal_oral.base',
+    'variant.facesitting.base',
+    'variant.chest_play.base',
+    'variant.nipple_stimulation.base',
+    'variant.feet_play.base',
+    'variant.guess_touch.base',
+    'variant.sensory_play.base',
+    'variant.sensory_play.eyes',
+    'variant.look_at_me.base',
+    'variant.private_exhibition.base',
+    'variant.private_exhibition.nude',
+    'variant.pose.base',
+    'variant.private_video_call.base',
+    'variant.nude_video_call.base',
+  ];
+
+  static const createdVariants = <String>[
+    'variant.oral_give.suck',
+    'variant.oral_receive.suck',
+    'variant.sixty_nine.suck',
+    'variant.anal_manual.internal',
+    'variant.chest_play.massage',
+    'variant.nipple_stimulation.pinch',
+    'variant.simultaneous_self_masturbation.base',
+  ];
+
+  Map<String, Object?> build(
+    Catalog catalog,
+    V3Taxonomy taxonomy,
+    RoleplayScenarioLibrary roleplayScenarios,
+  ) {
+    final view = V3CatalogView(
+      catalog: catalog,
+      taxonomy: taxonomy,
+      roleplayScenarios: roleplayScenarios,
+    );
+    final preferences = taxonomy.tags
+        .where(
+          (tag) => tag.category == V3TagCategory.PREFERENCE && tag.scoreable,
+        )
+        .map((tag) => tag.stableId)
+        .toSet();
+    final preferenceLessAfter = <String>[];
+    final remainingAmbiguities = <Map<String, Object?>>[];
+    var variantCount = 0;
+    for (final card in view.playableCards) {
+      for (final variant in view.playableVariants(card)) {
+        variantCount++;
+        final editorial = variant.v3 ?? card.v3;
+        if (editorial == null || !editorial.tags.any(preferences.contains)) {
+          preferenceLessAfter.add(variant.stableId);
+        }
+        if (editorial != null && editorial.ambiguities.isNotEmpty) {
+          remainingAmbiguities.add({
+            'card_id': card.stableId,
+            'variant_id': variant.stableId,
+            'ambiguities': editorial.ambiguities,
+          });
+        }
+      }
+    }
+
+    final scenarioIds = roleplayScenarios.legacyCardIds;
+    final removed =
+        catalog.cards
+            .where(
+              (card) =>
+                  !card.v3DeckEnabled && !scenarioIds.contains(card.stableId),
+            )
+            .map((card) => card.stableId)
+            .toList()
+          ..sort();
+    final replacements = <Map<String, Object?>>[];
+    for (final card in catalog.cards) {
+      if (card.v3ReplacementCardId != null ||
+          card.v3ReplacementSessionField != null) {
+        replacements.add({
+          'source_id': card.stableId,
+          if (card.v3ReplacementCardId != null)
+            'replacement_card_id': card.v3ReplacementCardId,
+          if (card.v3ReplacementVariantId != null)
+            'replacement_variant_id': card.v3ReplacementVariantId,
+          if (card.v3ReplacementSessionField != null)
+            'replacement_session_field': card.v3ReplacementSessionField,
+        });
+      }
+      for (final variant in card.variants) {
+        if (variant.v3ReplacementCardId != null) {
+          replacements.add({
+            'source_id': variant.stableId,
+            'replacement_card_id': variant.v3ReplacementCardId,
+            'replacement_variant_id': variant.v3ReplacementVariantId,
+          });
+        }
+      }
+    }
+    replacements.sort(
+      (left, right) => (left['source_id']! as String).compareTo(
+        right['source_id']! as String,
+      ),
+    );
+    preferenceLessAfter.sort();
+
+    final coverage = const V3CoverageReportBuilder().build(
+      catalog,
+      taxonomy,
+      roleplayScenarios,
+    );
+    return {
+      'schema_version': 1,
+      'removed_from_v3_deck': removed,
+      'replacement_mappings': replacements,
+      'new_v3_cards': [
+        for (final card in view.playableCards.where(
+          (card) => (card.order ?? 0) > 100,
+        ))
+          card.stableId,
+      ],
+      'created_variants': createdVariants,
+      'preference_less_before': preferenceLessBefore,
+      'preference_less_after': preferenceLessAfter,
+      'remaining_ambiguities': remainingAmbiguities,
+      'counts_before': const {'playable_cards': 90, 'playable_variants': 119},
+      'counts_after': {
+        'playable_cards': view.playableCards.length,
+        'playable_variants': variantCount,
+      },
+      'zero_coverage_count_before': 52,
+      'coverage': coverage,
+    };
   }
 }
 

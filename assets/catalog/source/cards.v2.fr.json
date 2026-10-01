@@ -1636,7 +1636,10 @@
             "baseEngagementLevel": 2,
             "requirements": {},
             "clothingDelta": "ASK_PLAYER"
-          }
+          },
+          "v3_deck_enabled": false,
+          "v3_replacement_card_id": "card.striptease",
+          "v3_replacement_variant_id": "variant.striptease.underwear"
         },
         {
           "stable_id": "variant.striptease.underwear",
@@ -1812,7 +1815,10 @@
         "requirements": {},
         "clothingDelta": "ASK_PLAYER",
         "mergeCandidateWith": "card.striptease"
-      }
+      },
+      "v3_deck_enabled": false,
+      "v3_replacement_card_id": "card.striptease",
+      "v3_replacement_variant_id": "variant.striptease.full"
     },
     {
       "stable_id": "card.choose_outfit",
@@ -2942,11 +2948,7 @@
             "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "splitCandidate": true,
-            "ambiguities": [
-              "La formulation ne distingue pas une action réciproque physique de deux actions SOLO simultanées."
-            ]
+            }
           }
         }
       ],
@@ -2962,11 +2964,7 @@
         "baseEngagementLevel": 4,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "splitCandidate": true,
-        "ambiguities": [
-          "La formulation ne distingue pas une action réciproque physique de deux actions SOLO simultanées."
-        ]
+        }
       }
     },
     {
@@ -3042,7 +3040,8 @@
         "ambiguities": [
           "Le texte ne permet pas de choisir entre CARESSER, MASTURBATION ou PENETRER avec les DOIGTS."
         ]
-      }
+      },
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.oral_give",
@@ -3068,7 +3067,7 @@
       "variants": [
         {
           "stable_id": "variant.oral_give.base",
-          "title": "Sexe oral",
+          "title": "Lécher les parties intimes",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3086,17 +3085,46 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
+              "v3.preference.lecher",
               "v3.zone.parties_intimes",
               "v3.direction.faire"
             ],
             "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Le texte ne tranche pas entre LECHER et SUCER."
-            ]
+            }
           }
+        },
+        {
+          "stable_id": "variant.oral_give.suck",
+          "title": "Sucer les parties intimes",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sucer",
+              "v3.zone.parties_intimes",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -3105,16 +3133,14 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
+          "v3.preference.lecher",
           "v3.zone.parties_intimes",
           "v3.direction.faire"
         ],
         "baseEngagementLevel": 4,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Le texte ne tranche pas entre LECHER et SUCER."
-        ]
+        }
       }
     },
     {
@@ -3141,7 +3167,7 @@
       "variants": [
         {
           "stable_id": "variant.oral_receive.base",
-          "title": "Reçois du sexe oral",
+          "title": "Être léché(e)",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3159,17 +3185,46 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
+              "v3.preference.lecher",
               "v3.zone.parties_intimes",
               "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Le texte ne tranche pas entre LECHER et SUCER."
-            ]
+            }
           }
+        },
+        {
+          "stable_id": "variant.oral_receive.suck",
+          "title": "Être sucé(e)",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sucer",
+              "v3.zone.parties_intimes",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -3178,16 +3233,14 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
+          "v3.preference.lecher",
           "v3.zone.parties_intimes",
           "v3.direction.recevoir"
         ],
         "baseEngagementLevel": 4,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Le texte ne tranche pas entre LECHER et SUCER."
-        ]
+        }
       }
     },
     {
@@ -3214,7 +3267,7 @@
       "variants": [
         {
           "stable_id": "variant.sixty_nine.base",
-          "title": "69",
+          "title": "69 — lécher",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3232,17 +3285,48 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
+              "v3.preference.lecher",
+              "v3.zone.parties_intimes",
               "v3.direction.mutuel",
               "v3.direction.simultane"
             ],
             "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Le texte ne précise pas les actions orales réellement pratiquées."
-            ]
+            }
           }
+        },
+        {
+          "stable_id": "variant.sixty_nine.suck",
+          "title": "69 — sucer",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sucer",
+              "v3.zone.parties_intimes",
+              "v3.direction.mutuel",
+              "v3.direction.simultane"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -3251,16 +3335,15 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
+          "v3.preference.lecher",
+          "v3.zone.parties_intimes",
           "v3.direction.mutuel",
           "v3.direction.simultane"
         ],
         "baseEngagementLevel": 4,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Le texte ne précise pas les actions orales réellement pratiquées."
-        ]
+        }
       }
     },
     {
@@ -3464,7 +3547,10 @@
             "ambiguities": [
               "La carte générique ne précise pas l’action anale."
             ]
-          }
+          },
+          "v3_deck_enabled": false,
+          "v3_replacement_card_id": "card.anal_play",
+          "v3_replacement_variant_id": "variant.anal_play.external"
         },
         {
           "stable_id": "variant.anal_play.external",
@@ -3551,15 +3637,13 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
+          "v3.preference.caresser",
           "v3.zone.anal"
         ],
         "baseEngagementLevel": 4,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "La carte générique ne précise pas l’action anale."
-        ]
+        }
       }
     },
     {
@@ -3657,7 +3741,7 @@
       "variants": [
         {
           "stable_id": "variant.anal_manual.base",
-          "title": "Stimulation anale manuelle",
+          "title": "Caresse anale externe",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3675,7 +3759,7 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
-              "v3.preference.doigts",
+              "v3.preference.caresser",
               "v3.zone.anal",
               "v3.direction.faire",
               "v3.direction.recevoir"
@@ -3683,11 +3767,41 @@
             "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Le texte ne distingue pas stimulation externe et pénétration digitale."
-            ]
+            }
           }
+        },
+        {
+          "stable_id": "variant.anal_manual.internal",
+          "title": "Pénétration anale avec les doigts",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.preference.doigts",
+              "v3.zone.anal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 5,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -3696,7 +3810,7 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
-          "v3.preference.doigts",
+          "v3.preference.caresser",
           "v3.zone.anal",
           "v3.direction.faire",
           "v3.direction.recevoir"
@@ -3704,10 +3818,7 @@
         "baseEngagementLevel": 4,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Le texte ne distingue pas stimulation externe et pénétration digitale."
-        ]
+        }
       }
     },
     {
@@ -3811,7 +3922,7 @@
       "variants": [
         {
           "stable_id": "variant.anal_oral.base",
-          "title": "Sexe oral anal",
+          "title": "Lécher la zone anale",
           "chili_level": 5,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3829,17 +3940,15 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
+              "v3.preference.lecher",
               "v3.zone.anal",
               "v3.direction.faire",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 4,
+            "baseEngagementLevel": 5,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Le texte ne tranche pas entre LECHER et SUCER."
-            ]
+            }
           }
         }
       ],
@@ -3849,17 +3958,15 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
+          "v3.preference.lecher",
           "v3.zone.anal",
           "v3.direction.faire",
           "v3.direction.recevoir"
         ],
-        "baseEngagementLevel": 4,
+        "baseEngagementLevel": 5,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Le texte ne tranche pas entre LECHER et SUCER."
-        ]
+        }
       }
     },
     {
@@ -3933,7 +4040,8 @@
         "ambiguities": [
           "Le contenu est trop ouvert pour attribuer une préférence, une zone ou une position précise."
         ]
-      }
+      },
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.genital_rubbing",
@@ -4028,7 +4136,7 @@
       "variants": [
         {
           "stable_id": "variant.chest_play.base",
-          "title": "Jeu avec les seins / torse",
+          "title": "Caresser la poitrine",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -4046,6 +4154,7 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
+              "v3.preference.caresser",
               "v3.zone.poitrine",
               "v3.direction.faire",
               "v3.direction.recevoir"
@@ -4053,11 +4162,40 @@
             "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "L’action appliquée à la poitrine n’est pas précisée."
-            ]
+            }
           }
+        },
+        {
+          "stable_id": "variant.chest_play.massage",
+          "title": "Masser la poitrine",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.zone.poitrine",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -4066,6 +4204,7 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
+          "v3.preference.caresser",
           "v3.zone.poitrine",
           "v3.direction.faire",
           "v3.direction.recevoir"
@@ -4073,10 +4212,7 @@
         "baseEngagementLevel": 2,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "L’action appliquée à la poitrine n’est pas précisée."
-        ]
+        }
       }
     },
     {
@@ -4103,7 +4239,7 @@
       "variants": [
         {
           "stable_id": "variant.nipple_stimulation.base",
-          "title": "Stimulation des tétons",
+          "title": "Caresser les tétons",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -4121,6 +4257,7 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
+              "v3.preference.caresser",
               "v3.zone.tetons",
               "v3.direction.faire",
               "v3.direction.recevoir"
@@ -4128,11 +4265,40 @@
             "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "L’action appliquée aux tétons n’est pas précisée."
-            ]
+            }
           }
+        },
+        {
+          "stable_id": "variant.nipple_stimulation.pinch",
+          "title": "Pincer les tétons",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.pincer",
+              "v3.zone.tetons",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -4141,6 +4307,7 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
+          "v3.preference.caresser",
           "v3.zone.tetons",
           "v3.direction.faire",
           "v3.direction.recevoir"
@@ -4148,10 +4315,7 @@
         "baseEngagementLevel": 3,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "L’action appliquée aux tétons n’est pas précisée."
-        ]
+        }
       }
     },
     {
@@ -4227,7 +4391,8 @@
         "ambiguities": [
           "L’action impliquant les pieds n’est pas précisée."
         ]
-      }
+      },
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.dominate_me",
@@ -5241,7 +5406,8 @@
         "ambiguities": [
           "La mécanique de devinette au toucher ne justifie ni TOUCHER générique, ni TEXTURE sans précision éditoriale."
         ]
-      }
+      },
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.temperature_play",
@@ -5407,7 +5573,9 @@
             "ambiguities": [
               "La variante yeux fermés est une mise en scène sans tag YEUX_FERMES ni YEUX_BANDES."
             ]
-          }
+          },
+          "v3_replacement_card_id": "card.close_eyes",
+          "v3_replacement_variant_id": "variant.close_eyes.base"
         },
         {
           "stable_id": "variant.sensory_play.blindfold",
@@ -5445,7 +5613,9 @@
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
-          }
+          },
+          "v3_replacement_card_id": "card.blindfold",
+          "v3_replacement_variant_id": "variant.blindfold.base"
         },
         {
           "stable_id": "variant.sensory_play.temperature",
@@ -5483,7 +5653,9 @@
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
-          }
+          },
+          "v3_replacement_card_id": "card.temperature_play",
+          "v3_replacement_variant_id": "variant.temperature_play.base"
         }
       ],
       "parameters": [],
@@ -5504,7 +5676,8 @@
           "card.close_eyes",
           "card.temperature_play"
         ]
-      }
+      },
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.spanking",
@@ -5934,7 +6107,8 @@
         ],
         "baseEngagementLevel": 1,
         "requirements": {}
-      }
+      },
+      "v3_deck_enabled": false
     },
     {
       "stable_id": "card.let_me_watch",
@@ -6047,7 +6221,8 @@
             ],
             "baseEngagementLevel": 3,
             "requirements": {}
-          }
+          },
+          "v3_deck_enabled": false
         },
         {
           "stable_id": "variant.private_exhibition.underwear",
@@ -6122,7 +6297,8 @@
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
-          }
+          },
+          "v3_deck_enabled": false
         }
       ],
       "parameters": [],
@@ -6131,9 +6307,10 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
+          "v3.preference.sous_vetements",
           "v3.direction.etre_regarde"
         ],
-        "baseEngagementLevel": 3,
+        "baseEngagementLevel": 2,
         "requirements": {}
       }
     },
@@ -6374,7 +6551,8 @@
             ],
             "baseEngagementLevel": 1,
             "requirements": {}
-          }
+          },
+          "v3_deck_enabled": false
         },
         {
           "stable_id": "variant.pose.partner_choice",
@@ -6421,9 +6599,10 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
+          "v3.preference.controle",
           "v3.direction.etre_regarde"
         ],
-        "baseEngagementLevel": 1,
+        "baseEngagementLevel": 2,
         "requirements": {}
       }
     },
@@ -7405,7 +7584,9 @@
         ],
         "deckRemovalCandidate": true,
         "sessionDataCandidate": true
-      }
+      },
+      "v3_deck_enabled": false,
+      "v3_replacement_session_field": "visioEnabled"
     },
     {
       "stable_id": "card.nude_video_call",
@@ -7478,7 +7659,9 @@
         ],
         "deckRemovalCandidate": true,
         "sessionDataCandidate": true
-      }
+      },
+      "v3_deck_enabled": false,
+      "v3_replacement_session_field": "visioEnabled"
     },
     {
       "stable_id": "card.remote_instruction",
@@ -8151,6 +8334,73 @@
       "enabled": true,
       "directionality": "CONTEXTUAL",
       "v3_deck_enabled": false
+    },
+    {
+      "stable_id": "card.simultaneous_self_masturbation",
+      "order": 101,
+      "content_version": 1,
+      "title": "Masturbation simultanée",
+      "title_key": "cards.simultaneous_self_masturbation.title",
+      "precision": "PRECISE",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [
+        "intimate.masturbation.self"
+      ],
+      "profile_requirements": [
+        {
+          "element_id": "profile.intimate.masturbation.self",
+          "role": "GENERAL",
+          "requirement": "REQUIRED"
+        }
+      ],
+      "technical_requirements": [],
+      "inversion_policy": "NONE",
+      "variants": [
+        {
+          "stable_id": "variant.simultaneous_self_masturbation.base",
+          "title": "Chacun se masturbe en même temps",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masturbation",
+              "v3.direction.solo",
+              "v3.direction.simultane"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {}
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "directionality": "MUTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.masturbation",
+          "v3.direction.solo",
+          "v3.direction.simultane"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {}
+      }
     }
   ]
 }

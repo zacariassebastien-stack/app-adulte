@@ -55,7 +55,7 @@ void main() {
       expect((metrics['counters'] as Map)['sessions'], 54);
       expect((metrics['counters'] as Map)['invariantViolations'] ?? 0, 0);
       expect(metrics['anomalies'], isEmpty);
-      expect(catalog.cards.length, 100);
+      expect(catalog.cards.length, 101);
       final coverage = r['catalogCoverage']! as Map;
       expect((coverage['unusedTags'] as List).length, lessThan(105));
     },

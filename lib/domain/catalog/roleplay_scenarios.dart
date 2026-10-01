@@ -166,11 +166,64 @@ final class V3CatalogView {
     playableCards = List.unmodifiable(
       catalog.cards.where((card) => card.v3DeckEnabled),
     );
-    if (playableCards.length != 90 ||
-        roleplayScenarios.scenarios.length != 10) {
+    if (roleplayScenarios.scenarios.length != 10) {
       throw const FormatException(
-        'V3 catalogue requires 90 playable cards and 10 roleplay scenarios',
+        'V3 catalogue requires 10 roleplay scenarios',
       );
+    }
+    for (final card in catalog.cards) {
+      final replacementCardId = card.v3ReplacementCardId;
+      final replacementVariantId = card.v3ReplacementVariantId;
+      if (replacementVariantId != null && replacementCardId == null) {
+        throw FormatException(
+          'A replacement variant requires a replacement card: ${card.stableId}',
+        );
+      }
+      if (replacementCardId != null) {
+        final replacement = cardsById[replacementCardId];
+        if (replacement == null || !replacement.v3DeckEnabled) {
+          throw FormatException(
+            'Invalid V3 replacement card for ${card.stableId}: '
+            '$replacementCardId',
+          );
+        }
+        if (replacementVariantId != null &&
+            !replacement.variants.any(
+              (variant) =>
+                  variant.stableId == replacementVariantId &&
+                  variant.v3DeckEnabled,
+            )) {
+          throw FormatException(
+            'Invalid V3 replacement variant for ${card.stableId}: '
+            '$replacementVariantId',
+          );
+        }
+      }
+      if (card.v3DeckEnabled && playableVariants(card).isEmpty) {
+        throw FormatException(
+          'Playable V3 card has no playable variant: ${card.stableId}',
+        );
+      }
+      for (final variant in card.variants) {
+        final variantReplacementCardId = variant.v3ReplacementCardId;
+        final variantReplacementId = variant.v3ReplacementVariantId;
+        if (variantReplacementCardId == null && variantReplacementId == null) {
+          continue;
+        }
+        final replacement = cardsById[variantReplacementCardId];
+        if (replacement == null ||
+            !replacement.v3DeckEnabled ||
+            variantReplacementId == null ||
+            !replacement.variants.any(
+              (candidate) =>
+                  candidate.stableId == variantReplacementId &&
+                  candidate.v3DeckEnabled,
+            )) {
+          throw FormatException(
+            'Invalid V3 replacement for ${variant.stableId}',
+          );
+        }
+      }
     }
   }
 
@@ -178,4 +231,7 @@ final class V3CatalogView {
   final V3Taxonomy taxonomy;
   final RoleplayScenarioLibrary roleplayScenarios;
   late final List<CardDefinition> playableCards;
+
+  Iterable<CardVariantDefinition> playableVariants(CardDefinition card) =>
+      card.variants.where((variant) => variant.v3DeckEnabled);
 }

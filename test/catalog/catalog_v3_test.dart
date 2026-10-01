@@ -182,11 +182,13 @@ void main() {
       removableClothingInitial: 4,
       removableClothingRemaining: 2,
       roleplayEnabled: true,
+      visioEnabled: true,
       roleplayScenarios: roleplayScenarios,
       roleplayScenario: 'card.rp_strangers',
     );
     expect(session.removableClothingRemaining, 2);
     expect(session.roleplayScenarioId, 'roleplay.strangers');
+    expect(session.visioEnabled, isTrue);
 
     const requirements = V3Requirements(
       requiresVideo: true,
@@ -227,17 +229,22 @@ void main() {
     expect(mechanics.engagementLevelFor(-1), 4);
   });
 
-  test('V3 deck has 90 cards and ten dedicated roleplay scenarios', () {
+  test('V3 deck has consolidated cards and ten roleplay scenarios', () {
     final view = V3CatalogView(
       catalog: catalog,
       taxonomy: taxonomy,
       roleplayScenarios: roleplayScenarios,
     );
-    expect(view.playableCards, hasLength(90));
-    expect(view.playableCards.every((card) => card.order! <= 90), isTrue);
+    expect(view.playableCards, hasLength(82));
+    expect(
+      view.playableCards.map((card) => card.stableId),
+      contains('card.simultaneous_self_masturbation'),
+    );
     expect(roleplayScenarios.scenarios, hasLength(10));
     expect(
-      catalog.cards.where((card) => card.order! >= 91),
+      catalog.cards.where(
+        (card) => roleplayScenarios.legacyCardIds.contains(card.stableId),
+      ),
       everyElement(predicate<CardDefinition>((card) => !card.v3DeckEnabled)),
     );
     expect(
@@ -342,7 +349,7 @@ void main() {
       taxonomy,
       roleplayScenarios,
     );
-    expect(report['playable_cards_analyzed'], 90);
+    expect(report['playable_cards_analyzed'], 82);
     expect(report['coverage_by_category'], isA<Map<String, Object?>>());
     expect(
       (report['coverage_by_category']! as Map<String, Object?>).keys,
@@ -355,9 +362,10 @@ void main() {
     );
   });
 
-  test('only cards 1 to 90 have explicit V3 editorial data after batch 2C', () {
+  test('legacy action cards and V3 additions have editorial data', () {
     for (final card in catalog.cards) {
-      if (card.order! <= 90) {
+      if (card.order! <= 90 ||
+          card.stableId == 'card.simultaneous_self_masturbation') {
         expect(card.v3, isNotNull, reason: card.stableId);
         expect(
           card.variants,
@@ -508,7 +516,7 @@ void main() {
     expect(card(33).v3!.requirements.distanceExcluded, isTrue);
     expect(tags(34), contains('v3.direction.mutuel'));
     expect(tags(34), isNot(contains('v3.direction.simultane')));
-    expect(card(34).v3!.splitCandidate, isTrue);
+    expect(card(34).v3!.splitCandidate, isFalse);
     expect(card(34).v3!.requirements.distanceExcluded, isTrue);
 
     for (final order in [36, 37, 38, 45]) {
@@ -608,6 +616,8 @@ void main() {
       expect(tags(order), isNot(contains('v3.preference.visio')));
       expect(card(order).v3!.deckRemovalCandidate, isTrue);
       expect(card(order).v3!.sessionDataCandidate, isTrue);
+      expect(card(order).v3DeckEnabled, isFalse);
+      expect(card(order).v3ReplacementSessionField, 'visioEnabled');
     }
     expect(tags(90), {'v3.preference.ordres', 'v3.direction.recevoir'});
     expect(card(65).v3!.rationalizationCandidates, [
@@ -616,4 +626,140 @@ void main() {
       'card.temperature_play',
     ]);
   });
+
+  test(
+    'consolidation aliases preserve legacy IDs and target playable V3 data',
+    () {
+      final view = V3CatalogView(
+        catalog: catalog,
+        taxonomy: taxonomy,
+        roleplayScenarios: roleplayScenarios,
+      );
+      CardDefinition card(int order) =>
+          catalog.cards.singleWhere((card) => card.order == order);
+
+      expect(card(19).v3DeckEnabled, isFalse);
+      expect(card(19).v3ReplacementCardId, 'card.striptease');
+      expect(card(19).v3ReplacementVariantId, 'variant.striptease.full');
+      expect(card(65).v3DeckEnabled, isFalse);
+      expect(
+        card(65).variants
+            .singleWhere(
+              (variant) => variant.stableId == 'variant.sensory_play.blindfold',
+            )
+            .v3ReplacementVariantId,
+        'variant.blindfold.base',
+      );
+      expect(
+        view.playableVariants(card(18)).map((variant) => variant.stableId),
+        ['variant.striptease.underwear', 'variant.striptease.full'],
+      );
+      expect(
+        catalog.cards.map((card) => card.stableId),
+        containsAll([
+          'card.full_striptease',
+          'card.sensory_play',
+          'card.private_video_call',
+          'card.nude_video_call',
+        ]),
+      );
+    },
+  );
+
+  test('masturbation concepts preserve direction and distance semantics', () {
+    final physical = catalog.cards.singleWhere((card) => card.order == 34);
+    final simultaneous = catalog.cards.singleWhere(
+      (card) => card.stableId == 'card.simultaneous_self_masturbation',
+    );
+    expect(physical.v3!.tags, [
+      'v3.preference.masturbation',
+      'v3.direction.mutuel',
+    ]);
+    expect(physical.v3!.requirements.distanceExcluded, isTrue);
+    expect(
+      simultaneous.v3!.tags,
+      containsAll([
+        'v3.preference.masturbation',
+        'v3.direction.solo',
+        'v3.direction.simultane',
+      ]),
+    );
+    expect(simultaneous.v3!.tags, isNot(contains('v3.direction.mutuel')));
+    expect(simultaneous.v3!.requirements.isDistanceCompatible, isTrue);
+  });
+
+  test('oral and body variants use explicit scoreable actions', () {
+    CardDefinition card(int order) =>
+        catalog.cards.singleWhere((card) => card.order == order);
+    for (final order in [36, 37, 38]) {
+      final variants = card(order).variants;
+      expect(variants, hasLength(2));
+      expect(
+        variants.map((variant) => variant.v3!.tags),
+        everyElement(
+          predicate<List<String>>(
+            (tags) =>
+                tags.contains('v3.preference.lecher') ||
+                tags.contains('v3.preference.sucer'),
+          ),
+        ),
+      );
+    }
+    expect(card(45).v3!.tags, contains('v3.preference.lecher'));
+    for (final order in [36, 37, 38, 45]) {
+      for (final variant in card(order).variants) {
+        expect(variant.v3!.tags, isNot(contains('v3.zone.buccal')));
+      }
+    }
+    for (final variant in card(49).variants) {
+      expect(variant.v3!.tags, contains('v3.zone.tetons'));
+      expect(variant.v3!.tags, isNot(contains('v3.zone.poitrine')));
+    }
+  });
+
+  test('every playable V3 variant has a scoreable preference', () {
+    final view = V3CatalogView(
+      catalog: catalog,
+      taxonomy: taxonomy,
+      roleplayScenarios: roleplayScenarios,
+    );
+    final preferences = taxonomy.tags
+        .where(
+          (tag) => tag.category == V3TagCategory.PREFERENCE && tag.scoreable,
+        )
+        .map((tag) => tag.stableId)
+        .toSet();
+    final missing = <String>[];
+    for (final card in view.playableCards) {
+      for (final variant in view.playableVariants(card)) {
+        if (!variant.v3!.tags.any(preferences.contains)) {
+          missing.add(variant.stableId);
+        }
+      }
+    }
+    expect(missing, isEmpty);
+  });
+
+  test(
+    'consolidation audit is deterministic and records no preference gap',
+    () {
+      final report = const V3ConsolidationReportBuilder().build(
+        catalog,
+        taxonomy,
+        roleplayScenarios,
+      );
+      expect(report['preference_less_before'], hasLength(19));
+      expect(report['preference_less_after'], isEmpty);
+      expect(report['counts_after'], {
+        'playable_cards': 82,
+        'playable_variants': 108,
+      });
+      expect(
+        jsonDecode(
+          File('docs/catalog_v3_consolidation.json').readAsStringSync(),
+        ),
+        report,
+      );
+    },
+  );
 }

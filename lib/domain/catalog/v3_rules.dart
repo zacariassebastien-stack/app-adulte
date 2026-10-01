@@ -110,6 +110,7 @@ final class V3SessionData {
     required int removableClothingRemaining,
     required bool roleplayEnabled,
     required RoleplayScenarioLibrary roleplayScenarios,
+    bool visioEnabled = false,
     String? roleplayScenarioId,
     @Deprecated('Use roleplayScenarioId') String? roleplayScenario,
   }) {
@@ -128,6 +129,7 @@ final class V3SessionData {
       removableClothingInitial: removableClothingInitial,
       removableClothingRemaining: removableClothingRemaining,
       roleplayEnabled: roleplayEnabled,
+      visioEnabled: visioEnabled,
       roleplayScenarioId: resolved,
     );
   }
@@ -136,6 +138,7 @@ final class V3SessionData {
     required this.removableClothingInitial,
     required this.removableClothingRemaining,
     required this.roleplayEnabled,
+    required this.visioEnabled,
     required this.roleplayScenarioId,
   }) : assert(removableClothingInitial >= 0),
        assert(removableClothingRemaining >= 0),
@@ -144,6 +147,7 @@ final class V3SessionData {
   final int removableClothingInitial;
   final int removableClothingRemaining;
   final bool roleplayEnabled;
+  final bool visioEnabled;
   final String? roleplayScenarioId;
 
   @Deprecated('Use roleplayScenarioId')
@@ -156,6 +160,7 @@ final class V3SessionData {
     removableClothingInitial: json['removableClothingInitial']! as int,
     removableClothingRemaining: json['removableClothingRemaining']! as int,
     roleplayEnabled: json['roleplayEnabled']! as bool,
+    visioEnabled: json['visioEnabled'] as bool? ?? false,
     roleplayScenarios: roleplayScenarios,
     roleplayScenarioId:
         (json['roleplayScenarioId'] ?? json['roleplayScenario']) as String?,
@@ -165,6 +170,7 @@ final class V3SessionData {
     'removableClothingInitial': removableClothingInitial,
     'removableClothingRemaining': removableClothingRemaining,
     'roleplayEnabled': roleplayEnabled,
+    'visioEnabled': visioEnabled,
     'roleplayScenarioId': roleplayScenarioId,
   };
 }

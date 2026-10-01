@@ -15,8 +15,8 @@ void main() {
     catalog = await const CatalogLoader().load((p) => File(p).readAsString());
   });
   test('production loader accepts real catalog and audit is current', () {
-    expect(catalog.cards.length, 100);
-    expect(catalog.cards.expand((c) => c.variants).length, 134);
+    expect(catalog.cards.length, 101);
+    expect(catalog.cards.expand((c) => c.variants).length, 141);
     expect(catalog.profileElements.length, 133);
     expect(catalog.tags.length, 105);
     expect(catalog.cardsDocument, document('$path/cards.v2.fr.json'));
@@ -54,7 +54,7 @@ void main() {
           for (final v in c.variants) v.stableId: v,
       };
       final original = baseline['actions'] as JsonMap;
-      expect(actions.keys, unorderedEquals(original.keys));
+      expect(actions.keys, containsAll(original.keys));
       for (final entry in original.entries) {
         final action = actions[entry.key]!;
         final before = entry.value as JsonMap;

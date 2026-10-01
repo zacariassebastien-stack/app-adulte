@@ -96,10 +96,28 @@ les couvertures `FAIRE`, `RECEVOIR`, `SOLO`, `MUTUEL`, `SIMULTANE`, le nombre de
 variantes compatibles à distance et les IDs des cartes. Les résultats sont
 groupés par catégorie et `zero_coverage_tags` rend tout manque explicite.
 
-L'audit construit la vue V3 validée, confirme les 90 cartes jouables et les dix
-scénarios, puis exclut les cartes legacy 91–100 de la couverture. Les deux anciens tags techniques
+L'audit construit la vue V3 validée, compte les cartes et variantes jouables et
+confirme les dix scénarios, puis exclut les cartes legacy 91–100 de la
+couverture. Les deux anciens tags techniques
 `tag.duration.long` et `tag.simulation.guided` restent sans cible : leurs
 informations doivent devenir des paramètres/requirements lors de l'étape 2.
+
+## Consolidation des cartes jouables
+
+Une carte ou variante historique retirée du deck reste désérialisable. Le
+champ `v3_deck_enabled: false` l'exclut du tirage V3 et les champs
+`v3_replacement_card_id`, `v3_replacement_variant_id` ou
+`v3_replacement_session_field` décrivent sa migration sans modifier son stable
+ID legacy. Une carte V3 jouable doit conserver au moins une variante jouable,
+et chaque variante destinée au calcul des PA porte au moins une `PREFERENCE`
+scoreable.
+
+`visioEnabled` est une donnée de session booléenne. Elle ne crée aucun tag, ne
+change aucun consentement et ne modifie ni les PA ni l'engagement. Les cartes
+legacy de visio sont exclues du deck V3 et migrent vers ce champ.
+
+La consolidation est vérifiée par
+`dart run tool/audit_catalog_v3_consolidation.dart docs/catalog_v3_consolidation.json`.
 
 ## Migration éditoriale progressive
 
