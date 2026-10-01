@@ -16,6 +16,7 @@ export 'game/game_screen_data.dart';
 export 'game/game_models.dart';
 export 'game/projection.dart';
 export 'profile/preferences.dart';
+export 'profile/adaptive_profile.dart';
 export 'profile/profile_state.dart';
 export 'round/combat_value_snapshot.dart';
 export 'session/session_state.dart';

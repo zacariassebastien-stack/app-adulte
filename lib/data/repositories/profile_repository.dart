@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import '../../domain/catalog/enums.dart';
 import '../../domain/profile/profile_state.dart';
+import '../../domain/profile/adaptive_profile.dart';
 import '../local/app_database.dart';
 import '../local/media_guard.dart';
 
@@ -131,6 +132,34 @@ final class ProfileRepository {
       ..addColumns([count])
       ..where(database.profileEvolutionEntries.profileId.equals(profileId));
     return (await query.getSingle()).read(count) ?? 0;
+  }
+
+  /// Persists only the local player's sparse learning aggregate.
+  Future<void> saveLearningState(
+    AdaptiveProfileState state, {
+    required DateTime updatedAt,
+  }) async {
+    final json = state.toJson();
+    assertNoPersistedMedia(json);
+    await database
+        .into(database.profileLearningStates)
+        .insertOnConflictUpdate(
+          ProfileLearningStatesCompanion.insert(
+            profileId: state.profileId,
+            stateJson: jsonEncode(json),
+            updatedAt: updatedAt,
+          ),
+        );
+  }
+
+  Future<AdaptiveProfileState?> learningState(String profileId) async {
+    final query = database.select(database.profileLearningStates)
+      ..where((row) => row.profileId.equals(profileId));
+    final row = await query.getSingleOrNull();
+    if (row == null) return null;
+    return AdaptiveProfileState.fromJson(
+      (jsonDecode(row.stateJson) as Map).cast<String, Object?>(),
+    );
   }
 
   /// Separate deletion: preferences and overrides remain untouched.

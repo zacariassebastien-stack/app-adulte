@@ -109,4 +109,27 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test('persists the sparse adaptive profile independently', () async {
+    final state = AdaptiveProfileState(
+      profileId: 'profile.1',
+      entries: {
+        'v3.preference.masser|faire': PreferenceLearningEntry(
+          key: const PreferenceLearningKey(
+            preferenceId: 'v3.preference.masser',
+            role: LearningRole.faire,
+          ),
+          source: AdaptiveProfileSource.autoLearned,
+          currentPa: 8,
+          estimatedPa: 7.5,
+          exposureCount: 12,
+          playedCount: 7,
+        ),
+      },
+    );
+    await repository.saveLearningState(state, updatedAt: now);
+    final saved = await repository.learningState('profile.1');
+    expect(saved!.toJson(), state.toJson());
+    expect(saved.entries, hasLength(1));
+  });
 }

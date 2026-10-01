@@ -60,6 +60,17 @@ class ProfileEvolutionEntries extends Table {
   DateTimeColumn get createdAt => dateTime()();
 }
 
+@DataClassName('ProfileLearningStateRow')
+class ProfileLearningStates extends Table {
+  @override
+  String get tableName => 'profile_learning_states';
+  TextColumn get profileId => text()();
+  TextColumn get stateJson => text()();
+  DateTimeColumn get updatedAt => dateTime()();
+  @override
+  Set<Column<Object>> get primaryKey => {profileId};
+}
+
 @DataClassName('SessionRow')
 class Sessions extends Table {
   @override
@@ -171,6 +182,7 @@ class CatalogDocuments extends Table {
     UserPreferences,
     CardPreferenceOverrides,
     ProfileEvolutionEntries,
+    ProfileLearningStates,
     Sessions,
     SessionPlayers,
     SessionCards,
@@ -190,7 +202,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -207,6 +219,9 @@ class AppDatabase extends _$AppDatabase {
           'ALTER TABLE session_players ADD COLUMN style TEXT NULL',
         );
         await migrator.createTable(profileEvolutionEntries);
+      }
+      if (from < 3) {
+        await migrator.createTable(profileLearningStates);
       }
     },
     beforeOpen: (details) async {

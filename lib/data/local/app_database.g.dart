@@ -1774,6 +1774,282 @@ class ProfileEvolutionEntriesCompanion
   }
 }
 
+class $ProfileLearningStatesTable extends ProfileLearningStates
+    with TableInfo<$ProfileLearningStatesTable, ProfileLearningStateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ProfileLearningStatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _profileIdMeta = const VerificationMeta(
+    'profileId',
+  );
+  @override
+  late final GeneratedColumn<String> profileId = GeneratedColumn<String>(
+    'profile_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stateJsonMeta = const VerificationMeta(
+    'stateJson',
+  );
+  @override
+  late final GeneratedColumn<String> stateJson = GeneratedColumn<String>(
+    'state_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [profileId, stateJson, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'profile_learning_states';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ProfileLearningStateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('profile_id')) {
+      context.handle(
+        _profileIdMeta,
+        profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_profileIdMeta);
+    }
+    if (data.containsKey('state_json')) {
+      context.handle(
+        _stateJsonMeta,
+        stateJson.isAcceptableOrUnknown(data['state_json']!, _stateJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_stateJsonMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {profileId};
+  @override
+  ProfileLearningStateRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ProfileLearningStateRow(
+      profileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}profile_id'],
+      )!,
+      stateJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}state_json'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ProfileLearningStatesTable createAlias(String alias) {
+    return $ProfileLearningStatesTable(attachedDatabase, alias);
+  }
+}
+
+class ProfileLearningStateRow extends DataClass
+    implements Insertable<ProfileLearningStateRow> {
+  final String profileId;
+  final String stateJson;
+  final DateTime updatedAt;
+  const ProfileLearningStateRow({
+    required this.profileId,
+    required this.stateJson,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['profile_id'] = Variable<String>(profileId);
+    map['state_json'] = Variable<String>(stateJson);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ProfileLearningStatesCompanion toCompanion(bool nullToAbsent) {
+    return ProfileLearningStatesCompanion(
+      profileId: Value(profileId),
+      stateJson: Value(stateJson),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ProfileLearningStateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ProfileLearningStateRow(
+      profileId: serializer.fromJson<String>(json['profileId']),
+      stateJson: serializer.fromJson<String>(json['stateJson']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'profileId': serializer.toJson<String>(profileId),
+      'stateJson': serializer.toJson<String>(stateJson),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ProfileLearningStateRow copyWith({
+    String? profileId,
+    String? stateJson,
+    DateTime? updatedAt,
+  }) => ProfileLearningStateRow(
+    profileId: profileId ?? this.profileId,
+    stateJson: stateJson ?? this.stateJson,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ProfileLearningStateRow copyWithCompanion(
+    ProfileLearningStatesCompanion data,
+  ) {
+    return ProfileLearningStateRow(
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      stateJson: data.stateJson.present ? data.stateJson.value : this.stateJson,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProfileLearningStateRow(')
+          ..write('profileId: $profileId, ')
+          ..write('stateJson: $stateJson, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(profileId, stateJson, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ProfileLearningStateRow &&
+          other.profileId == this.profileId &&
+          other.stateJson == this.stateJson &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ProfileLearningStatesCompanion
+    extends UpdateCompanion<ProfileLearningStateRow> {
+  final Value<String> profileId;
+  final Value<String> stateJson;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const ProfileLearningStatesCompanion({
+    this.profileId = const Value.absent(),
+    this.stateJson = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ProfileLearningStatesCompanion.insert({
+    required String profileId,
+    required String stateJson,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : profileId = Value(profileId),
+       stateJson = Value(stateJson),
+       updatedAt = Value(updatedAt);
+  static Insertable<ProfileLearningStateRow> custom({
+    Expression<String>? profileId,
+    Expression<String>? stateJson,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (profileId != null) 'profile_id': profileId,
+      if (stateJson != null) 'state_json': stateJson,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ProfileLearningStatesCompanion copyWith({
+    Value<String>? profileId,
+    Value<String>? stateJson,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return ProfileLearningStatesCompanion(
+      profileId: profileId ?? this.profileId,
+      stateJson: stateJson ?? this.stateJson,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (profileId.present) {
+      map['profile_id'] = Variable<String>(profileId.value);
+    }
+    if (stateJson.present) {
+      map['state_json'] = Variable<String>(stateJson.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProfileLearningStatesCompanion(')
+          ..write('profileId: $profileId, ')
+          ..write('stateJson: $stateJson, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $SessionsTable extends Sessions
     with TableInfo<$SessionsTable, SessionRow> {
   @override
@@ -4900,6 +5176,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $CardPreferenceOverridesTable(this);
   late final $ProfileEvolutionEntriesTable profileEvolutionEntries =
       $ProfileEvolutionEntriesTable(this);
+  late final $ProfileLearningStatesTable profileLearningStates =
+      $ProfileLearningStatesTable(this);
   late final $SessionsTable sessions = $SessionsTable(this);
   late final $SessionPlayersTable sessionPlayers = $SessionPlayersTable(this);
   late final $SessionCardsTable sessionCards = $SessionCardsTable(this);
@@ -4919,6 +5197,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     userPreferences,
     cardPreferenceOverrides,
     profileEvolutionEntries,
+    profileLearningStates,
     sessions,
     sessionPlayers,
     sessionCards,
@@ -5881,6 +6160,187 @@ typedef $$ProfileEvolutionEntriesTableProcessedTableManager =
         >,
       ),
       ProfileEvolutionRow,
+      PrefetchHooks Function()
+    >;
+typedef $$ProfileLearningStatesTableCreateCompanionBuilder =
+    ProfileLearningStatesCompanion Function({
+      required String profileId,
+      required String stateJson,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$ProfileLearningStatesTableUpdateCompanionBuilder =
+    ProfileLearningStatesCompanion Function({
+      Value<String> profileId,
+      Value<String> stateJson,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$ProfileLearningStatesTableFilterComposer
+    extends Composer<_$AppDatabase, $ProfileLearningStatesTable> {
+  $$ProfileLearningStatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get profileId => $composableBuilder(
+    column: $table.profileId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stateJson => $composableBuilder(
+    column: $table.stateJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ProfileLearningStatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ProfileLearningStatesTable> {
+  $$ProfileLearningStatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get profileId => $composableBuilder(
+    column: $table.profileId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stateJson => $composableBuilder(
+    column: $table.stateJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ProfileLearningStatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ProfileLearningStatesTable> {
+  $$ProfileLearningStatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get profileId =>
+      $composableBuilder(column: $table.profileId, builder: (column) => column);
+
+  GeneratedColumn<String> get stateJson =>
+      $composableBuilder(column: $table.stateJson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ProfileLearningStatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ProfileLearningStatesTable,
+          ProfileLearningStateRow,
+          $$ProfileLearningStatesTableFilterComposer,
+          $$ProfileLearningStatesTableOrderingComposer,
+          $$ProfileLearningStatesTableAnnotationComposer,
+          $$ProfileLearningStatesTableCreateCompanionBuilder,
+          $$ProfileLearningStatesTableUpdateCompanionBuilder,
+          (
+            ProfileLearningStateRow,
+            BaseReferences<
+              _$AppDatabase,
+              $ProfileLearningStatesTable,
+              ProfileLearningStateRow
+            >,
+          ),
+          ProfileLearningStateRow,
+          PrefetchHooks Function()
+        > {
+  $$ProfileLearningStatesTableTableManager(
+    _$AppDatabase db,
+    $ProfileLearningStatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ProfileLearningStatesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$ProfileLearningStatesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ProfileLearningStatesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> profileId = const Value.absent(),
+                Value<String> stateJson = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ProfileLearningStatesCompanion(
+                profileId: profileId,
+                stateJson: stateJson,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String profileId,
+                required String stateJson,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ProfileLearningStatesCompanion.insert(
+                profileId: profileId,
+                stateJson: stateJson,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ProfileLearningStatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ProfileLearningStatesTable,
+      ProfileLearningStateRow,
+      $$ProfileLearningStatesTableFilterComposer,
+      $$ProfileLearningStatesTableOrderingComposer,
+      $$ProfileLearningStatesTableAnnotationComposer,
+      $$ProfileLearningStatesTableCreateCompanionBuilder,
+      $$ProfileLearningStatesTableUpdateCompanionBuilder,
+      (
+        ProfileLearningStateRow,
+        BaseReferences<
+          _$AppDatabase,
+          $ProfileLearningStatesTable,
+          ProfileLearningStateRow
+        >,
+      ),
+      ProfileLearningStateRow,
       PrefetchHooks Function()
     >;
 typedef $$SessionsTableCreateCompanionBuilder =
@@ -7536,6 +7996,8 @@ class $AppDatabaseManager {
         _db,
         _db.profileEvolutionEntries,
       );
+  $$ProfileLearningStatesTableTableManager get profileLearningStates =>
+      $$ProfileLearningStatesTableTableManager(_db, _db.profileLearningStates);
   $$SessionsTableTableManager get sessions =>
       $$SessionsTableTableManager(_db, _db.sessions);
   $$SessionPlayersTableTableManager get sessionPlayers =>

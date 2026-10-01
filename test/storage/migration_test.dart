@@ -7,13 +7,15 @@ import 'package:sqlite3/sqlite3.dart' as sqlite;
 import 'package:test/test.dart';
 
 void main() {
-  test('v1 to v2 migration strictly preserves every consent status', () async {
-    final directory = await Directory.systemTemp.createTemp(
-      'couple_cards_migration_',
-    );
-    final file = File('${directory.path}${Platform.pathSeparator}v1.sqlite');
-    final raw = sqlite.sqlite3.open(file.path);
-    raw.execute('''
+  test(
+    'v1 to v3 migration preserves consent and adds learning storage',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'couple_cards_migration_',
+      );
+      final file = File('${directory.path}${Platform.pathSeparator}v1.sqlite');
+      final raw = sqlite.sqlite3.open(file.path);
+      raw.execute('''
       CREATE TABLE user_preferences (
         profile_id TEXT NOT NULL,
         profile_element_id TEXT NOT NULL,
@@ -33,35 +35,44 @@ void main() {
       );
       PRAGMA user_version = 1;
     ''');
-    for (var index = 0; index < PreferenceStatus.values.length; index++) {
-      raw.execute('INSERT INTO user_preferences VALUES (?, ?, ?, ?, ?, ?)', [
-        'profile.1',
-        'element.$index',
-        PreferenceStatus.values[index].name,
-        index + 1,
-        1,
-        'ONBOARDING',
-      ]);
-    }
-    raw.dispose();
+      for (var index = 0; index < PreferenceStatus.values.length; index++) {
+        raw.execute('INSERT INTO user_preferences VALUES (?, ?, ?, ?, ?, ?)', [
+          'profile.1',
+          'element.$index',
+          PreferenceStatus.values[index].name,
+          index + 1,
+          1,
+          'ONBOARDING',
+        ]);
+      }
+      raw.dispose();
 
-    final database = AppDatabase.openFile(file);
-    final repository = ProfileRepository(database);
-    final migrated = await repository.preferences('profile.1');
-    expect(migrated.map((p) => p.status), PreferenceStatus.values);
-    expect(migrated.map((p) => p.generalValue), [1, 2, 3, 4]);
-    expect(
-      migrated.every((p) => p.faireValue == null && p.recevoirValue == null),
-      isTrue,
-    );
-    expect(
-      await database
-          .customSelect('PRAGMA user_version')
-          .map((row) => row.read<int>('user_version'))
-          .getSingle(),
-      2,
-    );
-    await database.close();
-    await directory.delete(recursive: true);
-  });
+      final database = AppDatabase.openFile(file);
+      final repository = ProfileRepository(database);
+      final migrated = await repository.preferences('profile.1');
+      expect(migrated.map((p) => p.status), PreferenceStatus.values);
+      expect(migrated.map((p) => p.generalValue), [1, 2, 3, 4]);
+      expect(
+        migrated.every((p) => p.faireValue == null && p.recevoirValue == null),
+        isTrue,
+      );
+      expect(
+        await database
+            .customSelect('PRAGMA user_version')
+            .map((row) => row.read<int>('user_version'))
+            .getSingle(),
+        3,
+      );
+      expect(
+        await database
+            .customSelect(
+              "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'profile_learning_states'",
+            )
+            .getSingleOrNull(),
+        isNotNull,
+      );
+      await database.close();
+      await directory.delete(recursive: true);
+    },
+  );
 }

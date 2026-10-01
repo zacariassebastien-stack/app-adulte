@@ -411,7 +411,7 @@
         },
         {
           "stable_id": "variant.caress.sensual",
-          "title": "Caresse ton partenaire sensuelle",
+          "title": "Caresse sensuellement ton partenaire",
           "chili_level": 2,
           "additional_tags": [
             "touch.caress.sensual"
@@ -450,7 +450,7 @@
         },
         {
           "stable_id": "variant.caress.intimate",
-          "title": "Caresse ton partenaire intime",
+          "title": "Caresse les parties intimes de ton partenaire",
           "chili_level": 3,
           "additional_tags": [
             "touch.caress.intimate"
@@ -1036,7 +1036,7 @@
         },
         {
           "stable_id": "variant.massage.sensual",
-          "title": "Masse ton partenaire sensuel",
+          "title": "Masse sensuellement ton partenaire",
           "chili_level": 2,
           "additional_tags": [
             "massage.sensual"
@@ -1075,7 +1075,7 @@
         },
         {
           "stable_id": "variant.massage.intimate",
-          "title": "Masse ton partenaire intime",
+          "title": "Masse les parties intimes de ton partenaire",
           "chili_level": 3,
           "additional_tags": [
             "massage.intimate"
@@ -1205,7 +1205,7 @@
         },
         {
           "stable_id": "variant.v3.massage.dos_give",
-          "title": "Masse dos de ton partenaire",
+          "title": "Masse le dos de ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -1237,7 +1237,7 @@
         },
         {
           "stable_id": "variant.v3.massage.dos_receive",
-          "title": "Reçois un massage de dos",
+          "title": "Reçois un massage du dos",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -1269,7 +1269,7 @@
         },
         {
           "stable_id": "variant.v3.massage.epaules_give",
-          "title": "Masse épaules de ton partenaire",
+          "title": "Masse les épaules de ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -1301,7 +1301,7 @@
         },
         {
           "stable_id": "variant.v3.massage.epaules_receive",
-          "title": "Reçois un massage de épaules",
+          "title": "Reçois un massage des épaules",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -1333,7 +1333,7 @@
         },
         {
           "stable_id": "variant.v3.massage.jambes_give",
-          "title": "Masse jambes de ton partenaire",
+          "title": "Masse les jambes de ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -1365,7 +1365,7 @@
         },
         {
           "stable_id": "variant.v3.massage.jambes_receive",
-          "title": "Reçois un massage de jambes",
+          "title": "Reçois un massage des jambes",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -1632,7 +1632,7 @@
       "variants": [
         {
           "stable_id": "variant.undressing.base",
-          "title": "Choisis combien de tes vêtements retirer",
+          "title": "Choisis combien de vêtements tu retires",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -1809,7 +1809,7 @@
       "variants": [
         {
           "stable_id": "variant.remove_one_clothing.base",
-          "title": "Retire un vêtement à ton partenaire",
+          "title": "Retire un vêtement de ton partenaire",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -1937,7 +1937,7 @@
       "variants": [
         {
           "stable_id": "variant.remove_two_clothing.base",
-          "title": "Retire deux vêtements à ton partenaire",
+          "title": "Retire deux vêtements de ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -2251,7 +2251,7 @@
       "stable_id": "card.nudity",
       "order": 17,
       "content_version": 1,
-      "title": "Mets-toi nu(e)",
+      "title": "Déshabille-toi complètement",
       "title_key": "cards.nudity.title",
       "precision": "PRECISE",
       "frequency": "OCCASIONAL",
@@ -2271,7 +2271,7 @@
       "variants": [
         {
           "stable_id": "variant.nudity.base",
-          "title": "Mets-toi nu(e)",
+          "title": "Déshabille-toi complètement",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3586,7 +3586,7 @@
         },
         {
           "stable_id": "variant.masturbation.self",
-          "title": "Pour soi",
+          "title": "Masturbe-toi",
           "chili_level": 3,
           "additional_tags": [
             "intimate.masturbation.self"
@@ -3623,7 +3623,7 @@
         },
         {
           "stable_id": "variant.masturbation.visible",
-          "title": "Devant le partenaire",
+          "title": "Masturbe-toi devant ton partenaire",
           "chili_level": 3,
           "additional_tags": [
             "observation.be_watched"
@@ -3978,7 +3978,7 @@
       "variants": [
         {
           "stable_id": "variant.oral_give.base",
-          "title": "Lécher les parties intimes",
+          "title": "Lèche les parties intimes de ton partenaire",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -4008,7 +4008,7 @@
         },
         {
           "stable_id": "variant.oral_give.suck",
-          "title": "Sucer les parties intimes",
+          "title": "Suce les parties intimes de ton partenaire",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -4078,7 +4078,7 @@
       "variants": [
         {
           "stable_id": "variant.oral_receive.base",
-          "title": "Être léché(e)",
+          "title": "Laisse ton partenaire lécher tes parties intimes",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -4108,7 +4108,7 @@
         },
         {
           "stable_id": "variant.oral_receive.suck",
-          "title": "Être sucé(e)",
+          "title": "Laisse ton partenaire sucer tes parties intimes",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -5221,7 +5221,7 @@
         },
         {
           "stable_id": "variant.anal_oral.base.receive",
-          "title": "Reçois une stimulation orale anale",
+          "title": "Reçois une stimulation orale de la zone anale",
           "chili_level": 5,
           "additional_tags": [],
           "profile_requirements": [],
@@ -5392,7 +5392,7 @@
       "variants": [
         {
           "stable_id": "variant.genital_rubbing.base",
-          "title": "Frottement génital",
+          "title": "Frottez vos parties intimes l’une contre l’autre",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -5441,7 +5441,7 @@
       "stable_id": "card.chest_play",
       "order": 48,
       "content_version": 1,
-      "title": "Jeu avec les seins / torse",
+      "title": "Jeu avec la poitrine",
       "title_key": "cards.chest_play.title",
       "precision": "GUIDED",
       "frequency": "COMMON",
@@ -5684,7 +5684,7 @@
         },
         {
           "stable_id": "variant.nipple_stimulation.base.receive",
-          "title": "Reçois une caresse des tétons",
+          "title": "Reçois des caresses sur les tétons",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -5914,7 +5914,7 @@
         },
         {
           "stable_id": "variant.dominate_me.orders",
-          "title": "Avec consignes",
+          "title": "Laisse ton partenaire te donner des consignes",
           "chili_level": 3,
           "additional_tags": [
             "power.order.receive"
@@ -5952,7 +5952,7 @@
         },
         {
           "stable_id": "variant.dominate_me.restraint",
-          "title": "Avec immobilisation consentie",
+          "title": "Laisse ton partenaire t’immobiliser avec ton accord",
           "chili_level": 4,
           "additional_tags": [
             "restraint.immobilize"
@@ -6113,7 +6113,7 @@
       "stable_id": "card.give_order",
       "order": 53,
       "content_version": 1,
-      "title": "Donne-moi un ordre",
+      "title": "Reçois un ordre",
       "title_key": "cards.give_order.title",
       "precision": "GUIDED",
       "frequency": "COMMON",
@@ -6133,7 +6133,7 @@
       "variants": [
         {
           "stable_id": "variant.give_order.base",
-          "title": "Donne-moi un ordre",
+          "title": "Reçois un ordre de ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -6177,7 +6177,7 @@
       "stable_id": "card.obey_order",
       "order": 54,
       "content_version": 1,
-      "title": "Obéis à mon ordre",
+      "title": "Suis un ordre",
       "title_key": "cards.obey_order.title",
       "precision": "GUIDED",
       "frequency": "COMMON",
@@ -6197,7 +6197,7 @@
       "variants": [
         {
           "stable_id": "variant.obey_order.base",
-          "title": "Obéis à mon ordre",
+          "title": "Suis l’ordre de ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -6241,7 +6241,7 @@
       "stable_id": "card.i_decide",
       "order": 55,
       "content_version": 1,
-      "title": "Je décide",
+      "title": "Décide pour ton partenaire",
       "title_key": "cards.i_decide.title",
       "precision": "OPEN",
       "frequency": "COMMON",
@@ -6261,7 +6261,7 @@
       "variants": [
         {
           "stable_id": "variant.i_decide.base",
-          "title": "Je décide",
+          "title": "Décide pour ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -6305,7 +6305,7 @@
       "stable_id": "card.you_decide",
       "order": 56,
       "content_version": 1,
-      "title": "Tu décides",
+      "title": "Laisse ton partenaire décider",
       "title_key": "cards.you_decide.title",
       "precision": "OPEN",
       "frequency": "COMMON",
@@ -6325,7 +6325,7 @@
       "variants": [
         {
           "stable_id": "variant.you_decide.base",
-          "title": "Tu décides",
+          "title": "Laisse ton partenaire décider",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -6642,7 +6642,7 @@
       "stable_id": "card.tie_me",
       "order": 60,
       "content_version": 1,
-      "title": "Attache-moi",
+      "title": "Laisse-toi attacher",
       "title_key": "cards.tie_me.title",
       "precision": "GUIDED",
       "frequency": "OCCASIONAL",
@@ -6662,7 +6662,7 @@
       "variants": [
         {
           "stable_id": "variant.tie_me.base",
-          "title": "Attache-moi",
+          "title": "Laisse ton partenaire t’attacher",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -7530,7 +7530,7 @@
       "stable_id": "card.immobilize",
       "order": 69,
       "content_version": 1,
-      "title": "Immobilise-moi",
+      "title": "Laisse-toi immobiliser",
       "title_key": "cards.immobilize.title",
       "precision": "GUIDED",
       "frequency": "OCCASIONAL",
@@ -7550,7 +7550,7 @@
       "variants": [
         {
           "stable_id": "variant.immobilize.base",
-          "title": "Immobilise-moi",
+          "title": "Laisse ton partenaire t’immobiliser",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -7597,7 +7597,7 @@
       "stable_id": "card.make_wait",
       "order": 70,
       "content_version": 1,
-      "title": "Fais-moi attendre",
+      "title": "Laisse ton partenaire te faire attendre",
       "title_key": "cards.make_wait.title",
       "precision": "OPEN",
       "frequency": "COMMON",
@@ -7617,7 +7617,7 @@
       "variants": [
         {
           "stable_id": "variant.make_wait.base",
-          "title": "Fais-moi attendre",
+          "title": "Laisse ton partenaire te faire attendre",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -7852,7 +7852,7 @@
         },
         {
           "stable_id": "variant.private_exhibition.underwear",
-          "title": "En sous-vêtements",
+          "title": "Présente-toi en sous-vêtements à ton partenaire",
           "chili_level": 2,
           "additional_tags": [
             "clothing.underwear"
@@ -7944,7 +7944,7 @@
       "stable_id": "card.private_voyeur",
       "order": 74,
       "content_version": 1,
-      "title": "Voyeur privé",
+      "title": "Regarde ton partenaire en privé",
       "title_key": "cards.private_voyeur.title",
       "precision": "GUIDED",
       "frequency": "OCCASIONAL",
@@ -7964,7 +7964,7 @@
       "variants": [
         {
           "stable_id": "variant.private_voyeur.base",
-          "title": "Voyeur privé",
+          "title": "Regarde ton partenaire en privé",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -8070,7 +8070,7 @@
       "stable_id": "card.private_runway",
       "order": 76,
       "content_version": 1,
-      "title": "Défilé privé",
+      "title": "Défile pour ton partenaire",
       "title_key": "cards.private_runway.title",
       "precision": "GUIDED",
       "frequency": "COMMON",
@@ -8090,7 +8090,7 @@
       "variants": [
         {
           "stable_id": "variant.private_runway.base",
-          "title": "Défilé privé",
+          "title": "Défile pour ton partenaire",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -8182,7 +8182,7 @@
         },
         {
           "stable_id": "variant.pose.partner_choice",
-          "title": "Pose choisie par le partenaire",
+          "title": "Prends la pose choisie par ton partenaire",
           "chili_level": 2,
           "additional_tags": [
             "staging.pose_choice"
@@ -8335,7 +8335,7 @@
       "variants": [
         {
           "stable_id": "variant.shower_together.base",
-          "title": "Douche à deux",
+          "title": "Prenez une douche ensemble",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -8402,7 +8402,7 @@
       "variants": [
         {
           "stable_id": "variant.bath_together.base",
-          "title": "Bain à deux",
+          "title": "Prenez un bain ensemble",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -8449,7 +8449,7 @@
       "stable_id": "card.sexting",
       "order": 81,
       "content_version": 2,
-      "title": "Sexting",
+      "title": "Messages coquins",
       "title_key": "cards.sexting.title",
       "precision": "OPEN",
       "frequency": "COMMON",
@@ -8469,7 +8469,7 @@
       "variants": [
         {
           "stable_id": "variant.sexting.base",
-          "title": "Sexting",
+          "title": "Échangez des messages coquins",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -8497,7 +8497,7 @@
         },
         {
           "stable_id": "variant.sexting.guided",
-          "title": "Avec consigne",
+          "title": "Échangez des messages coquins en suivant une consigne",
           "chili_level": 2,
           "additional_tags": [
             "distance.instruction.receive"
@@ -8574,7 +8574,7 @@
       "variants": [
         {
           "stable_id": "variant.flirty_message.base",
-          "title": "Message coquin",
+          "title": "Envoie un message coquin",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -8682,7 +8682,7 @@
       "stable_id": "card.suggestive_photo",
       "order": 83,
       "content_version": 2,
-      "title": "Photo suggestive",
+      "title": "Envoie une photo suggestive",
       "title_key": "cards.suggestive_photo.title",
       "precision": "GUIDED",
       "frequency": "COMMON",
@@ -8708,7 +8708,7 @@
       "variants": [
         {
           "stable_id": "variant.suggestive_photo.base",
-          "title": "Photo suggestive",
+          "title": "Envoie une photo suggestive",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -8738,7 +8738,7 @@
         },
         {
           "stable_id": "variant.suggestive_photo.partner_pose",
-          "title": "Pose choisie par le partenaire",
+          "title": "Envoie une photo dans la pose choisie par ton partenaire",
           "chili_level": 2,
           "additional_tags": [
             "staging.pose_choice"
@@ -8797,7 +8797,7 @@
       "stable_id": "card.underwear_photo",
       "order": 84,
       "content_version": 1,
-      "title": "Photo en sous-vêtements",
+      "title": "Envoie une photo en sous-vêtements",
       "title_key": "cards.underwear_photo.title",
       "precision": "PRECISE",
       "frequency": "COMMON",
@@ -8823,7 +8823,7 @@
       "variants": [
         {
           "stable_id": "variant.underwear_photo.base",
-          "title": "Photo en sous-vêtements",
+          "title": "Envoie une photo en sous-vêtements",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -8871,7 +8871,7 @@
       "stable_id": "card.nude_photo",
       "order": 85,
       "content_version": 1,
-      "title": "Photo nue",
+      "title": "Envoie une photo nue",
       "title_key": "cards.nude_photo.title",
       "precision": "PRECISE",
       "frequency": "OCCASIONAL",
@@ -8897,7 +8897,7 @@
       "variants": [
         {
           "stable_id": "variant.nude_photo.base",
-          "title": "Photo nue",
+          "title": "Envoie une photo nue",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -8947,7 +8947,7 @@
       "stable_id": "card.choose_my_photo",
       "order": 86,
       "content_version": 1,
-      "title": "Choisis ma photo",
+      "title": "Laisse ton partenaire choisir ta photo",
       "title_key": "cards.choose_my_photo.title",
       "precision": "GUIDED",
       "frequency": "COMMON",
@@ -8973,7 +8973,7 @@
       "variants": [
         {
           "stable_id": "variant.choose_my_photo.base",
-          "title": "Choisis ma photo",
+          "title": "Laisse ton partenaire choisir la photo que tu envoies",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -9018,7 +9018,7 @@
       "stable_id": "card.intimate_video",
       "order": 87,
       "content_version": 1,
-      "title": "Vidéo intime",
+      "title": "Envoie une vidéo intime",
       "title_key": "cards.intimate_video.title",
       "precision": "GUIDED",
       "frequency": "OCCASIONAL",
@@ -9038,7 +9038,7 @@
       "variants": [
         {
           "stable_id": "variant.intimate_video.base",
-          "title": "Vidéo intime",
+          "title": "Envoie une vidéo intime",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -9066,7 +9066,7 @@
         },
         {
           "stable_id": "variant.intimate_video.suggestive",
-          "title": "Vidéo suggestive",
+          "title": "Envoie une vidéo suggestive",
           "chili_level": 2,
           "additional_tags": [
             "media.video.suggestive"
@@ -9103,7 +9103,7 @@
         },
         {
           "stable_id": "variant.intimate_video.nude",
-          "title": "Vidéo nue",
+          "title": "Envoie une vidéo nue",
           "chili_level": 3,
           "additional_tags": [
             "media.video.nude"
@@ -9344,7 +9344,7 @@
       "stable_id": "card.remote_instruction",
       "order": 90,
       "content_version": 1,
-      "title": "Donne-moi une consigne à distance",
+      "title": "Suis une consigne à distance",
       "title_key": "cards.remote_instruction.title",
       "precision": "GUIDED",
       "frequency": "COMMON",
@@ -9364,7 +9364,7 @@
       "variants": [
         {
           "stable_id": "variant.remote_instruction.base",
-          "title": "Donne-moi une consigne à distance",
+          "title": "Suis une consigne à distance",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -10127,7 +10127,7 @@
         },
         {
           "stable_id": "variant.v3.sextoy_play.receive",
-          "title": "Laisse le sextoy être utilisé sur toi",
+          "title": "Laisse ton partenaire utiliser le sextoy sur toi",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -10546,7 +10546,7 @@
       "variants": [
         {
           "stable_id": "variant.v3.ejaculation_choice.give",
-          "title": "Propose une éjaculation convenue",
+          "title": "Choisis d’éjaculer, dans les limites convenues",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -10793,7 +10793,7 @@
         },
         {
           "stable_id": "variant.v3.degrading_words.receive",
-          "title": "Reçois les mots dégradants convenus",
+          "title": "Écoute les mots dégradants convenus",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -11192,7 +11192,7 @@
         },
         {
           "stable_id": "variant.v3.texture_and_breath.texture_receive",
-          "title": "Découvre une texture choisie",
+          "title": "Découvre la texture choisie par ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -11223,7 +11223,7 @@
         },
         {
           "stable_id": "variant.v3.texture_and_breath.breath_give",
-          "title": "Souffle doucement sur la peau",
+          "title": "Souffle doucement sur la peau de ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -11254,7 +11254,7 @@
         },
         {
           "stable_id": "variant.v3.texture_and_breath.breath_receive",
-          "title": "Reçois un souffle doux sur la peau",
+          "title": "Laisse ton partenaire souffler doucement sur ta peau",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -11316,7 +11316,7 @@
       "variants": [
         {
           "stable_id": "variant.v3.auditory_deprivation.give",
-          "title": "Prive temporairement ton partenaire du son",
+          "title": "Propose à ton partenaire une privation auditive temporaire",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -11414,7 +11414,7 @@
       "variants": [
         {
           "stable_id": "variant.v3.silence_rule.give",
-          "title": "Impose une courte règle de silence",
+          "title": "Propose une courte règle de silence",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -11727,7 +11727,7 @@
         },
         {
           "stable_id": "variant.v3.sensual_tasting.food_receive",
-          "title": "Goûte un aliment proposé",
+          "title": "Goûte un aliment proposé par ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -11791,7 +11791,7 @@
         },
         {
           "stable_id": "variant.v3.sensual_tasting.drink_receive",
-          "title": "Goûte une boisson non alcoolisée",
+          "title": "Goûte une boisson non alcoolisée proposée par ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
