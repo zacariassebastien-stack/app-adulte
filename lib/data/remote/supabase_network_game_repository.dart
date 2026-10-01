@@ -217,7 +217,9 @@ final class SupabaseNetworkGameRepository implements NetworkGameRepository {
         in client
             .from('network_rounds')
             .stream(primaryKey: ['id'])
-            .eq('id', roundId)) {
+            // A new round has a new ID. Watching the session also observes its
+            // insertion, so clients waiting on the closed round can advance.
+            .eq('session_id', sessionId)) {
       yield await getCurrentRound(sessionId: sessionId);
     }
   }

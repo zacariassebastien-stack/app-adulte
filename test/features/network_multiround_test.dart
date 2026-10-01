@@ -186,6 +186,8 @@ void main() {
       await setup.alice.readyForNextRound();
       await setup.alice.readyForNextRound();
       expect(setup.alice.roundNumber, expected);
+      expect(setup.alice.viewState, NetworkGameViewState.waitingNext);
+      expect(setup.bob.viewState, NetworkGameViewState.finalResult);
       await setup.bob.readyForNextRound();
       await _settle();
       expect(setup.alice.roundNumber, expected + 1);

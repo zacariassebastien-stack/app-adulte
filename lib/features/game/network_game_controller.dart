@@ -632,7 +632,9 @@ final class NetworkGameController extends ChangeNotifier {
         viewState = NetworkGameViewState.recoveryExecution;
         break;
       case NetworkGamePhase.waitingNext:
-        viewState = NetworkGameViewState.waitingNext;
+        viewState = value.readyNextPlayerIds.contains(playerId)
+            ? NetworkGameViewState.waitingNext
+            : NetworkGameViewState.finalResult;
         break;
       case NetworkGamePhase.closed:
         viewState = NetworkGameViewState.waitingNext;
