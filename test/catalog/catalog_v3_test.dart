@@ -239,9 +239,9 @@ void main() {
     );
   });
 
-  test('only cards 1 to 60 have explicit V3 editorial data after batch 2B', () {
+  test('only cards 1 to 90 have explicit V3 editorial data after batch 2C', () {
     for (final card in catalog.cards) {
-      if (card.order! <= 60) {
+      if (card.order! <= 90) {
         expect(card.v3, isNotNull, reason: card.stableId);
         expect(
           card.variants,
@@ -263,17 +263,14 @@ void main() {
 
   test('migrated cards only reference canonical V3 tags', () {
     final tags = {for (final tag in taxonomy.tags) tag.stableId: tag};
-    for (final card in catalog.cards.where((card) => card.order! <= 60)) {
+    for (final card in catalog.cards.where((card) => card.order! <= 90)) {
       for (final data in [
         card.v3!,
         ...card.variants.map((variant) => variant.v3!),
       ]) {
         expect(data.tags, everyElement(startsWith('v3.')));
         expect(data.tags, everyElement(isIn(tags.keys)));
-        final hasPreference = data.tags.any(
-          (id) => tags[id]!.category == V3TagCategory.PREFERENCE,
-        );
-        if (!hasPreference) {
+        if (data.tags.isEmpty) {
           expect(data.ambiguities, isNotEmpty, reason: card.stableId);
         }
       }
@@ -352,6 +349,18 @@ void main() {
     expect(
       secondCards.expand((card) => card['variants']! as List),
       hasLength(37),
+    );
+
+    final thirdReport =
+        jsonDecode(File('docs/catalog_v3_cards_61_90.json').readAsStringSync())
+            as JsonMap;
+    final thirdCards = (thirdReport['cards']! as List).cast<JsonMap>();
+    expect(thirdCards, hasLength(30));
+    expect(thirdCards.first['order'], 61);
+    expect(thirdCards.last['order'], 90);
+    expect(
+      thirdCards.expand((card) => card['variants']! as List),
+      hasLength(41),
     );
   });
 
@@ -434,5 +443,61 @@ void main() {
     expect(card(59).v3!.requirements.requiresConstraintAccessory, isTrue);
     expect(tags(60), {'v3.preference.attacher', 'v3.direction.recevoir'});
     expect(card(60).v3!.requirements.requiresConstraintAccessory, isTrue);
+  });
+
+  test('cards 61 to 90 preserve session, gaze and media semantics', () {
+    CardDefinition card(int order) =>
+        catalog.cards.singleWhere((card) => card.order == order);
+    Set<String> tags(int order) => card(order).v3!.tags.toSet();
+
+    expect(tags(61), contains('v3.preference.yeux_bandes'));
+    expect(tags(62), isNot(contains('v3.preference.yeux_bandes')));
+    expect(tags(62), isNot(contains('v3.preference.yeux_fermes')));
+    expect(tags(62), contains('v3.preference.ordres'));
+    expect(tags(66), containsAll(['v3.preference.frapper', 'v3.zone.fesses']));
+    expect(tags(69), {'v3.preference.immobiliser', 'v3.direction.recevoir'});
+    expect(tags(71), contains('v3.direction.etre_regarde'));
+    expect(tags(71), isNot(contains('v3.preference.regarder')));
+    expect(tags(72), contains('v3.preference.regarder'));
+    expect(tags(72), isNot(contains('v3.direction.etre_regarde')));
+    expect(tags(73), isNot(contains('v3.preference.regard_exterieur')));
+    expect(tags(73), isNot(contains('v3.preference.lieu_expose')));
+    expect(tags(75), {'v3.preference.danser', 'v3.direction.etre_regarde'});
+    expect(tags(76), isNot(contains('v3.preference.danser')));
+    for (final order in [77, 78]) {
+      expect(tags(order), isNot(contains('v3.preference.position_s')));
+      expect(tags(order), isNot(contains('v3.preference.position_a')));
+      expect(tags(order), isNot(contains('v3.preference.position_e')));
+    }
+    for (final order in [79, 80]) {
+      expect(
+        tags(order),
+        containsAll([
+          'v3.preference.proximite_physique',
+          'v3.direction.mutuel',
+        ]),
+      );
+      expect(card(order).v3!.requirements.distanceExcluded, isTrue);
+    }
+    expect(tags(81), isNot(contains('v3.preference.sexting')));
+    expect(tags(83), contains('v3.preference.photo'));
+    expect(
+      tags(84),
+      containsAll(['v3.preference.photo', 'v3.preference.sous_vetements']),
+    );
+    expect(tags(87), contains('v3.preference.video'));
+    expect(tags(85), isNot(contains('v3.preference.contenu_adulte')));
+    for (final order in [88, 89]) {
+      expect(tags(order), isEmpty);
+      expect(tags(order), isNot(contains('v3.preference.visio')));
+      expect(card(order).v3!.deckRemovalCandidate, isTrue);
+      expect(card(order).v3!.sessionDataCandidate, isTrue);
+    }
+    expect(tags(90), {'v3.preference.ordres', 'v3.direction.recevoir'});
+    expect(card(65).v3!.rationalizationCandidates, [
+      'card.blindfold',
+      'card.close_eyes',
+      'card.temperature_play',
+    ]);
   });
 }

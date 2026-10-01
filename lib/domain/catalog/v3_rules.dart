@@ -166,14 +166,23 @@ final class V3EditorialData {
     this.clothingDelta,
     this.mergeCandidateWith,
     this.splitCandidate = false,
+    List<String> rationalizationCandidates = const [],
+    this.deckRemovalCandidate = false,
+    this.sessionDataCandidate = false,
     List<String> ambiguities = const [],
   }) : tags = List.unmodifiable(tags),
+       rationalizationCandidates = List.unmodifiable(rationalizationCandidates),
        ambiguities = List.unmodifiable(ambiguities) {
     if (taxonomyVersion != 1) {
       throw const FormatException('Unsupported V3 taxonomy version');
     }
-    if (tags.isEmpty || tags.toSet().length != tags.length) {
-      throw const FormatException('V3 tags must be non-empty and unique');
+    if (tags.toSet().length != tags.length) {
+      throw const FormatException('V3 tags must be unique');
+    }
+    if (tags.isEmpty && ambiguities.isEmpty) {
+      throw const FormatException(
+        'Empty V3 tags require a documented editorial ambiguity',
+      );
     }
     if (tags.any((tag) => !tag.startsWith('v3.'))) {
       throw const FormatException('V3 tags must use v3 stable IDs');
@@ -195,6 +204,11 @@ final class V3EditorialData {
         : null,
     mergeCandidateWith: json['mergeCandidateWith'] as String?,
     splitCandidate: json['splitCandidate'] as bool? ?? false,
+    rationalizationCandidates:
+        (json['rationalizationCandidates'] as List?)?.cast<String>() ??
+        const <String>[],
+    deckRemovalCandidate: json['deckRemovalCandidate'] as bool? ?? false,
+    sessionDataCandidate: json['sessionDataCandidate'] as bool? ?? false,
     ambiguities:
         (json['ambiguities'] as List?)?.cast<String>() ?? const <String>[],
   );
@@ -206,6 +220,9 @@ final class V3EditorialData {
   final V3ClothingDelta? clothingDelta;
   final String? mergeCandidateWith;
   final bool splitCandidate;
+  final List<String> rationalizationCandidates;
+  final bool deckRemovalCandidate;
+  final bool sessionDataCandidate;
   final List<String> ambiguities;
 }
 

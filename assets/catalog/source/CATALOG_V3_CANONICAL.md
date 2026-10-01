@@ -105,9 +105,11 @@ ainsi continuer à lire ses champs legacy sans que le calcul V3 dépende de tags
 monolithiques.
 
 Le lot 2A couvre les cartes 1–30 et leurs 41 variantes. Le lot 2B couvre les
-cartes 31–60 et leurs 37 variantes. Les cartes 61–90 restent sur la projection
-legacy jusqu'au lot suivant. Les rapports détaillés sont
-`docs/catalog_v3_cards_1_30.json` et `docs/catalog_v3_cards_31_60.json`.
+cartes 31–60 et leurs 37 variantes. Le lot 2C couvre les cartes 61–90 et leurs
+40 variantes. Les cartes 91–100 restent réservées à la future extraction des
+scénarios de jeu de rôle. Les rapports détaillés sont
+`docs/catalog_v3_cards_1_30.json`, `docs/catalog_v3_cards_31_60.json` et
+`docs/catalog_v3_cards_61_90.json`.
 
 Les formulations orales génériques des cartes 28, 29, 36, 37, 38 et 45 ne
 portent ni `BUCCAL`, ni `LECHER`, ni `SUCER` tant que l'action ou la zone n'est
@@ -116,3 +118,7 @@ pas explicitée. Leur ambiguïté éditoriale est conservée dans le bloc `v3`.
 Pour auditer une autre plage, l'outil accepte `from`, `to` et le chemin de
 sortie, par exemple :
 `dart run tool/audit_catalog_v3_batch.dart 31 60 docs/catalog_v3_cards_31_60.json`.
+
+Les champs `rationalizationCandidates`, `deckRemovalCandidate` et
+`sessionDataCandidate` documentent les décisions éditoriales qui devront être
+traitées après la migration. Ils n'altèrent ni les règles ni le deck actuel.

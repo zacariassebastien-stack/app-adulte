@@ -5075,12 +5075,36 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.yeux_bandes",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.yeux_bandes",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.close_eyes",
@@ -5121,12 +5145,36 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.ordres",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {},
+            "ambiguities": [
+              "Fermer les yeux est traité comme une consigne légère, sans créer YEUX_FERMES ni réutiliser YEUX_BANDES."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.ordres",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {},
+        "ambiguities": [
+          "Fermer les yeux est traité comme une consigne légère, sans créer YEUX_FERMES ni réutiliser YEUX_BANDES."
+        ]
+      }
     },
     {
       "stable_id": "card.guess_touch",
@@ -5166,12 +5214,34 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "La mécanique de devinette au toucher ne justifie ni TOUCHER générique, ni TEXTURE sans précision éditoriale."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [],
+        "baseEngagementLevel": 1,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "La mécanique de devinette au toucher ne justifie ni TOUCHER générique, ni TEXTURE sans précision éditoriale."
+        ]
+      }
     },
     {
       "stable_id": "card.temperature_play",
@@ -5211,12 +5281,38 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.temperature"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "La direction dépend de l’exécution concrète du jeu de température."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.temperature"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "La direction dépend de l’exécution concrète du jeu de température."
+        ]
+      }
     },
     {
       "stable_id": "card.sensory_play",
@@ -5256,7 +5352,23 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Carte conteneur sans préférence sensorielle générique ; ses variantes recouvrent des cartes dédiées."
+            ],
+            "rationalizationCandidates": [
+              "card.blindfold",
+              "card.close_eyes",
+              "card.temperature_play"
+            ]
+          }
         },
         {
           "stable_id": "variant.sensory_play.eyes",
@@ -5284,7 +5396,18 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "La variante yeux fermés est une mise en scène sans tag YEUX_FERMES ni YEUX_BANDES."
+            ]
+          }
         },
         {
           "stable_id": "variant.sensory_play.blindfold",
@@ -5312,7 +5435,17 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.yeux_bandes"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         },
         {
           "stable_id": "variant.sensory_play.temperature",
@@ -5340,12 +5473,38 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.temperature"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Carte conteneur sans préférence sensorielle générique ; ses variantes recouvrent des cartes dédiées."
+        ],
+        "rationalizationCandidates": [
+          "card.blindfold",
+          "card.close_eyes",
+          "card.temperature_play"
+        ]
+      }
     },
     {
       "stable_id": "card.spanking",
@@ -5385,12 +5544,38 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.frapper",
+              "v3.zone.fesses",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.frapper",
+          "v3.zone.fesses",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.bite",
@@ -5430,12 +5615,42 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.mordre",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Aucune zone anatomique n’est précisée."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.mordre",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Aucune zone anatomique n’est précisée."
+        ]
+      }
     },
     {
       "stable_id": "card.scratches",
@@ -5475,12 +5690,42 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.griffer",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Aucune zone anatomique n’est précisée."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.griffer",
+          "v3.direction.faire",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Aucune zone anatomique n’est précisée."
+        ]
+      }
     },
     {
       "stable_id": "card.immobilize",
@@ -5520,12 +5765,34 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.immobiliser",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.immobiliser",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.make_wait",
@@ -5566,7 +5833,17 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.preference.provoquer",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [
@@ -5585,7 +5862,17 @@
         }
       ],
       "enabled": true,
-      "directionality": "CONTEXTUAL"
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.controle",
+          "v3.preference.provoquer",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.look_at_me",
@@ -5626,12 +5913,28 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "RECEVOIR"
+      "directionality": "RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.direction.etre_regarde"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.let_me_watch",
@@ -5672,12 +5975,30 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.regarder",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE"
+      "directionality": "FAIRE",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.regarder",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.private_exhibition",
@@ -5718,7 +6039,15 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
         },
         {
           "stable_id": "variant.private_exhibition.underwear",
@@ -5746,7 +6075,16 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sous_vetements",
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         },
         {
           "stable_id": "variant.private_exhibition.nude",
@@ -5774,12 +6112,30 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.direction.etre_regarde"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.private_voyeur",
@@ -5820,12 +6176,28 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.regarder"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.regarder"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.dance_for_me",
@@ -5866,12 +6238,30 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.danser",
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.danser",
+          "v3.direction.etre_regarde"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.private_runway",
@@ -5912,12 +6302,30 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.tenue",
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.tenue",
+          "v3.direction.etre_regarde"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.pose",
@@ -5958,7 +6366,15 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          }
         },
         {
           "stable_id": "variant.pose.partner_choice",
@@ -5987,12 +6403,29 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.direction.etre_regarde"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.choose_pose",
@@ -6033,7 +6466,16 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [
@@ -6053,7 +6495,16 @@
         }
       ],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.controle",
+          "v3.direction.etre_regarde"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.shower_together",
@@ -6093,12 +6544,40 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.proximite_physique",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "La douche est un contexte objectif non représenté par une préférence dédiée."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "MUTUAL"
+      "directionality": "MUTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.proximite_physique",
+          "v3.direction.mutuel"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "La douche est un contexte objectif non représenté par une préférence dédiée."
+        ]
+      }
     },
     {
       "stable_id": "card.bath_together",
@@ -6138,12 +6617,40 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.proximite_physique",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Le bain est un contexte objectif non représenté par une préférence dédiée."
+            ]
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "MUTUAL"
+      "directionality": "MUTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.proximite_physique",
+          "v3.direction.mutuel"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        },
+        "ambiguities": [
+          "Le bain est un contexte objectif non représenté par une préférence dédiée."
+        ]
+      }
     },
     {
       "stable_id": "card.sexting",
@@ -6183,7 +6690,17 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.paroles_coquines",
+              "v3.preference.envoyer",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         },
         {
           "stable_id": "variant.sexting.guided",
@@ -6211,12 +6728,34 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.paroles_coquines",
+              "v3.preference.envoyer",
+              "v3.preference.ordres",
+              "v3.direction.mutuel",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "MUTUAL"
+      "directionality": "MUTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.paroles_coquines",
+          "v3.preference.envoyer",
+          "v3.direction.mutuel"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.flirty_message",
@@ -6256,12 +6795,32 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.paroles_coquines",
+              "v3.preference.envoyer",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.paroles_coquines",
+          "v3.preference.envoyer",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 1,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.suggestive_photo",
@@ -6308,7 +6867,18 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.photo",
+              "v3.preference.envoyer",
+              "v3.direction.solo",
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         },
         {
           "stable_id": "variant.suggestive_photo.partner_pose",
@@ -6337,12 +6907,35 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.photo",
+              "v3.preference.envoyer",
+              "v3.preference.controle",
+              "v3.direction.solo",
+              "v3.direction.etre_regarde"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.photo",
+          "v3.preference.envoyer",
+          "v3.direction.solo",
+          "v3.direction.etre_regarde"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.underwear_photo",
@@ -6389,12 +6982,34 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.photo",
+              "v3.preference.sous_vetements",
+              "v3.preference.envoyer",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.photo",
+          "v3.preference.sous_vetements",
+          "v3.preference.envoyer",
+          "v3.direction.solo"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.nude_photo",
@@ -6441,12 +7056,36 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.photo",
+              "v3.preference.envoyer",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.photo",
+          "v3.preference.envoyer",
+          "v3.direction.solo"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
     },
     {
       "stable_id": "card.choose_my_photo",
@@ -6492,12 +7131,32 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.photo",
+              "v3.preference.controle",
+              "v3.preference.envoyer"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "RECEVOIR"
+      "directionality": "RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.photo",
+          "v3.preference.controle",
+          "v3.preference.envoyer"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.intimate_video",
@@ -6537,7 +7196,17 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.video",
+              "v3.preference.envoyer",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
         },
         {
           "stable_id": "variant.intimate_video.suggestive",
@@ -6564,7 +7233,17 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.video",
+              "v3.preference.envoyer",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         },
         {
           "stable_id": "variant.intimate_video.nude",
@@ -6591,12 +7270,34 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.video",
+              "v3.preference.envoyer",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE_RECEVOIR"
+      "directionality": "FAIRE_RECEVOIR",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.video",
+          "v3.preference.envoyer",
+          "v3.direction.solo"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.private_video_call",
@@ -6636,7 +7337,18 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [],
+            "baseEngagementLevel": 2,
+            "requirements": {},
+            "ambiguities": [
+              "VISIO décrit le mode de session et non une préférence permanente ; la carte peut sortir du deck."
+            ],
+            "deckRemovalCandidate": true,
+            "sessionDataCandidate": true
+          }
         },
         {
           "stable_id": "variant.private_video_call.guided",
@@ -6663,12 +7375,37 @@
           ],
           "parameters": [],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.ordres",
+              "v3.preference.controle"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {},
+            "ambiguities": [
+              "La direction de la consigne en direct n’est pas précisée ; VISIO reste une donnée de session."
+            ],
+            "deckRemovalCandidate": true,
+            "sessionDataCandidate": true
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "MUTUAL"
+      "directionality": "MUTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [],
+        "baseEngagementLevel": 2,
+        "requirements": {},
+        "ambiguities": [
+          "VISIO décrit le mode de session et non une préférence permanente ; la carte peut sortir du deck."
+        ],
+        "deckRemovalCandidate": true,
+        "sessionDataCandidate": true
+      }
     },
     {
       "stable_id": "card.nude_video_call",
@@ -6714,12 +7451,34 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [],
+            "baseEngagementLevel": 3,
+            "requirements": {},
+            "ambiguities": [
+              "VISIO et la nudité décrivent le mode et le contenu de session sans préférence permanente suffisamment précise."
+            ],
+            "deckRemovalCandidate": true,
+            "sessionDataCandidate": true
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "MUTUAL"
+      "directionality": "MUTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [],
+        "baseEngagementLevel": 3,
+        "requirements": {},
+        "ambiguities": [
+          "VISIO et la nudité décrivent le mode et le contenu de session sans préférence permanente suffisamment précise."
+        ],
+        "deckRemovalCandidate": true,
+        "sessionDataCandidate": true
+      }
     },
     {
       "stable_id": "card.remote_instruction",
@@ -6759,12 +7518,30 @@
             }
           ],
           "state_effects": [],
-          "enabled": true
+          "enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.ordres",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
       "enabled": true,
-      "directionality": "FAIRE"
+      "directionality": "FAIRE",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.ordres",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {}
+      }
     },
     {
       "stable_id": "card.rp_strangers",

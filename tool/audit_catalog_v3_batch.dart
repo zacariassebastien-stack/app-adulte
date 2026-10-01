@@ -40,6 +40,9 @@ void main(List<String> args) {
     'clothingDelta': raw['clothingDelta'],
     'mergeCandidateWith': data.mergeCandidateWith,
     'splitCandidate': data.splitCandidate,
+    'rationalizationCandidates': data.rationalizationCandidates,
+    'deckRemovalCandidate': data.deckRemovalCandidate,
+    'sessionDataCandidate': data.sessionDataCandidate,
     'ambiguities': data.ambiguities,
   };
 

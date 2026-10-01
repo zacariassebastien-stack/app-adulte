@@ -1,0 +1,1630 @@
+{
+  "schema_version": 1,
+  "catalogue_taxonomy_version": 3,
+  "range": {
+    "from": 61,
+    "to": 90
+  },
+  "cards": [
+    {
+      "order": 61,
+      "title": "Bandeau sur les yeux",
+      "id": "card.blindfold",
+      "tags": [
+        "v3.preference.yeux_bandes",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.blindfold.base",
+          "tags": [
+            "v3.preference.yeux_bandes",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 62,
+      "title": "Ferme les yeux",
+      "id": "card.close_eyes",
+      "tags": [
+        "v3.preference.ordres",
+        "v3.direction.faire"
+      ],
+      "directions": [
+        "FAIRE"
+      ],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [
+        "Fermer les yeux est traité comme une consigne légère, sans créer YEUX_FERMES ni réutiliser YEUX_BANDES."
+      ],
+      "variants": [
+        {
+          "id": "variant.close_eyes.base",
+          "tags": [
+            "v3.preference.ordres",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": [
+            "Fermer les yeux est traité comme une consigne légère, sans créer YEUX_FERMES ni réutiliser YEUX_BANDES."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 63,
+      "title": "Devine au toucher",
+      "id": "card.guess_touch",
+      "tags": [],
+      "directions": [],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [
+        "La mécanique de devinette au toucher ne justifie ni TOUCHER générique, ni TEXTURE sans précision éditoriale."
+      ],
+      "variants": [
+        {
+          "id": "variant.guess_touch.base",
+          "tags": [],
+          "directions": [],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": [
+            "La mécanique de devinette au toucher ne justifie ni TOUCHER générique, ni TEXTURE sans précision éditoriale."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 64,
+      "title": "Jeu de température",
+      "id": "card.temperature_play",
+      "tags": [
+        "v3.preference.temperature"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [
+        "La direction dépend de l’exécution concrète du jeu de température."
+      ],
+      "variants": [
+        {
+          "id": "variant.temperature_play.base",
+          "tags": [
+            "v3.preference.temperature"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": [
+            "La direction dépend de l’exécution concrète du jeu de température."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 65,
+      "title": "Jeu sensoriel",
+      "id": "card.sensory_play",
+      "tags": [],
+      "directions": [],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [
+        "card.blindfold",
+        "card.close_eyes",
+        "card.temperature_play"
+      ],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [
+        "Carte conteneur sans préférence sensorielle générique ; ses variantes recouvrent des cartes dédiées."
+      ],
+      "variants": [
+        {
+          "id": "variant.sensory_play.base",
+          "tags": [],
+          "directions": [],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [
+            "card.blindfold",
+            "card.close_eyes",
+            "card.temperature_play"
+          ],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": [
+            "Carte conteneur sans préférence sensorielle générique ; ses variantes recouvrent des cartes dédiées."
+          ]
+        },
+        {
+          "id": "variant.sensory_play.eyes",
+          "tags": [],
+          "directions": [],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": [
+            "La variante yeux fermés est une mise en scène sans tag YEUX_FERMES ni YEUX_BANDES."
+          ]
+        },
+        {
+          "id": "variant.sensory_play.blindfold",
+          "tags": [
+            "v3.preference.yeux_bandes"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.sensory_play.temperature",
+          "tags": [
+            "v3.preference.temperature"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 66,
+      "title": "Fessée",
+      "id": "card.spanking",
+      "tags": [
+        "v3.preference.frapper",
+        "v3.zone.fesses",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.spanking.base",
+          "tags": [
+            "v3.preference.frapper",
+            "v3.zone.fesses",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 67,
+      "title": "Morsure",
+      "id": "card.bite",
+      "tags": [
+        "v3.preference.mordre",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [
+        "Aucune zone anatomique n’est précisée."
+      ],
+      "variants": [
+        {
+          "id": "variant.bite.base",
+          "tags": [
+            "v3.preference.mordre",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": [
+            "Aucune zone anatomique n’est précisée."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 68,
+      "title": "Griffures",
+      "id": "card.scratches",
+      "tags": [
+        "v3.preference.griffer",
+        "v3.direction.faire",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "FAIRE",
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [
+        "Aucune zone anatomique n’est précisée."
+      ],
+      "variants": [
+        {
+          "id": "variant.scratches.base",
+          "tags": [
+            "v3.preference.griffer",
+            "v3.direction.faire",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": [
+            "Aucune zone anatomique n’est précisée."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 69,
+      "title": "Immobilise-moi",
+      "id": "card.immobilize",
+      "tags": [
+        "v3.preference.immobiliser",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.immobilize.base",
+          "tags": [
+            "v3.preference.immobiliser",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 70,
+      "title": "Fais-moi attendre",
+      "id": "card.make_wait",
+      "tags": [
+        "v3.preference.controle",
+        "v3.preference.provoquer",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.make_wait.base",
+          "tags": [
+            "v3.preference.controle",
+            "v3.preference.provoquer",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 71,
+      "title": "Regarde-moi",
+      "id": "card.look_at_me",
+      "tags": [
+        "v3.direction.etre_regarde"
+      ],
+      "directions": [
+        "ETRE_REGARDE"
+      ],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.look_at_me.base",
+          "tags": [
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 72,
+      "title": "Laisse-moi te regarder",
+      "id": "card.let_me_watch",
+      "tags": [
+        "v3.preference.regarder",
+        "v3.direction.faire"
+      ],
+      "directions": [
+        "FAIRE"
+      ],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.let_me_watch.base",
+          "tags": [
+            "v3.preference.regarder",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 73,
+      "title": "Exhibition privée",
+      "id": "card.private_exhibition",
+      "tags": [
+        "v3.direction.etre_regarde"
+      ],
+      "directions": [
+        "ETRE_REGARDE"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.private_exhibition.base",
+          "tags": [
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.private_exhibition.underwear",
+          "tags": [
+            "v3.preference.sous_vetements",
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.private_exhibition.nude",
+          "tags": [
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 74,
+      "title": "Voyeur privé",
+      "id": "card.private_voyeur",
+      "tags": [
+        "v3.preference.regarder"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.private_voyeur.base",
+          "tags": [
+            "v3.preference.regarder"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 75,
+      "title": "Danse pour moi",
+      "id": "card.dance_for_me",
+      "tags": [
+        "v3.preference.danser",
+        "v3.direction.etre_regarde"
+      ],
+      "directions": [
+        "ETRE_REGARDE"
+      ],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.dance_for_me.base",
+          "tags": [
+            "v3.preference.danser",
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 76,
+      "title": "Défilé privé",
+      "id": "card.private_runway",
+      "tags": [
+        "v3.preference.tenue",
+        "v3.direction.etre_regarde"
+      ],
+      "directions": [
+        "ETRE_REGARDE"
+      ],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.private_runway.base",
+          "tags": [
+            "v3.preference.tenue",
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 77,
+      "title": "Prends la pose",
+      "id": "card.pose",
+      "tags": [
+        "v3.direction.etre_regarde"
+      ],
+      "directions": [
+        "ETRE_REGARDE"
+      ],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.pose.base",
+          "tags": [
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.pose.partner_choice",
+          "tags": [
+            "v3.preference.controle",
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 78,
+      "title": "Choisis ma pose",
+      "id": "card.choose_pose",
+      "tags": [
+        "v3.preference.controle",
+        "v3.direction.etre_regarde"
+      ],
+      "directions": [
+        "ETRE_REGARDE"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.choose_pose.base",
+          "tags": [
+            "v3.preference.controle",
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 79,
+      "title": "Douche à deux",
+      "id": "card.shower_together",
+      "tags": [
+        "v3.preference.proximite_physique",
+        "v3.direction.mutuel"
+      ],
+      "directions": [
+        "MUTUEL"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [
+        "La douche est un contexte objectif non représenté par une préférence dédiée."
+      ],
+      "variants": [
+        {
+          "id": "variant.shower_together.base",
+          "tags": [
+            "v3.preference.proximite_physique",
+            "v3.direction.mutuel"
+          ],
+          "directions": [
+            "MUTUEL"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": [
+            "La douche est un contexte objectif non représenté par une préférence dédiée."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 80,
+      "title": "Bain à deux",
+      "id": "card.bath_together",
+      "tags": [
+        "v3.preference.proximite_physique",
+        "v3.direction.mutuel"
+      ],
+      "directions": [
+        "MUTUEL"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [
+        "Le bain est un contexte objectif non représenté par une préférence dédiée."
+      ],
+      "variants": [
+        {
+          "id": "variant.bath_together.base",
+          "tags": [
+            "v3.preference.proximite_physique",
+            "v3.direction.mutuel"
+          ],
+          "directions": [
+            "MUTUEL"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": [
+            "Le bain est un contexte objectif non représenté par une préférence dédiée."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 81,
+      "title": "Sexting",
+      "id": "card.sexting",
+      "tags": [
+        "v3.preference.paroles_coquines",
+        "v3.preference.envoyer",
+        "v3.direction.mutuel"
+      ],
+      "directions": [
+        "MUTUEL"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.sexting.base",
+          "tags": [
+            "v3.preference.paroles_coquines",
+            "v3.preference.envoyer",
+            "v3.direction.mutuel"
+          ],
+          "directions": [
+            "MUTUEL"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.sexting.guided",
+          "tags": [
+            "v3.preference.paroles_coquines",
+            "v3.preference.envoyer",
+            "v3.preference.ordres",
+            "v3.direction.mutuel",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "MUTUEL",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 82,
+      "title": "Message coquin",
+      "id": "card.flirty_message",
+      "tags": [
+        "v3.preference.paroles_coquines",
+        "v3.preference.envoyer",
+        "v3.direction.faire"
+      ],
+      "directions": [
+        "FAIRE"
+      ],
+      "baseEngagementLevel": 1,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.flirty_message.base",
+          "tags": [
+            "v3.preference.paroles_coquines",
+            "v3.preference.envoyer",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 83,
+      "title": "Photo suggestive",
+      "id": "card.suggestive_photo",
+      "tags": [
+        "v3.preference.photo",
+        "v3.preference.envoyer",
+        "v3.direction.solo",
+        "v3.direction.etre_regarde"
+      ],
+      "directions": [
+        "SOLO",
+        "ETRE_REGARDE"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.suggestive_photo.base",
+          "tags": [
+            "v3.preference.photo",
+            "v3.preference.envoyer",
+            "v3.direction.solo",
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "SOLO",
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.suggestive_photo.partner_pose",
+          "tags": [
+            "v3.preference.photo",
+            "v3.preference.envoyer",
+            "v3.preference.controle",
+            "v3.direction.solo",
+            "v3.direction.etre_regarde"
+          ],
+          "directions": [
+            "SOLO",
+            "ETRE_REGARDE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 84,
+      "title": "Photo en sous-vêtements",
+      "id": "card.underwear_photo",
+      "tags": [
+        "v3.preference.photo",
+        "v3.preference.sous_vetements",
+        "v3.preference.envoyer",
+        "v3.direction.solo"
+      ],
+      "directions": [
+        "SOLO"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.underwear_photo.base",
+          "tags": [
+            "v3.preference.photo",
+            "v3.preference.sous_vetements",
+            "v3.preference.envoyer",
+            "v3.direction.solo"
+          ],
+          "directions": [
+            "SOLO"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 85,
+      "title": "Photo nue",
+      "id": "card.nude_photo",
+      "tags": [
+        "v3.preference.photo",
+        "v3.preference.envoyer",
+        "v3.direction.solo"
+      ],
+      "directions": [
+        "SOLO"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.nude_photo.base",
+          "tags": [
+            "v3.preference.photo",
+            "v3.preference.envoyer",
+            "v3.direction.solo"
+          ],
+          "directions": [
+            "SOLO"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 86,
+      "title": "Choisis ma photo",
+      "id": "card.choose_my_photo",
+      "tags": [
+        "v3.preference.photo",
+        "v3.preference.controle",
+        "v3.preference.envoyer"
+      ],
+      "directions": [],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.choose_my_photo.base",
+          "tags": [
+            "v3.preference.photo",
+            "v3.preference.controle",
+            "v3.preference.envoyer"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 87,
+      "title": "Vidéo intime",
+      "id": "card.intimate_video",
+      "tags": [
+        "v3.preference.video",
+        "v3.preference.envoyer",
+        "v3.direction.solo"
+      ],
+      "directions": [
+        "SOLO"
+      ],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.intimate_video.base",
+          "tags": [
+            "v3.preference.video",
+            "v3.preference.envoyer",
+            "v3.direction.solo"
+          ],
+          "directions": [
+            "SOLO"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.intimate_video.suggestive",
+          "tags": [
+            "v3.preference.video",
+            "v3.preference.envoyer",
+            "v3.direction.solo"
+          ],
+          "directions": [
+            "SOLO"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.intimate_video.nude",
+          "tags": [
+            "v3.preference.video",
+            "v3.preference.envoyer",
+            "v3.direction.solo"
+          ],
+          "directions": [
+            "SOLO"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 88,
+      "title": "Visio privée",
+      "id": "card.private_video_call",
+      "tags": [],
+      "directions": [],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": true,
+      "sessionDataCandidate": true,
+      "ambiguities": [
+        "VISIO décrit le mode de session et non une préférence permanente ; la carte peut sortir du deck."
+      ],
+      "variants": [
+        {
+          "id": "variant.private_video_call.base",
+          "tags": [],
+          "directions": [],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": true,
+          "sessionDataCandidate": true,
+          "ambiguities": [
+            "VISIO décrit le mode de session et non une préférence permanente ; la carte peut sortir du deck."
+          ]
+        },
+        {
+          "id": "variant.private_video_call.guided",
+          "tags": [
+            "v3.preference.ordres",
+            "v3.preference.controle"
+          ],
+          "directions": [],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": true,
+          "sessionDataCandidate": true,
+          "ambiguities": [
+            "La direction de la consigne en direct n’est pas précisée ; VISIO reste une donnée de session."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 89,
+      "title": "Visio nue",
+      "id": "card.nude_video_call",
+      "tags": [],
+      "directions": [],
+      "baseEngagementLevel": 3,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": true,
+      "sessionDataCandidate": true,
+      "ambiguities": [
+        "VISIO et la nudité décrivent le mode et le contenu de session sans préférence permanente suffisamment précise."
+      ],
+      "variants": [
+        {
+          "id": "variant.nude_video_call.base",
+          "tags": [],
+          "directions": [],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": true,
+          "sessionDataCandidate": true,
+          "ambiguities": [
+            "VISIO et la nudité décrivent le mode et le contenu de session sans préférence permanente suffisamment précise."
+          ]
+        }
+      ]
+    },
+    {
+      "order": 90,
+      "title": "Donne-moi une consigne à distance",
+      "id": "card.remote_instruction",
+      "tags": [
+        "v3.preference.ordres",
+        "v3.direction.recevoir"
+      ],
+      "directions": [
+        "RECEVOIR"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": false,
+      "requirements": {},
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.remote_instruction.base",
+          "tags": [
+            "v3.preference.ordres",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    }
+  ]
+}
