@@ -35,6 +35,12 @@ tandis que les dix anciens tags de scénario sont `scenario_migrated` sans cible
 de préférence. `LIEU_EXPOSE` reste également une préférence personnelle
 scoreable ; seul le lieu concret choisi appartient au contexte de session.
 
+`REGARD_EXTERIEUR` reste une préférence canonique mais volontairement sans
+carte jouable tant que le produit ne modélise pas le consentement des personnes
+extérieures. `LIEU_EXPOSE` peut être joué uniquement comme sensation ou mise en
+scène convenue entre les partenaires, dans un cadre autorisé, sans exiger la
+présence, l'observation ou la participation d'un tiers.
+
 Les mappings directionnels décrivent le sens du concept : regarder et être
 regardé, donner et recevoir un ordre, décider et laisser décider restent
 distincts. Lorsqu'un ancien tag est réutilisé dans les deux sens, comme
@@ -56,6 +62,20 @@ exclus de ce calcul.
 vêtements s'applique seulement aux bases 1–3, avec un résultat borné à 1–5. Une
 base 4 ou 5 reste inchangée.
 
+`POSITION_S`, `POSITION_A` et `POSITION_E` décrivent exclusivement la
+complexité physique ou technique d'une vraie position sexuelle :
+
+- `POSITION_S` : simple à mettre en place, faible exigence physique et peu de
+  coordination ;
+- `POSITION_A` : demande davantage de mobilité, de coordination, de maintien
+  ou d'effort physique ;
+- `POSITION_E` : nettement exigeante physiquement ou techniquement, avec une
+  coordination ou une capacité physique supérieure.
+
+Ces tags ne déterminent jamais le niveau de piment et ne s'appliquent pas aux
+poses ou postures ordinaires. Les pratiques sexuelles explicites restent en
+général au niveau 4 ; le niveau 5 demeure réservé à l'engagement maximal.
+
 La session conserve uniquement `removableClothingInitial` et
 `removableClothingRemaining`. Une carte porte un `clothingDelta` entier ou la
 valeur `ASK_PLAYER`, ainsi qu'un éventuel `minimumRemovableClothing`. Aucun
@@ -67,6 +87,10 @@ Une carte V3 est compatible à distance sauf si elle porte explicitement
 `DISTANCE_EXCLUE`. Pendant la transition, l'audit traduit les anciens
 `SESSION_MODE_IN` qui excluent `distance` en incompatibilité ; cette traduction
 disparaîtra après la migration des cartes.
+
+Le mode hybride n'interdit pas `DISTANCE_EXCLUE` : les partenaires peuvent se
+rejoindre ponctuellement. Aucune taxonomie parallèle `FACE_TO_FACE`, `DISTANCE`
+ou `BOTH` n'est introduite.
 
 ## Jeu de rôle
 
@@ -91,6 +115,20 @@ Les contraintes ne sont jamais des préférences. Le contrat typé accepte :
 - `requiresConstraintAccessory`, `requiresOil`, `requiresLubricant` ;
 - `requiresProtection`, `requiresFood`, `requiresDrink`, `requiresAlcohol` ;
 - `minimumRemovableClothing`.
+
+`ALCOOL` et `PROTECTION` restent des tags `MATERIEL` non scoreables et peuvent
+rester sans couverture. Aucune carte ne doit exiger de l'alcool. La protection
+est exprimée par `requiresProtection` lorsqu'elle est requise ; aucune carte ne
+doit être créée uniquement pour couvrir le tag matériel.
+
+`MAINTIEN_COU` reste une préférence avancée scoreable. Son contenu doit rester
+descriptif, parler uniquement d'un maintien léger et convenu, et ne jamais
+donner d'instruction sur le placement des mains, la pression, la durée, la
+respiration ou une technique.
+
+`AVALER`, `CRACHER` et `EJACULATION` sont trois préférences distinctes et
+scoreables. Elles sont formulées brièvement autour du choix et du consentement,
+sans détail technique ni fusion éditoriale.
 
 ## Couverture inverse
 
@@ -122,6 +160,13 @@ legacy de visio sont exclues du deck V3 et migrent vers ce champ.
 
 La consolidation est vérifiée par
 `dart run tool/audit_catalog_v3_consolidation.dart docs/catalog_v3_consolidation.json`.
+
+L'expansion validée est documentée dans
+`docs/catalog_v3_zero_coverage_plan.json` et
+`docs/catalog_v3_expansion_plan.json`. Elle ajoute 19 cartes V3 et 58 variantes
+V3, dont 21 extensions de cartes existantes. Les nouveaux éléments restent
+désactivés pour le catalogue legacy et sont activés explicitement dans la vue
+V3.
 
 ## Migration éditoriale progressive
 

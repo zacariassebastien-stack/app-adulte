@@ -54,7 +54,26 @@
     }
   ],
   "new_v3_cards": [
-    "card.simultaneous_self_masturbation"
+    "card.simultaneous_self_masturbation",
+    "card.v3.sextoy_play",
+    "card.v3.remote_toy_control",
+    "card.v3.shared_adult_content",
+    "card.v3.exposed_setting",
+    "card.v3.orgasm_permission",
+    "card.v3.ejaculation_choice",
+    "card.v3.swallow_choice",
+    "card.v3.spit_choice",
+    "card.v3.degrading_words",
+    "card.v3.beg_for_it",
+    "card.v3.roleplay_scene",
+    "card.v3.unusual_private_place",
+    "card.v3.costume_and_light_outfit",
+    "card.v3.texture_and_breath",
+    "card.v3.auditory_deprivation",
+    "card.v3.silence_rule",
+    "card.v3.neck_hold",
+    "card.v3.gentle_pull",
+    "card.v3.sensual_tasting"
   ],
   "created_variants": [
     "variant.oral_give.suck",
@@ -101,7 +120,65 @@
     "variant.simulate_penetration.base.receive",
     "variant.spanking.base.receive",
     "variant.temperature_play.base.receive",
-    "variant.vaginal_penetration.base.receive"
+    "variant.vaginal_penetration.base.receive",
+    "variant.v3.anal_penetration.sex_give",
+    "variant.v3.anal_penetration.sex_receive",
+    "variant.v3.auditory_deprivation.give",
+    "variant.v3.auditory_deprivation.receive",
+    "variant.v3.beg_for_it.perform",
+    "variant.v3.caress.bras_give",
+    "variant.v3.caress.bras_receive",
+    "variant.v3.caress.cuisses_give",
+    "variant.v3.caress.cuisses_receive",
+    "variant.v3.caress.ventre_give",
+    "variant.v3.caress.ventre_receive",
+    "variant.v3.choose_sex_position.a",
+    "variant.v3.choose_sex_position.e",
+    "variant.v3.choose_sex_position.s",
+    "variant.v3.costume_and_light_outfit.costume",
+    "variant.v3.costume_and_light_outfit.light",
+    "variant.v3.degrading_words.give",
+    "variant.v3.degrading_words.receive",
+    "variant.v3.ejaculation_choice.give",
+    "variant.v3.ejaculation_choice.receive",
+    "variant.v3.exposed_setting.mutual",
+    "variant.v3.flirty_message.voice_receive",
+    "variant.v3.flirty_message.voice_send",
+    "variant.v3.gentle_pull.give",
+    "variant.v3.gentle_pull.receive",
+    "variant.v3.massage.dos_give",
+    "variant.v3.massage.dos_receive",
+    "variant.v3.massage.epaules_give",
+    "variant.v3.massage.epaules_receive",
+    "variant.v3.massage.jambes_give",
+    "variant.v3.massage.jambes_receive",
+    "variant.v3.neck_hold.give",
+    "variant.v3.neck_hold.receive",
+    "variant.v3.orgasm_permission.ask",
+    "variant.v3.orgasm_permission.grant",
+    "variant.v3.remote_toy_control.give",
+    "variant.v3.remote_toy_control.receive",
+    "variant.v3.roleplay_scene.guided",
+    "variant.v3.roleplay_scene.mutual",
+    "variant.v3.sensual_tasting.drink_give",
+    "variant.v3.sensual_tasting.drink_receive",
+    "variant.v3.sensual_tasting.food_give",
+    "variant.v3.sensual_tasting.food_receive",
+    "variant.v3.sextoy_play.give",
+    "variant.v3.sextoy_play.receive",
+    "variant.v3.shared_adult_content.partner_choice",
+    "variant.v3.shared_adult_content.together",
+    "variant.v3.silence_rule.give",
+    "variant.v3.silence_rule.receive",
+    "variant.v3.spit_choice.perform",
+    "variant.v3.swallow_choice.perform",
+    "variant.v3.texture_and_breath.breath_give",
+    "variant.v3.texture_and_breath.breath_receive",
+    "variant.v3.texture_and_breath.texture_give",
+    "variant.v3.texture_and_breath.texture_receive",
+    "variant.v3.unusual_private_place.mutual",
+    "variant.v3.vaginal_penetration.sex_give",
+    "variant.v3.vaginal_penetration.sex_receive"
   ],
   "preference_less_before": [
     "variant.manual_intimate.base",
@@ -192,15 +269,15 @@
     "playable_variants": 119
   },
   "counts_after": {
-    "playable_cards": 85,
-    "playable_variants": 148
+    "playable_cards": 104,
+    "playable_variants": 206
   },
   "zero_coverage_count_before": 52,
   "coverage": {
     "schema_version": 3,
     "source_catalog_version": 3,
-    "playable_cards_analyzed": 85,
-    "variants_analyzed": 148,
+    "playable_cards_analyzed": 104,
+    "variants_analyzed": 206,
     "excluded_roleplay_scenario_cards": [
       "card.rp_bar",
       "card.rp_boss_employee",
@@ -267,10 +344,10 @@
           "key": "CARESSER",
           "scoreable": true,
           "card_count": 8,
-          "variant_count": 19,
+          "variant_count": 25,
           "direction_coverage": {
-            "FAIRE": 9,
-            "RECEVOIR": 9,
+            "FAIRE": 12,
+            "RECEVOIR": 12,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
@@ -292,10 +369,10 @@
           "key": "MASSER",
           "scoreable": true,
           "card_count": 5,
-          "variant_count": 14,
+          "variant_count": 20,
           "direction_coverage": {
-            "FAIRE": 7,
-            "RECEVOIR": 7,
+            "FAIRE": 10,
+            "RECEVOIR": 10,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
@@ -404,10 +481,10 @@
           "key": "PENETRER",
           "scoreable": true,
           "card_count": 5,
-          "variant_count": 9,
+          "variant_count": 13,
           "direction_coverage": {
-            "FAIRE": 4,
-            "RECEVOIR": 4,
+            "FAIRE": 6,
+            "RECEVOIR": 6,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
@@ -516,65 +593,73 @@
           "stable_id": "v3.preference.tirer",
           "key": "TIRER",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.v3.gentle_pull"
+          ]
         },
         {
           "stable_id": "v3.preference.souffler",
           "key": "SOUFFLER",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.v3.texture_and_breath"
+          ]
         },
         {
           "stable_id": "v3.preference.cracher",
           "key": "CRACHER",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 1,
           "direction_coverage": {
-            "FAIRE": 0,
+            "FAIRE": 1,
             "RECEVOIR": 0,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.v3.spit_choice"
+          ]
         },
         {
           "stable_id": "v3.preference.avaler",
           "key": "AVALER",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 1,
           "direction_coverage": {
-            "FAIRE": 0,
+            "FAIRE": 1,
             "RECEVOIR": 0,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.v3.swallow_choice"
+          ]
         },
         {
           "stable_id": "v3.preference.attacher",
@@ -646,16 +731,16 @@
           "stable_id": "v3.preference.controle",
           "key": "CONTROLE",
           "scoreable": true,
-          "card_count": 14,
-          "variant_count": 19,
+          "card_count": 21,
+          "variant_count": 33,
           "direction_coverage": {
-            "FAIRE": 5,
-            "RECEVOIR": 10,
+            "FAIRE": 13,
+            "RECEVOIR": 16,
             "SOLO": 1,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 17,
+          "distance_compatible_variants": 26,
           "cards": [
             "card.choose_my_photo",
             "card.choose_outfit",
@@ -669,6 +754,13 @@
             "card.pose",
             "card.submit",
             "card.suggestive_photo",
+            "card.v3.auditory_deprivation",
+            "card.v3.neck_hold",
+            "card.v3.orgasm_permission",
+            "card.v3.remote_toy_control",
+            "card.v3.roleplay_scene",
+            "card.v3.shared_adult_content",
+            "card.v3.silence_rule",
             "card.watch_no_touch",
             "card.you_decide"
           ]
@@ -695,33 +787,37 @@
           "stable_id": "v3.preference.supplier",
           "key": "SUPPLIER",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 1,
           "direction_coverage": {
-            "FAIRE": 0,
+            "FAIRE": 1,
             "RECEVOIR": 0,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 1,
+          "cards": [
+            "card.v3.beg_for_it"
+          ]
         },
         {
           "stable_id": "v3.preference.permission",
           "key": "PERMISSION",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 2,
+          "cards": [
+            "card.v3.orgasm_permission"
+          ]
         },
         {
           "stable_id": "v3.preference.provoquer",
@@ -786,19 +882,20 @@
           "stable_id": "v3.preference.regarder",
           "key": "REGARDER",
           "scoreable": true,
-          "card_count": 3,
-          "variant_count": 3,
+          "card_count": 4,
+          "variant_count": 5,
           "direction_coverage": {
             "FAIRE": 1,
-            "RECEVOIR": 1,
+            "RECEVOIR": 2,
             "SOLO": 0,
-            "MUTUEL": 0,
+            "MUTUEL": 1,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 3,
+          "distance_compatible_variants": 5,
           "cards": [
             "card.let_me_watch",
             "card.private_voyeur",
+            "card.v3.shared_adult_content",
             "card.watch_no_touch"
           ]
         },
@@ -847,7 +944,7 @@
           "key": "ENVOYER",
           "scoreable": true,
           "card_count": 7,
-          "variant_count": 11,
+          "variant_count": 12,
           "direction_coverage": {
             "FAIRE": 1,
             "RECEVOIR": 1,
@@ -855,7 +952,7 @@
             "MUTUEL": 2,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 9,
+          "distance_compatible_variants": 10,
           "cards": [
             "card.choose_my_photo",
             "card.flirty_message",
@@ -870,17 +967,19 @@
           "stable_id": "v3.preference.maintien_cou",
           "key": "MAINTIEN_COU",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.v3.neck_hold"
+          ]
         },
         {
           "stable_id": "v3.preference.langue",
@@ -923,65 +1022,75 @@
           "stable_id": "v3.preference.sexe",
           "key": "SEXE",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 2,
+          "variant_count": 4,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 2,
+            "RECEVOIR": 2,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.anal_penetration",
+            "card.vaginal_penetration"
+          ]
         },
         {
           "stable_id": "v3.preference.sextoy",
           "key": "SEXTOY",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 2,
+          "variant_count": 4,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 2,
+            "RECEVOIR": 2,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 2,
+          "cards": [
+            "card.v3.remote_toy_control",
+            "card.v3.sextoy_play"
+          ]
         },
         {
           "stable_id": "v3.preference.vibrant",
           "key": "VIBRANT",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 2,
+          "cards": [
+            "card.v3.remote_toy_control"
+          ]
         },
         {
           "stable_id": "v3.preference.controle_distance",
           "key": "CONTROLE_DISTANCE",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 2,
+          "cards": [
+            "card.v3.remote_toy_control"
+          ]
         },
         {
           "stable_id": "v3.preference.temperature",
@@ -1005,49 +1114,55 @@
           "stable_id": "v3.preference.texture",
           "key": "TEXTURE",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.v3.texture_and_breath"
+          ]
         },
         {
           "stable_id": "v3.preference.privation_auditive",
           "key": "PRIVATION_AUDITIVE",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 2,
+          "cards": [
+            "card.v3.auditory_deprivation"
+          ]
         },
         {
           "stable_id": "v3.preference.privation_parole",
           "key": "PRIVATION_PAROLE",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 2,
+          "cards": [
+            "card.v3.silence_rule"
+          ]
         },
         {
           "stable_id": "v3.preference.yeux_bandes",
@@ -1071,16 +1186,16 @@
           "stable_id": "v3.preference.tenue",
           "key": "TENUE",
           "scoreable": true,
-          "card_count": 10,
-          "variant_count": 15,
+          "card_count": 11,
+          "variant_count": 17,
           "direction_coverage": {
             "FAIRE": 4,
             "RECEVOIR": 3,
-            "SOLO": 4,
+            "SOLO": 6,
             "MUTUEL": 1,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 5,
+          "distance_compatible_variants": 7,
           "cards": [
             "card.choose_outfit",
             "card.clothed_rubbing",
@@ -1091,24 +1206,27 @@
             "card.striptease",
             "card.undress_me",
             "card.undress_partner",
-            "card.undressing"
+            "card.undressing",
+            "card.v3.costume_and_light_outfit"
           ]
         },
         {
           "stable_id": "v3.preference.tenue_legere",
           "key": "TENUE_LEGERE",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 1,
           "direction_coverage": {
             "FAIRE": 0,
             "RECEVOIR": 0,
-            "SOLO": 0,
+            "SOLO": 1,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 1,
+          "cards": [
+            "card.v3.costume_and_light_outfit"
+          ]
         },
         {
           "stable_id": "v3.preference.sous_vetements",
@@ -1135,17 +1253,19 @@
           "stable_id": "v3.preference.deguisement",
           "key": "DEGUISEMENT",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 1,
           "direction_coverage": {
             "FAIRE": 0,
             "RECEVOIR": 0,
-            "SOLO": 0,
+            "SOLO": 1,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 1,
+          "cards": [
+            "card.v3.costume_and_light_outfit"
+          ]
         },
         {
           "stable_id": "v3.preference.photo",
@@ -1190,33 +1310,37 @@
           "stable_id": "v3.preference.audio",
           "key": "AUDIO",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
             "FAIRE": 0,
-            "RECEVOIR": 0,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 2,
+          "cards": [
+            "card.flirty_message"
+          ]
         },
         {
           "stable_id": "v3.preference.contenu_adulte",
           "key": "CONTENU_ADULTE",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
             "FAIRE": 0,
-            "RECEVOIR": 0,
+            "RECEVOIR": 1,
             "SOLO": 0,
-            "MUTUEL": 0,
+            "MUTUEL": 1,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 2,
+          "cards": [
+            "card.v3.shared_adult_content"
+          ]
         },
         {
           "stable_id": "v3.preference.regard_exterieur",
@@ -1238,32 +1362,34 @@
           "stable_id": "v3.preference.lieu_expose",
           "key": "LIEU_EXPOSE",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 1,
           "direction_coverage": {
             "FAIRE": 0,
             "RECEVOIR": 0,
             "SOLO": 0,
-            "MUTUEL": 0,
+            "MUTUEL": 1,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 1,
+          "cards": [
+            "card.v3.exposed_setting"
+          ]
         },
         {
           "stable_id": "v3.preference.paroles_coquines",
           "key": "PAROLES_COQUINES",
           "scoreable": true,
           "card_count": 2,
-          "variant_count": 3,
+          "variant_count": 5,
           "direction_coverage": {
             "FAIRE": 1,
-            "RECEVOIR": 1,
+            "RECEVOIR": 2,
             "SOLO": 0,
             "MUTUEL": 2,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 3,
+          "distance_compatible_variants": 5,
           "cards": [
             "card.flirty_message",
             "card.sexting"
@@ -1273,160 +1399,178 @@
           "stable_id": "v3.preference.paroles_degradantes",
           "key": "PAROLES_DEGRADANTES",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 2,
+          "cards": [
+            "card.v3.degrading_words"
+          ]
         },
         {
           "stable_id": "v3.preference.orgasme",
           "key": "ORGASME",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 2,
+          "cards": [
+            "card.v3.orgasm_permission"
+          ]
         },
         {
           "stable_id": "v3.preference.ejaculation",
           "key": "EJACULATION",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.v3.ejaculation_choice"
+          ]
         },
         {
           "stable_id": "v3.preference.position_s",
           "key": "POSITION_S",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 1,
           "direction_coverage": {
-            "FAIRE": 0,
+            "FAIRE": 1,
             "RECEVOIR": 0,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.choose_sex_position"
+          ]
         },
         {
           "stable_id": "v3.preference.position_a",
           "key": "POSITION_A",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 1,
           "direction_coverage": {
-            "FAIRE": 0,
+            "FAIRE": 1,
             "RECEVOIR": 0,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.choose_sex_position"
+          ]
         },
         {
           "stable_id": "v3.preference.position_e",
           "key": "POSITION_E",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 1,
           "direction_coverage": {
-            "FAIRE": 0,
+            "FAIRE": 1,
             "RECEVOIR": 0,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.choose_sex_position"
+          ]
         },
         {
           "stable_id": "v3.preference.lieu_inhabituel",
           "key": "LIEU_INHABITUEL",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 1,
           "direction_coverage": {
             "FAIRE": 0,
             "RECEVOIR": 0,
             "SOLO": 0,
-            "MUTUEL": 0,
+            "MUTUEL": 1,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 1,
+          "cards": [
+            "card.v3.unusual_private_place"
+          ]
         },
         {
           "stable_id": "v3.preference.nourriture",
           "key": "NOURRITURE",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.v3.sensual_tasting"
+          ]
         },
         {
           "stable_id": "v3.preference.boisson",
           "key": "BOISSON",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.v3.sensual_tasting"
+          ]
         },
         {
           "stable_id": "v3.preference.etre_regarde",
           "key": "ETRE_REGARDE",
           "scoreable": true,
-          "card_count": 10,
-          "variant_count": 12,
+          "card_count": 11,
+          "variant_count": 14,
           "direction_coverage": {
             "FAIRE": 0,
             "RECEVOIR": 0,
-            "SOLO": 4,
+            "SOLO": 6,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 12,
+          "distance_compatible_variants": 14,
           "cards": [
             "card.choose_pose",
             "card.dance_for_me",
@@ -1437,24 +1581,27 @@
             "card.private_exhibition",
             "card.private_runway",
             "card.striptease",
-            "card.suggestive_photo"
+            "card.suggestive_photo",
+            "card.v3.costume_and_light_outfit"
           ]
         },
         {
           "stable_id": "v3.preference.jeu_role",
           "key": "JEU_ROLE",
           "scoreable": true,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
             "FAIRE": 0,
-            "RECEVOIR": 0,
+            "RECEVOIR": 1,
             "SOLO": 0,
-            "MUTUEL": 0,
+            "MUTUEL": 1,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 2,
+          "cards": [
+            "card.v3.roleplay_scene"
+          ]
         }
       ],
       "ZONE": [
@@ -1595,65 +1742,73 @@
           "stable_id": "v3.zone.cuisses",
           "key": "CUISSES",
           "scoreable": false,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.caress"
+          ]
         },
         {
           "stable_id": "v3.zone.ventre",
           "key": "VENTRE",
           "scoreable": false,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.caress"
+          ]
         },
         {
           "stable_id": "v3.zone.dos",
           "key": "DOS",
           "scoreable": false,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.massage"
+          ]
         },
         {
           "stable_id": "v3.zone.jambes",
           "key": "JAMBES",
           "scoreable": false,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.massage"
+          ]
         },
         {
           "stable_id": "v3.zone.mains",
@@ -1677,33 +1832,37 @@
           "stable_id": "v3.zone.bras",
           "key": "BRAS",
           "scoreable": false,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.caress"
+          ]
         },
         {
           "stable_id": "v3.zone.epaules",
           "key": "EPAULES",
           "scoreable": false,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 2,
           "direction_coverage": {
-            "FAIRE": 0,
-            "RECEVOIR": 0,
+            "FAIRE": 1,
+            "RECEVOIR": 1,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
           "distance_compatible_variants": 0,
-          "cards": []
+          "cards": [
+            "card.massage"
+          ]
         },
         {
           "stable_id": "v3.zone.tete",
@@ -1728,10 +1887,10 @@
           "key": "VAGINAL",
           "scoreable": false,
           "card_count": 1,
-          "variant_count": 2,
+          "variant_count": 4,
           "direction_coverage": {
-            "FAIRE": 1,
-            "RECEVOIR": 1,
+            "FAIRE": 2,
+            "RECEVOIR": 2,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
@@ -1746,10 +1905,10 @@
           "key": "ANAL",
           "scoreable": false,
           "card_count": 5,
-          "variant_count": 12,
+          "variant_count": 14,
           "direction_coverage": {
-            "FAIRE": 5,
-            "RECEVOIR": 5,
+            "FAIRE": 6,
+            "RECEVOIR": 6,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
@@ -1785,16 +1944,16 @@
           "stable_id": "v3.direction.faire",
           "key": "FAIRE",
           "scoreable": false,
-          "card_count": 38,
-          "variant_count": 47,
+          "card_count": 52,
+          "variant_count": 74,
           "direction_coverage": {
-            "FAIRE": 47,
+            "FAIRE": 74,
             "RECEVOIR": 0,
             "SOLO": 0,
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 10,
+          "distance_compatible_variants": 16,
           "cards": [
             "card.anal_caress",
             "card.anal_manual",
@@ -1833,6 +1992,20 @@
             "card.spanking",
             "card.temperature_play",
             "card.undress_partner",
+            "card.v3.auditory_deprivation",
+            "card.v3.beg_for_it",
+            "card.v3.degrading_words",
+            "card.v3.ejaculation_choice",
+            "card.v3.gentle_pull",
+            "card.v3.neck_hold",
+            "card.v3.orgasm_permission",
+            "card.v3.remote_toy_control",
+            "card.v3.sensual_tasting",
+            "card.v3.sextoy_play",
+            "card.v3.silence_rule",
+            "card.v3.spit_choice",
+            "card.v3.swallow_choice",
+            "card.v3.texture_and_breath",
             "card.vaginal_penetration"
           ]
         },
@@ -1840,16 +2013,16 @@
           "stable_id": "v3.direction.recevoir",
           "key": "RECEVOIR",
           "scoreable": false,
-          "card_count": 44,
-          "variant_count": 57,
+          "card_count": 58,
+          "variant_count": 81,
           "direction_coverage": {
             "FAIRE": 0,
-            "RECEVOIR": 57,
+            "RECEVOIR": 81,
             "SOLO": 0,
             "MUTUEL": 1,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 18,
+          "distance_compatible_variants": 26,
           "cards": [
             "card.anal_caress",
             "card.anal_manual",
@@ -1864,6 +2037,7 @@
             "card.dominate_me",
             "card.facesitting",
             "card.feet_play",
+            "card.flirty_message",
             "card.give_order",
             "card.hands_bound",
             "card.immobilize",
@@ -1892,6 +2066,19 @@
             "card.temperature_play",
             "card.tie_me",
             "card.undress_me",
+            "card.v3.auditory_deprivation",
+            "card.v3.degrading_words",
+            "card.v3.ejaculation_choice",
+            "card.v3.gentle_pull",
+            "card.v3.neck_hold",
+            "card.v3.orgasm_permission",
+            "card.v3.remote_toy_control",
+            "card.v3.roleplay_scene",
+            "card.v3.sensual_tasting",
+            "card.v3.sextoy_play",
+            "card.v3.shared_adult_content",
+            "card.v3.silence_rule",
+            "card.v3.texture_and_breath",
             "card.vaginal_penetration",
             "card.watch_no_touch",
             "card.you_decide"
@@ -1901,16 +2088,16 @@
           "stable_id": "v3.direction.solo",
           "key": "SOLO",
           "scoreable": false,
-          "card_count": 10,
-          "variant_count": 16,
+          "card_count": 11,
+          "variant_count": 18,
           "direction_coverage": {
             "FAIRE": 0,
             "RECEVOIR": 0,
-            "SOLO": 16,
+            "SOLO": 18,
             "MUTUEL": 0,
             "SIMULTANE": 1
           },
-          "distance_compatible_variants": 11,
+          "distance_compatible_variants": 13,
           "cards": [
             "card.intimate_video",
             "card.masturbate_self_visible",
@@ -1921,23 +2108,24 @@
             "card.suggestive_photo",
             "card.underwear_only",
             "card.underwear_photo",
-            "card.undressing"
+            "card.undressing",
+            "card.v3.costume_and_light_outfit"
           ]
         },
         {
           "stable_id": "v3.direction.mutuel",
           "key": "MUTUEL",
           "scoreable": false,
-          "card_count": 11,
-          "variant_count": 15,
+          "card_count": 15,
+          "variant_count": 19,
           "direction_coverage": {
             "FAIRE": 0,
             "RECEVOIR": 1,
             "SOLO": 0,
-            "MUTUEL": 15,
+            "MUTUEL": 19,
             "SIMULTANE": 4
           },
-          "distance_compatible_variants": 2,
+          "distance_compatible_variants": 6,
           "cards": [
             "card.bath_together",
             "card.body_to_body",
@@ -1949,7 +2137,11 @@
             "card.sexting",
             "card.shower_together",
             "card.simulate_69",
-            "card.sixty_nine"
+            "card.sixty_nine",
+            "card.v3.exposed_setting",
+            "card.v3.roleplay_scene",
+            "card.v3.shared_adult_content",
+            "card.v3.unusual_private_place"
           ]
         },
         {
@@ -1976,8 +2168,8 @@
           "stable_id": "v3.direction.etre_entendu",
           "key": "ETRE_ENTENDU",
           "scoreable": false,
-          "card_count": 0,
-          "variant_count": 0,
+          "card_count": 1,
+          "variant_count": 1,
           "direction_coverage": {
             "FAIRE": 0,
             "RECEVOIR": 0,
@@ -1985,8 +2177,10 @@
             "MUTUEL": 0,
             "SIMULTANE": 0
           },
-          "distance_compatible_variants": 0,
-          "cards": []
+          "distance_compatible_variants": 1,
+          "cards": [
+            "card.flirty_message"
+          ]
         }
       ],
       "MATERIEL": [
@@ -2144,7 +2338,6 @@
     },
     "zero_coverage_tags": [
       "v3.contexte.lieu_habituel",
-      "v3.direction.etre_entendu",
       "v3.materiel.accessoire",
       "v3.materiel.accessoire_contrainte",
       "v3.materiel.alcool",
@@ -2152,45 +2345,10 @@
       "v3.materiel.lubrifiant",
       "v3.materiel.protection",
       "v3.preference.ajouter",
-      "v3.preference.audio",
-      "v3.preference.avaler",
-      "v3.preference.boisson",
-      "v3.preference.contenu_adulte",
-      "v3.preference.controle_distance",
-      "v3.preference.cracher",
-      "v3.preference.deguisement",
-      "v3.preference.ejaculation",
-      "v3.preference.jeu_role",
-      "v3.preference.lieu_expose",
-      "v3.preference.lieu_inhabituel",
-      "v3.preference.maintien_cou",
-      "v3.preference.nourriture",
-      "v3.preference.orgasme",
-      "v3.preference.paroles_degradantes",
-      "v3.preference.permission",
-      "v3.preference.position_a",
-      "v3.preference.position_e",
-      "v3.preference.position_s",
-      "v3.preference.privation_auditive",
-      "v3.preference.privation_parole",
       "v3.preference.regard_exterieur",
-      "v3.preference.sexe",
-      "v3.preference.sextoy",
-      "v3.preference.souffler",
-      "v3.preference.supplier",
-      "v3.preference.tenue_legere",
-      "v3.preference.texture",
-      "v3.preference.tirer",
-      "v3.preference.vibrant",
       "v3.session_pref.surprise_party",
       "v3.technique.distance_exclue",
-      "v3.zone.bras",
-      "v3.zone.buccal",
-      "v3.zone.cuisses",
-      "v3.zone.dos",
-      "v3.zone.epaules",
-      "v3.zone.jambes",
-      "v3.zone.ventre"
+      "v3.zone.buccal"
     ]
   }
 }

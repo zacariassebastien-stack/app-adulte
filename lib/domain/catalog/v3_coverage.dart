@@ -408,6 +408,11 @@ final class V3ConsolidationReportBuilder {
     );
     preferenceLessAfter.sort();
     faireRecevoirAfter.sort();
+    final expansionVariants = <String>[
+      for (final card in view.playableCards)
+        for (final variant in view.playableVariants(card))
+          if (variant.stableId.startsWith('variant.v3.')) variant.stableId,
+    ]..sort();
 
     final coverage = const V3CoverageReportBuilder().build(
       catalog,
@@ -424,7 +429,7 @@ final class V3ConsolidationReportBuilder {
         ))
           card.stableId,
       ],
-      'created_variants': createdVariants,
+      'created_variants': [...createdVariants, ...expansionVariants],
       'preference_less_before': preferenceLessBefore,
       'preference_less_after': preferenceLessAfter,
       'ambiguities_before': ambiguitiesBefore,

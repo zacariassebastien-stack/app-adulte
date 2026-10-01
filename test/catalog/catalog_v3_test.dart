@@ -235,7 +235,7 @@ void main() {
       taxonomy: taxonomy,
       roleplayScenarios: roleplayScenarios,
     );
-    expect(view.playableCards, hasLength(85));
+    expect(view.playableCards, hasLength(104));
     expect(
       view.playableCards.map((card) => card.stableId),
       contains('card.simultaneous_self_masturbation'),
@@ -349,7 +349,7 @@ void main() {
       taxonomy,
       roleplayScenarios,
     );
-    expect(report['playable_cards_analyzed'], 85);
+    expect(report['playable_cards_analyzed'], 104);
     expect(report['coverage_by_category'], isA<Map<String, Object?>>());
     expect(
       (report['coverage_by_category']! as Map<String, Object?>).keys,
@@ -364,8 +364,7 @@ void main() {
 
   test('legacy action cards and V3 additions have editorial data', () {
     for (final card in catalog.cards) {
-      if (card.order! <= 90 ||
-          card.stableId == 'card.simultaneous_self_masturbation') {
+      if (card.order! <= 90 || card.order! > 100) {
         expect(card.v3, isNotNull, reason: card.stableId);
         expect(
           card.variants,
@@ -759,8 +758,8 @@ void main() {
       expect(report['faire_recevoir_before'], hasLength(26));
       expect(report['faire_recevoir_after'], isEmpty);
       expect(report['counts_after'], {
-        'playable_cards': 85,
-        'playable_variants': 148,
+        'playable_cards': 104,
+        'playable_variants': 206,
       });
       expect(
         jsonDecode(
@@ -834,4 +833,116 @@ void main() {
       }
     },
   );
+
+  test('expansion keeps intentionally uncovered tags at zero', () {
+    final report = const V3CoverageReportBuilder().build(
+      catalog,
+      taxonomy,
+      roleplayScenarios,
+    );
+    final zero = (report['zero_coverage_tags']! as List<Object?>)
+        .cast<String>()
+        .toSet();
+    expect(zero, hasLength(12));
+    expect(
+      zero,
+      containsAll({
+        'v3.preference.regard_exterieur',
+        'v3.materiel.alcool',
+        'v3.materiel.protection',
+        'v3.technique.distance_exclue',
+      }),
+    );
+
+    V3TagDefinition tag(String id) =>
+        taxonomy.tags.singleWhere((tag) => tag.stableId == id);
+    expect(tag('v3.materiel.alcool').category, V3TagCategory.MATERIEL);
+    expect(tag('v3.materiel.alcool').scoreable, isFalse);
+    expect(tag('v3.materiel.protection').category, V3TagCategory.MATERIEL);
+    expect(tag('v3.materiel.protection').scoreable, isFalse);
+    expect(
+      tag('v3.technique.distance_exclue').category,
+      V3TagCategory.TECHNIQUE,
+    );
+    expect(tag('v3.technique.distance_exclue').scoreable, isFalse);
+
+    final view = V3CatalogView(
+      catalog: catalog,
+      taxonomy: taxonomy,
+      roleplayScenarios: roleplayScenarios,
+    );
+    for (final card in view.playableCards) {
+      for (final variant in view.playableVariants(card)) {
+        expect(
+          variant.v3!.requirements.requiresAlcohol,
+          isFalse,
+          reason: variant.stableId,
+        );
+      }
+    }
+  });
+
+  test('exposed setting stays partner-only and distance-compatible', () {
+    final card = catalog.cards.singleWhere(
+      (card) => card.stableId == 'card.v3.exposed_setting',
+    );
+    final variants = card.variants.where((variant) => variant.v3DeckEnabled);
+    expect(variants, hasLength(1));
+    for (final variant in variants) {
+      expect(variant.v3!.tags, contains('v3.preference.lieu_expose'));
+      expect(
+        variant.v3!.tags,
+        isNot(contains('v3.preference.regard_exterieur')),
+      );
+      expect(variant.v3!.requirements.isDistanceCompatible, isTrue);
+      final wording = '${card.title} ${variant.title}'.toLowerCase();
+      for (final forbidden in [
+        'tiers',
+        'personne extérieure',
+        'observateur',
+        'public réel',
+      ]) {
+        expect(wording, isNot(contains(forbidden)), reason: forbidden);
+      }
+    }
+  });
+
+  test('position complexity is independent from engagement', () {
+    final card = catalog.cards.singleWhere(
+      (card) => card.stableId == 'card.choose_sex_position',
+    );
+    final expected = {
+      'variant.v3.choose_sex_position.s': 'v3.preference.position_s',
+      'variant.v3.choose_sex_position.a': 'v3.preference.position_a',
+      'variant.v3.choose_sex_position.e': 'v3.preference.position_e',
+    };
+    for (final entry in expected.entries) {
+      final variant = card.variants.singleWhere(
+        (variant) => variant.stableId == entry.key,
+      );
+      expect(variant.v3!.tags, contains(entry.value));
+      expect(variant.v3!.baseEngagementLevel, 4);
+      expect(variant.v3!.requirements.distanceExcluded, isTrue);
+    }
+  });
+
+  test('neck-hold cards remain descriptive and non-technical', () {
+    final card = catalog.cards.singleWhere(
+      (card) => card.stableId == 'card.v3.neck_hold',
+    );
+    for (final variant in card.variants) {
+      final wording = '${card.title} ${variant.title}'.toLowerCase();
+      expect(wording, contains('maintien léger'));
+      expect(wording, contains('limites convenues'));
+      for (final forbidden in [
+        'placement',
+        'pression',
+        'durée',
+        'respiration',
+        'technique',
+      ]) {
+        expect(wording, isNot(contains(forbidden)), reason: forbidden);
+      }
+    }
+  });
 }

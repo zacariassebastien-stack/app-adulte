@@ -13,14 +13,14 @@
     "REMOVE_OR_RECLASSIFY": "Retirer ou reclasser après validation de migration."
   },
   "decision_counts": {
-    "NEW_CONTENT": 25,
+    "NEW_CONTENT": 24,
     "EXTEND_EXISTING": 12,
-    "KEEP_UNCOVERED": 4,
+    "KEEP_UNCOVERED": 5,
     "REMOVE_OR_RECLASSIFY": 7
   },
   "estimated_after_plan_implementation": {
-    "newly_covered_zero_tags": 37,
-    "remaining_zero_coverage_tags": 11
+    "newly_covered_zero_tags": 36,
+    "remaining_zero_coverage_tags": 12
   },
   "classifications": [
     {
@@ -269,9 +269,8 @@
       "stable_id": "v3.preference.regard_exterieur",
       "key": "REGARD_EXTERIEUR",
       "category": "PREFERENCE",
-      "decision": "NEW_CONTENT",
-      "justification": "Le regard tiers diffère du regard du partenaire et exige un cadrage propre.",
-      "proposed_family": "EXHIBITION"
+      "decision": "KEEP_UNCOVERED",
+      "justification": "Préférence conservée mais volontairement sans carte: le produit ne gère pas encore le consentement de personnes extérieures."
     },
     {
       "stable_id": "v3.preference.sexe",

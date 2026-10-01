@@ -577,6 +577,198 @@
               "DISTANCE_EXCLUE": true
             }
           }
+        },
+        {
+          "stable_id": "variant.v3.caress.bras_give",
+          "title": "Caresse les bras de ton partenaire",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.bras",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.caress.bras_receive",
+          "title": "Reçois des caresses sur les bras",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.bras",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.caress.cuisses_give",
+          "title": "Caresse les cuisses de ton partenaire",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.cuisses",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.caress.cuisses_receive",
+          "title": "Reçois des caresses sur les cuisses",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.cuisses",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.caress.ventre_give",
+          "title": "Caresse le ventre de ton partenaire",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.ventre",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.caress.ventre_receive",
+          "title": "Reçois des caresses sur le ventre",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.ventre",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
@@ -1006,6 +1198,198 @@
               "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.massage.dos_give",
+          "title": "Masse dos de ton partenaire",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.zone.dos",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.massage.dos_receive",
+          "title": "Reçois un massage de dos",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.zone.dos",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.massage.epaules_give",
+          "title": "Masse épaules de ton partenaire",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.zone.epaules",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.massage.epaules_receive",
+          "title": "Reçois un massage de épaules",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.zone.epaules",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.massage.jambes_give",
+          "title": "Masse jambes de ton partenaire",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.zone.jambes",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.massage.jambes_receive",
+          "title": "Reçois un massage de jambes",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.zone.jambes",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -3955,6 +4339,72 @@
             }
           },
           "parameters": []
+        },
+        {
+          "stable_id": "variant.v3.vaginal_penetration.sex_give",
+          "title": "Pénètre vaginalement avec ton sexe",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.preference.sexe",
+              "v3.zone.vaginal",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.vaginal_penetration.sex_receive",
+          "title": "Reçois une pénétration vaginale avec le sexe",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.preference.sexe",
+              "v3.zone.vaginal",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
@@ -4015,6 +4465,102 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
+              "v3.preference.controle",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.choose_sex_position.s",
+          "title": "Choisis une position sexuelle simple",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.position_s",
+              "v3.preference.controle",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.choose_sex_position.a",
+          "title": "Choisis une position sexuelle avancée",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.position_a",
+              "v3.preference.controle",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.choose_sex_position.e",
+          "title": "Choisis une position sexuelle experte",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.position_e",
               "v3.preference.controle",
               "v3.direction.faire"
             ],
@@ -4537,6 +5083,72 @@
             }
           },
           "parameters": []
+        },
+        {
+          "stable_id": "variant.v3.anal_penetration.sex_give",
+          "title": "Pénètre analement avec ton sexe",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.preference.sexe",
+              "v3.zone.anal",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.anal_penetration.sex_receive",
+          "title": "Reçois une pénétration anale avec le sexe",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.preference.sexe",
+              "v3.zone.anal",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
         }
       ],
       "parameters": [],
@@ -7987,6 +8599,69 @@
             "baseEngagementLevel": 1,
             "requirements": {}
           }
+        },
+        {
+          "stable_id": "variant.v3.flirty_message.voice_send",
+          "title": "Envoie un message vocal coquin",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.audio",
+              "v3.preference.paroles_coquines",
+              "v3.preference.envoyer",
+              "v3.direction.etre_entendu"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
+        },
+        {
+          "stable_id": "variant.v3.flirty_message.voice_receive",
+          "title": "Écoute le message vocal coquin",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.audio",
+              "v3.preference.paroles_coquines",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
         }
       ],
       "parameters": [],
@@ -9402,6 +10077,1766 @@
         ],
         "baseEngagementLevel": 4,
         "requirements": {}
+      }
+    },
+    {
+      "stable_id": "card.v3.sextoy_play",
+      "order": 102,
+      "content_version": 1,
+      "title": "Jeu avec un sextoy",
+      "title_key": "cards.v3.sextoy_play.title",
+      "precision": "GUIDED",
+      "frequency": "RARE",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.sextoy_play.give",
+          "title": "Utilise le sextoy sur ton partenaire",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.sextoy_play.receive",
+          "title": "Laisse le sextoy être utilisé sur toi",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.sextoy",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "requiresSextoy": true,
+          "DISTANCE_EXCLUE": true
+        }
+      }
+    },
+    {
+      "stable_id": "card.v3.remote_toy_control",
+      "order": 103,
+      "content_version": 1,
+      "title": "Contrôle à distance",
+      "title_key": "cards.v3.remote_toy_control.title",
+      "precision": "GUIDED",
+      "frequency": "RARE",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.remote_toy_control.give",
+          "title": "Prends le contrôle du jouet distant",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.vibrant",
+              "v3.preference.controle_distance",
+              "v3.preference.controle",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "requiresSextoy": true,
+              "requiresVibratingToy": true,
+              "requiresRemoteControlToy": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.remote_toy_control.receive",
+          "title": "Confie le contrôle du jouet distant",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.vibrant",
+              "v3.preference.controle_distance",
+              "v3.preference.controle",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "requiresSextoy": true,
+              "requiresVibratingToy": true,
+              "requiresRemoteControlToy": true
+            }
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.sextoy",
+          "v3.preference.vibrant",
+          "v3.preference.controle_distance",
+          "v3.preference.controle",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "requiresSextoy": true,
+          "requiresVibratingToy": true,
+          "requiresRemoteControlToy": true
+        }
+      }
+    },
+    {
+      "stable_id": "card.v3.shared_adult_content",
+      "order": 104,
+      "content_version": 1,
+      "title": "Contenu adulte partagé",
+      "title_key": "cards.v3.shared_adult_content.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.shared_adult_content.together",
+          "title": "Choisissez ensemble un contenu adulte",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.contenu_adulte",
+              "v3.preference.regarder",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
+        },
+        {
+          "stable_id": "variant.v3.shared_adult_content.partner_choice",
+          "title": "Laisse ton partenaire choisir le contenu",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.contenu_adulte",
+              "v3.preference.regarder",
+              "v3.preference.controle",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.contenu_adulte",
+          "v3.preference.regarder",
+          "v3.direction.mutuel"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {}
+      }
+    },
+    {
+      "stable_id": "card.v3.exposed_setting",
+      "order": 105,
+      "content_version": 1,
+      "title": "Sensation d’exposition",
+      "title_key": "cards.v3.exposed_setting.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.exposed_setting.mutual",
+          "title": "Créez une mise en scène donnant une sensation d’exposition, dans un cadre autorisé",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.lieu_expose",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.lieu_expose",
+          "v3.direction.mutuel"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {}
+      }
+    },
+    {
+      "stable_id": "card.v3.orgasm_permission",
+      "order": 106,
+      "content_version": 1,
+      "title": "Permission finale",
+      "title_key": "cards.v3.orgasm_permission.title",
+      "precision": "GUIDED",
+      "frequency": "RARE",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.orgasm_permission.ask",
+          "title": "Demande la permission pour ton orgasme",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.orgasme",
+              "v3.preference.permission",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {}
+          }
+        },
+        {
+          "stable_id": "variant.v3.orgasm_permission.grant",
+          "title": "Décide quand ton partenaire peut atteindre l’orgasme",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.orgasme",
+              "v3.preference.permission",
+              "v3.preference.controle",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {}
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.orgasme",
+          "v3.preference.permission",
+          "v3.direction.recevoir"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {}
+      }
+    },
+    {
+      "stable_id": "card.v3.ejaculation_choice",
+      "order": 107,
+      "content_version": 1,
+      "title": "Choix d’éjaculation",
+      "title_key": "cards.v3.ejaculation_choice.title",
+      "precision": "GUIDED",
+      "frequency": "RARE",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.ejaculation_choice.give",
+          "title": "Propose une éjaculation convenue",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.ejaculation",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.ejaculation_choice.receive",
+          "title": "Choisis de recevoir une éjaculation convenue",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.ejaculation",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.ejaculation",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
+    },
+    {
+      "stable_id": "card.v3.swallow_choice",
+      "order": 108,
+      "content_version": 1,
+      "title": "Choix d’avaler",
+      "title_key": "cards.v3.swallow_choice.title",
+      "precision": "GUIDED",
+      "frequency": "RARE",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.swallow_choice.perform",
+          "title": "Choisis d’avaler, dans les limites convenues",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.avaler",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.avaler",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
+    },
+    {
+      "stable_id": "card.v3.spit_choice",
+      "order": 109,
+      "content_version": 1,
+      "title": "Choix de cracher",
+      "title_key": "cards.v3.spit_choice.title",
+      "precision": "GUIDED",
+      "frequency": "RARE",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.spit_choice.perform",
+          "title": "Choisis de cracher, dans les limites convenues",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.cracher",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.cracher",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
+    },
+    {
+      "stable_id": "card.v3.degrading_words",
+      "order": 110,
+      "content_version": 1,
+      "title": "Paroles dégradantes consenties",
+      "title_key": "cards.v3.degrading_words.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.degrading_words.give",
+          "title": "Prononce les mots dégradants convenus",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.paroles_degradantes",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
+        },
+        {
+          "stable_id": "variant.v3.degrading_words.receive",
+          "title": "Reçois les mots dégradants convenus",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.paroles_degradantes",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.paroles_degradantes",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {}
+      }
+    },
+    {
+      "stable_id": "card.v3.beg_for_it",
+      "order": 111,
+      "content_version": 1,
+      "title": "Supplie-moi",
+      "title_key": "cards.v3.beg_for_it.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.beg_for_it.perform",
+          "title": "Supplie avec les mots convenus",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.supplier",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.supplier",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {}
+      }
+    },
+    {
+      "stable_id": "card.v3.roleplay_scene",
+      "order": 112,
+      "content_version": 1,
+      "title": "Entre dans le rôle",
+      "title_key": "cards.v3.roleplay_scene.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.roleplay_scene.mutual",
+          "title": "Jouez ensemble le scénario choisi",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.jeu_role",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "requiresRoleplay": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.roleplay_scene.guided",
+          "title": "Laisse ton partenaire guider le scénario",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.jeu_role",
+              "v3.preference.controle",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "requiresRoleplay": true
+            }
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.jeu_role",
+          "v3.direction.mutuel"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {
+          "requiresRoleplay": true
+        }
+      }
+    },
+    {
+      "stable_id": "card.v3.unusual_private_place",
+      "order": 113,
+      "content_version": 1,
+      "title": "Ailleurs, en privé",
+      "title_key": "cards.v3.unusual_private_place.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.unusual_private_place.mutual",
+          "title": "Choisissez un lieu privé inhabituel",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.lieu_inhabituel",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.lieu_inhabituel",
+          "v3.direction.mutuel"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {}
+      }
+    },
+    {
+      "stable_id": "card.v3.costume_and_light_outfit",
+      "order": 114,
+      "content_version": 1,
+      "title": "Change de tenue",
+      "title_key": "cards.v3.costume_and_light_outfit.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.costume_and_light_outfit.costume",
+          "title": "Présente-toi dans un déguisement choisi",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.deguisement",
+              "v3.preference.tenue",
+              "v3.preference.etre_regarde",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
+        },
+        {
+          "stable_id": "variant.v3.costume_and_light_outfit.light",
+          "title": "Présente-toi dans une tenue légère",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.tenue_legere",
+              "v3.preference.tenue",
+              "v3.preference.etre_regarde",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.deguisement",
+          "v3.preference.tenue",
+          "v3.preference.etre_regarde",
+          "v3.direction.solo"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {}
+      }
+    },
+    {
+      "stable_id": "card.v3.texture_and_breath",
+      "order": 115,
+      "content_version": 1,
+      "title": "Textures et souffle",
+      "title_key": "cards.v3.texture_and_breath.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.texture_and_breath.texture_give",
+          "title": "Fais découvrir une texture convenue",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.texture",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.texture_and_breath.texture_receive",
+          "title": "Découvre une texture choisie",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.texture",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.texture_and_breath.breath_give",
+          "title": "Souffle doucement sur la peau",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.souffler",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.texture_and_breath.breath_receive",
+          "title": "Reçois un souffle doux sur la peau",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.souffler",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.texture",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
+    },
+    {
+      "stable_id": "card.v3.auditory_deprivation",
+      "order": 116,
+      "content_version": 1,
+      "title": "Coupe le son",
+      "title_key": "cards.v3.auditory_deprivation.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.auditory_deprivation.give",
+          "title": "Prive temporairement ton partenaire du son",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.privation_auditive",
+              "v3.preference.controle",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "requiresConstraintAccessory": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.auditory_deprivation.receive",
+          "title": "Accepte une privation auditive temporaire",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.privation_auditive",
+              "v3.preference.controle",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "requiresConstraintAccessory": true
+            }
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.privation_auditive",
+          "v3.preference.controle",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {
+          "requiresConstraintAccessory": true
+        }
+      }
+    },
+    {
+      "stable_id": "card.v3.silence_rule",
+      "order": 117,
+      "content_version": 1,
+      "title": "Règle de silence",
+      "title_key": "cards.v3.silence_rule.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.silence_rule.give",
+          "title": "Impose une courte règle de silence",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.privation_parole",
+              "v3.preference.controle",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
+        },
+        {
+          "stable_id": "variant.v3.silence_rule.receive",
+          "title": "Respecte une courte règle de silence",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.privation_parole",
+              "v3.preference.controle",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.privation_parole",
+          "v3.preference.controle",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {}
+      }
+    },
+    {
+      "stable_id": "card.v3.neck_hold",
+      "order": 118,
+      "content_version": 1,
+      "title": "Maintien du cou",
+      "title_key": "cards.v3.neck_hold.title",
+      "precision": "GUIDED",
+      "frequency": "RARE",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.neck_hold.give",
+          "title": "Propose un maintien léger du cou, dans les limites convenues",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.maintien_cou",
+              "v3.preference.controle",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.neck_hold.receive",
+          "title": "Accepte un maintien léger du cou, dans les limites convenues",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.maintien_cou",
+              "v3.preference.controle",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.maintien_cou",
+          "v3.preference.controle",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 4,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
+    },
+    {
+      "stable_id": "card.v3.gentle_pull",
+      "order": 119,
+      "content_version": 1,
+      "title": "Tire-moi vers toi",
+      "title_key": "cards.v3.gentle_pull.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.gentle_pull.give",
+          "title": "Tire doucement ton partenaire vers toi",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.tirer",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.gentle_pull.receive",
+          "title": "Laisse ton partenaire te tirer doucement",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.tirer",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.tirer",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 3,
+        "requirements": {
+          "DISTANCE_EXCLUE": true
+        }
+      }
+    },
+    {
+      "stable_id": "card.v3.sensual_tasting",
+      "order": 120,
+      "content_version": 1,
+      "title": "Dégustation sensuelle",
+      "title_key": "cards.v3.sensual_tasting.title",
+      "precision": "GUIDED",
+      "frequency": "OCCASIONAL",
+      "repeatability": "REPEATABLE",
+      "base_tags": [],
+      "profile_requirements": [],
+      "technical_requirements": [],
+      "inversion_policy": "SWAP_ACTOR_TARGET",
+      "variants": [
+        {
+          "stable_id": "variant.v3.sensual_tasting.food_give",
+          "title": "Fais goûter un aliment choisi",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.nourriture",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "requiresFood": true,
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.sensual_tasting.food_receive",
+          "title": "Goûte un aliment proposé",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.nourriture",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "requiresFood": true,
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.sensual_tasting.drink_give",
+          "title": "Fais goûter une boisson non alcoolisée",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.boisson",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "requiresDrink": true,
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.v3.sensual_tasting.drink_receive",
+          "title": "Goûte une boisson non alcoolisée",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3_deck_enabled": true,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.boisson",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "requiresDrink": true,
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        }
+      ],
+      "parameters": [],
+      "enabled": false,
+      "v3_deck_enabled": true,
+      "directionality": "CONTEXTUAL",
+      "v3": {
+        "taxonomy_version": 1,
+        "tags": [
+          "v3.preference.nourriture",
+          "v3.direction.faire"
+        ],
+        "baseEngagementLevel": 2,
+        "requirements": {
+          "requiresFood": true,
+          "DISTANCE_EXCLUE": true
+        }
       }
     }
   ]

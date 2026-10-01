@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
   "source_commit": "e897c76ad237acbd19b9b3b4ef3633ae1a1294ba",
-  "status": "PLAN_ONLY_DO_NOT_IMPORT_INTO_PLAYABLE_CATALOG",
+  "status": "APPROVED_AND_IMPLEMENTED",
   "estimates": {
-    "new_cards": 18,
-    "new_card_variants": 38,
+    "new_cards": 19,
+    "new_card_variants": 37,
     "extension_variants": 21,
-    "total_new_variants": 59,
-    "estimated_playable_cards": 103,
-    "estimated_playable_variants": 207,
-    "zero_tags_covered_by_plan": 37,
-    "estimated_remaining_zero_coverage_tags": 11
+    "total_new_variants": 58,
+    "estimated_playable_cards": 104,
+    "estimated_playable_variants": 206,
+    "zero_tags_covered_by_plan": 36,
+    "estimated_remaining_zero_coverage_tags": 12
   },
   "planned_zero_tag_coverage": [
     "v3.direction.etre_entendu",
@@ -35,7 +35,6 @@
     "v3.preference.position_s",
     "v3.preference.privation_auditive",
     "v3.preference.privation_parole",
-    "v3.preference.regard_exterieur",
     "v3.preference.sexe",
     "v3.preference.sextoy",
     "v3.preference.souffler",
@@ -60,6 +59,7 @@
     "v3.materiel.lubrifiant",
     "v3.materiel.protection",
     "v3.preference.ajouter",
+    "v3.preference.regard_exterieur",
     "v3.session_pref.surprise_party",
     "v3.technique.distance_exclue",
     "v3.zone.buccal"
@@ -218,42 +218,25 @@
       ]
     },
     {
-      "proposed_stable_id": "card.v3.external_gaze",
-      "title_fr": "Sous un regard extérieur",
-      "objective": "Explorer lieu exposé et regard tiers dans des limites explicites.",
-      "family": "EXHIBITION",
+      "proposed_stable_id": "card.v3.exposed_setting",
+      "title_fr": "Sensation d’exposition",
+      "objective": "Créer une sensation d’exposition dans un cadre autorisé sans présence ni observation d’un tiers.",
+      "family": "LIEUX_SESSION",
       "tags_v3": [
         "v3.direction.mutuel",
-        "v3.direction.solo",
-        "v3.preference.etre_regarde",
-        "v3.preference.lieu_expose",
-        "v3.preference.regard_exterieur"
+        "v3.preference.lieu_expose"
       ],
-      "direction": "VARIANT_SPECIFIC",
+      "direction": "MUTUEL",
       "baseEngagementLevel": 3,
-      "distance_excluded": true,
+      "distance_excluded": false,
       "requirements": {},
-      "justification": "Ne pas confondre regard public et regard privé du partenaire.",
+      "justification": "La mise en scène reste entre les partenaires et peut être réalisée à distance.",
       "variants": [
         {
-          "stable_id": "variant.v3.external_gaze.be_seen",
-          "title_fr": "Sois visible dans un lieu exposé convenu",
+          "stable_id": "variant.v3.exposed_setting.mutual",
+          "title_fr": "Créez une mise en scène donnant une sensation d’exposition, dans un cadre autorisé",
           "tags_v3": [
             "v3.preference.lieu_expose",
-            "v3.preference.regard_exterieur",
-            "v3.preference.etre_regarde",
-            "v3.direction.solo"
-          ],
-          "direction": "SOLO",
-          "baseEngagementLevel": 3,
-          "requirements": {}
-        },
-        {
-          "stable_id": "variant.v3.external_gaze.together",
-          "title_fr": "Choisissez un lieu exposé autorisé",
-          "tags_v3": [
-            "v3.preference.lieu_expose",
-            "v3.preference.regard_exterieur",
             "v3.direction.mutuel"
           ],
           "direction": "MUTUEL",
@@ -348,24 +331,23 @@
       ]
     },
     {
-      "proposed_stable_id": "card.v3.fluids_choice",
-      "title_fr": "Choix autour des fluides",
-      "objective": "Séparer avaler et cracher comme préférences.",
+      "proposed_stable_id": "card.v3.swallow_choice",
+      "title_fr": "Choix d’avaler",
+      "objective": "Exprimer séparément le choix consenti d’avaler.",
       "family": "FINALITE_FLUIDES",
       "tags_v3": [
-        "v3.direction.faire",
         "v3.preference.avaler",
-        "v3.preference.cracher"
+        "v3.direction.faire"
       ],
-      "direction": "VARIANT_SPECIFIC",
+      "direction": "FAIRE",
       "baseEngagementLevel": 4,
       "distance_excluded": true,
       "requirements": {},
-      "justification": "Deux actes différents ne doivent pas être fusionnés.",
+      "justification": "AVALER reste une préférence scoreable autonome, avec une formulation courte centrée sur le choix.",
       "variants": [
         {
-          "stable_id": "variant.v3.fluids_choice.swallow",
-          "title_fr": "Choisis d’avaler dans les limites convenues",
+          "stable_id": "variant.v3.swallow_choice.perform",
+          "title_fr": "Choisis d’avaler, dans les limites convenues",
           "tags_v3": [
             "v3.preference.avaler",
             "v3.direction.faire"
@@ -373,10 +355,27 @@
           "direction": "FAIRE",
           "baseEngagementLevel": 4,
           "requirements": {}
-        },
+        }
+      ]
+    },
+    {
+      "proposed_stable_id": "card.v3.spit_choice",
+      "title_fr": "Choix de cracher",
+      "objective": "Exprimer séparément le choix consenti de cracher.",
+      "family": "FINALITE_FLUIDES",
+      "tags_v3": [
+        "v3.preference.cracher",
+        "v3.direction.faire"
+      ],
+      "direction": "FAIRE",
+      "baseEngagementLevel": 4,
+      "distance_excluded": true,
+      "requirements": {},
+      "justification": "CRACHER reste une préférence scoreable autonome, avec une formulation courte centrée sur le choix.",
+      "variants": [
         {
-          "stable_id": "variant.v3.fluids_choice.spit",
-          "title_fr": "Choisis de cracher dans les limites convenues",
+          "stable_id": "variant.v3.spit_choice.perform",
+          "title_fr": "Choisis de cracher, dans les limites convenues",
           "tags_v3": [
             "v3.preference.cracher",
             "v3.direction.faire"
@@ -514,9 +513,9 @@
       ],
       "direction": "VARIANT_SPECIFIC",
       "baseEngagementLevel": 3,
-      "distance_excluded": true,
+      "distance_excluded": false,
       "requirements": {},
-      "justification": "Couvre l’inhabituel sans supposer un public.",
+      "justification": "Couvre l’inhabituel sans supposer un public. La présence physique n’est pas objectivement requise.",
       "variants": [
         {
           "stable_id": "variant.v3.unusual_private_place.mutual",
@@ -653,11 +652,11 @@
       ],
       "direction": "VARIANT_SPECIFIC",
       "baseEngagementLevel": 3,
-      "distance_excluded": true,
+      "distance_excluded": false,
       "requirements": {
         "requiresConstraintAccessory": true
       },
-      "justification": "Retirer un canal sensoriel requiert un consentement propre.",
+      "justification": "Retirer un canal sensoriel requiert un consentement propre. La présence physique n’est pas objectivement requise.",
       "variants": [
         {
           "stable_id": "variant.v3.auditory_deprivation.give",
@@ -735,7 +734,7 @@
     {
       "proposed_stable_id": "card.v3.neck_hold",
       "title_fr": "Maintien du cou",
-      "objective": "Séparer exercer et recevoir un maintien du cou.",
+      "objective": "Proposer un maintien léger et convenu du cou, sans instruction technique.",
       "family": "SENSATIONS_FORTES",
       "tags_v3": [
         "v3.direction.faire",
@@ -747,11 +746,11 @@
       "baseEngagementLevel": 4,
       "distance_excluded": true,
       "requirements": {},
-      "justification": "Pratique sensible, bornée et soumise à revue produit.",
+      "justification": "Préférence avancée formulée de manière descriptive, prudente et explicitement consentie.",
       "variants": [
         {
           "stable_id": "variant.v3.neck_hold.give",
-          "title_fr": "Maintiens doucement le cou selon les limites",
+          "title_fr": "Propose un maintien léger du cou, dans les limites convenues",
           "tags_v3": [
             "v3.preference.maintien_cou",
             "v3.preference.controle",
@@ -763,7 +762,7 @@
         },
         {
           "stable_id": "variant.v3.neck_hold.receive",
-          "title_fr": "Reçois un maintien doux du cou convenu",
+          "title_fr": "Accepte un maintien léger du cou, dans les limites convenues",
           "tags_v3": [
             "v3.preference.maintien_cou",
             "v3.preference.controle",
@@ -773,7 +772,21 @@
           "baseEngagementLevel": 4,
           "requirements": {}
         }
-      ]
+      ],
+      "editorial_guardrails": {
+        "required": [
+          "maintien léger",
+          "limites convenues",
+          "consentement explicite"
+        ],
+        "forbidden": [
+          "placement des mains",
+          "pression",
+          "durée",
+          "respiration",
+          "technique"
+        ]
+      }
     },
     {
       "proposed_stable_id": "card.v3.gentle_pull",
@@ -927,7 +940,7 @@
       "new_variants": [
         {
           "stable_id": "variant.v3.choose_sex_position.s",
-          "title_fr": "Choisis une position sexuelle S",
+          "title_fr": "Choisis une position sexuelle simple",
           "tags_v3": [
             "v3.preference.position_s",
             "v3.preference.controle",
@@ -935,11 +948,14 @@
           ],
           "direction": "FAIRE",
           "baseEngagementLevel": 4,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "complexity_definition": "Facile à mettre en place, faible exigence physique et peu de coordination."
         },
         {
           "stable_id": "variant.v3.choose_sex_position.a",
-          "title_fr": "Choisis une position sexuelle A",
+          "title_fr": "Choisis une position sexuelle avancée",
           "tags_v3": [
             "v3.preference.position_a",
             "v3.preference.controle",
@@ -947,11 +963,14 @@
           ],
           "direction": "FAIRE",
           "baseEngagementLevel": 4,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "complexity_definition": "Demande davantage de mobilité, coordination, maintien ou effort physique."
         },
         {
           "stable_id": "variant.v3.choose_sex_position.e",
-          "title_fr": "Choisis une position sexuelle E",
+          "title_fr": "Choisis une position sexuelle experte",
           "tags_v3": [
             "v3.preference.position_e",
             "v3.preference.controle",
@@ -959,7 +978,10 @@
           ],
           "direction": "FAIRE",
           "baseEngagementLevel": 4,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "complexity_definition": "Nettement exigeante physiquement ou techniquement, avec coordination ou capacité supérieure."
         }
       ]
     },
@@ -978,7 +1000,9 @@
           ],
           "direction": "FAIRE",
           "baseEngagementLevel": 2,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         },
         {
           "stable_id": "variant.v3.caress.bras_receive",
@@ -990,7 +1014,9 @@
           ],
           "direction": "RECEVOIR",
           "baseEngagementLevel": 2,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         },
         {
           "stable_id": "variant.v3.caress.cuisses_give",
@@ -1002,7 +1028,9 @@
           ],
           "direction": "FAIRE",
           "baseEngagementLevel": 3,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         },
         {
           "stable_id": "variant.v3.caress.cuisses_receive",
@@ -1014,7 +1042,9 @@
           ],
           "direction": "RECEVOIR",
           "baseEngagementLevel": 3,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         },
         {
           "stable_id": "variant.v3.caress.ventre_give",
@@ -1026,7 +1056,9 @@
           ],
           "direction": "FAIRE",
           "baseEngagementLevel": 2,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         },
         {
           "stable_id": "variant.v3.caress.ventre_receive",
@@ -1038,7 +1070,9 @@
           ],
           "direction": "RECEVOIR",
           "baseEngagementLevel": 2,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         }
       ]
     },
@@ -1057,7 +1091,9 @@
           ],
           "direction": "FAIRE",
           "baseEngagementLevel": 2,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         },
         {
           "stable_id": "variant.v3.massage.dos_receive",
@@ -1069,7 +1105,9 @@
           ],
           "direction": "RECEVOIR",
           "baseEngagementLevel": 2,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         },
         {
           "stable_id": "variant.v3.massage.epaules_give",
@@ -1081,7 +1119,9 @@
           ],
           "direction": "FAIRE",
           "baseEngagementLevel": 2,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         },
         {
           "stable_id": "variant.v3.massage.epaules_receive",
@@ -1093,7 +1133,9 @@
           ],
           "direction": "RECEVOIR",
           "baseEngagementLevel": 2,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         },
         {
           "stable_id": "variant.v3.massage.jambes_give",
@@ -1105,7 +1147,9 @@
           ],
           "direction": "FAIRE",
           "baseEngagementLevel": 2,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         },
         {
           "stable_id": "variant.v3.massage.jambes_receive",
@@ -1117,7 +1161,9 @@
           ],
           "direction": "RECEVOIR",
           "baseEngagementLevel": 2,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         }
       ]
     },
@@ -1137,7 +1183,9 @@
           ],
           "direction": "FAIRE",
           "baseEngagementLevel": 4,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         },
         {
           "stable_id": "variant.v3.vaginal_penetration.sex_receive",
@@ -1150,7 +1198,9 @@
           ],
           "direction": "RECEVOIR",
           "baseEngagementLevel": 4,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         }
       ]
     },
@@ -1170,7 +1220,9 @@
           ],
           "direction": "FAIRE",
           "baseEngagementLevel": 4,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         },
         {
           "stable_id": "variant.v3.anal_penetration.sex_receive",
@@ -1183,7 +1235,9 @@
           ],
           "direction": "RECEVOIR",
           "baseEngagementLevel": 4,
-          "requirements": {}
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          }
         }
       ]
     }
@@ -1207,14 +1261,6 @@
     },
     {
       "proposal_ids": [
-        "card.v3.external_gaze",
-        "card.private_exhibition"
-      ],
-      "risk": "Exposition proche.",
-      "resolution": "La proposition implique un regard extérieur; l’existante reste privée."
-    },
-    {
-      "proposal_ids": [
         "card.v3.roleplay_scene",
         "roleplay_scenarios.v1.fr.json"
       ],
@@ -1231,40 +1277,30 @@
     },
     {
       "proposal_ids": [
-        "card.v3.fluids_choice",
+        "card.v3.exposed_setting",
+        "card.private_exhibition"
+      ],
+      "risk": "Mise en scène d’exposition proche.",
+      "resolution": "La nouvelle carte décrit un cadre ou une sensation autorisés sans tiers réel; l’existante reste le regard privé du partenaire."
+    },
+    {
+      "proposal_ids": [
+        "card.v3.swallow_choice",
+        "card.v3.spit_choice",
         "card.v3.ejaculation_choice"
       ],
-      "risk": "Même moment possible.",
-      "resolution": "Séparer pour conserver des consentements indépendants."
+      "risk": "Préférences pouvant intervenir au même moment.",
+      "resolution": "Trois cartes séparées conservent des choix et consentements indépendants."
     }
   ],
-  "human_product_decisions": [
-    {
-      "topic": "REGARD_EXTERIEUR et LIEU_EXPOSE",
-      "decision_needed": "Définir limites de tiers, lieu autorisé et absence de captation."
-    },
-    {
-      "topic": "MAINTIEN_COU",
-      "decision_needed": "Valider formulation, garde-fous et niveau avec une revue sécurité."
-    },
-    {
-      "topic": "AVALER, CRACHER et EJACULATION",
-      "decision_needed": "Valider précision éditoriale, limites et éventuels requirements de protection."
-    },
-    {
-      "topic": "ALCOOL",
-      "decision_needed": "Conserver comme facette ou retirer; aucune carte alcool proposée."
-    },
-    {
-      "topic": "PROTECTION",
-      "decision_needed": "Conserver comme filtre en plus de requiresProtection ou reclasser."
-    },
-    {
-      "topic": "POSITION_S, POSITION_A et POSITION_E",
-      "decision_needed": "Documenter la signification éditoriale avant rédaction finale."
-    }
-  ]
+  "human_product_decisions": [],
+  "editorial_arbitrations": {
+    "regard_exterieur": "KEEP_UNCOVERED until third-party consent is modeled.",
+    "lieu_expose": "Playable only as a partner-only feeling or setting; no real third party.",
+    "maintien_cou": "General light/consensual wording; no placement, pressure, duration, breathing or technique.",
+    "fluid_preferences": "AVALER, CRACHER and EJACULATION remain separate scoreable preferences.",
+    "position_complexity": "S/A/E describe physical or technical complexity only and never determine chili level.",
+    "alcool": "Non-scoreable material kept uncovered; never required by a card.",
+    "protection": "Non-scoreable material/filter kept uncovered; no coverage-only card."
+  }
 }
-
-
-

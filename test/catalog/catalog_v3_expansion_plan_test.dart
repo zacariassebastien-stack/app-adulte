@@ -26,22 +26,19 @@ void main() {
     expansion = readObject('docs/catalog_v3_expansion_plan.json');
   });
 
-  test('the plan classifies exactly the 48 current zero-coverage tags', () {
-    final zeroTags = (coverage['zero_coverage_tags']! as List<Object?>)
-        .cast<String>()
-        .toSet();
+  test('the plan classifies all 48 source zero-coverage tags', () {
     final classifications = objects(decisions['classifications']).toList();
     final classifiedIds = classifications
         .map((item) => item['stable_id']! as String)
         .toSet();
 
-    expect(zeroTags, hasLength(48));
+    expect((decisions['source_catalog']! as JsonMap)['zero_coverage_tags'], 48);
     expect(classifications, hasLength(48));
-    expect(classifiedIds, zeroTags);
+    expect(classifiedIds, hasLength(48));
     expect(decisions['decision_counts'], {
-      'NEW_CONTENT': 25,
+      'NEW_CONTENT': 24,
       'EXTEND_EXISTING': 12,
-      'KEEP_UNCOVERED': 4,
+      'KEEP_UNCOVERED': 5,
       'REMOVE_OR_RECLASSIFY': 7,
     });
 
@@ -85,8 +82,8 @@ void main() {
             .cast<String>()
             .toSet();
     expect(plannedCoverage, expectedCoverage);
-    expect(plannedCoverage, hasLength(37));
-    expect(expansion['remaining_zero_coverage_after_plan'], hasLength(11));
+    expect(plannedCoverage, hasLength(36));
+    expect(expansion['remaining_zero_coverage_after_plan'], hasLength(12));
 
     final canonicalTagIds = objects(
       taxonomy['tags'],
@@ -101,8 +98,8 @@ void main() {
       variants.addAll(objects(extension['new_variants']));
     }
 
-    expect(expansion['proposed_cards'], hasLength(18));
-    expect(variants, hasLength(59));
+    expect(expansion['proposed_cards'], hasLength(19));
+    expect(variants, hasLength(58));
     expect(
       variants.map((variant) => variant['stable_id']).toSet(),
       hasLength(variants.length),
@@ -121,37 +118,138 @@ void main() {
       expect(variant['baseEngagementLevel'], inInclusiveRange(1, 5));
       expect(variant['requirements'], isA<JsonMap>());
     }
-    final zeroTags = (coverage['zero_coverage_tags']! as List<Object?>)
-        .cast<String>()
+    final sourceZeroTags = classifications
+        .map((item) => item['stable_id']! as String)
         .toSet();
     final coveredByVariants = variants
         .expand(
           (variant) => (variant['tags_v3']! as List<Object?>).cast<String>(),
         )
-        .where(zeroTags.contains)
+        .where(sourceZeroTags.contains)
         .toSet();
     expect(coveredByVariants, plannedCoverage);
   });
 
-  test('the plan records overlap review and unresolved product choices', () {
-    expect(
-      expansion['status'],
-      'PLAN_ONLY_DO_NOT_IMPORT_INTO_PLAYABLE_CATALOG',
-    );
+  test('the approved plan records arbitration and final estimates', () {
+    expect(expansion['status'], 'APPROVED_AND_IMPLEMENTED');
     expect(expansion['similarity_review'], hasLength(greaterThanOrEqualTo(5)));
-    expect(
-      expansion['human_product_decisions'],
-      hasLength(greaterThanOrEqualTo(5)),
-    );
+    expect(expansion['human_product_decisions'], isEmpty);
     expect(expansion['estimates'], {
-      'new_cards': 18,
-      'new_card_variants': 38,
+      'new_cards': 19,
+      'new_card_variants': 37,
       'extension_variants': 21,
-      'total_new_variants': 59,
-      'estimated_playable_cards': 103,
-      'estimated_playable_variants': 207,
-      'zero_tags_covered_by_plan': 37,
-      'estimated_remaining_zero_coverage_tags': 11,
+      'total_new_variants': 58,
+      'estimated_playable_cards': 104,
+      'estimated_playable_variants': 206,
+      'zero_tags_covered_by_plan': 36,
+      'estimated_remaining_zero_coverage_tags': 12,
     });
+
+    final extensions = objects(expansion['existing_card_extensions']);
+    final positions = extensions.singleWhere(
+      (item) => item['target_card_id'] == 'card.choose_sex_position',
+    );
+    final definitions = {
+      for (final variant in objects(positions['new_variants']))
+        variant['stable_id']! as String:
+            variant['complexity_definition']! as String,
+    };
+    expect(definitions['variant.v3.choose_sex_position.s'], contains('Facile'));
+    expect(
+      definitions['variant.v3.choose_sex_position.a'],
+      contains('davantage de mobilité'),
+    );
+    expect(
+      definitions['variant.v3.choose_sex_position.e'],
+      contains('Nettement exigeante'),
+    );
+
+    final proposedIds = objects(
+      expansion['proposed_cards'],
+    ).map((card) => card['proposed_stable_id']).toSet();
+    expect(proposedIds, contains('card.v3.swallow_choice'));
+    expect(proposedIds, contains('card.v3.spit_choice'));
+    expect(proposedIds, contains('card.v3.ejaculation_choice'));
+    expect(proposedIds, isNot(contains('card.v3.fluids_choice')));
+  });
+
+  test('the implementation matches the approved plan and zero-tag policy', () {
+    final cards = {
+      for (final card in objects(catalog['cards']))
+        card['stable_id']! as String: card,
+    };
+    for (final proposal in objects(expansion['proposed_cards'])) {
+      final cardId = proposal['proposed_stable_id']! as String;
+      expect(cards, contains(cardId));
+      final implementedCard = cards[cardId]!;
+      expect(implementedCard['v3_deck_enabled'], isTrue);
+      expect(implementedCard['enabled'], isFalse);
+      expect(implementedCard['title'], proposal['title_fr']);
+      final implementedVariants = {
+        for (final variant in objects(implementedCard['variants']))
+          variant['stable_id']! as String: variant,
+      };
+      for (final plannedVariant in objects(proposal['variants'])) {
+        final id = plannedVariant['stable_id']! as String;
+        final implemented = implementedVariants[id]!;
+        final actualV3 = implemented['v3']! as JsonMap;
+        final expectedRequirements = <String, Object?>{
+          ...(plannedVariant['requirements']! as JsonMap),
+          if (proposal['distance_excluded'] == true) 'DISTANCE_EXCLUE': true,
+        };
+        expect(actualV3['tags'], plannedVariant['tags_v3'], reason: id);
+        expect(
+          actualV3['baseEngagementLevel'],
+          plannedVariant['baseEngagementLevel'],
+          reason: id,
+        );
+        expect(actualV3['requirements'], expectedRequirements, reason: id);
+      }
+    }
+    for (final extension in objects(expansion['existing_card_extensions'])) {
+      final target = cards[extension['target_card_id']]!;
+      final implemented = objects(
+        target['variants'],
+      ).map((variant) => variant['stable_id']).toSet();
+      final planned = objects(
+        extension['new_variants'],
+      ).map((variant) => variant['stable_id']).toSet();
+      expect(implemented, containsAll(planned));
+      for (final plannedVariant in objects(extension['new_variants'])) {
+        final id = plannedVariant['stable_id']! as String;
+        final actual = objects(
+          target['variants'],
+        ).singleWhere((variant) => variant['stable_id'] == id);
+        final actualV3 = actual['v3']! as JsonMap;
+        expect(actualV3['tags'], plannedVariant['tags_v3'], reason: id);
+        expect(
+          actualV3['baseEngagementLevel'],
+          plannedVariant['baseEngagementLevel'],
+          reason: id,
+        );
+        expect(
+          actualV3['requirements'],
+          plannedVariant['requirements'],
+          reason: id,
+        );
+      }
+    }
+
+    final remaining =
+        (expansion['remaining_zero_coverage_after_plan']! as List<Object?>)
+            .cast<String>()
+            .toSet();
+    expect(
+      (coverage['zero_coverage_tags']! as List<Object?>).cast<String>().toSet(),
+      remaining,
+    );
+    expect(
+      remaining,
+      containsAll({
+        'v3.preference.regard_exterieur',
+        'v3.materiel.alcool',
+        'v3.materiel.protection',
+      }),
+    );
   });
 }
