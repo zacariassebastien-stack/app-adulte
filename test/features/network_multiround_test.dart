@@ -418,10 +418,20 @@ void main() {
       alice.selectCard(alice.hand.first.id);
       final aliceValue = alice.selectedCard!.personalValue;
       await alice.confirmSelection();
+      final savedPoints = Map<String, int>.from(alice.actionPoints);
+      final savedHandIds = alice.hand.map((card) => card.id).toList();
+      final savedZones = {
+        for (final card in alice.runtime) card.cardId: card.zone,
+      };
       alice.dispose();
       alice = _controller(backend, session, catalog, 'alice', aliceStore);
       await alice.start();
       expect(alice.viewState, NetworkGameViewState.waitingForPartner);
+      expect(alice.actionPoints, savedPoints);
+      expect(alice.hand.map((card) => card.id), savedHandIds);
+      expect({
+        for (final card in alice.runtime) card.cardId: card.zone,
+      }, savedZones);
       await _chooseUnequalPartner(bob, aliceValue);
       await _settle();
       expect(alice.initialResolution, isNotNull);

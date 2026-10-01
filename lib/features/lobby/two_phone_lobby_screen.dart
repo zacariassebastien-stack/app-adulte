@@ -1,14 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../app/asset_catalog.dart';
 import '../../domain/catalog/catalog.dart';
 import '../game/network_duel_screen.dart';
+import 'active_session_store.dart';
 import 'lobby_controller.dart';
 import 'lobby_repository.dart';
 
 class TwoPhoneLobbyScreen extends StatefulWidget {
-  const TwoPhoneLobbyScreen({required this.repository, super.key});
+  const TwoPhoneLobbyScreen({
+    required this.repository,
+    this.activeSessionStore = const SharedPreferencesActiveSessionStore(),
+    super.key,
+  });
   final LobbyRepository repository;
+  final ActiveSessionStore activeSessionStore;
 
   @override
   State<TwoPhoneLobbyScreen> createState() => _TwoPhoneLobbyScreenState();
@@ -24,8 +32,19 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
   @override
   void initState() {
     super.initState();
-    controller = LobbyController(repository: widget.repository)
-      ..addListener(_refresh);
+    controller = LobbyController(
+      repository: widget.repository,
+      activeSessionStore: widget.activeSessionStore,
+    )..addListener(_refresh);
+    unawaited(_restoreActiveSession());
+  }
+
+  Future<void> _restoreActiveSession() async {
+    final restored = await controller.restoreActiveSession();
+    if (!mounted) return;
+    if (restored && controller.state == LobbyViewState.ready) {
+      await _launchDuel();
+    }
   }
 
   void _refresh() {

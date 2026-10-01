@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:couple_cards/features/lobby/join_code.dart';
+import 'package:couple_cards/features/lobby/active_session_store.dart';
 import 'package:couple_cards/features/lobby/lobby_controller.dart';
 import 'package:couple_cards/features/lobby/lobby_models.dart';
 import 'package:couple_cards/features/lobby/lobby_repository.dart';
@@ -161,15 +162,99 @@ void main() {
     controller.dispose();
   });
 
+  test('controller restores the active session after reconstruction', () async {
+    final backend = FakeLobbyBackend();
+    final store = _MemoryActiveSessionStore();
+    final first = LobbyController(
+      repository: backend.repository('host'),
+      activeSessionStore: store,
+      commandIdFactory: () => 'create-1',
+    );
+    await first.create();
+    final sessionId = first.session!.id;
+    first.dispose();
+
+    final resumed = LobbyController(
+      repository: backend.repository('host'),
+      activeSessionStore: store,
+    );
+    expect(await resumed.restoreActiveSession(), isTrue);
+    expect(resumed.session!.id, sessionId);
+    expect(resumed.state, LobbyViewState.waiting);
+    expect(backend.createCalls, 1);
+    resumed.dispose();
+  });
+
+  test('closed active session is cleared and not restored', () async {
+    final backend = FakeLobbyBackend();
+    final created = await backend
+        .repository('host')
+        .createSession(commandId: 'create-1');
+    backend.sessions[created.id] = LobbySession(
+      id: created.id,
+      joinCode: created.joinCode,
+      status: LobbyStatus.closed,
+      expiresAt: created.expiresAt,
+      players: created.players,
+    );
+    final store = _MemoryActiveSessionStore()..value = created.id;
+    final controller = LobbyController(
+      repository: backend.repository('host'),
+      activeSessionStore: store,
+    );
+
+    expect(await controller.restoreActiveSession(), isFalse);
+    expect(controller.state, LobbyViewState.idle);
+    expect(controller.session, isNull);
+    expect(store.value, isNull);
+    controller.dispose();
+  });
+
+  test('unknown active session is ignored and cleared', () async {
+    final backend = FakeLobbyBackend();
+    final store = _MemoryActiveSessionStore()..value = 'unknown';
+    final controller = LobbyController(
+      repository: backend.repository('host'),
+      activeSessionStore: store,
+    );
+
+    expect(await controller.restoreActiveSession(), isFalse);
+    expect(controller.state, LobbyViewState.idle);
+    expect(store.value, isNull);
+    controller.dispose();
+  });
+
+  test('restoring the same active session is idempotent', () async {
+    final backend = FakeLobbyBackend();
+    final created = await backend
+        .repository('host')
+        .createSession(commandId: 'create-1');
+    final store = _MemoryActiveSessionStore()..value = created.id;
+    final controller = LobbyController(
+      repository: backend.repository('host'),
+      activeSessionStore: store,
+    );
+
+    expect(await controller.restoreActiveSession(), isTrue);
+    expect(await controller.restoreActiveSession(), isTrue);
+    expect(backend.getCalls, 1);
+    expect(backend.createCalls, 1);
+    controller.dispose();
+  });
+
   testWidgets('UI creates a lobby then displays ready automatically', (
     tester,
   ) async {
     final backend = FakeLobbyBackend();
     await tester.pumpWidget(
       MaterialApp(
-        home: TwoPhoneLobbyScreen(repository: backend.repository('host')),
+        home: TwoPhoneLobbyScreen(
+          repository: backend.repository('host'),
+          activeSessionStore: _MemoryActiveSessionStore(),
+        ),
       ),
     );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('create-lobby')));
     await tester.pump();
     expect(find.byKey(const Key('lobby-waiting')), findsOneWidget);
@@ -182,6 +267,32 @@ void main() {
     expect(find.byKey(const Key('lobby-ready')), findsOneWidget);
     expect(find.text('2/2 joueurs connectés'), findsOneWidget);
   });
+
+  testWidgets('UI restores a saved active lobby on reconstruction', (
+    tester,
+  ) async {
+    final backend = FakeLobbyBackend();
+    final created = await backend
+        .repository('host')
+        .createSession(commandId: 'create-1');
+    await backend
+        .repository('guest')
+        .joinSession(code: created.joinCode, commandId: 'join-1');
+    final store = _MemoryActiveSessionStore()..value = created.id;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TwoPhoneLobbyScreen(
+          repository: backend.repository('host'),
+          activeSessionStore: store,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('lobby-ready')), findsOneWidget);
+    expect(find.text('2/2 joueurs connectés'), findsOneWidget);
+    expect(backend.createCalls, 1);
+  });
 }
 
 final class FakeLobbyBackend {
@@ -189,6 +300,7 @@ final class FakeLobbyBackend {
   final commands = <String, String>{};
   final changes = StreamController<LobbySession>.broadcast();
   int createCalls = 0;
+  int getCalls = 0;
 
   LobbyRepository repository(String userId) =>
       _FakeLobbyRepository(this, userId);
@@ -267,10 +379,27 @@ final class _FakeLobbyRepository implements LobbyRepository {
   }
 
   @override
-  Future<LobbySession> getSession(String sessionId) async =>
-      backend.sessions[sessionId]!;
+  Future<LobbySession> getSession(String sessionId) async {
+    backend.getCalls++;
+    final session = backend.sessions[sessionId];
+    if (session == null) throw const InvalidJoinCodeException();
+    return session;
+  }
 
   @override
   Stream<LobbySession> watchSession(String sessionId) =>
       backend.changes.stream.where((session) => session.id == sessionId);
+}
+
+final class _MemoryActiveSessionStore implements ActiveSessionStore {
+  String? value;
+
+  @override
+  Future<void> clear() async => value = null;
+
+  @override
+  Future<String?> load() async => value;
+
+  @override
+  Future<void> save(String sessionId) async => value = sessionId;
 }

@@ -7,6 +7,7 @@ import '../../engines/recovery/recovery_engine.dart';
 import '../../sync/rounds/network_game.dart';
 import '../lobby/lobby_models.dart';
 import 'network_duel_secret_store.dart';
+import 'network_auction_form_controller.dart';
 import 'network_game_controller.dart';
 
 class NetworkDuelScreen extends StatefulWidget {
@@ -31,9 +32,7 @@ class NetworkDuelScreen extends StatefulWidget {
 
 class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   late final NetworkGameController controller;
-  final counterController = TextEditingController();
-  final defenseController = TextEditingController();
-  AuctionTarget counterTarget = AuctionTarget.OWN_INITIAL_ACTION;
+  final auctionForm = NetworkAuctionFormController();
   String? actionError;
 
   @override
@@ -50,7 +49,11 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   void _refresh() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    final changedRound = auctionForm.enterRound(controller.roundNumber);
+    setState(() {
+      if (changedRound) actionError = null;
+    });
   }
 
   @override
@@ -58,8 +61,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     controller
       ..removeListener(_refresh)
       ..dispose();
-    counterController.dispose();
-    defenseController.dispose();
+    auctionForm.dispose();
     super.dispose();
   }
 
@@ -191,7 +193,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           const SizedBox(height: 16),
           TextField(
             key: const Key('counter-amount'),
-            controller: counterController,
+            controller: auctionForm.counterAmount,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               labelText: 'Montant de la contre-enchère',
@@ -199,8 +201,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             ),
           ),
           RadioGroup<AuctionTarget>(
-            groupValue: counterTarget,
-            onChanged: (value) => setState(() => counterTarget = value!),
+            groupValue: auctionForm.counterTarget,
+            onChanged: (value) =>
+                setState(() => auctionForm.counterTarget = value!),
             child: Column(
               children: [
                 const RadioListTile(
@@ -246,7 +249,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           const SizedBox(height: 12),
           TextField(
             key: const Key('defense-amount'),
-            controller: defenseController,
+            controller: auctionForm.defenseAmount,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
               labelText:
@@ -570,13 +573,13 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   );
 
   Future<void> _submitCounter() async {
-    final amount = int.tryParse(counterController.text);
+    final amount = int.tryParse(auctionForm.counterAmount.text);
     if (amount == null) {
       setState(() => actionError = 'Montant invalide.');
       return;
     }
     try {
-      await controller.submitCounterBid(amount, counterTarget);
+      await controller.submitCounterBid(amount, auctionForm.counterTarget);
       if (mounted) setState(() => actionError = null);
     } catch (error) {
       if (mounted) setState(() => actionError = error.toString());
@@ -584,7 +587,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   Future<void> _submitDefense() async {
-    final amount = int.tryParse(defenseController.text);
+    final amount = int.tryParse(auctionForm.defenseAmount.text);
     if (amount == null) {
       setState(() => actionError = 'Montant invalide.');
       return;
