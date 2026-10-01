@@ -72,7 +72,7 @@ void main() {
         .v3TagIds;
 
     expect(targets('tag.observation.be_watched'), [
-      'v3.direction.etre_regarde',
+      'v3.preference.etre_regarde',
     ]);
     expect(targets('tag.observation.watch'), ['v3.preference.regarder']);
     expect(targets('tag.intimate.masturbation.partner'), [
@@ -235,7 +235,7 @@ void main() {
       taxonomy: taxonomy,
       roleplayScenarios: roleplayScenarios,
     );
-    expect(view.playableCards, hasLength(82));
+    expect(view.playableCards, hasLength(85));
     expect(
       view.playableCards.map((card) => card.stableId),
       contains('card.simultaneous_self_masturbation'),
@@ -349,7 +349,7 @@ void main() {
       taxonomy,
       roleplayScenarios,
     );
-    expect(report['playable_cards_analyzed'], 82);
+    expect(report['playable_cards_analyzed'], 85);
     expect(report['coverage_by_category'], isA<Map<String, Object?>>());
     expect(
       (report['coverage_by_category']! as Map<String, Object?>).keys,
@@ -412,16 +412,19 @@ void main() {
     expect(card(29).v3!.tags, contains('v3.direction.mutuel'));
     expect(card(29).v3!.tags, contains('v3.direction.simultane'));
     for (final order in [28, 29]) {
-      expect(card(order).v3!.tags, isNot(contains('v3.zone.buccal')));
-      expect(card(order).v3!.tags, isNot(contains('v3.preference.lecher')));
-      expect(card(order).v3!.tags, isNot(contains('v3.preference.sucer')));
+      for (final variant in card(order).variants) {
+        final tags = variant.v3!.tags;
+        expect(tags, isNot(contains('v3.zone.buccal')));
+        expect(
+          tags.contains('v3.preference.lecher') ^
+              tags.contains('v3.preference.sucer'),
+          isTrue,
+          reason: variant.stableId,
+        );
+      }
     }
-    expect(card(28).v3!.ambiguities, [
-      'Les futures variantes devront préciser LECHER ou SUCER si l’action orale est explicitée.',
-    ]);
-    expect(card(29).v3!.ambiguities, [
-      'Les futures variantes devront préciser les actions orales réellement simulées.',
-    ]);
+    expect(card(28).v3!.ambiguities, isEmpty);
+    expect(card(29).v3!.ambiguities, isEmpty);
     expect(card(30).v3!.tags, isNot(contains('v3.preference.position_a')));
     expect(card(30).v3!.tags, isNot(contains('v3.zone.fesses')));
     expect(card(30).v3!.tags, isNot(contains('v3.zone.tete')));
@@ -461,7 +464,7 @@ void main() {
     expect(cards, hasLength(30));
     expect(cards.first['order'], 1);
     expect(cards.last['order'], 30);
-    expect(cards.expand((card) => card['variants']! as List), hasLength(41));
+    expect(cards.expand((card) => card['variants']! as List), hasLength(60));
 
     final secondReport =
         jsonDecode(File('docs/catalog_v3_cards_31_60.json').readAsStringSync())
@@ -472,7 +475,7 @@ void main() {
     expect(secondCards.last['order'], 60);
     expect(
       secondCards.expand((card) => card['variants']! as List),
-      hasLength(37),
+      hasLength(57),
     );
 
     final thirdReport =
@@ -484,7 +487,7 @@ void main() {
     expect(thirdCards.last['order'], 90);
     expect(
       thirdCards.expand((card) => card['variants']! as List),
-      hasLength(41),
+      hasLength(46),
     );
   });
 
@@ -507,7 +510,7 @@ void main() {
     expect(solo.v3!.requirements.isDistanceCompatible, isTrue);
     expect(
       visible.v3!.tags,
-      containsAll(['v3.direction.solo', 'v3.direction.etre_regarde']),
+      containsAll(['v3.direction.solo', 'v3.preference.etre_regarde']),
     );
     expect(visible.v3!.requirements.isDistanceCompatible, isTrue);
     expect(card(32).v3!.requirements.isDistanceCompatible, isTrue);
@@ -580,13 +583,14 @@ void main() {
     expect(tags(62), contains('v3.preference.ordres'));
     expect(tags(66), containsAll(['v3.preference.frapper', 'v3.zone.fesses']));
     expect(tags(69), {'v3.preference.immobiliser', 'v3.direction.recevoir'});
-    expect(tags(71), contains('v3.direction.etre_regarde'));
+    expect(tags(71), contains('v3.preference.etre_regarde'));
     expect(tags(71), isNot(contains('v3.preference.regarder')));
+    expect(card(71).v3DeckEnabled, isTrue);
     expect(tags(72), contains('v3.preference.regarder'));
-    expect(tags(72), isNot(contains('v3.direction.etre_regarde')));
+    expect(tags(72), isNot(contains('v3.preference.etre_regarde')));
     expect(tags(73), isNot(contains('v3.preference.regard_exterieur')));
     expect(tags(73), isNot(contains('v3.preference.lieu_expose')));
-    expect(tags(75), {'v3.preference.danser', 'v3.direction.etre_regarde'});
+    expect(tags(75), {'v3.preference.danser', 'v3.preference.etre_regarde'});
     expect(tags(76), isNot(contains('v3.preference.danser')));
     for (final order in [77, 78]) {
       expect(tags(order), isNot(contains('v3.preference.position_s')));
@@ -750,9 +754,13 @@ void main() {
       );
       expect(report['preference_less_before'], hasLength(19));
       expect(report['preference_less_after'], isEmpty);
+      expect(report['ambiguities_before'], hasLength(30));
+      expect(report['remaining_ambiguities'], isEmpty);
+      expect(report['faire_recevoir_before'], hasLength(26));
+      expect(report['faire_recevoir_after'], isEmpty);
       expect(report['counts_after'], {
-        'playable_cards': 82,
-        'playable_variants': 108,
+        'playable_cards': 85,
+        'playable_variants': 148,
       });
       expect(
         jsonDecode(
@@ -760,6 +768,70 @@ void main() {
         ),
         report,
       );
+    },
+  );
+
+  test('facesitting, feet play and being watched are playable and atomic', () {
+    CardDefinition card(int order) =>
+        catalog.cards.singleWhere((card) => card.order == order);
+
+    final facesitting = card(46);
+    expect(facesitting.v3DeckEnabled, isTrue);
+    expect(facesitting.v3!.requirements.distanceExcluded, isTrue);
+    expect(
+      facesitting.variants.map((variant) => variant.v3!.tags),
+      everyElement(
+        containsAll(['v3.preference.proximite_physique', 'v3.zone.tete']),
+      ),
+    );
+
+    final feet = card(50);
+    expect(feet.v3DeckEnabled, isTrue);
+    expect(
+      feet.variants.map((variant) => variant.v3!.tags),
+      everyElement(containsAll(['v3.preference.masser', 'v3.zone.pieds'])),
+    );
+
+    final watched = card(71);
+    expect(watched.v3DeckEnabled, isTrue);
+    expect(watched.v3!.tags, ['v3.preference.etre_regarde']);
+  });
+
+  test(
+    'directions are split and explicit sexual engagement stays moderate',
+    () {
+      final view = V3CatalogView(
+        catalog: catalog,
+        taxonomy: taxonomy,
+        roleplayScenarios: roleplayScenarios,
+      );
+      for (final card in view.playableCards) {
+        for (final variant in view.playableVariants(card)) {
+          expect(
+            variant.v3!.tags.toSet(),
+            isNot(containsAll({'v3.direction.faire', 'v3.direction.recevoir'})),
+            reason: variant.stableId,
+          );
+          expect(variant.v3!.ambiguities, isEmpty, reason: variant.stableId);
+        }
+      }
+      final internal = catalog.cards
+          .singleWhere((card) => card.order == 43)
+          .variants
+          .singleWhere(
+            (variant) => variant.stableId == 'variant.anal_manual.internal',
+          );
+      expect(internal.v3!.baseEngagementLevel, 4);
+      for (final order in [39, 44, 45]) {
+        expect(
+          catalog.cards.singleWhere((card) => card.order == order).variants,
+          everyElement(
+            predicate<CardVariantDefinition>(
+              (variant) => variant.v3!.baseEngagementLevel == 4,
+            ),
+          ),
+        );
+      }
     },
   );
 }

@@ -382,7 +382,7 @@
       "variants": [
         {
           "stable_id": "variant.caress.base",
-          "title": "Caresse",
+          "title": "Caresse ton partenaire",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -400,20 +400,18 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
-              "v3.preference.caresser"
+              "v3.preference.caresser",
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 1,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Direction à préciser lors de la réécriture éditoriale."
-            ]
+            }
           }
         },
         {
           "stable_id": "variant.caress.sensual",
-          "title": "Caresse sensuelle",
+          "title": "Caresse ton partenaire sensuelle",
           "chili_level": 2,
           "additional_tags": [
             "touch.caress.sensual"
@@ -441,20 +439,18 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
-              "v3.preference.caresser"
+              "v3.preference.caresser",
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Direction à préciser lors de la réécriture éditoriale."
-            ]
+            }
           }
         },
         {
           "stable_id": "variant.caress.intimate",
-          "title": "Caresse intime",
+          "title": "Caresse ton partenaire intime",
           "chili_level": 3,
           "additional_tags": [
             "touch.caress.intimate"
@@ -482,15 +478,104 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.caresser",
-              "v3.zone.parties_intimes"
+              "v3.zone.parties_intimes",
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Direction à préciser lors de la réécriture éditoriale."
-            ]
+            }
+          }
+        },
+        {
+          "stable_id": "variant.caress.base.receive",
+          "title": "Reçois une caresse",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
+        },
+        {
+          "stable_id": "variant.caress.sensual.receive",
+          "title": "Reçois une caresse sensuelle",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.caress.intimate.receive",
+          "title": "Reçois une caresse intime",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.parties_intimes",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
           }
         }
       ],
@@ -500,15 +585,13 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
-          "v3.preference.caresser"
+          "v3.preference.caresser",
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 1,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Direction à préciser lors de la réécriture éditoriale."
-        ]
+        }
       }
     },
     {
@@ -535,7 +618,7 @@
       "variants": [
         {
           "stable_id": "variant.sensual_caress.base",
-          "title": "Caresse sensuelle",
+          "title": "Caresse sensuellement ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -554,14 +637,43 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.caresser",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
           }
+        },
+        {
+          "stable_id": "variant.sensual_caress.base.receive",
+          "title": "Reçois une caresse sensuelle",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -571,8 +683,7 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.caresser",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 2,
         "requirements": {
@@ -604,7 +715,7 @@
       "variants": [
         {
           "stable_id": "variant.intimate_caress.base",
-          "title": "Caresse intime",
+          "title": "Caresse les parties intimes de ton partenaire",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -624,14 +735,44 @@
             "tags": [
               "v3.preference.caresser",
               "v3.zone.parties_intimes",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
           }
+        },
+        {
+          "stable_id": "variant.intimate_caress.base.receive",
+          "title": "Reçois une caresse intime",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.parties_intimes",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -642,8 +783,7 @@
         "tags": [
           "v3.preference.caresser",
           "v3.zone.parties_intimes",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 4,
         "requirements": {
@@ -675,7 +815,7 @@
       "variants": [
         {
           "stable_id": "variant.massage.base",
-          "title": "Massage",
+          "title": "Masse ton partenaire",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -693,20 +833,18 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
-              "v3.preference.masser"
+              "v3.preference.masser",
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 1,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Direction à préciser lors de la réécriture éditoriale."
-            ]
+            }
           }
         },
         {
           "stable_id": "variant.massage.sensual",
-          "title": "Massage sensuel",
+          "title": "Masse ton partenaire sensuel",
           "chili_level": 2,
           "additional_tags": [
             "massage.sensual"
@@ -734,20 +872,18 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
-              "v3.preference.masser"
+              "v3.preference.masser",
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Direction à préciser lors de la réécriture éditoriale."
-            ]
+            }
           }
         },
         {
           "stable_id": "variant.massage.intimate",
-          "title": "Massage intime",
+          "title": "Masse ton partenaire intime",
           "chili_level": 3,
           "additional_tags": [
             "massage.intimate"
@@ -775,15 +911,104 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.masser",
-              "v3.zone.parties_intimes"
+              "v3.zone.parties_intimes",
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Direction à préciser lors de la réécriture éditoriale."
-            ]
+            }
+          }
+        },
+        {
+          "stable_id": "variant.massage.base.receive",
+          "title": "Reçois un massage",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
+        },
+        {
+          "stable_id": "variant.massage.sensual.receive",
+          "title": "Reçois un massage sensuel",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.massage.intimate.receive",
+          "title": "Reçois un massage intime",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "parameters": [],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.zone.parties_intimes",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
           }
         }
       ],
@@ -793,15 +1018,13 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
-          "v3.preference.masser"
+          "v3.preference.masser",
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 1,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Direction à préciser lors de la réécriture éditoriale."
-        ]
+        }
       }
     },
     {
@@ -828,7 +1051,7 @@
       "variants": [
         {
           "stable_id": "variant.sensual_massage.base",
-          "title": "Massage sensuel",
+          "title": "Masse sensuellement ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -847,14 +1070,43 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.masser",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
           }
+        },
+        {
+          "stable_id": "variant.sensual_massage.base.receive",
+          "title": "Reçois un massage sensuel",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -864,8 +1116,7 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.masser",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 2,
         "requirements": {
@@ -897,7 +1148,7 @@
       "variants": [
         {
           "stable_id": "variant.intimate_massage.base",
-          "title": "Massage intime",
+          "title": "Masse les parties intimes de ton partenaire",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -917,14 +1168,44 @@
             "tags": [
               "v3.preference.masser",
               "v3.zone.parties_intimes",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
           }
+        },
+        {
+          "stable_id": "variant.intimate_massage.base.receive",
+          "title": "Reçois un massage intime",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.zone.parties_intimes",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -935,8 +1216,7 @@
         "tags": [
           "v3.preference.masser",
           "v3.zone.parties_intimes",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 4,
         "requirements": {
@@ -968,7 +1248,7 @@
       "variants": [
         {
           "stable_id": "variant.undressing.base",
-          "title": "Effeuillage",
+          "title": "Choisis combien de tes vêtements retirer",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -987,21 +1267,19 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.enlever",
-              "v3.preference.tenue"
+              "v3.preference.tenue",
+              "v3.direction.solo"
             ],
             "baseEngagementLevel": 1,
             "requirements": {
               "DISTANCE_EXCLUE": true
             },
-            "clothingDelta": "ASK_PLAYER",
-            "ambiguities": [
-              "Direction à préciser lors de la réécriture éditoriale."
-            ]
+            "clothingDelta": "ASK_PLAYER"
           }
         },
         {
           "stable_id": "variant.undressing.one",
-          "title": "Un vêtement",
+          "title": "Retire un de tes vêtements",
           "chili_level": 1,
           "additional_tags": [
             "clothing.remove"
@@ -1041,22 +1319,20 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.enlever",
-              "v3.preference.tenue"
+              "v3.preference.tenue",
+              "v3.direction.solo"
             ],
             "baseEngagementLevel": 1,
             "requirements": {
               "DISTANCE_EXCLUE": true,
               "minimumRemovableClothing": 1
             },
-            "clothingDelta": -1,
-            "ambiguities": [
-              "Direction à préciser lors de la réécriture éditoriale."
-            ]
+            "clothingDelta": -1
           }
         },
         {
           "stable_id": "variant.undressing.two",
-          "title": "Deux vêtements",
+          "title": "Retire deux de tes vêtements",
           "chili_level": 2,
           "additional_tags": [
             "clothing.remove"
@@ -1096,17 +1372,15 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.enlever",
-              "v3.preference.tenue"
+              "v3.preference.tenue",
+              "v3.direction.solo"
             ],
             "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true,
               "minimumRemovableClothing": 2
             },
-            "clothingDelta": -2,
-            "ambiguities": [
-              "Direction à préciser lors de la réécriture éditoriale."
-            ]
+            "clothingDelta": -2
           }
         }
       ],
@@ -1117,16 +1391,14 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.enlever",
-          "v3.preference.tenue"
+          "v3.preference.tenue",
+          "v3.direction.solo"
         ],
         "baseEngagementLevel": 1,
         "requirements": {
           "DISTANCE_EXCLUE": true
         },
-        "clothingDelta": "ASK_PLAYER",
-        "ambiguities": [
-          "Direction à préciser lors de la réécriture éditoriale."
-        ]
+        "clothingDelta": "ASK_PLAYER"
       }
     },
     {
@@ -1153,7 +1425,7 @@
       "variants": [
         {
           "stable_id": "variant.remove_one_clothing.base",
-          "title": "Enlève un vêtement",
+          "title": "Retire un vêtement à ton partenaire",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -1184,8 +1456,7 @@
             "tags": [
               "v3.preference.enlever",
               "v3.preference.tenue",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 1,
             "requirements": {
@@ -1194,6 +1465,50 @@
             },
             "clothingDelta": -1
           }
+        },
+        {
+          "stable_id": "variant.remove_one_clothing.base.receive",
+          "title": "Laisse ton partenaire retirer un de tes vêtements",
+          "chili_level": 1,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            },
+            {
+              "type": "CLOTHES_AT_LEAST",
+              "target": "PARTNER",
+              "value": 1
+            }
+          ],
+          "state_effects": [
+            {
+              "type": "CLOTHES_DELTA",
+              "target": "PARTNER",
+              "delta": -1
+            }
+          ],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "minimumRemovableClothing": 1
+            },
+            "clothingDelta": -1
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -1204,8 +1519,7 @@
         "tags": [
           "v3.preference.enlever",
           "v3.preference.tenue",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 1,
         "requirements": {
@@ -1239,7 +1553,7 @@
       "variants": [
         {
           "stable_id": "variant.remove_two_clothing.base",
-          "title": "Enlève deux vêtements",
+          "title": "Retire deux vêtements à ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -1270,8 +1584,7 @@
             "tags": [
               "v3.preference.enlever",
               "v3.preference.tenue",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 2,
             "requirements": {
@@ -1280,6 +1593,50 @@
             },
             "clothingDelta": -2
           }
+        },
+        {
+          "stable_id": "variant.remove_two_clothing.base.receive",
+          "title": "Laisse ton partenaire retirer deux de tes vêtements",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            },
+            {
+              "type": "CLOTHES_AT_LEAST",
+              "target": "PARTNER",
+              "value": 2
+            }
+          ],
+          "state_effects": [
+            {
+              "type": "CLOTHES_DELTA",
+              "target": "PARTNER",
+              "delta": -2
+            }
+          ],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "minimumRemovableClothing": 2
+            },
+            "clothingDelta": -2
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -1290,8 +1647,7 @@
         "tags": [
           "v3.preference.enlever",
           "v3.preference.tenue",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 2,
         "requirements": {
@@ -1486,13 +1842,11 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
-              "v3.preference.sous_vetements"
+              "v3.preference.sous_vetements",
+              "v3.direction.solo"
             ],
             "baseEngagementLevel": 2,
-            "requirements": {},
-            "ambiguities": [
-              "La formulation ne précise ni retrait ni direction de préférence."
-            ]
+            "requirements": {}
           }
         }
       ],
@@ -1502,13 +1856,11 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
-          "v3.preference.sous_vetements"
+          "v3.preference.sous_vetements",
+          "v3.direction.solo"
         ],
         "baseEngagementLevel": 2,
-        "requirements": {},
-        "ambiguities": [
-          "La formulation ne précise ni retrait ni direction de préférence."
-        ]
+        "requirements": {}
       }
     },
     {
@@ -1631,7 +1983,7 @@
               "v3.preference.danser",
               "v3.preference.enlever",
               "v3.preference.tenue",
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 2,
             "requirements": {},
@@ -1675,7 +2027,7 @@
               "v3.preference.enlever",
               "v3.preference.tenue",
               "v3.preference.sous_vetements",
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 2,
             "requirements": {},
@@ -1715,7 +2067,7 @@
               "v3.preference.danser",
               "v3.preference.enlever",
               "v3.preference.tenue",
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 3,
             "requirements": {},
@@ -1732,7 +2084,7 @@
           "v3.preference.danser",
           "v3.preference.enlever",
           "v3.preference.tenue",
-          "v3.direction.etre_regarde"
+          "v3.preference.etre_regarde"
         ],
         "baseEngagementLevel": 2,
         "requirements": {},
@@ -1791,7 +2143,7 @@
               "v3.preference.danser",
               "v3.preference.enlever",
               "v3.preference.tenue",
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 3,
             "requirements": {},
@@ -1809,7 +2161,7 @@
           "v3.preference.danser",
           "v3.preference.enlever",
           "v3.preference.tenue",
-          "v3.direction.etre_regarde"
+          "v3.preference.etre_regarde"
         ],
         "baseEngagementLevel": 3,
         "requirements": {},
@@ -1844,7 +2196,7 @@
       "variants": [
         {
           "stable_id": "variant.choose_outfit.base",
-          "title": "Choisis ma tenue",
+          "title": "Choisis la tenue de ton partenaire",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -1864,13 +2216,11 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.tenue",
-              "v3.preference.controle"
+              "v3.preference.controle",
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 1,
-            "requirements": {},
-            "ambiguities": [
-              "Le rôle exact de la personne qui choisit dépend de la reformulation future."
-            ]
+            "requirements": {}
           }
         }
       ],
@@ -1881,13 +2231,11 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.tenue",
-          "v3.preference.controle"
+          "v3.preference.controle",
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 1,
-        "requirements": {},
-        "ambiguities": [
-          "Le rôle exact de la personne qui choisit dépend de la reformulation future."
-        ]
+        "requirements": {}
       }
     },
     {
@@ -2129,7 +2477,7 @@
       "variants": [
         {
           "stable_id": "variant.imposed_position.base",
-          "title": "Position imposée",
+          "title": "Impose une posture à ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -2148,12 +2496,39 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.controle",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 2,
             "requirements": {}
           }
+        },
+        {
+          "stable_id": "variant.imposed_position.base.receive",
+          "title": "Prends la posture choisie par ton partenaire",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -2163,8 +2538,7 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.controle",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 2,
         "requirements": {}
@@ -2194,7 +2568,7 @@
       "variants": [
         {
           "stable_id": "variant.copy_position.base",
-          "title": "Copie ma position",
+          "title": "Reproduis la posture montrée par ton partenaire",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -2213,13 +2587,11 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
-              "v3.preference.ordres"
+              "v3.preference.ordres",
+              "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 1,
-            "requirements": {},
-            "ambiguities": [
-              "Instruction de mise en scène ; direction à préciser sans créer de tag COPIER."
-            ]
+            "requirements": {}
           }
         }
       ],
@@ -2229,13 +2601,11 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
-          "v3.preference.ordres"
+          "v3.preference.ordres",
+          "v3.direction.recevoir"
         ],
         "baseEngagementLevel": 1,
-        "requirements": {},
-        "ambiguities": [
-          "Instruction de mise en scène ; direction à préciser sans créer de tag COPIER."
-        ]
+        "requirements": {}
       }
     },
     {
@@ -2289,7 +2659,7 @@
         },
         {
           "stable_id": "variant.simulate_act.guided",
-          "title": "Simulation guidée",
+          "title": "Suis les consignes de ton partenaire pendant la simulation",
           "chili_level": 2,
           "additional_tags": [
             "simulation.guided"
@@ -2312,13 +2682,11 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.simuler",
-              "v3.preference.ordres"
+              "v3.preference.ordres",
+              "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 3,
-            "requirements": {},
-            "ambiguities": [
-              "Direction de la consigne à préciser."
-            ]
+            "requirements": {}
           }
         }
       ],
@@ -2358,7 +2726,7 @@
       "variants": [
         {
           "stable_id": "variant.simulate_penetration.base",
-          "title": "Simule une pénétration",
+          "title": "Simule une pénétration sur ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -2378,12 +2746,40 @@
             "tags": [
               "v3.preference.simuler",
               "v3.preference.penetrer",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 3,
             "requirements": {}
           }
+        },
+        {
+          "stable_id": "variant.simulate_penetration.base.receive",
+          "title": "Reçois une simulation de pénétration",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler",
+              "v3.preference.penetrer",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -2394,8 +2790,7 @@
         "tags": [
           "v3.preference.simuler",
           "v3.preference.penetrer",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 3,
         "requirements": {}
@@ -2425,7 +2820,7 @@
       "variants": [
         {
           "stable_id": "variant.simulate_oral.base",
-          "title": "Simule un acte oral",
+          "title": "Simule une stimulation orale en léchant ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -2444,15 +2839,99 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.simuler",
-              "v3.direction.faire",
+              "v3.preference.lecher",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          }
+        },
+        {
+          "stable_id": "variant.simulate_oral.lick.receive",
+          "title": "Reçois une simulation orale de léchage",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler",
+              "v3.preference.lecher",
               "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 3,
-            "requirements": {},
-            "ambiguities": [
-              "Les futures variantes devront préciser LECHER ou SUCER si l’action orale est explicitée."
-            ]
-          }
+            "requirements": {}
+          },
+          "parameters": []
+        },
+        {
+          "stable_id": "variant.simulate_oral.suck",
+          "title": "Simule une stimulation orale en suçant ton partenaire",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler",
+              "v3.preference.sucer",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          },
+          "parameters": []
+        },
+        {
+          "stable_id": "variant.simulate_oral.suck.receive",
+          "title": "Reçois une simulation orale de succion",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler",
+              "v3.preference.sucer",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -2462,14 +2941,11 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.simuler",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.preference.lecher",
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 3,
-        "requirements": {},
-        "ambiguities": [
-          "Les futures variantes devront préciser LECHER ou SUCER si l’action orale est explicitée."
-        ]
+        "requirements": {}
       }
     },
     {
@@ -2496,7 +2972,7 @@
       "variants": [
         {
           "stable_id": "variant.simulate_69.base",
-          "title": "Simule un 69",
+          "title": "Simulez un 69 en léchant",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -2514,6 +2990,7 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
+              "v3.preference.lecher",
               "v3.preference.simuler",
               "v3.direction.mutuel",
               "v3.direction.simultane"
@@ -2521,11 +2998,40 @@
             "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Les futures variantes devront préciser les actions orales réellement simulées."
-            ]
+            }
           }
+        },
+        {
+          "stable_id": "variant.simulate_69.suck",
+          "title": "Simulez un 69 en suçant",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sucer",
+              "v3.preference.simuler",
+              "v3.direction.mutuel",
+              "v3.direction.simultane"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -2534,6 +3040,7 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
+          "v3.preference.lecher",
           "v3.preference.simuler",
           "v3.direction.mutuel",
           "v3.direction.simultane"
@@ -2541,10 +3048,7 @@
         "baseEngagementLevel": 3,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Les futures variantes devront préciser les actions orales réellement simulées."
-        ]
+        }
       }
     },
     {
@@ -2571,7 +3075,7 @@
       "variants": [
         {
           "stable_id": "variant.simulate_facesitting.base",
-          "title": "Simule un facesitting",
+          "title": "Simule un facesitting sur ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -2590,14 +3094,43 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.simuler",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
           }
+        },
+        {
+          "stable_id": "variant.simulate_facesitting.base.receive",
+          "title": "Reçois une simulation de facesitting",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -2607,8 +3140,7 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.simuler",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 3,
         "requirements": {
@@ -2662,11 +3194,11 @@
               "v3.preference.masturbation"
             ],
             "baseEngagementLevel": 4,
-            "requirements": {},
-            "ambiguities": [
-              "La carte générique ne précise pas qui pratique la masturbation."
-            ]
-          }
+            "requirements": {}
+          },
+          "v3_deck_enabled": false,
+          "v3_replacement_card_id": "card.masturbation",
+          "v3_replacement_variant_id": "variant.masturbation.self"
         },
         {
           "stable_id": "variant.masturbation.self",
@@ -2738,7 +3270,7 @@
             "tags": [
               "v3.preference.masturbation",
               "v3.direction.solo",
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 4,
             "requirements": {}
@@ -2751,13 +3283,11 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
-          "v3.preference.masturbation"
+          "v3.preference.masturbation",
+          "v3.direction.solo"
         ],
         "baseEngagementLevel": 4,
-        "requirements": {},
-        "ambiguities": [
-          "La carte générique ne précise pas qui pratique la masturbation."
-        ]
+        "requirements": {}
       }
     },
     {
@@ -2811,7 +3341,7 @@
             "tags": [
               "v3.preference.masturbation",
               "v3.direction.solo",
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 4,
             "requirements": {}
@@ -2826,7 +3356,7 @@
         "tags": [
           "v3.preference.masturbation",
           "v3.direction.solo",
-          "v3.direction.etre_regarde"
+          "v3.preference.etre_regarde"
         ],
         "baseEngagementLevel": 4,
         "requirements": {}
@@ -3036,10 +3566,7 @@
         "baseEngagementLevel": 4,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Le texte ne permet pas de choisir entre CARESSER, MASTURBATION ou PENETRER avec les DOIGTS."
-        ]
+        }
       },
       "v3_deck_enabled": false
     },
@@ -3370,7 +3897,7 @@
       "variants": [
         {
           "stable_id": "variant.vaginal_penetration.base",
-          "title": "Pénétration vaginale",
+          "title": "Pénètre vaginalement ton partenaire",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3390,17 +3917,44 @@
             "tags": [
               "v3.preference.penetrer",
               "v3.zone.vaginal",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
-            "baseEngagementLevel": 5,
+            "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Le moyen de pénétration n’est pas précisé."
-            ]
+            }
           }
+        },
+        {
+          "stable_id": "variant.vaginal_penetration.base.receive",
+          "title": "Reçois une pénétration vaginale",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.zone.vaginal",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -3411,16 +3965,12 @@
         "tags": [
           "v3.preference.penetrer",
           "v3.zone.vaginal",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
-        "baseEngagementLevel": 5,
+        "baseEngagementLevel": 4,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Le moyen de pénétration n’est pas précisé."
-        ]
+        }
       }
     },
     {
@@ -3447,7 +3997,7 @@
       "variants": [
         {
           "stable_id": "variant.choose_sex_position.base",
-          "title": "Choisis une position sexuelle",
+          "title": "Choisis une position sexuelle pour la manche",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3471,10 +4021,7 @@
             "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "La formulation ne précise ni position ni degré de difficulté."
-            ]
+            }
           }
         }
       ],
@@ -3490,10 +4037,7 @@
         "baseEngagementLevel": 4,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "La formulation ne précise ni position ni degré de difficulté."
-        ]
+        }
       }
     },
     {
@@ -3670,7 +4214,7 @@
       "variants": [
         {
           "stable_id": "variant.anal_caress.base",
-          "title": "Caresse anale",
+          "title": "Caresse la zone anale de ton partenaire",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3690,14 +4234,44 @@
             "tags": [
               "v3.preference.caresser",
               "v3.zone.anal",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
           }
+        },
+        {
+          "stable_id": "variant.anal_caress.base.receive",
+          "title": "Reçois une caresse anale",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.anal",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -3708,8 +4282,7 @@
         "tags": [
           "v3.preference.caresser",
           "v3.zone.anal",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 4,
         "requirements": {
@@ -3741,7 +4314,7 @@
       "variants": [
         {
           "stable_id": "variant.anal_manual.base",
-          "title": "Caresse anale externe",
+          "title": "Caresse extérieurement la zone anale de ton partenaire",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3761,8 +4334,7 @@
             "tags": [
               "v3.preference.caresser",
               "v3.zone.anal",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 4,
             "requirements": {
@@ -3772,7 +4344,7 @@
         },
         {
           "stable_id": "variant.anal_manual.internal",
-          "title": "Pénétration anale avec les doigts",
+          "title": "Pénètre analement ton partenaire avec les doigts",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3793,10 +4365,72 @@
               "v3.preference.penetrer",
               "v3.preference.doigts",
               "v3.zone.anal",
-              "v3.direction.faire",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
+        },
+        {
+          "stable_id": "variant.anal_manual.base.receive",
+          "title": "Reçois une caresse anale externe",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.anal",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 5,
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
+        },
+        {
+          "stable_id": "variant.anal_manual.internal.receive",
+          "title": "Reçois une pénétration anale avec les doigts",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.preference.doigts",
+              "v3.zone.anal",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -3810,10 +4444,10 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
-          "v3.preference.caresser",
+          "v3.preference.penetrer",
+          "v3.preference.doigts",
           "v3.zone.anal",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 4,
         "requirements": {
@@ -3845,7 +4479,7 @@
       "variants": [
         {
           "stable_id": "variant.anal_penetration.base",
-          "title": "Pénétration anale",
+          "title": "Pénètre analement ton partenaire",
           "chili_level": 5,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3865,17 +4499,44 @@
             "tags": [
               "v3.preference.penetrer",
               "v3.zone.anal",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
-            "baseEngagementLevel": 5,
+            "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Le moyen de pénétration n’est pas précisé."
-            ]
+            }
           }
+        },
+        {
+          "stable_id": "variant.anal_penetration.base.receive",
+          "title": "Reçois une pénétration anale",
+          "chili_level": 5,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.zone.anal",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -3886,16 +4547,12 @@
         "tags": [
           "v3.preference.penetrer",
           "v3.zone.anal",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
-        "baseEngagementLevel": 5,
+        "baseEngagementLevel": 4,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Le moyen de pénétration n’est pas précisé."
-        ]
+        }
       }
     },
     {
@@ -3922,7 +4579,7 @@
       "variants": [
         {
           "stable_id": "variant.anal_oral.base",
-          "title": "Lécher la zone anale",
+          "title": "Lèche la zone anale de ton partenaire",
           "chili_level": 5,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3942,14 +4599,44 @@
             "tags": [
               "v3.preference.lecher",
               "v3.zone.anal",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
-            "baseEngagementLevel": 5,
+            "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
           }
+        },
+        {
+          "stable_id": "variant.anal_oral.base.receive",
+          "title": "Reçois une stimulation orale anale",
+          "chili_level": 5,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.lecher",
+              "v3.zone.anal",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -3960,10 +4647,9 @@
         "tags": [
           "v3.preference.lecher",
           "v3.zone.anal",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
-        "baseEngagementLevel": 5,
+        "baseEngagementLevel": 4,
         "requirements": {
           "DISTANCE_EXCLUE": true
         }
@@ -3993,7 +4679,7 @@
       "variants": [
         {
           "stable_id": "variant.facesitting.base",
-          "title": "Facesitting",
+          "title": "Assieds-toi sur le visage de ton partenaire",
           "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
@@ -4011,17 +4697,46 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
-              "v3.direction.faire",
+              "v3.preference.proximite_physique",
+              "v3.zone.tete",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.facesitting.receive",
+          "title": "Laisse ton partenaire s’asseoir sur ton visage",
+          "chili_level": 4,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.proximite_physique",
+              "v3.zone.tete",
               "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 4,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Le contenu est trop ouvert pour attribuer une préférence, une zone ou une position précise."
-            ]
-          }
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -4030,18 +4745,16 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.preference.proximite_physique",
+          "v3.zone.tete",
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 4,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Le contenu est trop ouvert pour attribuer une préférence, une zone ou une position précise."
-        ]
+        }
       },
-      "v3_deck_enabled": false
+      "v3_deck_enabled": true
     },
     {
       "stable_id": "card.genital_rubbing",
@@ -4136,7 +4849,7 @@
       "variants": [
         {
           "stable_id": "variant.chest_play.base",
-          "title": "Caresser la poitrine",
+          "title": "Caresse la poitrine de ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -4156,8 +4869,7 @@
             "tags": [
               "v3.preference.caresser",
               "v3.zone.poitrine",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 2,
             "requirements": {
@@ -4167,7 +4879,7 @@
         },
         {
           "stable_id": "variant.chest_play.massage",
-          "title": "Masser la poitrine",
+          "title": "Masse la poitrine de ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -4187,7 +4899,68 @@
             "tags": [
               "v3.preference.masser",
               "v3.zone.poitrine",
-              "v3.direction.faire",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
+        },
+        {
+          "stable_id": "variant.chest_play.base.receive",
+          "title": "Reçois une caresse sur la poitrine",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.poitrine",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
+        },
+        {
+          "stable_id": "variant.chest_play.massage.receive",
+          "title": "Reçois un massage de la poitrine",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.zone.poitrine",
               "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 2,
@@ -4204,10 +4977,9 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
-          "v3.preference.caresser",
+          "v3.preference.masser",
           "v3.zone.poitrine",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 2,
         "requirements": {
@@ -4239,7 +5011,7 @@
       "variants": [
         {
           "stable_id": "variant.nipple_stimulation.base",
-          "title": "Caresser les tétons",
+          "title": "Caresse les tétons de ton partenaire",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -4259,8 +5031,7 @@
             "tags": [
               "v3.preference.caresser",
               "v3.zone.tetons",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 3,
             "requirements": {
@@ -4270,7 +5041,7 @@
         },
         {
           "stable_id": "variant.nipple_stimulation.pinch",
-          "title": "Pincer les tétons",
+          "title": "Pince les tétons de ton partenaire",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -4290,7 +5061,68 @@
             "tags": [
               "v3.preference.pincer",
               "v3.zone.tetons",
-              "v3.direction.faire",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
+        },
+        {
+          "stable_id": "variant.nipple_stimulation.base.receive",
+          "title": "Reçois une caresse des tétons",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.zone.tetons",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
+        },
+        {
+          "stable_id": "variant.nipple_stimulation.pinch.receive",
+          "title": "Laisse ton partenaire pincer tes tétons",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.pincer",
+              "v3.zone.tetons",
               "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 3,
@@ -4307,10 +5139,9 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
-          "v3.preference.caresser",
+          "v3.preference.pincer",
           "v3.zone.tetons",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 3,
         "requirements": {
@@ -4342,7 +5173,7 @@
       "variants": [
         {
           "stable_id": "variant.feet_play.base",
-          "title": "Jeu avec les pieds",
+          "title": "Masse les pieds de ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -4360,18 +5191,46 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
+              "v3.preference.masser",
               "v3.zone.pieds",
-              "v3.direction.faire",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.feet_play.receive",
+          "title": "Reçois un massage des pieds",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masser",
+              "v3.zone.pieds",
               "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "L’action impliquant les pieds n’est pas précisée."
-            ]
-          }
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -4380,19 +5239,16 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
+          "v3.preference.masser",
           "v3.zone.pieds",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 2,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "L’action impliquant les pieds n’est pas précisée."
-        ]
+        }
       },
-      "v3_deck_enabled": false
+      "v3_deck_enabled": true
     },
     {
       "stable_id": "card.dominate_me",
@@ -4560,7 +5416,7 @@
       "variants": [
         {
           "stable_id": "variant.submit.base",
-          "title": "Soumets-toi",
+          "title": "Soumets-toi aux décisions de ton partenaire",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -4580,18 +5436,16 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.controle",
-              "v3.preference.servir"
+              "v3.preference.servir",
+              "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 3,
-            "requirements": {},
-            "ambiguities": [
-              "La perspective du texte ne permet pas d’attribuer FAIRE ou RECEVOIR sans contexte."
-            ]
+            "requirements": {}
           }
         },
         {
           "stable_id": "variant.submit.orders",
-          "title": "Avec consignes",
+          "title": "Suis les consignes de ton partenaire",
           "chili_level": 3,
           "additional_tags": [
             "power.order.give"
@@ -4620,13 +5474,12 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.controle",
-              "v3.preference.servir"
+              "v3.preference.servir",
+              "v3.preference.ordres",
+              "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 3,
-            "requirements": {},
-            "ambiguities": [
-              "La perspective du texte ne permet pas d’attribuer FAIRE ou RECEVOIR sans contexte."
-            ]
+            "requirements": {}
           }
         }
       ],
@@ -4637,13 +5490,11 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.controle",
-          "v3.preference.servir"
+          "v3.preference.servir",
+          "v3.direction.recevoir"
         ],
         "baseEngagementLevel": 3,
-        "requirements": {},
-        "ambiguities": [
-          "La perspective du texte ne permet pas d’attribuer FAIRE ou RECEVOIR sans contexte."
-        ]
+        "requirements": {}
       }
     },
     {
@@ -4926,7 +5777,7 @@
       "variants": [
         {
           "stable_id": "variant.no_touch.base",
-          "title": "Interdiction de toucher",
+          "title": "Interdis à ton partenaire de te toucher",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -4947,15 +5798,41 @@
             "tags": [
               "v3.preference.controle",
               "v3.preference.ordres",
-              "v3.direction.faire",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          }
+        },
+        {
+          "stable_id": "variant.no_touch.base.receive",
+          "title": "Respecte l’interdiction de toucher donnée par ton partenaire",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.preference.ordres",
               "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 2,
-            "requirements": {},
-            "ambiguities": [
-              "La carte permet selon le contexte d’imposer ou de recevoir la décision."
-            ]
-          }
+            "requirements": {}
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -4966,14 +5843,10 @@
         "tags": [
           "v3.preference.controle",
           "v3.preference.ordres",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 2,
-        "requirements": {},
-        "ambiguities": [
-          "La carte permet selon le contexte d’imposer ou de recevoir la décision."
-        ]
+        "requirements": {}
       }
     },
     {
@@ -5006,7 +5879,7 @@
       "variants": [
         {
           "stable_id": "variant.watch_no_touch.base",
-          "title": "Regarde sans toucher",
+          "title": "Obéis : regarde ton partenaire sans le toucher",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -5027,13 +5900,11 @@
             "tags": [
               "v3.preference.regarder",
               "v3.preference.controle",
-              "v3.preference.ordres"
+              "v3.preference.ordres",
+              "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 2,
-            "requirements": {},
-            "ambiguities": [
-              "La direction acteur/cible dépend de la consigne donnée pendant la scène."
-            ]
+            "requirements": {}
           }
         }
       ],
@@ -5045,13 +5916,11 @@
         "tags": [
           "v3.preference.regarder",
           "v3.preference.controle",
-          "v3.preference.ordres"
+          "v3.preference.ordres",
+          "v3.direction.recevoir"
         ],
         "baseEngagementLevel": 2,
-        "requirements": {},
-        "ambiguities": [
-          "La direction acteur/cible dépend de la consigne donnée pendant la scène."
-        ]
+        "requirements": {}
       }
     },
     {
@@ -5078,7 +5947,7 @@
       "variants": [
         {
           "stable_id": "variant.hands_bound.base",
-          "title": "Mains attachées",
+          "title": "Attache les mains de ton partenaire",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -5098,18 +5967,46 @@
             "tags": [
               "v3.preference.attacher",
               "v3.zone.mains",
-              "v3.direction.faire",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "requiresConstraintAccessory": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.hands_bound.base.receive",
+          "title": "Laisse ton partenaire t’attacher les mains",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.attacher",
+              "v3.zone.mains",
               "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true,
               "requiresConstraintAccessory": true
-            },
-            "ambiguities": [
-              "La formulation ne fixe pas qui attache qui."
-            ]
-          }
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -5120,17 +6017,13 @@
         "tags": [
           "v3.preference.attacher",
           "v3.zone.mains",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 3,
         "requirements": {
           "DISTANCE_EXCLUE": true,
           "requiresConstraintAccessory": true
-        },
-        "ambiguities": [
-          "La formulation ne fixe pas qui attache qui."
-        ]
+        }
       }
     },
     {
@@ -5226,7 +6119,7 @@
       "variants": [
         {
           "stable_id": "variant.blindfold.base",
-          "title": "Bandeau sur les yeux",
+          "title": "Bande les yeux de ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -5245,14 +6138,43 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.yeux_bandes",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
           }
+        },
+        {
+          "stable_id": "variant.blindfold.base.receive",
+          "title": "Laisse ton partenaire te bander les yeux",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.yeux_bandes",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -5262,8 +6184,7 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.yeux_bandes",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 2,
         "requirements": {
@@ -5295,7 +6216,7 @@
       "variants": [
         {
           "stable_id": "variant.close_eyes.base",
-          "title": "Ferme les yeux",
+          "title": "Ferme les yeux à la demande de ton partenaire",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -5315,13 +6236,10 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.ordres",
-              "v3.direction.faire"
+              "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 1,
-            "requirements": {},
-            "ambiguities": [
-              "Fermer les yeux est traité comme une consigne légère, sans créer YEUX_FERMES ni réutiliser YEUX_BANDES."
-            ]
+            "requirements": {}
           }
         }
       ],
@@ -5332,13 +6250,10 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.ordres",
-          "v3.direction.faire"
+          "v3.direction.recevoir"
         ],
         "baseEngagementLevel": 1,
-        "requirements": {},
-        "ambiguities": [
-          "Fermer les yeux est traité comme une consigne légère, sans créer YEUX_FERMES ni réutiliser YEUX_BANDES."
-        ]
+        "requirements": {}
       }
     },
     {
@@ -5404,7 +6319,7 @@
           "DISTANCE_EXCLUE": true
         },
         "ambiguities": [
-          "La mécanique de devinette au toucher ne justifie ni TOUCHER générique, ni TEXTURE sans précision éditoriale."
+          "Carte mécanique retirée du deck V3 sans préférence scoreable."
         ]
       },
       "v3_deck_enabled": false
@@ -5433,7 +6348,7 @@
       "variants": [
         {
           "stable_id": "variant.temperature_play.base",
-          "title": "Jeu de température",
+          "title": "Applique un jeu de température à ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -5451,16 +6366,44 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
-              "v3.preference.temperature"
+              "v3.preference.temperature",
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "La direction dépend de l’exécution concrète du jeu de température."
-            ]
+            }
           }
+        },
+        {
+          "stable_id": "variant.temperature_play.base.receive",
+          "title": "Reçois un jeu de température",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.temperature",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -5469,15 +6412,13 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
-          "v3.preference.temperature"
+          "v3.preference.temperature",
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 2,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "La direction dépend de l’exécution concrète du jeu de température."
-        ]
+        }
       }
     },
     {
@@ -5668,13 +6609,13 @@
         "requirements": {
           "DISTANCE_EXCLUE": true
         },
-        "ambiguities": [
-          "Carte conteneur sans préférence sensorielle générique ; ses variantes recouvrent des cartes dédiées."
-        ],
         "rationalizationCandidates": [
           "card.blindfold",
           "card.close_eyes",
           "card.temperature_play"
+        ],
+        "ambiguities": [
+          "Conteneur legacy retiré du deck V3 au profit des cartes sensorielles concrètes."
         ]
       },
       "v3_deck_enabled": false
@@ -5703,7 +6644,7 @@
       "variants": [
         {
           "stable_id": "variant.spanking.base",
-          "title": "Fessée",
+          "title": "Donne une fessée à ton partenaire",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -5723,14 +6664,44 @@
             "tags": [
               "v3.preference.frapper",
               "v3.zone.fesses",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
+              "v3.direction.faire"
             ],
             "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
           }
+        },
+        {
+          "stable_id": "variant.spanking.base.receive",
+          "title": "Reçois une fessée",
+          "chili_level": 3,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.frapper",
+              "v3.zone.fesses",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -5741,8 +6712,7 @@
         "tags": [
           "v3.preference.frapper",
           "v3.zone.fesses",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 3,
         "requirements": {
@@ -5774,7 +6744,7 @@
       "variants": [
         {
           "stable_id": "variant.bite.base",
-          "title": "Morsure",
+          "title": "Mords ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -5793,17 +6763,43 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.mordre",
-              "v3.direction.faire",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.bite.base.receive",
+          "title": "Laisse ton partenaire te mordre",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.mordre",
               "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Aucune zone anatomique n’est précisée."
-            ]
-          }
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -5813,16 +6809,12 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.mordre",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 2,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Aucune zone anatomique n’est précisée."
-        ]
+        }
       }
     },
     {
@@ -5849,7 +6841,7 @@
       "variants": [
         {
           "stable_id": "variant.scratches.base",
-          "title": "Griffures",
+          "title": "Griffe ton partenaire",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -5868,17 +6860,43 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.griffer",
-              "v3.direction.faire",
+              "v3.direction.faire"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          }
+        },
+        {
+          "stable_id": "variant.scratches.base.receive",
+          "title": "Laisse ton partenaire te griffer",
+          "chili_level": 2,
+          "additional_tags": [],
+          "profile_requirements": [],
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "enabled": false,
+          "v3": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.griffer",
               "v3.direction.recevoir"
             ],
             "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Aucune zone anatomique n’est précisée."
-            ]
-          }
+            }
+          },
+          "parameters": []
         }
       ],
       "parameters": [],
@@ -5888,16 +6906,12 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.griffer",
-          "v3.direction.faire",
-          "v3.direction.recevoir"
+          "v3.direction.faire"
         ],
         "baseEngagementLevel": 2,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Aucune zone anatomique n’est précisée."
-        ]
+        }
       }
     },
     {
@@ -6071,7 +7085,7 @@
       "variants": [
         {
           "stable_id": "variant.look_at_me.base",
-          "title": "Regarde-moi",
+          "title": "Laisse ton partenaire te regarder",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -6090,7 +7104,7 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 1,
             "requirements": {}
@@ -6103,12 +7117,12 @@
       "v3": {
         "taxonomy_version": 1,
         "tags": [
-          "v3.direction.etre_regarde"
+          "v3.preference.etre_regarde"
         ],
         "baseEngagementLevel": 1,
         "requirements": {}
       },
-      "v3_deck_enabled": false
+      "v3_deck_enabled": true
     },
     {
       "stable_id": "card.let_me_watch",
@@ -6217,7 +7231,7 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 3,
             "requirements": {}
@@ -6255,7 +7269,7 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.sous_vetements",
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 2,
             "requirements": {}
@@ -6291,7 +7305,7 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 3,
             "requirements": {
@@ -6308,7 +7322,7 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.sous_vetements",
-          "v3.direction.etre_regarde"
+          "v3.preference.etre_regarde"
         ],
         "baseEngagementLevel": 2,
         "requirements": {}
@@ -6420,7 +7434,7 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.danser",
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 1,
             "requirements": {}
@@ -6434,7 +7448,7 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.danser",
-          "v3.direction.etre_regarde"
+          "v3.preference.etre_regarde"
         ],
         "baseEngagementLevel": 1,
         "requirements": {}
@@ -6484,7 +7498,7 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.tenue",
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 1,
             "requirements": {}
@@ -6498,7 +7512,7 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.tenue",
-          "v3.direction.etre_regarde"
+          "v3.preference.etre_regarde"
         ],
         "baseEngagementLevel": 1,
         "requirements": {}
@@ -6547,7 +7561,7 @@
           "v3": {
             "taxonomy_version": 1,
             "tags": [
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 1,
             "requirements": {}
@@ -6586,7 +7600,7 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.controle",
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 2,
             "requirements": {}
@@ -6600,7 +7614,7 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.controle",
-          "v3.direction.etre_regarde"
+          "v3.preference.etre_regarde"
         ],
         "baseEngagementLevel": 2,
         "requirements": {}
@@ -6650,7 +7664,7 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.controle",
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 2,
             "requirements": {}
@@ -6679,7 +7693,7 @@
         "taxonomy_version": 1,
         "tags": [
           "v3.preference.controle",
-          "v3.direction.etre_regarde"
+          "v3.preference.etre_regarde"
         ],
         "baseEngagementLevel": 2,
         "requirements": {}
@@ -6733,10 +7747,7 @@
             "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "La douche est un contexte objectif non représenté par une préférence dédiée."
-            ]
+            }
           }
         }
       ],
@@ -6752,10 +7763,7 @@
         "baseEngagementLevel": 2,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "La douche est un contexte objectif non représenté par une préférence dédiée."
-        ]
+        }
       }
     },
     {
@@ -6806,10 +7814,7 @@
             "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
-            },
-            "ambiguities": [
-              "Le bain est un contexte objectif non représenté par une préférence dédiée."
-            ]
+            }
           }
         }
       ],
@@ -6825,10 +7830,7 @@
         "baseEngagementLevel": 2,
         "requirements": {
           "DISTANCE_EXCLUE": true
-        },
-        "ambiguities": [
-          "Le bain est un contexte objectif non représenté par une préférence dédiée."
-        ]
+        }
       }
     },
     {
@@ -7053,7 +8055,7 @@
               "v3.preference.photo",
               "v3.preference.envoyer",
               "v3.direction.solo",
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 2,
             "requirements": {}
@@ -7094,7 +8096,7 @@
               "v3.preference.envoyer",
               "v3.preference.controle",
               "v3.direction.solo",
-              "v3.direction.etre_regarde"
+              "v3.preference.etre_regarde"
             ],
             "baseEngagementLevel": 2,
             "requirements": {}
@@ -7110,7 +8112,7 @@
           "v3.preference.photo",
           "v3.preference.envoyer",
           "v3.direction.solo",
-          "v3.direction.etre_regarde"
+          "v3.preference.etre_regarde"
         ],
         "baseEngagementLevel": 2,
         "requirements": {}
@@ -7579,11 +8581,11 @@
         "tags": [],
         "baseEngagementLevel": 2,
         "requirements": {},
+        "sessionDataCandidate": true,
         "ambiguities": [
-          "VISIO décrit le mode de session et non une préférence permanente ; la carte peut sortir du deck."
+          "Carte legacy migrée vers le paramètre de session visioEnabled."
         ],
-        "deckRemovalCandidate": true,
-        "sessionDataCandidate": true
+        "deckRemovalCandidate": true
       },
       "v3_deck_enabled": false,
       "v3_replacement_session_field": "visioEnabled"
@@ -7654,11 +8656,11 @@
         "tags": [],
         "baseEngagementLevel": 3,
         "requirements": {},
+        "sessionDataCandidate": true,
         "ambiguities": [
-          "VISIO et la nudité décrivent le mode et le contenu de session sans préférence permanente suffisamment précise."
+          "Carte legacy migrée vers le paramètre de session visioEnabled."
         ],
-        "deckRemovalCandidate": true,
-        "sessionDataCandidate": true
+        "deckRemovalCandidate": true
       },
       "v3_deck_enabled": false,
       "v3_replacement_session_field": "visioEnabled"

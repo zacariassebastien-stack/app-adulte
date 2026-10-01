@@ -9,8 +9,8 @@ appartient à exactement une catégorie :
 
 - `PREFERENCE` : dimension personnelle notée et utilisable pour le calcul PA ;
 - `ZONE` : zone du corps, jamais notée isolément ;
-- `DIRECTION` : `FAIRE`, `RECEVOIR`, `SOLO`, `MUTUEL`, `SIMULTANE`,
-  `ETRE_REGARDE` ou `ETRE_ENTENDU` ;
+- `DIRECTION` : `FAIRE`, `RECEVOIR`, `SOLO`, `MUTUEL`, `SIMULTANE` ou
+  `ETRE_ENTENDU` ;
 - `MATERIEL` : ressource physique disponible, non notée ;
 - `TECHNIQUE` : contrainte d'éligibilité, non notée ;
 - `CONTEXTE` : contexte descriptif, non noté ;
@@ -24,6 +24,10 @@ migration ; elle ne remplace pas la révision éditoriale des cartes de l'étape
 
 `PAPOUILLE` est supprimé. `DISTANCE_COMPATIBLE` n'existe pas : la distance est
 compatible par défaut.
+
+`ETRE_REGARDE` est une préférence scoreable distincte de `REGARDER` et de
+`REGARD_EXTERIEUR`. Elle décrit le plaisir d'être regardé par son partenaire,
+sans impliquer une exposition publique.
 
 `JEU_ROLE` est une préférence générale scoreable. Les scénarios précis ne sont
 pas des préférences permanentes : `profile.roleplay` migre vers `JEU_ROLE`,
@@ -73,8 +77,8 @@ Un identifiant sélectionné doit exister dans cette bibliothèque.
 
 Les anciennes cartes 91–100 restent physiquement présentes pour permettre la
 lecture des données historiques, avec `v3_deck_enabled: false`. `V3CatalogView`
-valide leur correspondance avec la bibliothèque et expose uniquement les 90
-cartes jouables. Le scénario actif ne modifie ni tags, ni consentement, ni PA,
+valide leur correspondance avec la bibliothèque et expose uniquement les
+cartes jouables V3. Le scénario actif ne modifie ni tags, ni consentement, ni PA,
 ni engagement, ni requirements d'une carte.
 
 ## Requirements V3

@@ -12,12 +12,10 @@
       "id": "card.blindfold",
       "tags": [
         "v3.preference.yeux_bandes",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
+        "v3.direction.faire"
       ],
       "directions": [
-        "FAIRE",
-        "RECEVOIR"
+        "FAIRE"
       ],
       "baseEngagementLevel": 2,
       "distanceExcluded": true,
@@ -36,11 +34,31 @@
           "id": "variant.blindfold.base",
           "tags": [
             "v3.preference.yeux_bandes",
-            "v3.direction.faire",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.blindfold.base.receive",
+          "tags": [
+            "v3.preference.yeux_bandes",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
             "RECEVOIR"
           ],
           "baseEngagementLevel": 2,
@@ -64,10 +82,10 @@
       "id": "card.close_eyes",
       "tags": [
         "v3.preference.ordres",
-        "v3.direction.faire"
+        "v3.direction.recevoir"
       ],
       "directions": [
-        "FAIRE"
+        "RECEVOIR"
       ],
       "baseEngagementLevel": 1,
       "distanceExcluded": false,
@@ -78,18 +96,16 @@
       "rationalizationCandidates": [],
       "deckRemovalCandidate": false,
       "sessionDataCandidate": false,
-      "ambiguities": [
-        "Fermer les yeux est traité comme une consigne légère, sans créer YEUX_FERMES ni réutiliser YEUX_BANDES."
-      ],
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.close_eyes.base",
           "tags": [
             "v3.preference.ordres",
-            "v3.direction.faire"
+            "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE"
+            "RECEVOIR"
           ],
           "baseEngagementLevel": 1,
           "distanceExcluded": false,
@@ -100,9 +116,7 @@
           "rationalizationCandidates": [],
           "deckRemovalCandidate": false,
           "sessionDataCandidate": false,
-          "ambiguities": [
-            "Fermer les yeux est traité comme une consigne légère, sans créer YEUX_FERMES ni réutiliser YEUX_BANDES."
-          ]
+          "ambiguities": []
         }
       ]
     },
@@ -124,7 +138,7 @@
       "deckRemovalCandidate": false,
       "sessionDataCandidate": false,
       "ambiguities": [
-        "La mécanique de devinette au toucher ne justifie ni TOUCHER générique, ni TEXTURE sans précision éditoriale."
+        "Carte mécanique retirée du deck V3 sans préférence scoreable."
       ],
       "variants": [
         {
@@ -153,9 +167,12 @@
       "title": "Jeu de température",
       "id": "card.temperature_play",
       "tags": [
-        "v3.preference.temperature"
+        "v3.preference.temperature",
+        "v3.direction.faire"
       ],
-      "directions": [],
+      "directions": [
+        "FAIRE"
+      ],
       "baseEngagementLevel": 2,
       "distanceExcluded": true,
       "requirements": {
@@ -167,16 +184,17 @@
       "rationalizationCandidates": [],
       "deckRemovalCandidate": false,
       "sessionDataCandidate": false,
-      "ambiguities": [
-        "La direction dépend de l’exécution concrète du jeu de température."
-      ],
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.temperature_play.base",
           "tags": [
-            "v3.preference.temperature"
+            "v3.preference.temperature",
+            "v3.direction.faire"
           ],
-          "directions": [],
+          "directions": [
+            "FAIRE"
+          ],
           "baseEngagementLevel": 2,
           "distanceExcluded": true,
           "requirements": {
@@ -188,9 +206,29 @@
           "rationalizationCandidates": [],
           "deckRemovalCandidate": false,
           "sessionDataCandidate": false,
-          "ambiguities": [
-            "La direction dépend de l’exécution concrète du jeu de température."
-          ]
+          "ambiguities": []
+        },
+        {
+          "id": "variant.temperature_play.base.receive",
+          "tags": [
+            "v3.preference.temperature",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         }
       ]
     },
@@ -216,7 +254,7 @@
       "deckRemovalCandidate": false,
       "sessionDataCandidate": false,
       "ambiguities": [
-        "Carte conteneur sans préférence sensorielle générique ; ses variantes recouvrent des cartes dédiées."
+        "Conteneur legacy retiré du deck V3 au profit des cartes sensorielles concrètes."
       ],
       "variants": [
         {
@@ -308,12 +346,10 @@
       "tags": [
         "v3.preference.frapper",
         "v3.zone.fesses",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
+        "v3.direction.faire"
       ],
       "directions": [
-        "FAIRE",
-        "RECEVOIR"
+        "FAIRE"
       ],
       "baseEngagementLevel": 3,
       "distanceExcluded": true,
@@ -333,11 +369,32 @@
           "tags": [
             "v3.preference.frapper",
             "v3.zone.fesses",
-            "v3.direction.faire",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.spanking.base.receive",
+          "tags": [
+            "v3.preference.frapper",
+            "v3.zone.fesses",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
             "RECEVOIR"
           ],
           "baseEngagementLevel": 3,
@@ -361,12 +418,10 @@
       "id": "card.bite",
       "tags": [
         "v3.preference.mordre",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
+        "v3.direction.faire"
       ],
       "directions": [
-        "FAIRE",
-        "RECEVOIR"
+        "FAIRE"
       ],
       "baseEngagementLevel": 2,
       "distanceExcluded": true,
@@ -379,19 +434,37 @@
       "rationalizationCandidates": [],
       "deckRemovalCandidate": false,
       "sessionDataCandidate": false,
-      "ambiguities": [
-        "Aucune zone anatomique n’est précisée."
-      ],
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.bite.base",
           "tags": [
             "v3.preference.mordre",
-            "v3.direction.faire",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.bite.base.receive",
+          "tags": [
+            "v3.preference.mordre",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
             "RECEVOIR"
           ],
           "baseEngagementLevel": 2,
@@ -405,9 +478,7 @@
           "rationalizationCandidates": [],
           "deckRemovalCandidate": false,
           "sessionDataCandidate": false,
-          "ambiguities": [
-            "Aucune zone anatomique n’est précisée."
-          ]
+          "ambiguities": []
         }
       ]
     },
@@ -417,12 +488,10 @@
       "id": "card.scratches",
       "tags": [
         "v3.preference.griffer",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
+        "v3.direction.faire"
       ],
       "directions": [
-        "FAIRE",
-        "RECEVOIR"
+        "FAIRE"
       ],
       "baseEngagementLevel": 2,
       "distanceExcluded": true,
@@ -435,19 +504,37 @@
       "rationalizationCandidates": [],
       "deckRemovalCandidate": false,
       "sessionDataCandidate": false,
-      "ambiguities": [
-        "Aucune zone anatomique n’est précisée."
-      ],
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.scratches.base",
           "tags": [
             "v3.preference.griffer",
-            "v3.direction.faire",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.scratches.base.receive",
+          "tags": [
+            "v3.preference.griffer",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
             "RECEVOIR"
           ],
           "baseEngagementLevel": 2,
@@ -461,9 +548,7 @@
           "rationalizationCandidates": [],
           "deckRemovalCandidate": false,
           "sessionDataCandidate": false,
-          "ambiguities": [
-            "Aucune zone anatomique n’est précisée."
-          ]
+          "ambiguities": []
         }
       ]
     },
@@ -566,11 +651,9 @@
       "title": "Regarde-moi",
       "id": "card.look_at_me",
       "tags": [
-        "v3.direction.etre_regarde"
+        "v3.preference.etre_regarde"
       ],
-      "directions": [
-        "ETRE_REGARDE"
-      ],
+      "directions": [],
       "baseEngagementLevel": 1,
       "distanceExcluded": false,
       "requirements": {},
@@ -585,11 +668,9 @@
         {
           "id": "variant.look_at_me.base",
           "tags": [
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
-          "directions": [
-            "ETRE_REGARDE"
-          ],
+          "directions": [],
           "baseEngagementLevel": 1,
           "distanceExcluded": false,
           "requirements": {},
@@ -652,12 +733,11 @@
       "title": "Exhibition privée",
       "id": "card.private_exhibition",
       "tags": [
-        "v3.direction.etre_regarde"
+        "v3.preference.sous_vetements",
+        "v3.preference.etre_regarde"
       ],
-      "directions": [
-        "ETRE_REGARDE"
-      ],
-      "baseEngagementLevel": 3,
+      "directions": [],
+      "baseEngagementLevel": 2,
       "distanceExcluded": false,
       "requirements": {},
       "clothingDelta": null,
@@ -671,11 +751,9 @@
         {
           "id": "variant.private_exhibition.base",
           "tags": [
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
-          "directions": [
-            "ETRE_REGARDE"
-          ],
+          "directions": [],
           "baseEngagementLevel": 3,
           "distanceExcluded": false,
           "requirements": {},
@@ -691,11 +769,9 @@
           "id": "variant.private_exhibition.underwear",
           "tags": [
             "v3.preference.sous_vetements",
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
-          "directions": [
-            "ETRE_REGARDE"
-          ],
+          "directions": [],
           "baseEngagementLevel": 2,
           "distanceExcluded": false,
           "requirements": {},
@@ -710,11 +786,9 @@
         {
           "id": "variant.private_exhibition.nude",
           "tags": [
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
-          "directions": [
-            "ETRE_REGARDE"
-          ],
+          "directions": [],
           "baseEngagementLevel": 3,
           "distanceExcluded": true,
           "requirements": {
@@ -774,11 +848,9 @@
       "id": "card.dance_for_me",
       "tags": [
         "v3.preference.danser",
-        "v3.direction.etre_regarde"
+        "v3.preference.etre_regarde"
       ],
-      "directions": [
-        "ETRE_REGARDE"
-      ],
+      "directions": [],
       "baseEngagementLevel": 1,
       "distanceExcluded": false,
       "requirements": {},
@@ -794,11 +866,9 @@
           "id": "variant.dance_for_me.base",
           "tags": [
             "v3.preference.danser",
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
-          "directions": [
-            "ETRE_REGARDE"
-          ],
+          "directions": [],
           "baseEngagementLevel": 1,
           "distanceExcluded": false,
           "requirements": {},
@@ -818,11 +888,9 @@
       "id": "card.private_runway",
       "tags": [
         "v3.preference.tenue",
-        "v3.direction.etre_regarde"
+        "v3.preference.etre_regarde"
       ],
-      "directions": [
-        "ETRE_REGARDE"
-      ],
+      "directions": [],
       "baseEngagementLevel": 1,
       "distanceExcluded": false,
       "requirements": {},
@@ -838,11 +906,9 @@
           "id": "variant.private_runway.base",
           "tags": [
             "v3.preference.tenue",
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
-          "directions": [
-            "ETRE_REGARDE"
-          ],
+          "directions": [],
           "baseEngagementLevel": 1,
           "distanceExcluded": false,
           "requirements": {},
@@ -861,12 +927,11 @@
       "title": "Prends la pose",
       "id": "card.pose",
       "tags": [
-        "v3.direction.etre_regarde"
+        "v3.preference.controle",
+        "v3.preference.etre_regarde"
       ],
-      "directions": [
-        "ETRE_REGARDE"
-      ],
-      "baseEngagementLevel": 1,
+      "directions": [],
+      "baseEngagementLevel": 2,
       "distanceExcluded": false,
       "requirements": {},
       "clothingDelta": null,
@@ -880,11 +945,9 @@
         {
           "id": "variant.pose.base",
           "tags": [
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
-          "directions": [
-            "ETRE_REGARDE"
-          ],
+          "directions": [],
           "baseEngagementLevel": 1,
           "distanceExcluded": false,
           "requirements": {},
@@ -900,11 +963,9 @@
           "id": "variant.pose.partner_choice",
           "tags": [
             "v3.preference.controle",
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
-          "directions": [
-            "ETRE_REGARDE"
-          ],
+          "directions": [],
           "baseEngagementLevel": 2,
           "distanceExcluded": false,
           "requirements": {},
@@ -924,11 +985,9 @@
       "id": "card.choose_pose",
       "tags": [
         "v3.preference.controle",
-        "v3.direction.etre_regarde"
+        "v3.preference.etre_regarde"
       ],
-      "directions": [
-        "ETRE_REGARDE"
-      ],
+      "directions": [],
       "baseEngagementLevel": 2,
       "distanceExcluded": false,
       "requirements": {},
@@ -944,11 +1003,9 @@
           "id": "variant.choose_pose.base",
           "tags": [
             "v3.preference.controle",
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
-          "directions": [
-            "ETRE_REGARDE"
-          ],
+          "directions": [],
           "baseEngagementLevel": 2,
           "distanceExcluded": false,
           "requirements": {},
@@ -984,9 +1041,7 @@
       "rationalizationCandidates": [],
       "deckRemovalCandidate": false,
       "sessionDataCandidate": false,
-      "ambiguities": [
-        "La douche est un contexte objectif non représenté par une préférence dédiée."
-      ],
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.shower_together.base",
@@ -1008,9 +1063,7 @@
           "rationalizationCandidates": [],
           "deckRemovalCandidate": false,
           "sessionDataCandidate": false,
-          "ambiguities": [
-            "La douche est un contexte objectif non représenté par une préférence dédiée."
-          ]
+          "ambiguities": []
         }
       ]
     },
@@ -1036,9 +1089,7 @@
       "rationalizationCandidates": [],
       "deckRemovalCandidate": false,
       "sessionDataCandidate": false,
-      "ambiguities": [
-        "Le bain est un contexte objectif non représenté par une préférence dédiée."
-      ],
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.bath_together.base",
@@ -1060,9 +1111,7 @@
           "rationalizationCandidates": [],
           "deckRemovalCandidate": false,
           "sessionDataCandidate": false,
-          "ambiguities": [
-            "Le bain est un contexte objectif non représenté par une préférence dédiée."
-          ]
+          "ambiguities": []
         }
       ]
     },
@@ -1190,11 +1239,10 @@
         "v3.preference.photo",
         "v3.preference.envoyer",
         "v3.direction.solo",
-        "v3.direction.etre_regarde"
+        "v3.preference.etre_regarde"
       ],
       "directions": [
-        "SOLO",
-        "ETRE_REGARDE"
+        "SOLO"
       ],
       "baseEngagementLevel": 2,
       "distanceExcluded": false,
@@ -1213,11 +1261,10 @@
             "v3.preference.photo",
             "v3.preference.envoyer",
             "v3.direction.solo",
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
           "directions": [
-            "SOLO",
-            "ETRE_REGARDE"
+            "SOLO"
           ],
           "baseEngagementLevel": 2,
           "distanceExcluded": false,
@@ -1237,11 +1284,10 @@
             "v3.preference.envoyer",
             "v3.preference.controle",
             "v3.direction.solo",
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
           "directions": [
-            "SOLO",
-            "ETRE_REGARDE"
+            "SOLO"
           ],
           "baseEngagementLevel": 2,
           "distanceExcluded": false,
@@ -1502,7 +1548,7 @@
       "deckRemovalCandidate": true,
       "sessionDataCandidate": true,
       "ambiguities": [
-        "VISIO décrit le mode de session et non une préférence permanente ; la carte peut sortir du deck."
+        "Carte legacy migrée vers le paramètre de session visioEnabled."
       ],
       "variants": [
         {
@@ -1560,7 +1606,7 @@
       "deckRemovalCandidate": true,
       "sessionDataCandidate": true,
       "ambiguities": [
-        "VISIO et la nudité décrivent le mode et le contenu de session sans préférence permanente suffisamment précise."
+        "Carte legacy migrée vers le paramètre de session visioEnabled."
       ],
       "variants": [
         {

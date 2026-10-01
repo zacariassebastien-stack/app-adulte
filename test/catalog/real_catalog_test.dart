@@ -16,7 +16,7 @@ void main() {
   });
   test('production loader accepts real catalog and audit is current', () {
     expect(catalog.cards.length, 101);
-    expect(catalog.cards.expand((c) => c.variants).length, 141);
+    expect(catalog.cards.expand((c) => c.variants).length, 179);
     expect(catalog.profileElements.length, 133);
     expect(catalog.tags.length, 105);
     expect(catalog.cardsDocument, document('$path/cards.v2.fr.json'));

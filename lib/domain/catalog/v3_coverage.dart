@@ -223,6 +223,106 @@ final class V3ConsolidationReportBuilder {
     'variant.chest_play.massage',
     'variant.nipple_stimulation.pinch',
     'variant.simultaneous_self_masturbation.base',
+    'variant.anal_caress.base.receive',
+    'variant.anal_manual.base.receive',
+    'variant.anal_manual.internal.receive',
+    'variant.anal_oral.base.receive',
+    'variant.anal_penetration.base.receive',
+    'variant.bite.base.receive',
+    'variant.blindfold.base.receive',
+    'variant.caress.base.receive',
+    'variant.caress.intimate.receive',
+    'variant.caress.sensual.receive',
+    'variant.chest_play.base.receive',
+    'variant.chest_play.massage.receive',
+    'variant.facesitting.receive',
+    'variant.feet_play.receive',
+    'variant.hands_bound.base.receive',
+    'variant.imposed_position.base.receive',
+    'variant.intimate_caress.base.receive',
+    'variant.intimate_massage.base.receive',
+    'variant.massage.base.receive',
+    'variant.massage.intimate.receive',
+    'variant.massage.sensual.receive',
+    'variant.nipple_stimulation.base.receive',
+    'variant.nipple_stimulation.pinch.receive',
+    'variant.no_touch.base.receive',
+    'variant.remove_one_clothing.base.receive',
+    'variant.remove_two_clothing.base.receive',
+    'variant.scratches.base.receive',
+    'variant.sensual_caress.base.receive',
+    'variant.sensual_massage.base.receive',
+    'variant.simulate_69.suck',
+    'variant.simulate_facesitting.base.receive',
+    'variant.simulate_oral.lick.receive',
+    'variant.simulate_oral.suck',
+    'variant.simulate_oral.suck.receive',
+    'variant.simulate_penetration.base.receive',
+    'variant.spanking.base.receive',
+    'variant.temperature_play.base.receive',
+    'variant.vaginal_penetration.base.receive',
+  ];
+
+  static const ambiguitiesBefore = <String>[
+    'variant.caress.base',
+    'variant.caress.sensual',
+    'variant.caress.intimate',
+    'variant.massage.base',
+    'variant.massage.sensual',
+    'variant.massage.intimate',
+    'variant.undressing.base',
+    'variant.undressing.one',
+    'variant.undressing.two',
+    'variant.underwear_only.base',
+    'variant.choose_outfit.base',
+    'variant.copy_position.base',
+    'variant.simulate_act.guided',
+    'variant.simulate_oral.base',
+    'variant.simulate_69.base',
+    'variant.masturbation.base',
+    'variant.vaginal_penetration.base',
+    'variant.choose_sex_position.base',
+    'variant.anal_penetration.base',
+    'variant.submit.base',
+    'variant.submit.orders',
+    'variant.no_touch.base',
+    'variant.watch_no_touch.base',
+    'variant.hands_bound.base',
+    'variant.close_eyes.base',
+    'variant.temperature_play.base',
+    'variant.bite.base',
+    'variant.scratches.base',
+    'variant.shower_together.base',
+    'variant.bath_together.base',
+  ];
+
+  static const faireRecevoirBefore = <String>[
+    'variant.sensual_caress.base',
+    'variant.intimate_caress.base',
+    'variant.sensual_massage.base',
+    'variant.intimate_massage.base',
+    'variant.remove_one_clothing.base',
+    'variant.remove_two_clothing.base',
+    'variant.imposed_position.base',
+    'variant.simulate_penetration.base',
+    'variant.simulate_oral.base',
+    'variant.simulate_facesitting.base',
+    'variant.vaginal_penetration.base',
+    'variant.anal_caress.base',
+    'variant.anal_manual.base',
+    'variant.anal_manual.internal',
+    'variant.anal_penetration.base',
+    'variant.anal_oral.base',
+    'variant.chest_play.base',
+    'variant.chest_play.massage',
+    'variant.nipple_stimulation.base',
+    'variant.nipple_stimulation.pinch',
+    'variant.no_touch.base',
+    'variant.hands_bound.base',
+    'variant.blindfold.base',
+    'variant.spanking.base',
+    'variant.bite.base',
+    'variant.scratches.base',
   ];
 
   Map<String, Object?> build(
@@ -242,6 +342,7 @@ final class V3ConsolidationReportBuilder {
         .map((tag) => tag.stableId)
         .toSet();
     final preferenceLessAfter = <String>[];
+    final faireRecevoirAfter = <String>[];
     final remainingAmbiguities = <Map<String, Object?>>[];
     var variantCount = 0;
     for (final card in view.playableCards) {
@@ -250,6 +351,11 @@ final class V3ConsolidationReportBuilder {
         final editorial = variant.v3 ?? card.v3;
         if (editorial == null || !editorial.tags.any(preferences.contains)) {
           preferenceLessAfter.add(variant.stableId);
+        }
+        if (editorial != null &&
+            editorial.tags.contains('v3.direction.faire') &&
+            editorial.tags.contains('v3.direction.recevoir')) {
+          faireRecevoirAfter.add(variant.stableId);
         }
         if (editorial != null && editorial.ambiguities.isNotEmpty) {
           remainingAmbiguities.add({
@@ -301,6 +407,7 @@ final class V3ConsolidationReportBuilder {
       ),
     );
     preferenceLessAfter.sort();
+    faireRecevoirAfter.sort();
 
     final coverage = const V3CoverageReportBuilder().build(
       catalog,
@@ -320,7 +427,10 @@ final class V3ConsolidationReportBuilder {
       'created_variants': createdVariants,
       'preference_less_before': preferenceLessBefore,
       'preference_less_after': preferenceLessAfter,
+      'ambiguities_before': ambiguitiesBefore,
       'remaining_ambiguities': remainingAmbiguities,
+      'faire_recevoir_before': faireRecevoirBefore,
+      'faire_recevoir_after': faireRecevoirAfter,
       'counts_before': const {'playable_cards': 90, 'playable_variants': 119},
       'counts_after': {
         'playable_cards': view.playableCards.length,

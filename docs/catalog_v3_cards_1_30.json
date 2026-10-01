@@ -25,6 +25,9 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -44,6 +47,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         },
         {
@@ -63,6 +69,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -86,6 +95,9 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -105,6 +117,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         },
         {
@@ -124,6 +139,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -148,6 +166,9 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -168,6 +189,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -192,6 +216,9 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -212,6 +239,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -221,9 +251,12 @@
       "title": "Caresse",
       "id": "card.caress",
       "tags": [
-        "v3.preference.caresser"
+        "v3.preference.caresser",
+        "v3.direction.faire"
       ],
-      "directions": [],
+      "directions": [
+        "FAIRE"
+      ],
       "baseEngagementLevel": 1,
       "distanceExcluded": true,
       "requirements": {
@@ -232,16 +265,20 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
-      "ambiguities": [
-        "Direction à préciser lors de la réécriture éditoriale."
-      ],
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.caress.base",
           "tags": [
-            "v3.preference.caresser"
+            "v3.preference.caresser",
+            "v3.direction.faire"
           ],
-          "directions": [],
+          "directions": [
+            "FAIRE"
+          ],
           "baseEngagementLevel": 1,
           "distanceExcluded": true,
           "requirements": {
@@ -250,16 +287,20 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Direction à préciser lors de la réécriture éditoriale."
-          ]
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         },
         {
           "id": "variant.caress.sensual",
           "tags": [
-            "v3.preference.caresser"
+            "v3.preference.caresser",
+            "v3.direction.faire"
           ],
-          "directions": [],
+          "directions": [
+            "FAIRE"
+          ],
           "baseEngagementLevel": 2,
           "distanceExcluded": true,
           "requirements": {
@@ -268,17 +309,21 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Direction à préciser lors de la réécriture éditoriale."
-          ]
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         },
         {
           "id": "variant.caress.intimate",
           "tags": [
             "v3.preference.caresser",
-            "v3.zone.parties_intimes"
+            "v3.zone.parties_intimes",
+            "v3.direction.faire"
           ],
-          "directions": [],
+          "directions": [
+            "FAIRE"
+          ],
           "baseEngagementLevel": 4,
           "distanceExcluded": true,
           "requirements": {
@@ -287,44 +332,40 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Direction à préciser lors de la réécriture éditoriale."
-          ]
-        }
-      ]
-    },
-    {
-      "order": 6,
-      "title": "Caresse sensuelle",
-      "id": "card.sensual_caress",
-      "tags": [
-        "v3.preference.caresser",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
-      ],
-      "directions": [
-        "FAIRE",
-        "RECEVOIR"
-      ],
-      "baseEngagementLevel": 2,
-      "distanceExcluded": true,
-      "requirements": {
-        "DISTANCE_EXCLUE": true
-      },
-      "clothingDelta": null,
-      "mergeCandidateWith": null,
-      "splitCandidate": false,
-      "ambiguities": [],
-      "variants": [
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
         {
-          "id": "variant.sensual_caress.base",
+          "id": "variant.caress.base.receive",
           "tags": [
             "v3.preference.caresser",
-            "v3.direction.faire",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.caress.sensual.receive",
+          "tags": [
+            "v3.preference.caresser",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
             "RECEVOIR"
           ],
           "baseEngagementLevel": 2,
@@ -335,6 +376,102 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.caress.intimate.receive",
+          "tags": [
+            "v3.preference.caresser",
+            "v3.zone.parties_intimes",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "title": "Caresse sensuelle",
+      "id": "card.sensual_caress",
+      "tags": [
+        "v3.preference.caresser",
+        "v3.direction.faire"
+      ],
+      "directions": [
+        "FAIRE"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.sensual_caress.base",
+          "tags": [
+            "v3.preference.caresser",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.sensual_caress.base.receive",
+          "tags": [
+            "v3.preference.caresser",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -346,12 +483,10 @@
       "tags": [
         "v3.preference.caresser",
         "v3.zone.parties_intimes",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
+        "v3.direction.faire"
       ],
       "directions": [
-        "FAIRE",
-        "RECEVOIR"
+        "FAIRE"
       ],
       "baseEngagementLevel": 4,
       "distanceExcluded": true,
@@ -361,6 +496,9 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -368,11 +506,32 @@
           "tags": [
             "v3.preference.caresser",
             "v3.zone.parties_intimes",
-            "v3.direction.faire",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.intimate_caress.base.receive",
+          "tags": [
+            "v3.preference.caresser",
+            "v3.zone.parties_intimes",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
             "RECEVOIR"
           ],
           "baseEngagementLevel": 4,
@@ -383,6 +542,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -392,9 +554,12 @@
       "title": "Massage",
       "id": "card.massage",
       "tags": [
-        "v3.preference.masser"
+        "v3.preference.masser",
+        "v3.direction.faire"
       ],
-      "directions": [],
+      "directions": [
+        "FAIRE"
+      ],
       "baseEngagementLevel": 1,
       "distanceExcluded": true,
       "requirements": {
@@ -403,16 +568,20 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
-      "ambiguities": [
-        "Direction à préciser lors de la réécriture éditoriale."
-      ],
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.massage.base",
           "tags": [
-            "v3.preference.masser"
+            "v3.preference.masser",
+            "v3.direction.faire"
           ],
-          "directions": [],
+          "directions": [
+            "FAIRE"
+          ],
           "baseEngagementLevel": 1,
           "distanceExcluded": true,
           "requirements": {
@@ -421,16 +590,20 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Direction à préciser lors de la réécriture éditoriale."
-          ]
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         },
         {
           "id": "variant.massage.sensual",
           "tags": [
-            "v3.preference.masser"
+            "v3.preference.masser",
+            "v3.direction.faire"
           ],
-          "directions": [],
+          "directions": [
+            "FAIRE"
+          ],
           "baseEngagementLevel": 2,
           "distanceExcluded": true,
           "requirements": {
@@ -439,17 +612,21 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Direction à préciser lors de la réécriture éditoriale."
-          ]
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         },
         {
           "id": "variant.massage.intimate",
           "tags": [
             "v3.preference.masser",
-            "v3.zone.parties_intimes"
+            "v3.zone.parties_intimes",
+            "v3.direction.faire"
           ],
-          "directions": [],
+          "directions": [
+            "FAIRE"
+          ],
           "baseEngagementLevel": 4,
           "distanceExcluded": true,
           "requirements": {
@@ -458,44 +635,40 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Direction à préciser lors de la réécriture éditoriale."
-          ]
-        }
-      ]
-    },
-    {
-      "order": 9,
-      "title": "Massage sensuel",
-      "id": "card.sensual_massage",
-      "tags": [
-        "v3.preference.masser",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
-      ],
-      "directions": [
-        "FAIRE",
-        "RECEVOIR"
-      ],
-      "baseEngagementLevel": 2,
-      "distanceExcluded": true,
-      "requirements": {
-        "DISTANCE_EXCLUE": true
-      },
-      "clothingDelta": null,
-      "mergeCandidateWith": null,
-      "splitCandidate": false,
-      "ambiguities": [],
-      "variants": [
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
         {
-          "id": "variant.sensual_massage.base",
+          "id": "variant.massage.base.receive",
           "tags": [
             "v3.preference.masser",
-            "v3.direction.faire",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.massage.sensual.receive",
+          "tags": [
+            "v3.preference.masser",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
             "RECEVOIR"
           ],
           "baseEngagementLevel": 2,
@@ -506,6 +679,102 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.massage.intimate.receive",
+          "tags": [
+            "v3.preference.masser",
+            "v3.zone.parties_intimes",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        }
+      ]
+    },
+    {
+      "order": 9,
+      "title": "Massage sensuel",
+      "id": "card.sensual_massage",
+      "tags": [
+        "v3.preference.masser",
+        "v3.direction.faire"
+      ],
+      "directions": [
+        "FAIRE"
+      ],
+      "baseEngagementLevel": 2,
+      "distanceExcluded": true,
+      "requirements": {
+        "DISTANCE_EXCLUE": true
+      },
+      "clothingDelta": null,
+      "mergeCandidateWith": null,
+      "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
+      "variants": [
+        {
+          "id": "variant.sensual_massage.base",
+          "tags": [
+            "v3.preference.masser",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.sensual_massage.base.receive",
+          "tags": [
+            "v3.preference.masser",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -517,12 +786,10 @@
       "tags": [
         "v3.preference.masser",
         "v3.zone.parties_intimes",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
+        "v3.direction.faire"
       ],
       "directions": [
-        "FAIRE",
-        "RECEVOIR"
+        "FAIRE"
       ],
       "baseEngagementLevel": 4,
       "distanceExcluded": true,
@@ -532,6 +799,9 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -539,11 +809,32 @@
           "tags": [
             "v3.preference.masser",
             "v3.zone.parties_intimes",
-            "v3.direction.faire",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 4,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.intimate_massage.base.receive",
+          "tags": [
+            "v3.preference.masser",
+            "v3.zone.parties_intimes",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
             "RECEVOIR"
           ],
           "baseEngagementLevel": 4,
@@ -554,6 +845,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -564,9 +858,12 @@
       "id": "card.undressing",
       "tags": [
         "v3.preference.enlever",
-        "v3.preference.tenue"
+        "v3.preference.tenue",
+        "v3.direction.solo"
       ],
-      "directions": [],
+      "directions": [
+        "SOLO"
+      ],
       "baseEngagementLevel": 1,
       "distanceExcluded": true,
       "requirements": {
@@ -575,17 +872,21 @@
       "clothingDelta": "ASK_PLAYER",
       "mergeCandidateWith": null,
       "splitCandidate": false,
-      "ambiguities": [
-        "Direction à préciser lors de la réécriture éditoriale."
-      ],
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.undressing.base",
           "tags": [
             "v3.preference.enlever",
-            "v3.preference.tenue"
+            "v3.preference.tenue",
+            "v3.direction.solo"
           ],
-          "directions": [],
+          "directions": [
+            "SOLO"
+          ],
           "baseEngagementLevel": 1,
           "distanceExcluded": true,
           "requirements": {
@@ -594,17 +895,21 @@
           "clothingDelta": "ASK_PLAYER",
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Direction à préciser lors de la réécriture éditoriale."
-          ]
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         },
         {
           "id": "variant.undressing.one",
           "tags": [
             "v3.preference.enlever",
-            "v3.preference.tenue"
+            "v3.preference.tenue",
+            "v3.direction.solo"
           ],
-          "directions": [],
+          "directions": [
+            "SOLO"
+          ],
           "baseEngagementLevel": 1,
           "distanceExcluded": true,
           "requirements": {
@@ -614,17 +919,21 @@
           "clothingDelta": -1,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Direction à préciser lors de la réécriture éditoriale."
-          ]
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         },
         {
           "id": "variant.undressing.two",
           "tags": [
             "v3.preference.enlever",
-            "v3.preference.tenue"
+            "v3.preference.tenue",
+            "v3.direction.solo"
           ],
-          "directions": [],
+          "directions": [
+            "SOLO"
+          ],
           "baseEngagementLevel": 2,
           "distanceExcluded": true,
           "requirements": {
@@ -634,9 +943,10 @@
           "clothingDelta": -2,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Direction à préciser lors de la réécriture éditoriale."
-          ]
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         }
       ]
     },
@@ -647,12 +957,10 @@
       "tags": [
         "v3.preference.enlever",
         "v3.preference.tenue",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
+        "v3.direction.faire"
       ],
       "directions": [
-        "FAIRE",
-        "RECEVOIR"
+        "FAIRE"
       ],
       "baseEngagementLevel": 1,
       "distanceExcluded": true,
@@ -663,6 +971,9 @@
       "clothingDelta": -1,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -670,11 +981,33 @@
           "tags": [
             "v3.preference.enlever",
             "v3.preference.tenue",
-            "v3.direction.faire",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 1,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true,
+            "minimumRemovableClothing": 1
+          },
+          "clothingDelta": -1,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.remove_one_clothing.base.receive",
+          "tags": [
+            "v3.preference.enlever",
+            "v3.preference.tenue",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
             "RECEVOIR"
           ],
           "baseEngagementLevel": 1,
@@ -686,6 +1019,9 @@
           "clothingDelta": -1,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -697,12 +1033,10 @@
       "tags": [
         "v3.preference.enlever",
         "v3.preference.tenue",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
+        "v3.direction.faire"
       ],
       "directions": [
-        "FAIRE",
-        "RECEVOIR"
+        "FAIRE"
       ],
       "baseEngagementLevel": 2,
       "distanceExcluded": true,
@@ -713,6 +1047,9 @@
       "clothingDelta": -2,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -720,11 +1057,33 @@
           "tags": [
             "v3.preference.enlever",
             "v3.preference.tenue",
-            "v3.direction.faire",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true,
+            "minimumRemovableClothing": 2
+          },
+          "clothingDelta": -2,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.remove_two_clothing.base.receive",
+          "tags": [
+            "v3.preference.enlever",
+            "v3.preference.tenue",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
             "RECEVOIR"
           ],
           "baseEngagementLevel": 2,
@@ -736,6 +1095,9 @@
           "clothingDelta": -2,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -760,6 +1122,9 @@
       "clothingDelta": "ASK_PLAYER",
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -780,6 +1145,9 @@
           "clothingDelta": "ASK_PLAYER",
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -804,6 +1172,9 @@
       "clothingDelta": "ASK_PLAYER",
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -824,6 +1195,9 @@
           "clothingDelta": "ASK_PLAYER",
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -833,34 +1207,42 @@
       "title": "Reste en sous-vêtements",
       "id": "card.underwear_only",
       "tags": [
-        "v3.preference.sous_vetements"
+        "v3.preference.sous_vetements",
+        "v3.direction.solo"
       ],
-      "directions": [],
+      "directions": [
+        "SOLO"
+      ],
       "baseEngagementLevel": 2,
       "distanceExcluded": false,
       "requirements": {},
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
-      "ambiguities": [
-        "La formulation ne précise ni retrait ni direction de préférence."
-      ],
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.underwear_only.base",
           "tags": [
-            "v3.preference.sous_vetements"
+            "v3.preference.sous_vetements",
+            "v3.direction.solo"
           ],
-          "directions": [],
+          "directions": [
+            "SOLO"
+          ],
           "baseEngagementLevel": 2,
           "distanceExcluded": false,
           "requirements": {},
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "La formulation ne précise ni retrait ni direction de préférence."
-          ]
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         }
       ]
     },
@@ -882,6 +1264,9 @@
       "clothingDelta": "ASK_PLAYER",
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -900,6 +1285,9 @@
           "clothingDelta": "ASK_PLAYER",
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -912,17 +1300,18 @@
         "v3.preference.danser",
         "v3.preference.enlever",
         "v3.preference.tenue",
-        "v3.direction.etre_regarde"
+        "v3.preference.etre_regarde"
       ],
-      "directions": [
-        "ETRE_REGARDE"
-      ],
+      "directions": [],
       "baseEngagementLevel": 2,
       "distanceExcluded": false,
       "requirements": {},
       "clothingDelta": "ASK_PLAYER",
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -931,17 +1320,18 @@
             "v3.preference.danser",
             "v3.preference.enlever",
             "v3.preference.tenue",
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
-          "directions": [
-            "ETRE_REGARDE"
-          ],
+          "directions": [],
           "baseEngagementLevel": 2,
           "distanceExcluded": false,
           "requirements": {},
           "clothingDelta": "ASK_PLAYER",
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         },
         {
@@ -951,17 +1341,18 @@
             "v3.preference.enlever",
             "v3.preference.tenue",
             "v3.preference.sous_vetements",
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
-          "directions": [
-            "ETRE_REGARDE"
-          ],
+          "directions": [],
           "baseEngagementLevel": 2,
           "distanceExcluded": false,
           "requirements": {},
           "clothingDelta": "ASK_PLAYER",
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         },
         {
@@ -970,17 +1361,18 @@
             "v3.preference.danser",
             "v3.preference.enlever",
             "v3.preference.tenue",
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
-          "directions": [
-            "ETRE_REGARDE"
-          ],
+          "directions": [],
           "baseEngagementLevel": 3,
           "distanceExcluded": false,
           "requirements": {},
           "clothingDelta": "ASK_PLAYER",
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -993,17 +1385,18 @@
         "v3.preference.danser",
         "v3.preference.enlever",
         "v3.preference.tenue",
-        "v3.direction.etre_regarde"
+        "v3.preference.etre_regarde"
       ],
-      "directions": [
-        "ETRE_REGARDE"
-      ],
+      "directions": [],
       "baseEngagementLevel": 3,
       "distanceExcluded": false,
       "requirements": {},
       "clothingDelta": "ASK_PLAYER",
       "mergeCandidateWith": "card.striptease",
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -1012,17 +1405,18 @@
             "v3.preference.danser",
             "v3.preference.enlever",
             "v3.preference.tenue",
-            "v3.direction.etre_regarde"
+            "v3.preference.etre_regarde"
           ],
-          "directions": [
-            "ETRE_REGARDE"
-          ],
+          "directions": [],
           "baseEngagementLevel": 3,
           "distanceExcluded": false,
           "requirements": {},
           "clothingDelta": "ASK_PLAYER",
           "mergeCandidateWith": "card.striptease",
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -1033,35 +1427,43 @@
       "id": "card.choose_outfit",
       "tags": [
         "v3.preference.tenue",
-        "v3.preference.controle"
+        "v3.preference.controle",
+        "v3.direction.faire"
       ],
-      "directions": [],
+      "directions": [
+        "FAIRE"
+      ],
       "baseEngagementLevel": 1,
       "distanceExcluded": false,
       "requirements": {},
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
-      "ambiguities": [
-        "Le rôle exact de la personne qui choisit dépend de la reformulation future."
-      ],
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.choose_outfit.base",
           "tags": [
             "v3.preference.tenue",
-            "v3.preference.controle"
+            "v3.preference.controle",
+            "v3.direction.faire"
           ],
-          "directions": [],
+          "directions": [
+            "FAIRE"
+          ],
           "baseEngagementLevel": 1,
           "distanceExcluded": false,
           "requirements": {},
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Le rôle exact de la personne qui choisit dépend de la reformulation future."
-          ]
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         }
       ]
     },
@@ -1081,6 +1483,9 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -1097,6 +1502,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -1121,6 +1529,9 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -1141,6 +1552,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -1165,6 +1579,9 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -1185,6 +1602,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -1195,12 +1615,10 @@
       "id": "card.imposed_position",
       "tags": [
         "v3.preference.controle",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
+        "v3.direction.faire"
       ],
       "directions": [
-        "FAIRE",
-        "RECEVOIR"
+        "FAIRE"
       ],
       "baseEngagementLevel": 2,
       "distanceExcluded": false,
@@ -1208,17 +1626,38 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
           "id": "variant.imposed_position.base",
           "tags": [
             "v3.preference.controle",
-            "v3.direction.faire",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 2,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.imposed_position.base.receive",
+          "tags": [
+            "v3.preference.controle",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
             "RECEVOIR"
           ],
           "baseEngagementLevel": 2,
@@ -1227,6 +1666,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -1236,34 +1678,42 @@
       "title": "Copie ma position",
       "id": "card.copy_position",
       "tags": [
-        "v3.preference.ordres"
+        "v3.preference.ordres",
+        "v3.direction.recevoir"
       ],
-      "directions": [],
+      "directions": [
+        "RECEVOIR"
+      ],
       "baseEngagementLevel": 1,
       "distanceExcluded": false,
       "requirements": {},
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
-      "ambiguities": [
-        "Instruction de mise en scène ; direction à préciser sans créer de tag COPIER."
-      ],
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.copy_position.base",
           "tags": [
-            "v3.preference.ordres"
+            "v3.preference.ordres",
+            "v3.direction.recevoir"
           ],
-          "directions": [],
+          "directions": [
+            "RECEVOIR"
+          ],
           "baseEngagementLevel": 1,
           "distanceExcluded": false,
           "requirements": {},
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Instruction de mise en scène ; direction à préciser sans créer de tag COPIER."
-          ]
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         }
       ]
     },
@@ -1281,6 +1731,9 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -1295,24 +1748,31 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         },
         {
           "id": "variant.simulate_act.guided",
           "tags": [
             "v3.preference.simuler",
-            "v3.preference.ordres"
+            "v3.preference.ordres",
+            "v3.direction.recevoir"
           ],
-          "directions": [],
+          "directions": [
+            "RECEVOIR"
+          ],
           "baseEngagementLevel": 3,
           "distanceExcluded": false,
           "requirements": {},
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Direction de la consigne à préciser."
-          ]
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         }
       ]
     },
@@ -1323,12 +1783,10 @@
       "tags": [
         "v3.preference.simuler",
         "v3.preference.penetrer",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
+        "v3.direction.faire"
       ],
       "directions": [
-        "FAIRE",
-        "RECEVOIR"
+        "FAIRE"
       ],
       "baseEngagementLevel": 3,
       "distanceExcluded": false,
@@ -1336,6 +1794,9 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
@@ -1343,11 +1804,30 @@
           "tags": [
             "v3.preference.simuler",
             "v3.preference.penetrer",
-            "v3.direction.faire",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.simulate_penetration.base.receive",
+          "tags": [
+            "v3.preference.simuler",
+            "v3.preference.penetrer",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
             "RECEVOIR"
           ],
           "baseEngagementLevel": 3,
@@ -1356,6 +1836,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]
@@ -1366,12 +1849,11 @@
       "id": "card.simulate_oral",
       "tags": [
         "v3.preference.simuler",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
+        "v3.preference.lecher",
+        "v3.direction.faire"
       ],
       "directions": [
-        "FAIRE",
-        "RECEVOIR"
+        "FAIRE"
       ],
       "baseEngagementLevel": 3,
       "distanceExcluded": false,
@@ -1379,19 +1861,40 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
-      "ambiguities": [
-        "Les futures variantes devront préciser LECHER ou SUCER si l’action orale est explicitée."
-      ],
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.simulate_oral.base",
           "tags": [
             "v3.preference.simuler",
-            "v3.direction.faire",
+            "v3.preference.lecher",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.simulate_oral.lick.receive",
+          "tags": [
+            "v3.preference.simuler",
+            "v3.preference.lecher",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
             "RECEVOIR"
           ],
           "baseEngagementLevel": 3,
@@ -1400,9 +1903,52 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Les futures variantes devront préciser LECHER ou SUCER si l’action orale est explicitée."
-          ]
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.simulate_oral.suck",
+          "tags": [
+            "v3.preference.simuler",
+            "v3.preference.sucer",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.simulate_oral.suck.receive",
+          "tags": [
+            "v3.preference.simuler",
+            "v3.preference.sucer",
+            "v3.direction.recevoir"
+          ],
+          "directions": [
+            "RECEVOIR"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": false,
+          "requirements": {},
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         }
       ]
     },
@@ -1411,6 +1957,7 @@
       "title": "Simule un 69",
       "id": "card.simulate_69",
       "tags": [
+        "v3.preference.lecher",
         "v3.preference.simuler",
         "v3.direction.mutuel",
         "v3.direction.simultane"
@@ -1427,13 +1974,15 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
-      "ambiguities": [
-        "Les futures variantes devront préciser les actions orales réellement simulées."
-      ],
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
+      "ambiguities": [],
       "variants": [
         {
           "id": "variant.simulate_69.base",
           "tags": [
+            "v3.preference.lecher",
             "v3.preference.simuler",
             "v3.direction.mutuel",
             "v3.direction.simultane"
@@ -1450,9 +1999,35 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
-          "ambiguities": [
-            "Les futures variantes devront préciser les actions orales réellement simulées."
-          ]
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.simulate_69.suck",
+          "tags": [
+            "v3.preference.sucer",
+            "v3.preference.simuler",
+            "v3.direction.mutuel",
+            "v3.direction.simultane"
+          ],
+          "directions": [
+            "MUTUEL",
+            "SIMULTANE"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
         }
       ]
     },
@@ -1462,12 +2037,10 @@
       "id": "card.simulate_facesitting",
       "tags": [
         "v3.preference.simuler",
-        "v3.direction.faire",
-        "v3.direction.recevoir"
+        "v3.direction.faire"
       ],
       "directions": [
-        "FAIRE",
-        "RECEVOIR"
+        "FAIRE"
       ],
       "baseEngagementLevel": 3,
       "distanceExcluded": true,
@@ -1477,17 +2050,40 @@
       "clothingDelta": null,
       "mergeCandidateWith": null,
       "splitCandidate": false,
+      "rationalizationCandidates": [],
+      "deckRemovalCandidate": false,
+      "sessionDataCandidate": false,
       "ambiguities": [],
       "variants": [
         {
           "id": "variant.simulate_facesitting.base",
           "tags": [
             "v3.preference.simuler",
-            "v3.direction.faire",
+            "v3.direction.faire"
+          ],
+          "directions": [
+            "FAIRE"
+          ],
+          "baseEngagementLevel": 3,
+          "distanceExcluded": true,
+          "requirements": {
+            "DISTANCE_EXCLUE": true
+          },
+          "clothingDelta": null,
+          "mergeCandidateWith": null,
+          "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
+          "ambiguities": []
+        },
+        {
+          "id": "variant.simulate_facesitting.base.receive",
+          "tags": [
+            "v3.preference.simuler",
             "v3.direction.recevoir"
           ],
           "directions": [
-            "FAIRE",
             "RECEVOIR"
           ],
           "baseEngagementLevel": 3,
@@ -1498,6 +2094,9 @@
           "clothingDelta": null,
           "mergeCandidateWith": null,
           "splitCandidate": false,
+          "rationalizationCandidates": [],
+          "deckRemovalCandidate": false,
+          "sessionDataCandidate": false,
           "ambiguities": []
         }
       ]

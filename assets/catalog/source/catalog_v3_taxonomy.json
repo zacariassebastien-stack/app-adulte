@@ -519,10 +519,10 @@
       "scoreable": false
     },
     {
-      "stable_id": "v3.direction.etre_regarde",
+      "stable_id": "v3.preference.etre_regarde",
       "key": "ETRE_REGARDE",
-      "category": "DIRECTION",
-      "scoreable": false
+      "category": "PREFERENCE",
+      "scoreable": true
     },
     {
       "stable_id": "v3.direction.etre_entendu",
@@ -1055,7 +1055,7 @@
       "legacy_tag_id": "tag.observation.be_watched",
       "legacy_profile_id": "profile.observation.be_watched",
       "v3_tag_ids": [
-        "v3.direction.etre_regarde"
+        "v3.preference.etre_regarde"
       ],
       "status": "mapped"
     },
@@ -1063,7 +1063,7 @@
       "legacy_tag_id": "tag.observation.exhibition_private",
       "legacy_profile_id": "profile.observation.exhibition_private",
       "v3_tag_ids": [
-        "v3.direction.etre_regarde"
+        "v3.preference.etre_regarde"
       ],
       "status": "mapped"
     },
@@ -1335,7 +1335,7 @@
       "legacy_tag_id": "tag.staging.performance",
       "legacy_profile_id": "profile.staging.performance",
       "v3_tag_ids": [
-        "v3.direction.etre_regarde"
+        "v3.preference.etre_regarde"
       ],
       "status": "mapped"
     },
@@ -1343,7 +1343,7 @@
       "legacy_tag_id": "tag.staging.pose",
       "legacy_profile_id": "profile.staging.pose",
       "v3_tag_ids": [
-        "v3.direction.etre_regarde"
+        "v3.preference.etre_regarde"
       ],
       "status": "mapped"
     },
@@ -1352,7 +1352,7 @@
       "legacy_profile_id": "profile.staging.pose_choice",
       "v3_tag_ids": [
         "v3.preference.controle",
-        "v3.direction.etre_regarde"
+        "v3.preference.etre_regarde"
       ],
       "status": "mapped"
     },
@@ -1360,7 +1360,7 @@
       "legacy_tag_id": "tag.staging.position",
       "legacy_profile_id": "profile.staging.position",
       "v3_tag_ids": [
-        "v3.direction.etre_regarde"
+        "v3.preference.etre_regarde"
       ],
       "status": "mapped"
     },
