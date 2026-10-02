@@ -18,6 +18,7 @@ class GameplayHud extends StatelessWidget {
     this.onOrientationChanged,
     this.onDiscard,
     this.discardVisible = false,
+    this.animationsEnabled = true,
     super.key,
   });
 
@@ -30,6 +31,7 @@ class GameplayHud extends StatelessWidget {
   final ValueChanged<HybridDeckOrientation>? onOrientationChanged;
   final VoidCallback? onDiscard;
   final bool discardVisible;
+  final bool animationsEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +99,7 @@ class GameplayHud extends StatelessWidget {
             child: Center(
               child: OrientationFlipButton(
                 orientation: orientation,
+                animationsEnabled: animationsEnabled,
                 onChanged: onOrientationChanged!,
               ),
             ),
@@ -171,11 +174,13 @@ class OrientationFlipButton extends StatefulWidget {
   const OrientationFlipButton({
     required this.orientation,
     required this.onChanged,
+    this.animationsEnabled = true,
     super.key,
   });
 
   final HybridDeckOrientation orientation;
   final ValueChanged<HybridDeckOrientation> onChanged;
+  final bool animationsEnabled;
 
   @override
   State<OrientationFlipButton> createState() => _OrientationFlipButtonState();
@@ -195,7 +200,9 @@ class _OrientationFlipButtonState extends State<OrientationFlipButton>
     final target = widget.orientation == HybridDeckOrientation.faceToFace
         ? HybridDeckOrientation.distance
         : HybridDeckOrientation.faceToFace;
-    await _controller.forward(from: 0);
+    if (widget.animationsEnabled) {
+      await _controller.forward(from: 0);
+    }
     widget.onChanged(target);
     _busy = false;
   }

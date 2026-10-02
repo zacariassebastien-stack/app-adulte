@@ -33,6 +33,7 @@ enum NetworkGameViewState {
   recoveryResponse,
   recoveryExecution,
   waitingNext,
+  sessionEnded,
   error,
 }
 
@@ -127,6 +128,7 @@ final class NetworkGameController extends ChangeNotifier {
   List<DeckCandidateV3> _faceToFaceDeck = [];
   List<DeckCandidateV3> _distanceDeck = [];
   int _deckCycle = 1;
+  int _choiceVersion = 0;
   bool _infiniteMode = false;
   PlayerStyle _deckStyle = PlayerStyle.SOFT;
   List<DeckShortage> _deckShortages = [];
@@ -181,6 +183,12 @@ final class NetworkGameController extends ChangeNotifier {
   List<DeckShortage> get deckShortages => List.unmodifiable(_deckShortages);
   int get faceToFaceDeckRemaining => _faceToFaceDeck.length;
   int get distanceDeckRemaining => _distanceDeck.length;
+  bool get canCancelSelection =>
+      repository is NetworkCommitCancellationRepository &&
+      viewState == NetworkGameViewState.waitingForPartner &&
+      round?.phase == NetworkGamePhase.commit &&
+      round?.ownCommitRecorded == true &&
+      (round?.commits.length ?? 0) < 2;
 
   List<NetworkDuelCard> get hand => [
     for (final item in _runtime.where((card) => card.zone == CardZone.HAND))
@@ -413,14 +421,14 @@ final class NetworkGameController extends ChangeNotifier {
         sessionRound: current.sessionRound,
         playerId: playerId,
         choice: choice,
-        nonce: nonceFactory(),
+        nonce: '${nonceFactory()}:v$_choiceVersion',
       );
       _activeReveal = reveal;
       _runtime = lifecycleEngine.engage(_runtime, card.identity);
       await _persist();
       await _apply(
         await repository.submitCommit(
-          command: _command('COMMIT'),
+          command: _command('COMMIT', choiceVersion: _choiceVersion),
           commitment: contract.commit(
             sessionRound: current.sessionRound,
             playerId: playerId,
@@ -434,6 +442,62 @@ final class NetworkGameController extends ChangeNotifier {
     } finally {
       _committing = false;
     }
+  }
+
+  Future<bool> cancelSelection() async {
+    final cancellable = repository;
+    if (!canCancelSelection ||
+        round == null ||
+        cancellable is! NetworkCommitCancellationRepository) {
+      return false;
+    }
+    try {
+      final updated = await (cancellable as NetworkCommitCancellationRepository)
+          .cancelCommit(
+            command: _command('CANCEL_COMMIT', choiceVersion: _choiceVersion),
+          );
+      _restoreCancelledChoice();
+      _choiceVersion++;
+      await privateStore.clear(sessionId: session.id, playerId: playerId);
+      await _persist();
+      await _apply(updated);
+      return true;
+    } on NetworkRoundException catch (error) {
+      if (error.code != 'ROUND_CANCEL_CLOSED' &&
+          error.code != 'ROUND_COMMIT_CLOSED') {
+        rethrow;
+      }
+      await _apply(await repository.getCurrentRound(sessionId: session.id));
+      return false;
+    }
+  }
+
+  Future<void> closeSession() async {
+    final closable = repository;
+    if (closable is! NetworkSessionClosureRepository || round == null) {
+      throw const NetworkRoundException('ROUND_CLOSE_UNAVAILABLE');
+    }
+    await _apply(
+      await (closable as NetworkSessionClosureRepository).closeSession(
+        command: _command('CLOSE_SESSION'),
+      ),
+    );
+  }
+
+  void _restoreCancelledChoice() {
+    final occurrence =
+        _activeReveal?.choice.parameters['occurrence_id'] as String?;
+    if (occurrence != null) {
+      _runtime = [
+        for (final card in _runtime)
+          if (card.occurrenceId == occurrence && card.zone == CardZone.ENGAGED)
+            card.copyWith(zone: CardZone.HAND, locked: false)
+          else
+            card,
+      ];
+    }
+    _activeReveal = null;
+    selectedCard = null;
   }
 
   Future<void> proposeNegotiation({
@@ -893,6 +957,13 @@ final class NetworkGameController extends ChangeNotifier {
             viewState = NetworkGameViewState.waitingForPartner;
           }
         } else {
+          // The round stream can emit its pre-command snapshot while the local
+          // commit RPC is still in flight. Only reconcile a missing server
+          // commit once that operation has completed.
+          if (_activeReveal != null && !_committing) {
+            _restoreCancelledChoice();
+            await _persist();
+          }
           viewState = NetworkGameViewState.choosing;
         }
         break;
@@ -960,6 +1031,9 @@ final class NetworkGameController extends ChangeNotifier {
           await repository.getCurrentRound(sessionId: session.id),
         );
         return;
+      case NetworkGamePhase.sessionClosed:
+        viewState = NetworkGameViewState.sessionEnded;
+        break;
     }
     notifyListeners();
   }
@@ -1080,7 +1154,7 @@ final class NetworkGameController extends ChangeNotifier {
     try {
       await _apply(
         await repository.submitReveal(
-          command: _command('REVEAL'),
+          command: _command('REVEAL', choiceVersion: _choiceVersion),
           reveal: reveal,
         ),
       );
@@ -1198,6 +1272,7 @@ final class NetworkGameController extends ChangeNotifier {
       _deckShortages = List.of(saved.deckShortages);
       _recentCardIds = List.of(saved.recentCardIds);
       _publicDiscards = List.of(saved.publicDiscards);
+      _choiceVersion = saved.choiceVersion;
       if (_faceToFaceDeck.isEmpty &&
           _distanceDeck.isEmpty &&
           saved.cards.isEmpty) {
@@ -1212,6 +1287,7 @@ final class NetworkGameController extends ChangeNotifier {
     _runtime = [];
     _history = {};
     _publicDiscards = [];
+    _choiceVersion = 0;
     _learningRecordedRounds = {};
     _buildDeckCycle();
     _refill(current.roundNumber);
@@ -1824,6 +1900,7 @@ final class NetworkGameController extends ChangeNotifier {
       deckShortages: _deckShortages,
       recentCardIds: _recentCardIds,
       publicDiscards: _publicDiscards,
+      choiceVersion: _choiceVersion,
     ),
   );
 
@@ -1886,12 +1963,17 @@ final class NetworkGameController extends ChangeNotifier {
     return targets;
   }
 
-  NetworkCommandDto _command(String type, {String? roundId, int? roundNumber}) {
+  NetworkCommandDto _command(
+    String type, {
+    String? roundId,
+    int? roundNumber,
+    int? choiceVersion,
+  }) {
     final number = roundNumber ?? this.roundNumber;
     final id = roundId ?? round?.roundId;
     return NetworkCommandDto(
       commandId:
-          'game:${session.id}:round-$number:$playerId:${type.toLowerCase()}',
+          'game:${session.id}:round-$number:$playerId:${type.toLowerCase()}${choiceVersion == null ? '' : ':v$choiceVersion'}',
       sessionId: session.id,
       playerId: playerId,
       type: type,

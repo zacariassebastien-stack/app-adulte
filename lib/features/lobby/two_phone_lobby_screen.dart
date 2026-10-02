@@ -10,15 +10,19 @@ import '../game/network_duel_screen.dart';
 import 'active_session_store.dart';
 import 'lobby_controller.dart';
 import 'lobby_repository.dart';
+import 'game_history.dart';
+import 'game_history_screen.dart';
 
 class TwoPhoneLobbyScreen extends StatefulWidget {
   const TwoPhoneLobbyScreen({
     required this.repository,
     this.activeSessionStore = const SharedPreferencesActiveSessionStore(),
+    this.historyStore = const SharedPreferencesGameHistoryStore(),
     super.key,
   });
   final LobbyRepository repository;
   final ActiveSessionStore activeSessionStore;
+  final GameHistoryStore historyStore;
 
   @override
   State<TwoPhoneLobbyScreen> createState() => _TwoPhoneLobbyScreenState();
@@ -123,6 +127,17 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
         key: const Key('show-join-lobby'),
         onPressed: () => setState(() => joining = true),
         child: const Text('Rejoindre une partie'),
+      ),
+      const SizedBox(height: 12),
+      TextButton.icon(
+        key: const Key('open-game-history'),
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => GameHistoryScreen(store: widget.historyStore),
+          ),
+        ),
+        icon: const Icon(Icons.history),
+        label: const Text('Historique des parties'),
       ),
       if (joining) ...[
         const SizedBox(height: 16),
@@ -236,6 +251,8 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
             playerId: results[0] as String,
             repository: repository.gameRepository,
             catalog: results[1] as Catalog,
+            activeSessionStore: widget.activeSessionStore,
+            historyStore: widget.historyStore,
           ),
         ),
       );

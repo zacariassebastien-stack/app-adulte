@@ -51,6 +51,7 @@ final class NetworkPrivateGameState {
     List<DeckShortage> deckShortages = const [],
     List<String> recentCardIds = const [],
     List<NetworkPlayedCardRecord> publicDiscards = const [],
+    this.choiceVersion = 0,
   }) : cards = List.unmodifiable(cards),
        history = Map.unmodifiable(history),
        learningRecordedRounds = Set.unmodifiable(learningRecordedRounds),
@@ -74,6 +75,7 @@ final class NetworkPrivateGameState {
   final List<DeckShortage> deckShortages;
   final List<String> recentCardIds;
   final List<NetworkPlayedCardRecord> publicDiscards;
+  final int choiceVersion;
 
   Map<String, Object?> toJson() => {
     'round_number': roundNumber,
@@ -113,6 +115,7 @@ final class NetworkPrivateGameState {
     ],
     'recent_card_ids': recentCardIds,
     'public_discards': [for (final card in publicDiscards) card.toJson()],
+    'choice_version': choiceVersion,
   };
 
   factory NetworkPrivateGameState.fromJson(Map<String, Object?> json) =>
@@ -176,6 +179,7 @@ final class NetworkPrivateGameState {
               Map<String, Object?>.from(raw! as Map),
             ),
         ],
+        choiceVersion: (json['choice_version'] as int?) ?? 0,
       );
 
   static Map<String, Object?> _deckJson(DeckCandidateV3 card) => {

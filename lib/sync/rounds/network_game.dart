@@ -32,6 +32,7 @@ enum NetworkGamePhase {
   recoveryExecution,
   waitingNext,
   closed,
+  sessionClosed,
 }
 
 enum NetworkCompromiseOrigin { INITIAL_DUEL, AUCTION, RECOVERY }
@@ -729,6 +730,18 @@ abstract interface class NetworkSessionFlowRepository {
   });
 }
 
+abstract interface class NetworkCommitCancellationRepository {
+  Future<NetworkGameRoundStateDto> cancelCommit({
+    required NetworkCommandDto command,
+  });
+}
+
+abstract interface class NetworkSessionClosureRepository {
+  Future<NetworkGameRoundStateDto> closeSession({
+    required NetworkCommandDto command,
+  });
+}
+
 String _phaseWire(NetworkGamePhase phase) => switch (phase) {
   NetworkGamePhase.commit => 'COMMIT',
   NetworkGamePhase.reveal => 'REVEAL',
@@ -749,6 +762,7 @@ String _phaseWire(NetworkGamePhase phase) => switch (phase) {
   NetworkGamePhase.recoveryExecution => 'RECOVERY_EXECUTION',
   NetworkGamePhase.waitingNext => 'WAITING_NEXT',
   NetworkGamePhase.closed => 'CLOSED',
+  NetworkGamePhase.sessionClosed => 'SESSION_CLOSED',
 };
 
 NetworkGamePhase _phaseFromWire(String value) => switch (value) {
@@ -771,5 +785,6 @@ NetworkGamePhase _phaseFromWire(String value) => switch (value) {
   'RECOVERY_EXECUTION' => NetworkGamePhase.recoveryExecution,
   'WAITING_NEXT' => NetworkGamePhase.waitingNext,
   'CLOSED' => NetworkGamePhase.closed,
+  'SESSION_CLOSED' => NetworkGamePhase.sessionClosed,
   _ => throw FormatException('Unknown network game phase: $value'),
 };

@@ -33,3 +33,24 @@ l’intensité, le mode Infini et un résumé neutre des pénuries. Les ordres d
 deck, mains, verrous, profils, exclusions et apprentissages restent locaux.
 Une continuation conserve les PA et change seulement le cycle et, lorsque
 demandé, l’intensité.
+
+## Annulation avant révélation et fermeture
+
+La migration `202610020002_safe_commit_cancel_and_session_close.sql` ajoute
+deux commandes atomiques et idempotentes. `CANCEL_COMMIT` verrouille le round,
+vérifie qu’il est encore en phase `COMMIT`, supprime uniquement le commit du
+demandeur et laisse le client rendre la même occurrence à sa main. La version
+locale du choix change avant tout nouveau commit, ce qui produit un nouveau
+`commandId`, un nouveau nonce et un nouveau digest. Aucun PA ni apprentissage
+n’est appliqué par l’annulation.
+
+La transition du second commit vers `REVEAL` et l’annulation se sérialisent sur
+le même verrou de ligne du round. Si la révélation gagne la course, le serveur renvoie
+`ROUND_CANCEL_CLOSED` et le client conserve le choix engagé. Le reconnecté se
+réconcilie avec l’absence ou la présence de son commit côté serveur.
+
+`CLOSE_SESSION` ferme la session et marque ses rounds `SESSION_CLOSED` dans une
+seule transaction idempotente. Cet état se distingue du `CLOSED` transitoire
+qui ouvre le round suivant. Les appareils cessent alors le parcours et effacent
+leur pointeur local de session active; aucune dépense ou résolution n’est
+rejouée.

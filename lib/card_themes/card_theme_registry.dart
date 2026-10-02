@@ -3,8 +3,12 @@ import 'classic_theme.dart';
 
 abstract final class CardThemeRegistry {
   static ThemeBundle _classic = ClassicCardTheme.bundle;
+  static ThemeBundle? _selected;
 
   static ThemeBundle get classic => _classic;
+  static ThemeBundle get selected => _selected ?? _classic;
+
+  static void select(ThemeBundle bundle) => _selected = bundle;
 
   static void installClassic(ThemeBundle bundle) {
     if (bundle.pack.id != 'classic_v1' ||
@@ -15,5 +19,8 @@ abstract final class CardThemeRegistry {
     _classic = bundle;
   }
 
-  static void resetForTesting() => _classic = ClassicCardTheme.bundle;
+  static void resetForTesting() {
+    _classic = ClassicCardTheme.bundle;
+    _selected = null;
+  }
 }

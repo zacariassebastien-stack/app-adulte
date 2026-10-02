@@ -27,6 +27,7 @@ class CardHandSurface extends StatefulWidget {
     required this.cards,
     this.committedCard,
     this.canCancelCommitted = false,
+    this.animationsEnabled = true,
     this.onPlay,
     this.onCancelCommitted,
     this.onLockChanged,
@@ -37,6 +38,7 @@ class CardHandSurface extends StatefulWidget {
   final List<CardHandItem> cards;
   final CardHandItem? committedCard;
   final bool canCancelCommitted;
+  final bool animationsEnabled;
   final ValueChanged<CardHandItem>? onPlay;
   final VoidCallback? onCancelCommitted;
   final ValueChanged<CardHandItem>? onLockChanged;
@@ -117,7 +119,9 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
   Future<void> _play(CardHandItem item) async {
     if (item.locked) {
       setState(() => _showBlockedLock = true);
-      await Future<void>.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(
+        widget.animationsEnabled ? const Duration(seconds: 1) : Duration.zero,
+      );
       if (mounted) {
         setState(() => _showBlockedLock = false);
         _rest();
@@ -270,7 +274,9 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
     final scale = !selected && _stage == CardHandStage.focused ? .9 : 1.0;
     return AnimatedPositioned(
       key: Key('hand-card-${card.id}'),
-      duration: const Duration(milliseconds: 190),
+      duration: widget.animationsEnabled
+          ? const Duration(milliseconds: 190)
+          : Duration.zero,
       curve: Curves.easeOutCubic,
       left: left,
       top: top,
@@ -280,11 +286,15 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
         ignoring: open ? false : true,
         child: AnimatedRotation(
           turns: angle / (2 * math.pi),
-          duration: const Duration(milliseconds: 190),
+          duration: widget.animationsEnabled
+              ? const Duration(milliseconds: 190)
+              : Duration.zero,
           curve: Curves.easeOutCubic,
           child: AnimatedScale(
             scale: scale,
-            duration: const Duration(milliseconds: 160),
+            duration: widget.animationsEnabled
+                ? const Duration(milliseconds: 160)
+                : Duration.zero,
             child: Opacity(
               opacity: card.available ? 1 : .48,
               child: CardRenderer(

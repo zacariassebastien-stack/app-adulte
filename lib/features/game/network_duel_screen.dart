@@ -10,6 +10,9 @@ import '../../engines/deck/session_deck_builder.dart';
 import '../../engines/recovery/recovery_engine.dart';
 import '../../sync/rounds/network_game.dart';
 import '../lobby/lobby_models.dart';
+import '../lobby/active_session_store.dart';
+import '../lobby/game_history.dart';
+import 'game_preferences.dart';
 import 'network_duel_secret_store.dart';
 import 'network_duel_controller.dart' show NetworkDuelCard;
 import 'network_auction_form_controller.dart';
@@ -18,6 +21,7 @@ import 'network_profile_learning.dart';
 import 'ui/card_hand_surface.dart';
 import 'ui/discard_gallery_screen.dart';
 import 'ui/gameplay_hud.dart';
+import 'ui/game_settings_panel.dart';
 
 class NetworkDuelScreen extends StatefulWidget {
   const NetworkDuelScreen({
@@ -26,6 +30,9 @@ class NetworkDuelScreen extends StatefulWidget {
     required this.repository,
     required this.catalog,
     this.secretStore = const SharedPreferencesNetworkDuelSecretStore(),
+    this.activeSessionStore = const SharedPreferencesActiveSessionStore(),
+    this.historyStore = const SharedPreferencesGameHistoryStore(),
+    this.preferences,
     super.key,
   });
 
@@ -34,6 +41,9 @@ class NetworkDuelScreen extends StatefulWidget {
   final NetworkGameRepository repository;
   final Catalog catalog;
   final NetworkDuelSecretStore secretStore;
+  final ActiveSessionStore activeSessionStore;
+  final GameHistoryStore historyStore;
+  final GamePreferencesController? preferences;
 
   @override
   State<NetworkDuelScreen> createState() => _NetworkDuelScreenState();
@@ -48,10 +58,17 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   bool _acceptAuction = false;
   String? actionError;
   CardHandStage _handStage = CardHandStage.resting;
+  late final GamePreferencesController preferences;
+  late final bool _ownsPreferences;
+  bool _historyRecorded = false;
 
   @override
   void initState() {
     super.initState();
+    _ownsPreferences = widget.preferences == null;
+    preferences = widget.preferences ?? GamePreferencesController();
+    preferences.addListener(_refresh);
+    preferences.load();
     controller = NetworkGameController(
       session: widget.session,
       playerId: widget.playerId,
@@ -81,6 +98,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     controller
       ..removeListener(_refresh)
       ..dispose();
+    preferences.removeListener(_refresh);
+    if (_ownsPreferences) preferences.dispose();
     auctionForm.dispose();
     super.dispose();
   }
@@ -101,7 +120,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                   controller.viewState == NetworkGameViewState.revealing
               ? CardHandStage.committed
               : _handStage,
-          onSettings: _openProfileSettings,
+          onSettings: _openSettings,
+          animationsEnabled: preferences.value.animations,
           onOrientationChanged: calm ? controller.switchOrientation : null,
           discardVisible: calm && _handStage != CardHandStage.open,
           onDiscard: _openDiscard,
@@ -128,6 +148,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     NetworkGameViewState.recoveryExecution => 'Récupération',
     NetworkGameViewState.loading => 'Connexion à la partie',
     NetworkGameViewState.error => 'Partie interrompue',
+    NetworkGameViewState.sessionEnded => 'Partie terminée',
     _ => 'Résolution du tour',
   };
 
@@ -154,6 +175,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     NetworkGameViewState.recoveryResponse => _recoveryResponse(),
     NetworkGameViewState.recoveryExecution => _recoveryExecution(),
     NetworkGameViewState.waitingNext => _waitingNext(),
+    NetworkGameViewState.sessionEnded => _sessionEnded(),
     NetworkGameViewState.error => _error(),
   };
 
@@ -164,6 +186,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       if (mounted) setState(() => _handStage = stage);
     },
     onLockChanged: (item) => controller.toggleLock(item.id),
+    animationsEnabled: preferences.value.animations,
     onPlay: (item) async {
       if (controller.viewState != NetworkGameViewState.choosing) return;
       controller.selectCard(item.id);
@@ -184,7 +207,16 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     return CardHandSurface(
       committedCard: _handItem(card),
       cards: const [],
-      canCancelCommitted: false,
+      canCancelCommitted: controller.canCancelSelection,
+      animationsEnabled: preferences.value.animations,
+      onCancelCommitted: () async {
+        final cancelled = await controller.cancelSelection();
+        if (!cancelled && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('La révélation a déjà commencé.')),
+          );
+        }
+      },
       onStageChanged: (stage) {
         if (mounted) setState(() => _handStage = stage);
       },
@@ -878,86 +910,145 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     ),
   );
 
-  Future<void> _openProfileSettings() async {
-    await showModalBottomSheet<void>(
+  Future<void> _openSettings() async {
+    await showDialog<void>(
       context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => StatefulBuilder(
-        builder: (context, setSheetState) => SafeArea(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              MediaQuery.viewInsetsOf(context).bottom + 16,
-            ),
-            child: FutureBuilder<AdaptiveProfileState>(
-              future: controller.profileState(),
-              builder: (context, snapshot) {
-                final entries = snapshot.data?.entries.values.toList() ?? [];
-                return ListView(
-                  shrinkWrap: true,
-                  children: [
-                    Text(
-                      'Profil privé',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const Text(
-                      'Ce réglage et tes valeurs restent uniquement sur cet appareil.',
-                    ),
-                    for (final choice in PostGameProfileChoice.values)
-                      ListTile(
-                        selected: controller.postGameProfileChoice == choice,
-                        title: Text(_profileChoiceLabel(choice)),
-                        trailing: controller.postGameProfileChoice == choice
-                            ? const Icon(Icons.check_circle)
-                            : null,
-                        onTap: () async {
-                          await controller.choosePostGameProfile(choice);
-                          setSheetState(() {});
-                        },
-                      ),
-                    if (controller.postGameProfileChoice ==
-                        PostGameProfileChoice.customize) ...[
-                      const Divider(),
-                      const Text('Préférences rencontrées'),
-                      if (entries.isEmpty)
-                        const Text(
-                          'Les préférences apparaîtront ici après les premières observations.',
-                        ),
-                      for (final entry in entries)
-                        ListTile(
-                          title: Text(entry.key.preferenceId),
-                          subtitle: Text(entry.key.role.name),
-                          trailing: DropdownButton<DetailedPreferenceCategory>(
-                            value: entry.currentCategory,
-                            onChanged: (category) async {
-                              if (category == null) return;
-                              await controller.customizePreference(
-                                entry.key,
-                                category,
-                              );
-                              setSheetState(() {});
-                            },
-                            items: [
-                              for (final category
-                                  in DetailedPreferenceCategory.values)
-                                DropdownMenuItem(
-                                  value: category,
-                                  child: Text(category.label),
-                                ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
+      barrierDismissible: false,
+      builder: (_) => GameSettingsPanel(
+        preferences: preferences,
+        privateProfile: _privateProfileSettings(),
+        onQuit: _quitGame,
       ),
     );
+  }
+
+  Widget _privateProfileSettings() => StatefulBuilder(
+    builder: (context, setPanelState) => FutureBuilder<AdaptiveProfileState>(
+      future: controller.profileState(),
+      builder: (context, snapshot) {
+        final entries = snapshot.data?.entries.values.toList() ?? [];
+        final pending = entries
+            .where(
+              (entry) =>
+                  entry.lastProposal?.decision == ProposalDecision.pending,
+            )
+            .toList();
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              key: Key('private-profile-notice'),
+              'Ce réglage et tes valeurs restent uniquement sur cet appareil.',
+            ),
+            if (pending.isNotEmpty) ...[
+              const Divider(),
+              const Text('Évolutions proposées'),
+              for (final entry in pending)
+                ListTile(
+                  dense: true,
+                  title: Text(entry.key.preferenceId),
+                  subtitle: Text(
+                    '${entry.currentCategory.label} → ${entry.lastProposal!.toCategory.label}',
+                  ),
+                ),
+            ],
+            for (final choice in PostGameProfileChoice.values)
+              ListTile(
+                selected: controller.postGameProfileChoice == choice,
+                title: Text(_profileChoiceLabel(choice)),
+                trailing: controller.postGameProfileChoice == choice
+                    ? const Icon(Icons.check_circle)
+                    : null,
+                onTap: () async {
+                  await controller.choosePostGameProfile(choice);
+                  setPanelState(() {});
+                },
+              ),
+            if (controller.postGameProfileChoice ==
+                PostGameProfileChoice.customize) ...[
+              const Divider(),
+              const Text('Préférences rencontrées'),
+              if (entries.isEmpty)
+                const Text(
+                  'Les préférences apparaîtront ici après les premières observations.',
+                ),
+              for (final entry in entries)
+                ListTile(
+                  title: Text(entry.key.preferenceId),
+                  subtitle: Text(entry.key.role.name),
+                  trailing: DropdownButton<DetailedPreferenceCategory>(
+                    value: entry.currentCategory,
+                    onChanged: (category) async {
+                      if (category == null) return;
+                      await controller.customizePreference(entry.key, category);
+                      setPanelState(() {});
+                    },
+                    items: [
+                      for (final category in DetailedPreferenceCategory.values)
+                        DropdownMenuItem(
+                          value: category,
+                          child: Text(category.label),
+                        ),
+                    ],
+                  ),
+                ),
+            ],
+          ],
+        );
+      },
+    ),
+  );
+
+  Future<void> _quitGame() async {
+    try {
+      await controller.closeSession();
+      await _finishLocally();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossible de quitter la partie pour le moment.'),
+        ),
+      );
+    }
+  }
+
+  Widget _sessionEnded() => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Partie terminée suite à une déconnexion.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 20),
+          FilledButton(
+            key: const Key('return-home-after-session-end'),
+            onPressed: _finishLocally,
+            child: const Text('Retour à l’accueil'),
+          ),
+        ],
+      ),
+    ),
+  );
+
+  Future<void> _finishLocally() async {
+    await widget.activeSessionStore.clear();
+    if (!_historyRecorded) {
+      _historyRecorded = true;
+      await widget.historyStore.add(
+        GameHistoryEntry.forRounds(controller.roundNumber),
+      );
+    }
+    if (mounted) {
+      Navigator.of(
+        context,
+        rootNavigator: true,
+      ).popUntil((route) => route.isFirst);
+    }
   }
 
   static String _profileChoiceLabel(PostGameProfileChoice choice) =>

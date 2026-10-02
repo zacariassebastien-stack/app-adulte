@@ -70,7 +70,7 @@ class CardRenderer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = bundle ?? CardThemeRegistry.classic;
+    final theme = bundle ?? CardThemeRegistry.selected;
     final skin = theme.skin;
     final blocks =
         (_back ? theme.layout.back : theme.layout.front)

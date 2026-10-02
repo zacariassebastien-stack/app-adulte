@@ -23,6 +23,7 @@ void main() {
     List<CardHandItem>? items,
     CardHandItem? committed,
     bool canCancel = false,
+    bool animations = true,
     ValueChanged<CardHandItem>? onPlay,
     ValueChanged<CardHandItem>? onLock,
     VoidCallback? onCancel,
@@ -37,6 +38,7 @@ void main() {
               cards: items ?? cards,
               committedCard: committed,
               canCancelCommitted: canCancel,
+              animationsEnabled: animations,
               onPlay: onPlay,
               onLockChanged: onLock,
               onCancelCommitted: onCancel,
@@ -185,6 +187,30 @@ void main() {
       const Offset(0, 250),
     );
     expect(cancellations, 1);
+  });
+
+  testWidgets('disabled animations use zero-duration hand transitions', (
+    tester,
+  ) async {
+    await pumpHand(tester, animations: false);
+    final positioned = tester.widget<AnimatedPositioned>(
+      find.byType(AnimatedPositioned).first,
+    );
+    expect(positioned.duration, Duration.zero);
+    final rotation = tester.widget<AnimatedRotation>(
+      find.byType(AnimatedRotation).first,
+    );
+    expect(rotation.duration, Duration.zero);
+  });
+
+  testWidgets('enabled animations keep hand transitions', (tester) async {
+    await pumpHand(tester);
+    expect(
+      tester
+          .widget<AnimatedPositioned>(find.byType(AnimatedPositioned).first)
+          .duration,
+      isNot(Duration.zero),
+    );
   });
 
   testWidgets('locked rest replaces PA while focus shows PA and small lock', (

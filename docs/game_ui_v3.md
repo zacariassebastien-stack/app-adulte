@@ -35,9 +35,10 @@ chaque changement de focus.
 
 La carte engagée reste visible pendant l’attente. Un tap alterne recto et verso
 pour préserver le choix lorsque les joueurs sont côte à côte. L’annulation par
-swipe bas n’est activée que tant que le protocole considère encore le choix
-annulable. Dès que le commit réseau est enregistré, elle est désactivée afin de
-préserver commit/reveal et l’idempotence.
+swipe bas est activée après l’enregistrement du commit tant que le serveur est
+encore en phase `COMMIT`. Elle rend exactement l’occurrence engagée à la main.
+Dès que la révélation commence, elle devient irréversible et le geste est
+refusé sans altérer le choix.
 
 ## HUD
 
@@ -53,3 +54,15 @@ La pile apparaît uniquement pendant une phase calme et ouvre un écran complet.
 La grille présente trois cartes par ligne, de la plus récente à la plus ancienne,
 sans distinguer leur propriétaire. Le zoom utilise le même renderer en lecture
 seule, masque la valeur personnelle et interdit jeu, verrouillage ou enchère.
+
+## Réglages
+
+Le bouton ouvre un panneau opaque sans interrompre l’écoute réseau. Il regroupe
+les sons, vibrations, thème de cartes, animations, profil privé, aide et sortie
+de partie. Les préférences d’affichage sont locales et persistées; couper les
+animations supprime les transitions de la main et du bouton d’orientation.
+
+Quitter demande une confirmation puis ferme définitivement la session pour les
+deux joueurs. Le partenaire voit un message neutre et un retour à l’accueil.
+L’historique local affiche les dix dernières parties terminées avec une date et
+un profil humoristique, sans partenaire, PA, cartes ni donnée de profil privée.

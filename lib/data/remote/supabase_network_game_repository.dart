@@ -13,7 +13,9 @@ final class SupabaseNetworkGameRepository
     implements
         NetworkGameRepository,
         NetworkNegotiationRepository,
-        NetworkSessionFlowRepository {
+        NetworkSessionFlowRepository,
+        NetworkCommitCancellationRepository,
+        NetworkSessionClosureRepository {
   SupabaseNetworkGameRepository({required this.client});
 
   final SupabaseClient client;
@@ -71,6 +73,16 @@ final class SupabaseNetworkGameRepository
       },
     );
   }
+
+  @override
+  Future<NetworkGameRoundStateDto> cancelCommit({
+    required NetworkCommandDto command,
+  }) => _rpc('cancel_network_round_commit', command);
+
+  @override
+  Future<NetworkGameRoundStateDto> closeSession({
+    required NetworkCommandDto command,
+  }) => _rpc('close_network_game_session', command);
 
   @override
   Future<NetworkGameRoundStateDto> submitInitialResolution({
@@ -375,6 +387,7 @@ final class SupabaseNetworkGameRepository
       'ROUND_NOT_FOUND',
       'ROUND_COMMAND_CONFLICT',
       'ROUND_COMMIT_CLOSED',
+      'ROUND_CANCEL_CLOSED',
       'ROUND_REVEAL_CLOSED',
       'ROUND_COMMIT_MISSING',
       'ROUND_REVEAL_MISMATCH',

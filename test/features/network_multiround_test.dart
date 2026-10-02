@@ -172,6 +172,184 @@ void main() {
     },
   );
 
+  test(
+    'committed choice can be cancelled exactly once before reveal',
+    () async {
+      final setup = await _setup(session, catalog);
+      addTearDown(setup.dispose);
+      final card = setup.alice.hand.first;
+      setup.alice.toggleLock(card.identity);
+      setup.alice.selectCard(card.identity);
+      await setup.alice.confirmSelection();
+      await _settle();
+
+      expect(setup.alice.canCancelSelection, isTrue);
+      expect(setup.backend.round.commits, contains('alice'));
+      expect(await setup.alice.cancelSelection(), isTrue);
+      await _settle();
+
+      expect(setup.backend.round.commits, isNot(contains('alice')));
+      expect(
+        setup.alice.hand.where((item) => item.identity == card.identity),
+        hasLength(1),
+      );
+      expect(setup.alice.lockedCardId, isNull);
+      expect(setup.alice.viewState, NetworkGameViewState.choosing);
+
+      setup.alice.selectCard(card.identity);
+      await setup.alice.confirmSelection();
+      expect(setup.backend.round.commits, contains('alice'));
+    },
+  );
+
+  test(
+    'cancellation is idempotent and loses the race against reveal',
+    () async {
+      final backend = _Backend();
+      final alice = backend.repository('alice');
+      final bob = backend.repository('bob');
+      final round = await alice.openCurrentRound(
+        command: _command('open-cancel', 'alice', 'OPEN'),
+      );
+      final choiceA = _choice('alice', 12);
+      final choiceB = _choice('bob', 11);
+      const contract = CommitRevealContract();
+      await alice.submitCommit(
+        command: _command('commit-cancel-a', 'alice', 'COMMIT', round.roundId),
+        commitment: contract.commit(
+          sessionRound: round.sessionRound,
+          playerId: 'alice',
+          choice: choiceA,
+          nonce: 'a',
+        ),
+      );
+      final cancel = _command(
+        'cancel-same',
+        'alice',
+        'CANCEL_COMMIT',
+        round.roundId,
+      );
+      final cancellable = alice as NetworkCommitCancellationRepository;
+      await cancellable.cancelCommit(command: cancel);
+      await cancellable.cancelCommit(command: cancel);
+      expect(backend.round.commits, isEmpty);
+      await expectLater(
+        alice.submitReveal(
+          command: _command('old-reveal', 'alice', 'REVEAL', round.roundId),
+          reveal: ChoiceRevealDto(
+            sessionRound: round.sessionRound,
+            playerId: 'alice',
+            choice: choiceA,
+            nonce: 'a',
+          ),
+        ),
+        throwsA(isA<NetworkRoundException>()),
+      );
+
+      await alice.submitCommit(
+        command: _command(
+          'commit-cancel-a-v2',
+          'alice',
+          'COMMIT',
+          round.roundId,
+        ),
+        commitment: contract.commit(
+          sessionRound: round.sessionRound,
+          playerId: 'alice',
+          choice: choiceA,
+          nonce: 'a2',
+        ),
+      );
+      await bob.submitCommit(
+        command: _command('commit-cancel-b', 'bob', 'COMMIT', round.roundId),
+        commitment: contract.commit(
+          sessionRound: round.sessionRound,
+          playerId: 'bob',
+          choice: choiceB,
+          nonce: 'b',
+        ),
+      );
+      expect(backend.phase, NetworkGamePhase.reveal);
+      await expectLater(
+        cancellable.cancelCommit(
+          command: _command(
+            'cancel-too-late',
+            'alice',
+            'CANCEL_COMMIT',
+            round.roundId,
+          ),
+        ),
+        throwsA(isA<NetworkRoundException>()),
+      );
+    },
+  );
+
+  test('closing a session is idempotent and visible to both players', () async {
+    final setup = await _setup(session, catalog);
+    addTearDown(setup.dispose);
+    await setup.alice.closeSession();
+    await _settle();
+    expect(setup.alice.viewState, NetworkGameViewState.sessionEnded);
+    expect(setup.bob.viewState, NetworkGameViewState.sessionEnded);
+    await setup.alice.closeSession();
+    expect(setup.backend.phase, NetworkGamePhase.sessionClosed);
+  });
+
+  test(
+    'reconnect after cancellation restores only the valid hand state',
+    () async {
+      final backend = _Backend();
+      final store = MemoryNetworkDuelSecretStore();
+      final learning = MemoryNetworkProfileLearningStore();
+      var controller = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: backend.repository('alice'),
+        privateStore: store,
+        learningStore: learning,
+        catalog: catalog,
+        nonceFactory: () => 'fixed-nonce',
+      );
+      await controller.start();
+      final card = controller.hand.first;
+      controller.selectCard(card.identity);
+      await controller.confirmSelection();
+      final oldNonce = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!.activeReveal!.nonce;
+      expect(await controller.cancelSelection(), isTrue);
+      controller.dispose();
+
+      controller = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: backend.repository('alice'),
+        privateStore: store,
+        learningStore: learning,
+        catalog: catalog,
+        nonceFactory: () => 'fixed-nonce',
+      );
+      addTearDown(controller.dispose);
+      await controller.start();
+      expect(controller.viewState, NetworkGameViewState.choosing);
+      expect(
+        controller.hand.where((item) => item.identity == card.identity),
+        hasLength(1),
+      );
+      expect((await learning.load('alice'))?.entries ?? const {}, isEmpty);
+      expect(backend.points, {'alice': 100, 'bob': 100});
+
+      controller.selectCard(card.identity);
+      await controller.confirmSelection();
+      final newNonce = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!.activeReveal!.nonce;
+      expect(newNonce, isNot(oldNonce));
+    },
+  );
+
   test('rounds 1 to 3 retain session, PA, hand history and lock', () async {
     final setup = await _setup(session, catalog);
     final locked = setup.alice.hand.first.identity;
@@ -753,6 +931,20 @@ void main() {
       expect(privacy, contains("v_proposal->>'gain'"));
       expect(privacy, isNot(contains('service_role')));
       expect(next, isNot(contains('private_hand')));
+      final cancellation = File(
+        'supabase/migrations/202610020002_safe_commit_cancel_and_session_close.sql',
+      ).readAsStringSync();
+      expect(cancellation, contains('cancel_network_round_commit'));
+      expect(cancellation, contains("if v_round.phase<>'COMMIT'"));
+      expect(
+        cancellation,
+        contains('delete from public.network_round_commits'),
+      );
+      expect(cancellation, contains('pg_advisory_xact_lock'));
+      expect(cancellation, contains('close_network_game_session'));
+      expect(cancellation, contains("set status='closed'"));
+      expect(cancellation, contains("phase='SESSION_CLOSED'"));
+      expect(cancellation, isNot(contains('private_hand')));
     },
   );
 }
@@ -1002,7 +1194,11 @@ final class _Backend {
   }
 }
 
-final class _Repository implements NetworkGameRepository {
+final class _Repository
+    implements
+        NetworkGameRepository,
+        NetworkCommitCancellationRepository,
+        NetworkSessionClosureRepository {
   _Repository(this.backend, this.player);
   final _Backend backend;
   final String player;
@@ -1060,6 +1256,31 @@ final class _Repository implements NetworkGameRepository {
     if (backend.round.reveals.length == 2) {
       backend.round.phase = NetworkGamePhase.ready;
     }
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> cancelCommit({
+    required NetworkCommandDto command,
+  }) async {
+    if (!backend.commands.add(command.commandId)) return backend.state(player);
+    if (backend.phase != NetworkGamePhase.commit) {
+      throw const NetworkRoundException('ROUND_CANCEL_CLOSED');
+    }
+    if (backend.round.commits.remove(player) == null) {
+      throw const NetworkRoundException('ROUND_COMMIT_MISSING');
+    }
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> closeSession({
+    required NetworkCommandDto command,
+  }) async {
+    if (!backend.commands.add(command.commandId)) return backend.state(player);
+    backend.round.phase = NetworkGamePhase.sessionClosed;
     _notify();
     return backend.state(player);
   }
