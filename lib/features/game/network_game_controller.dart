@@ -131,6 +131,7 @@ final class NetworkGameController extends ChangeNotifier {
   PlayerStyle _deckStyle = PlayerStyle.SOFT;
   List<DeckShortage> _deckShortages = [];
   List<String> _recentCardIds = [];
+  List<NetworkPlayedCardRecord> _publicDiscards = [];
   ChoiceRevealDto? _activeReveal;
   bool _nextRoundPrepared = false;
   StreamSubscription<NetworkGameRoundStateDto>? _subscription;
@@ -167,6 +168,7 @@ final class NetworkGameController extends ChangeNotifier {
   Map<String, CardHistoryState> get history => Map.unmodifiable(_history);
   HybridDeckOrientation get orientation =>
       round?.hybridOrientation ?? HybridDeckOrientation.faceToFace;
+  int get activeSpice => _context.chiliActive;
   bool get decksEmpty => _faceToFaceDeck.isEmpty && _distanceDeck.isEmpty;
   bool get deckExhausted =>
       decksEmpty && !_runtime.any((card) => card.zone == CardZone.HAND);
@@ -188,6 +190,31 @@ final class NetworkGameController extends ChangeNotifier {
         variantId: item.variantId,
       ),
   ];
+
+  List<NetworkDuelCard> get visibleDiscardCards {
+    final cards = <NetworkDuelCard>[];
+    final seen = <String>{};
+    for (final item in _publicDiscards.reversed) {
+      final card = _networkCard(
+        item.cardId,
+        occurrenceId: item.occurrenceId,
+        variantId: item.variantId,
+      );
+      if (card != null && seen.add(card.identity)) cards.add(card);
+    }
+    for (final item in _runtime.where(
+      (card) =>
+          card.zone == CardZone.DISCARD || card.zone == CardZone.EXHAUSTED,
+    )) {
+      final card = _networkCard(
+        item.cardId,
+        occurrenceId: item.occurrenceId,
+        variantId: item.variantId,
+      );
+      if (card != null && seen.add(card.identity)) cards.add(card);
+    }
+    return List.unmodifiable(cards);
+  }
 
   List<NetworkDuelCard> get auctionCards => [
     for (final item in _runtime)
@@ -853,6 +880,7 @@ final class NetworkGameController extends ChangeNotifier {
       return;
     }
     round = value;
+    _capturePublicDiscards(value);
     await _closeNormalRoundForRecovery(value);
     await _reconcilePublicLifecycle(value);
     if (_disposed) return;
@@ -1169,6 +1197,7 @@ final class NetworkGameController extends ChangeNotifier {
       _deckStyle = saved.deckStyle;
       _deckShortages = List.of(saved.deckShortages);
       _recentCardIds = List.of(saved.recentCardIds);
+      _publicDiscards = List.of(saved.publicDiscards);
       if (_faceToFaceDeck.isEmpty &&
           _distanceDeck.isEmpty &&
           saved.cards.isEmpty) {
@@ -1182,6 +1211,7 @@ final class NetworkGameController extends ChangeNotifier {
     }
     _runtime = [];
     _history = {};
+    _publicDiscards = [];
     _learningRecordedRounds = {};
     _buildDeckCycle();
     _refill(current.roundNumber);
@@ -1793,8 +1823,39 @@ final class NetworkGameController extends ChangeNotifier {
       deckStyle: _deckStyle,
       deckShortages: _deckShortages,
       recentCardIds: _recentCardIds,
+      publicDiscards: _publicDiscards,
     ),
   );
+
+  void _capturePublicDiscards(NetworkGameRoundStateDto value) {
+    if (value.finalResolution == null) return;
+    final known = _publicDiscards.map((card) => card.occurrenceId).toSet();
+    void add(String cardId, String variantId, String occurrenceId) {
+      if (!known.add(occurrenceId)) return;
+      _publicDiscards = [
+        ..._publicDiscards,
+        NetworkPlayedCardRecord(
+          cardId: cardId,
+          variantId: variantId,
+          occurrenceId: occurrenceId,
+          roundNumber: value.roundNumber,
+        ),
+      ];
+    }
+
+    for (final reveal in [value.ownReveal, value.opponentReveal]) {
+      if (reveal == null) continue;
+      add(
+        reveal.choice.cardId,
+        reveal.choice.variantId,
+        (reveal.choice.parameters['occurrence_id'] as String?) ??
+            '${value.roundId}:${reveal.playerId}',
+      );
+    }
+    for (final card in value.finalResolution!.compromise) {
+      add(card.cardId, card.variantId, card.occurrenceId);
+    }
+  }
 
   void _rememberRecent(Iterable<String> cardIds) {
     _recentCardIds = [

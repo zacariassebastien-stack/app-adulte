@@ -25,6 +25,23 @@ final class CardRenderDefinition {
   final List<String> zones;
   final int spice;
   final int? personalPa;
+
+  CardRenderDefinition copyWith({
+    int? personalPa,
+    bool removePersonalPa = false,
+  }) => CardRenderDefinition(
+    cardId: cardId,
+    title: title,
+    variantId: variantId,
+    subtitle: subtitle,
+    action: action,
+    direction: direction,
+    zones: zones,
+    spice: spice,
+    personalPa: removePersonalPa ? null : (personalPa ?? this.personalPa),
+    details: details,
+    illustrationId: illustrationId,
+  );
 }
 
 class CardRenderer extends StatelessWidget {
@@ -32,6 +49,7 @@ class CardRenderer extends StatelessWidget {
     required this.definition,
     this.bundle,
     this.state = CardVisualState.normal,
+    this.locked = false,
     this.playerName,
     this.selectedBlockId,
     this.onBlockSelected,
@@ -42,6 +60,7 @@ class CardRenderer extends StatelessWidget {
   final CardRenderDefinition definition;
   final ThemeBundle? bundle;
   final CardVisualState state;
+  final bool locked;
   final String? playerName, selectedBlockId;
   final ValueChanged<String>? onBlockSelected;
   final ValueChanged<CardLayoutBlock>? onBlockChanged;
@@ -230,7 +249,7 @@ class CardRenderer extends StatelessWidget {
         fontFamily: spec.fontFamily,
       ),
     );
-    final lockedAtRest = state == CardVisualState.locked;
+    final lockedAtRest = locked || state == CardVisualState.locked;
     final expanded =
         state == CardVisualState.focused || state == CardVisualState.full;
     return switch (block.type) {

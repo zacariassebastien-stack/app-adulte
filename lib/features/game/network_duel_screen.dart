@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../card_themes/card_renderer.dart';
-import '../../card_themes/card_theme_models.dart';
 import '../../domain/catalog/catalog.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/profile/adaptive_profile.dart';
@@ -12,9 +11,13 @@ import '../../engines/recovery/recovery_engine.dart';
 import '../../sync/rounds/network_game.dart';
 import '../lobby/lobby_models.dart';
 import 'network_duel_secret_store.dart';
+import 'network_duel_controller.dart' show NetworkDuelCard;
 import 'network_auction_form_controller.dart';
 import 'network_game_controller.dart';
 import 'network_profile_learning.dart';
+import 'ui/card_hand_surface.dart';
+import 'ui/discard_gallery_screen.dart';
+import 'ui/gameplay_hud.dart';
 
 class NetworkDuelScreen extends StatefulWidget {
   const NetworkDuelScreen({
@@ -44,6 +47,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   bool _acceptInversion = false;
   bool _acceptAuction = false;
   String? actionError;
+  CardHandStage _handStage = CardHandStage.resting;
 
   @override
   void initState() {
@@ -82,56 +86,50 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text('TOUR ${controller.roundNumber}'),
-      actions: [
-        IconButton(
-          key: const Key('open-private-profile-settings'),
-          tooltip: 'Profil privé',
-          onPressed: _openProfileSettings,
-          icon: const Icon(Icons.manage_accounts),
-        ),
-        IconButton(
-          key: const Key('switch-hybrid-orientation'),
-          tooltip: controller.orientation == HybridDeckOrientation.faceToFace
-              ? 'Passer en orientation distance'
-              : 'Passer en orientation face à face',
-          onPressed: () => controller.switchOrientation(
-            controller.orientation == HybridDeckOrientation.faceToFace
-                ? HybridDeckOrientation.distance
-                : HybridDeckOrientation.faceToFace,
-          ),
-          icon: Icon(
-            controller.orientation == HybridDeckOrientation.faceToFace
-                ? Icons.people
-                : Icons.phone_android,
+  Widget build(BuildContext context) {
+    final calm = controller.viewState == NetworkGameViewState.choosing;
+    return Scaffold(
+      body: SafeArea(
+        child: GameplayHud(
+          actionPoints: controller.actionPoints[controller.playerId] ?? 0,
+          status: _status,
+          roundNumber: controller.roundNumber,
+          spice: controller.activeSpice,
+          orientation: controller.orientation,
+          stage:
+              controller.viewState == NetworkGameViewState.waitingForPartner ||
+                  controller.viewState == NetworkGameViewState.revealing
+              ? CardHandStage.committed
+              : _handStage,
+          onSettings: _openProfileSettings,
+          onOrientationChanged: calm ? controller.switchOrientation : null,
+          discardVisible: calm && _handStage != CardHandStage.open,
+          onDiscard: _openDiscard,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 58),
+            child: _body(),
           ),
         ),
-      ],
-    ),
-    body: SafeArea(
-      child: Column(
-        children: [
-          if (controller.actionPoints.isNotEmpty) _points(),
-          Expanded(child: _body()),
-        ],
       ),
-    ),
-  );
+    );
+  }
 
-  Widget _points() => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('Tes PA : ${controller.actionPoints[controller.playerId]}'),
-        Text(
-          'Partenaire : ${controller.actionPoints[controller.opponentId]} PA',
-        ),
-      ],
-    ),
-  );
+  String get _status => switch (controller.viewState) {
+    NetworkGameViewState.choosing => 'À toi de jouer',
+    NetworkGameViewState.committing ||
+    NetworkGameViewState.waitingForPartner ||
+    NetworkGameViewState.revealing => 'En attente de ton partenaire',
+    NetworkGameViewState.negotiationProposal ||
+    NetworkGameViewState.negotiationResponse ||
+    NetworkGameViewState.negotiationAdaptation ||
+    NetworkGameViewState.negotiationValidation => 'Compromis à valider',
+    NetworkGameViewState.recovery ||
+    NetworkGameViewState.recoveryResponse ||
+    NetworkGameViewState.recoveryExecution => 'Récupération',
+    NetworkGameViewState.loading => 'Connexion à la partie',
+    NetworkGameViewState.error => 'Partie interrompue',
+    _ => 'Résolution du tour',
+  };
 
   Widget _body() => switch (controller.viewState) {
     NetworkGameViewState.loading => const Center(
@@ -159,85 +157,73 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     NetworkGameViewState.error => _error(),
   };
 
-  Widget _choosing() => ListView(
+  Widget _choosing() => CardHandSurface(
     key: const Key('network-game-hand'),
-    padding: const EdgeInsets.all(16),
-    children: [
-      Text(
-        'Choisis une carte',
-        style: Theme.of(context).textTheme.headlineSmall,
-      ),
-      const Text('Ta main, ton verrou et tes notes restent privés.'),
-      const SizedBox(height: 12),
-      for (final card in controller.hand) ...[
-        SizedBox(
-          height: 250,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: InkWell(
-                  key: Key('network-card-${card.identity}'),
-                  onTap: controller.viewState == NetworkGameViewState.choosing
-                      ? () => controller.selectCard(card.identity)
-                      : null,
-                  child: CardRenderer(
-                    definition: CardRenderDefinition(
-                      cardId: card.id,
-                      variantId: card.variant.id,
-                      title: card.title,
-                      action: card.definition.descriptionKey,
-                      direction: card.role.name,
-                      spice: card.chiliLevel,
-                      personalPa: card.personalValue,
-                      illustrationId: card.definition.illustrationKey,
-                    ),
-                    state: controller.selectedCard?.identity == card.identity
-                        ? CardVisualState.selected
-                        : controller.lockedCardId == card.identity
-                        ? CardVisualState.locked
-                        : CardVisualState.normal,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 8,
-                top: 8,
-                child: IconButton.filledTonal(
-                  key: Key('lock-${card.identity}'),
-                  tooltip: controller.lockedCardId == card.identity
-                      ? 'Déverrouiller'
-                      : 'Verrouiller',
-                  onPressed: () => controller.toggleLock(card.identity),
-                  icon: Icon(
-                    controller.lockedCardId == card.identity
-                        ? Icons.lock
-                        : Icons.lock_open,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-      ],
-      FilledButton(
-        key: const Key('confirm-network-card'),
-        onPressed:
-            controller.selectedCard != null &&
-                controller.viewState == NetworkGameViewState.choosing
-            ? controller.confirmSelection
-            : null,
-        child: const Text('Valider ce choix'),
-      ),
-    ],
+    cards: [for (final card in controller.hand) _handItem(card)],
+    onStageChanged: (stage) {
+      if (mounted) setState(() => _handStage = stage);
+    },
+    onLockChanged: (item) => controller.toggleLock(item.id),
+    onPlay: (item) async {
+      if (controller.viewState != NetworkGameViewState.choosing) return;
+      controller.selectCard(item.id);
+      await controller.confirmSelection();
+    },
   );
 
-  Widget _waiting() => _centerMessage(
-    controller.viewState == NetworkGameViewState.revealing
-        ? 'Validation sécurisée des choix…'
-        : 'En attente de ton partenaire…',
-    key: const Key('network-duel-waiting'),
+  Widget _waiting() {
+    final card = controller.selectedCard;
+    if (card == null) {
+      return _centerMessage(
+        controller.viewState == NetworkGameViewState.revealing
+            ? 'Validation sécurisée des choix…'
+            : 'En attente de ton partenaire…',
+        key: const Key('network-duel-waiting'),
+      );
+    }
+    return CardHandSurface(
+      committedCard: _handItem(card),
+      cards: const [],
+      canCancelCommitted: false,
+      onStageChanged: (stage) {
+        if (mounted) setState(() => _handStage = stage);
+      },
+    );
+  }
+
+  CardHandItem _handItem(NetworkDuelCard card) => CardHandItem(
+    id: card.identity,
+    locked: controller.lockedCardId == card.identity,
+    definition: CardRenderDefinition(
+      cardId: card.id,
+      variantId: card.variant.id,
+      title: card.title,
+      action: card.definition.descriptionKey,
+      direction: card.role.name,
+      spice: card.chiliLevel,
+      personalPa: card.personalValue,
+      illustrationId: card.definition.illustrationKey,
+    ),
   );
+
+  void _openDiscard() {
+    final now = DateTime.now();
+    final cards = controller.visibleDiscardCards;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => DiscardGalleryScreen(
+          cards: [
+            for (var index = 0; index < cards.length; index++)
+              DiscardGalleryItem(
+                id: cards[index].identity,
+                definition: _handItem(cards[index]).definition,
+                playedAt: now.subtract(Duration(seconds: index)),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _negotiationProposal() => _negotiationEditor(
     title: 'Proposer un compromis',

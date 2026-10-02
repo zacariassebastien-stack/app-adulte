@@ -167,6 +167,14 @@ void main() {
         distanceDeck: const [candidate],
         deckCycle: 3,
         infiniteMode: true,
+        publicDiscards: const [
+          NetworkPlayedCardRecord(
+            cardId: 'card.public',
+            variantId: 'variant.public',
+            occurrenceId: 'public#2',
+            roundNumber: 2,
+          ),
+        ],
       );
       final decoded = NetworkPrivateGameState.fromJson(state.toJson());
       expect(
@@ -179,8 +187,10 @@ void main() {
       );
       expect(decoded.deckCycle, 3);
       expect(decoded.infiniteMode, isTrue);
+      expect(decoded.publicDiscards.single.occurrenceId, 'public#2');
       final encoded = jsonEncode(state.toJson());
       expect(encoded, isNot(contains('preference')));
+      expect(encoded, isNot(contains('owner_player_id')));
     },
   );
 

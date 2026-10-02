@@ -8,6 +8,33 @@ import '../../engines/draw/draw_engine.dart';
 import '../../engines/deck/session_deck_builder.dart';
 import '../../sync/commit_reveal/commit_reveal.dart';
 
+final class NetworkPlayedCardRecord {
+  const NetworkPlayedCardRecord({
+    required this.cardId,
+    required this.variantId,
+    required this.occurrenceId,
+    required this.roundNumber,
+  });
+
+  final String cardId, variantId, occurrenceId;
+  final int roundNumber;
+
+  Map<String, Object?> toJson() => {
+    'card_id': cardId,
+    'variant_id': variantId,
+    'occurrence_id': occurrenceId,
+    'round_number': roundNumber,
+  };
+
+  factory NetworkPlayedCardRecord.fromJson(Map<String, Object?> json) =>
+      NetworkPlayedCardRecord(
+        cardId: json['card_id']! as String,
+        variantId: json['variant_id']! as String,
+        occurrenceId: json['occurrence_id']! as String,
+        roundNumber: json['round_number']! as int,
+      );
+}
+
 final class NetworkPrivateGameState {
   NetworkPrivateGameState({
     required this.roundNumber,
@@ -23,13 +50,15 @@ final class NetworkPrivateGameState {
     this.deckStyle = PlayerStyle.SOFT,
     List<DeckShortage> deckShortages = const [],
     List<String> recentCardIds = const [],
+    List<NetworkPlayedCardRecord> publicDiscards = const [],
   }) : cards = List.unmodifiable(cards),
        history = Map.unmodifiable(history),
        learningRecordedRounds = Set.unmodifiable(learningRecordedRounds),
        faceToFaceDeck = List.unmodifiable(faceToFaceDeck),
        distanceDeck = List.unmodifiable(distanceDeck),
        deckShortages = List.unmodifiable(deckShortages),
-       recentCardIds = List.unmodifiable(recentCardIds);
+       recentCardIds = List.unmodifiable(recentCardIds),
+       publicDiscards = List.unmodifiable(publicDiscards);
 
   final int roundNumber;
   final List<CardRuntimeState> cards;
@@ -44,6 +73,7 @@ final class NetworkPrivateGameState {
   final PlayerStyle deckStyle;
   final List<DeckShortage> deckShortages;
   final List<String> recentCardIds;
+  final List<NetworkPlayedCardRecord> publicDiscards;
 
   Map<String, Object?> toJson() => {
     'round_number': roundNumber,
@@ -82,6 +112,7 @@ final class NetworkPrivateGameState {
         },
     ],
     'recent_card_ids': recentCardIds,
+    'public_discards': [for (final card in publicDiscards) card.toJson()],
   };
 
   factory NetworkPrivateGameState.fromJson(Map<String, Object?> json) =>
@@ -139,6 +170,12 @@ final class NetworkPrivateGameState {
         ],
         recentCardIds: ((json['recent_card_ids'] as List?) ?? const [])
             .cast<String>(),
+        publicDiscards: [
+          for (final raw in (json['public_discards'] as List?) ?? const [])
+            NetworkPlayedCardRecord.fromJson(
+              Map<String, Object?>.from(raw! as Map),
+            ),
+        ],
       );
 
   static Map<String, Object?> _deckJson(DeckCandidateV3 card) => {
