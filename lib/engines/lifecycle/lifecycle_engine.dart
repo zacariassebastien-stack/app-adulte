@@ -43,24 +43,32 @@ final class LifecycleEngine {
   EngineSessionContext closeTemporaryMeeting(EngineSessionContext context) =>
       context.copyWith(proximity: ProximityState.SEPARATED);
 
-  List<CardRuntimeState> lock(List<CardRuntimeState> cards, String cardId) {
-    final target = cards.where((card) => card.cardId == cardId).firstOrNull;
+  List<CardRuntimeState> lock(
+    List<CardRuntimeState> cards,
+    String occurrenceId,
+  ) {
+    final target = cards
+        .where((card) => card.occurrenceId == occurrenceId)
+        .firstOrNull;
     if (target == null || target.zone != CardZone.HAND) {
       throw StateError('Only a card in HAND can be locked');
     }
     return [
-      for (final card in cards) card.copyWith(locked: card.cardId == cardId),
+      for (final card in cards)
+        card.copyWith(locked: card.occurrenceId == occurrenceId),
     ];
   }
 
-  List<CardRuntimeState> engage(List<CardRuntimeState> cards, String cardId) =>
-      [
-        for (final card in cards)
-          if (card.cardId == cardId && card.zone == CardZone.HAND)
-            card.copyWith(zone: CardZone.ENGAGED, locked: false)
-          else
-            card,
-      ];
+  List<CardRuntimeState> engage(
+    List<CardRuntimeState> cards,
+    String occurrenceId,
+  ) => [
+    for (final card in cards)
+      if (card.occurrenceId == occurrenceId && card.zone == CardZone.HAND)
+        card.copyWith(zone: CardZone.ENGAGED, locked: false)
+      else
+        card,
+  ];
 
   List<CardRuntimeState> closeRound(List<CardRuntimeState> cards) => [
     for (final card in cards)
@@ -102,10 +110,10 @@ final class LifecycleEngine {
 
   List<CardRuntimeState> redrawDiscard(
     List<CardRuntimeState> cards,
-    String cardId,
+    String occurrenceId,
   ) => [
     for (final card in cards)
-      if (card.cardId == cardId && card.zone == CardZone.DISCARD)
+      if (card.occurrenceId == occurrenceId && card.zone == CardZone.DISCARD)
         card.copyWith(zone: CardZone.HAND, locked: false)
       else
         card,
@@ -113,11 +121,11 @@ final class LifecycleEngine {
 
   List<CardRuntimeState> exhaustDiscardAction(
     List<CardRuntimeState> cards,
-    String cardId, {
+    String occurrenceId, {
     required bool actuallyCompleted,
   }) => [
     for (final card in cards)
-      if (card.cardId == cardId &&
+      if (card.occurrenceId == occurrenceId &&
           card.zone == CardZone.DISCARD &&
           actuallyCompleted)
         card.copyWith(zone: CardZone.EXHAUSTED, locked: false)

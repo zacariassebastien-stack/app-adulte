@@ -22,3 +22,20 @@ occurrence identique de l’autre deck.
 maintien en Intenable, le mode Infini, la nouvelle partie et la fin. Les
 dernières occurrences vues sont repoussées à la fin du cycle reconstruit pour
 éviter une répétition immédiate.
+
+## `cardId` et `occurrenceId`
+
+Le builder peut répéter un `cardId`, mais matérialise chaque copie avec un
+`occurrenceId` unique dans le cycle. Les deux decks hybrides utilisent les
+mêmes identités lorsqu’une occurrence est commune. Une pioche retire cette
+identité du deck actif et une seule identité correspondante du miroir.
+
+Le rapport de pénurie conserve, par niveau demandé, le nombre demandé, le
+nombre disponible, le manque et la répartition des intensités de remplacement.
+L’interface n’affiche que les intensités et les quantités, jamais la raison
+privée de l’inéligibilité.
+
+Un cycle est terminé lorsque les deux decks ne fournissent plus d’occurrence
+et que les occurrences restantes en main ont été résolues. En mode Infini, le
+cycle suivant est reconstruit automatiquement à la même intensité. Sinon la
+progression est Soft → Épicé → Intenable, puis reste Intenable.

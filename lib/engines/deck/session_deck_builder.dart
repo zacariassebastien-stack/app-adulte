@@ -8,14 +8,26 @@ final class DeckCandidateV3 {
     required this.variantId,
     required this.spiceLevel,
     required this.distanceExcluded,
-  });
+    String? occurrenceId,
+  }) : occurrenceId = occurrenceId ?? '$cardId::$variantId';
 
   final String cardId;
   final String variantId;
   final int spiceLevel;
   final bool distanceExcluded;
+  final String occurrenceId;
 
-  String get occurrenceKey => '$cardId::$variantId';
+  String get occurrenceKey => occurrenceId;
+
+  String get contentKey => '$cardId::$variantId';
+
+  DeckCandidateV3 withOccurrence(String value) => DeckCandidateV3(
+    cardId: cardId,
+    variantId: variantId,
+    spiceLevel: spiceLevel,
+    distanceExcluded: distanceExcluded,
+    occurrenceId: value,
+  );
 }
 
 final class DeckSubstitution {
@@ -29,14 +41,33 @@ final class DeckSubstitution {
   final int count;
 }
 
+final class DeckShortage {
+  DeckShortage({
+    required this.requestedSpice,
+    required this.requestedCount,
+    required this.availableCount,
+    required this.missingCount,
+    required Map<int, int> replacementsBySpice,
+  }) : replacementsBySpice = Map.unmodifiable(replacementsBySpice);
+
+  final int requestedSpice;
+  final int requestedCount;
+  final int availableCount;
+  final int missingCount;
+  final Map<int, int> replacementsBySpice;
+}
+
 final class SessionDeckBuildResult {
   SessionDeckBuildResult({
     required List<DeckCandidateV3> cards,
     required List<DeckSubstitution> substitutions,
+    List<DeckShortage> shortages = const [],
   }) : cards = List.unmodifiable(cards),
-       substitutions = List.unmodifiable(substitutions);
+       substitutions = List.unmodifiable(substitutions),
+       shortages = List.unmodifiable(shortages);
   final List<DeckCandidateV3> cards;
   final List<DeckSubstitution> substitutions;
+  final List<DeckShortage> shortages;
   bool get adjusted => substitutions.isNotEmpty;
 }
 
@@ -53,6 +84,11 @@ final class SessionDeckBuilderV3 {
     final pool = eligible.toList(growable: false);
     final result = <DeckCandidateV3>[];
     final substitutions = <(int, int)>[];
+    final missingByRequested = <int, int>{};
+    final availableByLevel = <int, int>{
+      for (var level = 1; level <= 5; level++)
+        level: pool.where((card) => card.spiceLevel == level).length,
+    };
     for (final entry
         in targetBySpice.entries.toList()
           ..sort((a, b) => a.key.compareTo(b.key))) {
@@ -67,6 +103,8 @@ final class SessionDeckBuilderV3 {
           entry.value,
         );
         if (chosen == null) {
+          missingByRequested[requested] =
+              (missingByRequested[requested] ?? 0) + 1;
           for (final level in levels) {
             final fallback = pool
                 .where((card) => card.spiceLevel == level)
@@ -87,8 +125,20 @@ final class SessionDeckBuilderV3 {
       grouped['${item.$1}:${item.$2}'] =
           (grouped['${item.$1}:${item.$2}'] ?? 0) + 1;
     }
+    final occurrences = <String, int>{};
+    final materialized = <DeckCandidateV3>[];
+    for (final card in result) {
+      final ordinal = (occurrences[card.contentKey] ?? 0) + 1;
+      occurrences[card.contentKey] = ordinal;
+      materialized.add(card.withOccurrence('${card.contentKey}::$ordinal'));
+    }
+    final substitutionsByRequested = <int, Map<int, int>>{};
+    for (final item in substitutions) {
+      final byActual = substitutionsByRequested.putIfAbsent(item.$1, () => {});
+      byActual[item.$2] = (byActual[item.$2] ?? 0) + 1;
+    }
     return SessionDeckBuildResult(
-      cards: result,
+      cards: materialized,
       substitutions: [
         for (final entry in grouped.entries)
           DeckSubstitution(
@@ -96,6 +146,18 @@ final class SessionDeckBuilderV3 {
             actualSpice: int.parse(entry.key.split(':')[1]),
             count: entry.value,
           ),
+      ],
+      shortages: [
+        for (final entry in targetBySpice.entries)
+          if ((missingByRequested[entry.key] ?? 0) > 0)
+            DeckShortage(
+              requestedSpice: entry.key,
+              requestedCount: entry.value,
+              availableCount: availableByLevel[entry.key] ?? 0,
+              missingCount: missingByRequested[entry.key]!,
+              replacementsBySpice:
+                  substitutionsByRequested[entry.key] ?? const {},
+            ),
       ],
     );
   }
@@ -151,9 +213,16 @@ final class HybridSessionDecks {
     if (physical.isEmpty || remote.isEmpty) return List.of(source);
     final size = source.length;
     final physicalCount = (size * physicalShare).round();
-    return [
+    final selected = [
       ..._repeatTo(physical, physicalCount),
       ..._repeatTo(remote, size - physicalCount),
+    ];
+    final ordinals = <String, int>{};
+    return [
+      for (final card in selected)
+        card.withOccurrence(
+          '${card.contentKey}::${ordinals.update(card.contentKey, (value) => value + 1, ifAbsent: () => 1)}',
+        ),
     ];
   }
 
@@ -176,17 +245,34 @@ final class SessionDeckRuntime {
   final List<DeckCandidateV3> distance;
   final Random _random;
 
-  DeckCandidateV3? draw(HybridDeckOrientation orientation) {
-    final active = orientation == HybridDeckOrientation.faceToFace
+  DeckCandidateV3? draw(
+    HybridDeckOrientation orientation, {
+    Set<String> avoidCardIds = const {},
+  }) {
+    var active = orientation == HybridDeckOrientation.faceToFace
         ? faceToFace
         : distance;
-    final other = orientation == HybridDeckOrientation.faceToFace
+    var other = orientation == HybridDeckOrientation.faceToFace
         ? distance
         : faceToFace;
+    if (active.isEmpty && other.isNotEmpty) {
+      final fallback = active;
+      active = other;
+      other = fallback;
+    }
     if (active.isEmpty) return null;
-    final drawn = active.removeAt(_random.nextInt(active.length));
+    final allowedIndexes = [
+      for (var index = 0; index < active.length; index++)
+        if (!avoidCardIds.contains(active[index].cardId)) index,
+    ];
+    final candidates = allowedIndexes.isEmpty
+        ? [for (var index = 0; index < active.length; index++) index]
+        : allowedIndexes;
+    final drawn = active.removeAt(
+      candidates[_random.nextInt(candidates.length)],
+    );
     final mirror = other.indexWhere(
-      (candidate) => candidate.occurrenceKey == drawn.occurrenceKey,
+      (candidate) => candidate.occurrenceId == drawn.occurrenceId,
     );
     if (mirror >= 0) other.removeAt(mirror);
     return drawn;

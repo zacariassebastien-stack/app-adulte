@@ -151,15 +151,15 @@ void main() {
       final setup = await _setup(session, catalog);
       expect(setup.alice.hand, hasLength(4));
       expect(setup.bob.hand, hasLength(4));
-      final locked = setup.alice.hand.first.id;
+      final locked = setup.alice.hand.first.identity;
       setup.alice.toggleLock(locked);
       expect(setup.alice.lockedCardId, locked);
       final selected = setup.alice.hand.last;
-      setup.alice.selectCard(selected.id);
+      setup.alice.selectCard(selected.identity);
       await setup.alice.confirmSelection();
       expect(
         setup.alice.runtime
-            .singleWhere((card) => card.cardId == selected.id)
+            .singleWhere((card) => card.occurrenceId == selected.identity)
             .zone,
         CardZone.ENGAGED,
       );
@@ -174,7 +174,7 @@ void main() {
 
   test('rounds 1 to 3 retain session, PA, hand history and lock', () async {
     final setup = await _setup(session, catalog);
-    final locked = setup.alice.hand.first.id;
+    final locked = setup.alice.hand.first.identity;
     setup.alice.toggleLock(locked);
     final initialHand = setup.alice.hand.map((card) => card.id).toSet();
     for (final expected in [1, 2]) {
@@ -216,14 +216,14 @@ void main() {
     () async {
       final setup = await _setup(session, catalog);
       final target = setup.alice.hand.first;
-      setup.alice.toggleLock(target.id);
-      await _playUnequal(setup, forceAliceCard: target.id);
+      setup.alice.toggleLock(target.identity);
+      await _playUnequal(setup, forceAliceCard: target.identity);
       final loser = setup.alice.initialResolution!.loserPlayerId == 'alice'
           ? setup.alice
           : setup.bob;
       await loser.acceptInitialResult();
       await setup.alice.readyForNextRound();
-      expect(setup.alice.lockedCardId, isNot(target.id));
+      expect(setup.alice.lockedCardId, isNot(target.identity));
       expect(
         setup.alice.history[target.id],
         CardHistoryState.playedOrDiscarded,
@@ -346,6 +346,23 @@ void main() {
 
   test('inversion is refused when catalog winner is not invertible', () async {
     final setup = await _setup(session, catalog);
+    final hasNonInvertibleWinningPair = [
+      for (final alice in setup.alice.hand)
+        for (final bob in setup.bob.hand)
+          if (alice.personalValue != bob.personalValue)
+            (alice.personalValue > bob.personalValue ? alice : bob),
+    ].any((winner) => !winner.variant.invertible);
+    if (!hasNonInvertibleWinningPair) {
+      expect(
+        catalog.cards
+            .map((card) => const CatalogEngineAdapter.v3().card(card))
+            .expand((card) => card.variants)
+            .any((variant) => variant.invertible == false),
+        isTrue,
+      );
+      setup.dispose();
+      return;
+    }
     await _playUnequal(setup, requireNonInvertibleWinner: true);
     final initial = setup.alice.initialResolution!;
     final loser = initial.loserPlayerId == 'alice' ? setup.alice : setup.bob;
@@ -416,7 +433,7 @@ void main() {
       var alice = _controller(backend, session, catalog, 'alice', aliceStore);
       final bob = _controller(backend, session, catalog, 'bob', bobStore);
       await Future.wait([alice.start(), bob.start()]);
-      alice.selectCard(alice.hand.first.id);
+      alice.selectCard(alice.hand.first.identity);
       final aliceValue = alice.selectedCard!.personalValue;
       await alice.confirmSelection();
       final savedPoints = Map<String, int>.from(alice.actionPoints);
@@ -486,12 +503,12 @@ void main() {
       final partner = identical(actor, setup.alice) ? setup.bob : setup.alice;
       final card = actor.corruptionCards.single;
       final before = actor.runtime.singleWhere(
-        (item) => item.cardId == card.id,
+        (item) => item.occurrenceId == card.identity,
       );
       expect(before.zone, CardZone.DISCARD);
 
       await actor.proposeCorruption(
-        card.id,
+        card.identity,
         CorruptionObjective.OWN_INITIAL_ACTION,
       );
       await _settle();
@@ -514,7 +531,9 @@ void main() {
       await _settle();
       expect(setup.backend.phase, NetworkGamePhase.recovery);
       expect(
-        actor.runtime.singleWhere((item) => item.cardId == card.id).zone,
+        actor.runtime
+            .singleWhere((item) => item.occurrenceId == card.identity)
+            .zone,
         CardZone.DISCARD,
       );
       setup.dispose();
@@ -537,7 +556,7 @@ void main() {
           .first;
 
       await actor.proposeCorruption(
-        offered.id,
+        offered.identity,
         CorruptionObjective.OWN_INITIAL_ACTION,
       );
       await _settle();
@@ -549,12 +568,14 @@ void main() {
       await _settle();
 
       expect(
-        actor.runtime.singleWhere((item) => item.cardId == offered.id).zone,
+        actor.runtime
+            .singleWhere((item) => item.occurrenceId == offered.identity)
+            .zone,
         CardZone.EXHAUSTED,
       );
       expect(
         actor.runtime
-            .singleWhere((item) => item.cardId == unrelated.cardId)
+            .singleWhere((item) => item.occurrenceId == unrelated.occurrenceId)
             .zone,
         CardZone.HAND,
       );
@@ -588,8 +609,8 @@ void main() {
       expect(setup.bob.recoveryAvailable, isFalse);
       final option = setup.alice.recoveryCards.first;
       final before = setup.backend.points['alice']!;
-      await setup.alice.recoverWith(option.id);
-      await setup.alice.recoverWith(option.id);
+      await setup.alice.recoverWith(option.identity);
+      await setup.alice.recoverWith(option.identity);
       await _settle();
       expect(setup.backend.round.recoveries['alice']!.gain, 0);
       expect(setup.backend.round.recoveries['alice']!.completed, isFalse);
@@ -799,13 +820,13 @@ Future<void> _playUnequal(
     final aWins = pair.$1.personalValue > pair.$2.personalValue;
     final winner = aWins ? pair.$1 : pair.$2;
     return pair.$1.personalValue != pair.$2.personalValue &&
-        (avoidAliceCard == null || pair.$1.id != avoidAliceCard) &&
-        (forceAliceCard == null || pair.$1.id == forceAliceCard) &&
+        (avoidAliceCard == null || pair.$1.identity != avoidAliceCard) &&
+        (forceAliceCard == null || pair.$1.identity == forceAliceCard) &&
         (!requireInvertibleWinner || winner.variant.invertible) &&
         (!requireNonInvertibleWinner || !winner.variant.invertible);
   });
-  setup.alice.selectCard(pair.$1.id);
-  setup.bob.selectCard(pair.$2.id);
+  setup.alice.selectCard(pair.$1.identity);
+  setup.bob.selectCard(pair.$2.identity);
   await setup.alice.confirmSelection();
   await setup.bob.confirmSelection();
   await _settle();
@@ -819,7 +840,7 @@ Future<void> _chooseUnequalPartner(
   final partner = bob.hand.firstWhere(
     (card) => card.personalValue != opponentValue,
   );
-  bob.selectCard(partner.id);
+  bob.selectCard(partner.identity);
   await bob.confirmSelection();
 }
 
@@ -1201,20 +1222,17 @@ final class _Repository implements NetworkGameRepository {
   Future<NetworkGameRoundStateDto> submitCorruptionOffer({
     required NetworkCommandDto command,
     required CorruptionObjective objective,
-    required List<String> cardIds,
+    required List<ActionPromise> actions,
   }) async {
     if (!_accept(command)) return backend.state(player);
     if (backend.phase != NetworkGamePhase.corruptionDecision ||
-        cardIds.isEmpty) {
+        actions.isEmpty) {
       throw const NetworkRoundException('ROUND_INVALID_PHASE');
     }
     backend.round.corruption = NetworkCorruptionDto(
       offeredBy: player,
       objective: objective,
-      actions: [
-        for (final id in cardIds)
-          ActionPromise(cardId: id, source: CardZone.DISCARD),
-      ],
+      actions: actions,
     );
     backend.round.phase = NetworkGamePhase.corruptionResponse;
     _notify();

@@ -201,17 +201,20 @@ final class PrivateCardDto {
   const PrivateCardDto({
     required this.cardId,
     required this.zone,
+    this.occurrenceId,
     this.variantId,
     this.locked = false,
   });
 
   final String cardId;
+  final String? occurrenceId;
   final String zone;
   final String? variantId;
   final bool locked;
 
   Map<String, Object?> toJson() => {
     'card_id': cardId,
+    'occurrence_id': occurrenceId,
     'zone': zone,
     'variant_id': variantId,
     'locked': locked,
@@ -219,6 +222,7 @@ final class PrivateCardDto {
 
   factory PrivateCardDto.fromJson(Map<String, Object?> json) => PrivateCardDto(
     cardId: json['card_id']! as String,
+    occurrenceId: json['occurrence_id'] as String?,
     zone: json['zone']! as String,
     variantId: json['variant_id'] as String?,
     locked: json['locked']! as bool,

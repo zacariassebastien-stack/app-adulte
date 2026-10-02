@@ -79,3 +79,24 @@ privée non révélée.
 3. Vérifier sur B qu’aucun score, préférence ou choix de profil de A n’apparaît.
 4. À la première fin de cycle, choisir l’une des trois options de profil,
    relancer puis vérifier que le choix privé est mémorisé et modifiable.
+
+## 10. `cardId` et `occurrenceId`
+
+1. Utiliser une fixture contenant deux copies du même contenu et verrouiller la
+   première occurrence.
+2. Jouer la seconde occurrence et vérifier que la première reste verrouillée
+   dans la main.
+3. Fermer puis relancer l’app et vérifier les deux identités, le verrou et les
+   zones sans duplication.
+4. Engager ensuite une seule copie dans une enchère et vérifier que seule cette
+   occurrence est consommée.
+
+## 11. Profil privé modifiable
+
+1. Ouvrir l’icône « Profil privé » pendant la partie et changer le choix
+   post-partie.
+2. Choisir « Personnaliser » et modifier une préférence déjà rencontrée.
+3. Vérifier que seule cette ligne devient manuelle et que les autres valeurs et
+   observations sont conservées.
+4. Relancer l’app et vérifier la persistance locale, sans changement visible
+   sur l’appareil partenaire.

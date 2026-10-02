@@ -128,6 +128,9 @@ final class NetworkGameController extends ChangeNotifier {
   List<DeckCandidateV3> _distanceDeck = [];
   int _deckCycle = 1;
   bool _infiniteMode = false;
+  PlayerStyle _deckStyle = PlayerStyle.SOFT;
+  List<DeckShortage> _deckShortages = [];
+  List<String> _recentCardIds = [];
   ChoiceRevealDto? _activeReveal;
   bool _nextRoundPrepared = false;
   StreamSubscription<NetworkGameRoundStateDto>? _subscription;
@@ -158,26 +161,44 @@ final class NetworkGameController extends ChangeNotifier {
   bool get usesV3Negotiation => repository is NetworkNegotiationRepository;
   String? get lockedCardId => _runtime
       .where((card) => card.zone == CardZone.HAND && card.locked)
-      .map((card) => card.cardId)
+      .map((card) => card.occurrenceId)
       .firstOrNull;
   List<CardRuntimeState> get runtime => List.unmodifiable(_runtime);
   Map<String, CardHistoryState> get history => Map.unmodifiable(_history);
   HybridDeckOrientation get orientation =>
       round?.hybridOrientation ?? HybridDeckOrientation.faceToFace;
-  bool get deckExhausted => _faceToFaceDeck.isEmpty && _distanceDeck.isEmpty;
+  bool get decksEmpty => _faceToFaceDeck.isEmpty && _distanceDeck.isEmpty;
+  bool get deckExhausted =>
+      decksEmpty && !_runtime.any((card) => card.zone == CardZone.HAND);
+  PlayerStyle get deckStyle => _deckStyle;
+  bool get infiniteMode => _infiniteMode;
+  bool get isCycleController => session.players.any(
+    (player) =>
+        player.userId == playerId && player.role == LobbyPlayerRole.player1,
+  );
+  List<DeckShortage> get deckShortages => List.unmodifiable(_deckShortages);
   int get faceToFaceDeckRemaining => _faceToFaceDeck.length;
   int get distanceDeckRemaining => _distanceDeck.length;
 
   List<NetworkDuelCard> get hand => [
     for (final item in _runtime.where((card) => card.zone == CardZone.HAND))
-      ?_networkCard(item.cardId),
+      ?_networkCard(
+        item.cardId,
+        occurrenceId: item.occurrenceId,
+        variantId: item.variantId,
+      ),
   ];
 
   List<NetworkDuelCard> get auctionCards => [
     for (final item in _runtime)
       if ((item.zone == CardZone.HAND || item.zone == CardZone.DISCARD) &&
-          item.cardId != _activeReveal?.choice.cardId)
-        ?_networkCard(item.cardId),
+          item.occurrenceId !=
+              _activeReveal?.choice.parameters['occurrence_id'])
+        ?_networkCard(
+          item.cardId,
+          occurrenceId: item.occurrenceId,
+          variantId: item.variantId,
+        ),
   ];
 
   String? get corruptionActorId {
@@ -189,7 +210,12 @@ final class NetworkGameController extends ChangeNotifier {
   bool get isCorruptionActor => corruptionActorId == playerId;
   List<NetworkDuelCard> get corruptionCards => [
     for (final item in _runtime)
-      if (lifecycleEngine.canUseForCorruption(item)) ?_networkCard(item.cardId),
+      if (lifecycleEngine.canUseForCorruption(item))
+        ?_networkCard(
+          item.cardId,
+          occurrenceId: item.occurrenceId,
+          variantId: item.variantId,
+        ),
   ];
 
   bool get recoveryAvailable => recoveryEngine.available(
@@ -203,7 +229,12 @@ final class NetworkGameController extends ChangeNotifier {
 
   List<NetworkDuelCard> get recoveryCards => [
     for (final item in _runtime)
-      if (item.zone != CardZone.EXHAUSTED) ?_networkRecoveryCard(item.cardId),
+      if (item.zone != CardZone.EXHAUSTED)
+        ?_networkRecoveryCard(
+          item.cardId,
+          occurrenceId: item.occurrenceId,
+          variantId: item.variantId,
+        ),
   ];
 
   Future<void> start() async {
@@ -226,6 +257,32 @@ final class NetworkGameController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<AdaptiveProfileState> profileState() => learning.state();
+
+  Future<void> customizePreference(
+    PreferenceLearningKey key,
+    DetailedPreferenceCategory category,
+  ) async {
+    final pa = switch (category) {
+      DetailedPreferenceCategory.essential => 1.5,
+      DetailedPreferenceCategory.love => 3.5,
+      DetailedPreferenceCategory.likeALot => 5.5,
+      DetailedPreferenceCategory.like => 7.5,
+      DetailedPreferenceCategory.tempted => 10.0,
+      DetailedPreferenceCategory.depends => 13.0,
+      DetailedPreferenceCategory.occasional => 15.5,
+      DetailedPreferenceCategory.atMyLimit => 18.0,
+      DetailedPreferenceCategory.unsure => 20.0,
+      DetailedPreferenceCategory.excluded => null,
+    };
+    await learning.manuallyCustomize(
+      key: key,
+      pa: pa,
+      excluded: category == DetailedPreferenceCategory.excluded,
+    );
+    notifyListeners();
+  }
+
   Future<void> switchOrientation(HybridDeckOrientation value) async {
     if (repository is! NetworkSessionFlowRepository || value == orientation) {
       return;
@@ -239,15 +296,19 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   Future<void> continueDeck(DeckExhaustionChoice choice) async {
-    if (repository is! NetworkSessionFlowRepository) return;
+    if (repository is! NetworkSessionFlowRepository || !isCycleController) {
+      return;
+    }
     if (choice != DeckExhaustionChoice.newCustomizedGame &&
         choice != DeckExhaustionChoice.finish) {
       final cycle = DeckCycleState(
-        style: PlayerStyle.EPICE,
+        style: _deckStyle,
         infinite: _infiniteMode,
+        recentOccurrenceKeys: _recentCardIds,
       ).next(choice);
       _deckCycle++;
       _infiniteMode = cycle.infinite;
+      _deckStyle = cycle.style;
       _buildDeckCycle();
       _refill(roundNumber + 1);
       await _persist();
@@ -256,34 +317,45 @@ final class NetworkGameController extends ChangeNotifier {
       (repository as NetworkSessionFlowRepository).continueDeckCycle(
         command: _command('CONTINUE_CYCLE'),
         choice: choice,
+        deckAdjustment: {
+          for (final shortage in _deckShortages)
+            shortage.requestedSpice: shortage.missingCount,
+        },
       ),
     );
   }
 
-  void toggleLock(String cardId) {
+  void toggleLock(String occurrenceId) {
     if (viewState != NetworkGameViewState.choosing ||
         round?.ownCommitRecorded == true) {
       return;
     }
     final target = _runtime
-        .where((card) => card.cardId == cardId && card.zone == CardZone.HAND)
+        .where(
+          (card) =>
+              card.occurrenceId == occurrenceId && card.zone == CardZone.HAND,
+        )
         .firstOrNull;
     if (target == null) return;
     if (target.locked) {
       _runtime = [
         for (final card in _runtime)
-          card.cardId == cardId ? card.copyWith(locked: false) : card,
+          card.occurrenceId == occurrenceId
+              ? card.copyWith(locked: false)
+              : card,
       ];
     } else {
-      _runtime = lifecycleEngine.lock(_runtime, cardId);
+      _runtime = lifecycleEngine.lock(_runtime, occurrenceId);
     }
     unawaited(_persist());
     notifyListeners();
   }
 
-  void selectCard(String cardId) {
+  void selectCard(String occurrenceId) {
     if (viewState != NetworkGameViewState.choosing) return;
-    selectedCard = hand.where((card) => card.id == cardId).firstOrNull;
+    selectedCard = hand
+        .where((card) => card.identity == occurrenceId)
+        .firstOrNull;
     notifyListeners();
   }
 
@@ -306,6 +378,7 @@ final class NetworkGameController extends ChangeNotifier {
         parameters: {
           'role': card.role.name,
           'personal_value': card.personalValue,
+          'occurrence_id': card.identity,
           'committed_at': clock().toUtc().toIso8601String(),
         },
       );
@@ -316,7 +389,7 @@ final class NetworkGameController extends ChangeNotifier {
         nonce: nonceFactory(),
       );
       _activeReveal = reveal;
-      _runtime = lifecycleEngine.engage(_runtime, card.id);
+      _runtime = lifecycleEngine.engage(_runtime, card.identity);
       await _persist();
       await _apply(
         await repository.submitCommit(
@@ -526,19 +599,28 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   Future<void> proposeCorruption(
-    String cardId,
+    String occurrenceId,
     CorruptionObjective objective,
   ) async {
+    final card = corruptionCards
+        .where((item) => item.identity == occurrenceId)
+        .firstOrNull;
     if (viewState != NetworkGameViewState.corruptionDecision ||
         !isCorruptionActor ||
-        !corruptionCards.any((card) => card.id == cardId)) {
+        card == null) {
       return;
     }
     await _networkAction(
       repository.submitCorruptionOffer(
         command: _command('CORRUPTION_OFFER'),
         objective: objective,
-        cardIds: [cardId],
+        actions: [
+          ActionPromise(
+            cardId: card.id,
+            occurrenceId: card.identity,
+            source: CardZone.DISCARD,
+          ),
+        ],
       ),
     );
   }
@@ -601,12 +683,16 @@ final class NetworkGameController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> recoverWith(String cardId) async {
+  Future<void> recoverWith(String occurrenceId) async {
     if (viewState != NetworkGameViewState.recovery || !recoveryAvailable) {
       return;
     }
-    final card = recoveryCards.where((item) => item.id == cardId).firstOrNull;
-    final runtime = _runtime.where((item) => item.cardId == cardId).firstOrNull;
+    final card = recoveryCards
+        .where((item) => item.identity == occurrenceId)
+        .firstOrNull;
+    final runtime = _runtime
+        .where((item) => item.occurrenceId == occurrenceId)
+        .firstOrNull;
     if (card == null || runtime == null) return;
     final source = switch (runtime.zone) {
       CardZone.HAND => RecoverySource.HAND,
@@ -620,11 +706,13 @@ final class NetworkGameController extends ChangeNotifier {
       source: source,
       completed: false,
       gain: 0,
-      occurrenceId: '$playerId:${round!.roundId}:recovery:$cardId',
+      occurrenceId: occurrenceId,
     );
     await _networkAction(
       repository.submitRecovery(
-        command: _command('RECOVERY_${round!.recoveryHistory.length}_$cardId'),
+        command: _command(
+          'RECOVERY_${round!.recoveryHistory.length}_$occurrenceId',
+        ),
         recovery: recovery,
       ),
     );
@@ -660,7 +748,7 @@ final class NetworkGameController extends ChangeNotifier {
       variantId: proposal.variantId,
       source: proposal.source,
       completed: completed,
-      gain: completed ? _recoveryGain(proposal.cardId) : 0,
+      gain: completed ? _recoveryGain(proposal) : 0,
       response: proposal.response,
       occurrenceId: proposal.occurrenceId,
     );
@@ -674,7 +762,7 @@ final class NetworkGameController extends ChangeNotifier {
     );
     _runtime = recoveryEngine.applyLifecycle(
       cards: _runtime,
-      cardId: proposal.cardId,
+      cardId: proposal.occurrenceId ?? proposal.cardId,
       source: proposal.source,
       completed: completed,
     );
@@ -749,6 +837,15 @@ final class NetworkGameController extends ChangeNotifier {
     if (value.sessionId != session.id) {
       _fail(const NetworkRoundException('ROUND_NOT_FOUND'));
       return;
+    }
+    final publicCycleAdvanced = value.deckCycle > _deckCycle;
+    _deckStyle = value.deckStyle;
+    _deckCycle = value.deckCycle;
+    _infiniteMode = value.infiniteMode;
+    if (publicCycleAdvanced && decksEmpty && deckExhausted) {
+      _buildDeckCycle();
+      _refill(value.roundNumber + 1);
+      await _persist(roundNumber: value.roundNumber);
     }
     if (round?.roundId != value.roundId) {
       await _activatePreparedRound(value);
@@ -856,6 +953,7 @@ final class NetworkGameController extends ChangeNotifier {
     for (final id in played) {
       _history[id] = CardHistoryState.playedOrDiscarded;
     }
+    _rememberRecent(played);
     await _persist();
   }
 
@@ -869,12 +967,12 @@ final class NetworkGameController extends ChangeNotifier {
                 card.ownerPlayerId == playerId &&
                 card.origin == NetworkCompromiseOrigin.AUCTION,
           )
-          .map((card) => card.cardId)
+          .map((card) => card.occurrenceId)
           .toSet();
       if (auctionOccurrences.isNotEmpty) {
         final reconciled = [
           for (final card in _runtime)
-            if (auctionOccurrences.contains(card.cardId) &&
+            if (auctionOccurrences.contains(card.occurrenceId) &&
                 card.zone != CardZone.EXHAUSTED)
               card.copyWith(zone: CardZone.ENGAGED, locked: false)
             else
@@ -931,7 +1029,11 @@ final class NetworkGameController extends ChangeNotifier {
     for (var index = 0; index < first.length; index++) {
       final a = first[index];
       final b = second[index];
-      if (a.cardId != b.cardId || a.zone != b.zone || a.locked != b.locked) {
+      if (a.cardId != b.cardId ||
+          a.variantId != b.variantId ||
+          a.occurrenceId != b.occurrenceId ||
+          a.zone != b.zone ||
+          a.locked != b.locked) {
         return false;
       }
     }
@@ -1064,7 +1166,12 @@ final class NetworkGameController extends ChangeNotifier {
       _distanceDeck = List.of(saved.distanceDeck);
       _deckCycle = saved.deckCycle;
       _infiniteMode = saved.infiniteMode;
-      if (_faceToFaceDeck.isEmpty && _distanceDeck.isEmpty) {
+      _deckStyle = saved.deckStyle;
+      _deckShortages = List.of(saved.deckShortages);
+      _recentCardIds = List.of(saved.recentCardIds);
+      if (_faceToFaceDeck.isEmpty &&
+          _distanceDeck.isEmpty &&
+          saved.cards.isEmpty) {
         _buildDeckCycle();
       }
       if (_nextRoundPrepared && saved.roundNumber == current.roundNumber) {
@@ -1073,10 +1180,7 @@ final class NetworkGameController extends ChangeNotifier {
       }
       return;
     }
-    _runtime = [
-      for (final card in _engineCards.values)
-        CardRuntimeState(cardId: card.id, zone: CardZone.POOL),
-    ];
+    _runtime = [];
     _history = {};
     _learningRecordedRounds = {};
     _buildDeckCycle();
@@ -1094,6 +1198,7 @@ final class NetworkGameController extends ChangeNotifier {
     for (final id in played) {
       _history[id] = CardHistoryState.playedOrDiscarded;
     }
+    _rememberRecent(played);
     _refill(roundNumber + 1);
     _activeReveal = null;
     selectedCard = null;
@@ -1109,28 +1214,40 @@ final class NetworkGameController extends ChangeNotifier {
       (card) => card.zone == CardZone.HAND || card.zone == CardZone.ENGAGED,
     )) {
       final definition = _definitions[runtimeCard.cardId];
-      final network = _networkCard(runtimeCard.cardId);
+      final network = _networkCard(
+        runtimeCard.cardId,
+        occurrenceId: runtimeCard.occurrenceId,
+        variantId: runtimeCard.variantId,
+      );
       if (definition == null || network == null) continue;
       final variant = definition.variants.singleWhere(
         (item) => item.stableId == network.variant.id,
       );
-      visibleHand.add(v3LearningDescriptor(definition, variant));
+      visibleHand.add(
+        v3LearningDescriptor(
+          definition,
+          variant,
+          occurrenceId: runtimeCard.occurrenceId,
+        ),
+      );
     }
     final reveal = _activeReveal;
     await learning.recordHand(
       cards: visibleHand,
       played: {
         if (reveal != null)
-          '${reveal.choice.cardId}|${reveal.choice.variantId}',
+          (reveal.choice.parameters['occurrence_id'] as String?) ??
+              '${reveal.choice.cardId}|${reveal.choice.variantId}',
         for (final card in result.compromise)
           if (card.ownerPlayerId == playerId &&
               card.origin == NetworkCompromiseOrigin.AUCTION)
-            '${card.cardId}|${card.variantId}',
+            card.occurrenceId,
       },
       locked: {
         for (final card in _runtime.where((card) => card.locked))
           for (final descriptor in visibleHand)
-            if (descriptor.cardId == card.cardId) descriptor.identity,
+            if (descriptor.occurrenceId == card.occurrenceId)
+              descriptor.identity,
       },
     );
     if (!result.mutualAbandon) {
@@ -1160,7 +1277,11 @@ final class NetworkGameController extends ChangeNotifier {
         if (definition == null || variant == null) continue;
         accepted.add(
           _resolvedLearningCard(
-            v3LearningDescriptor(definition, variant),
+            v3LearningDescriptor(
+              definition,
+              variant,
+              occurrenceId: item.occurrenceId,
+            ),
             ownerId: item.ownerPlayerId,
             inverted:
                 item.origin == NetworkCompromiseOrigin.INITIAL_DUEL &&
@@ -1180,7 +1301,11 @@ final class NetworkGameController extends ChangeNotifier {
         if (definition == null || variant == null) continue;
         recoveryAccepted.add(
           _resolvedLearningCard(
-            v3LearningDescriptor(definition, variant),
+            v3LearningDescriptor(
+              definition,
+              variant,
+              occurrenceId: recovery.occurrenceId,
+            ),
             ownerId: recovery.playerId,
             inverted: false,
           ),
@@ -1310,38 +1435,49 @@ final class NetworkGameController extends ChangeNotifier {
         const BalanceConfig().handSize -
         _runtime.where((card) => card.zone == CardZone.HAND).length;
     if (needed <= 0) return;
-    if (deckExhausted && _infiniteMode) _buildDeckCycle();
+    if (decksEmpty && _infiniteMode) {
+      _deckCycle++;
+      _buildDeckCycle();
+    }
     final deck = SessionDeckRuntime(
       faceToFace: _faceToFaceDeck,
       distance: _distanceDeck,
       random: Random(_stableHash('$playerId/$targetRound/$_deckCycle')),
     );
     while (needed > 0) {
-      final drawn = deck.draw(orientation);
+      final drawn = deck.draw(
+        orientation,
+        avoidCardIds: _recentCardIds.toSet(),
+      );
       if (drawn == null) break;
       final alreadyActive = _runtime.any(
-        (card) =>
-            card.cardId == drawn.cardId &&
-            (card.zone == CardZone.HAND || card.zone == CardZone.ENGAGED),
+        (card) => card.occurrenceId == drawn.occurrenceId,
       );
       if (alreadyActive) continue;
       _runtime = [
-        for (final card in _runtime)
-          card.cardId == drawn.cardId
-              ? card.copyWith(zone: CardZone.HAND, locked: false)
-              : card,
+        ..._runtime,
+        CardRuntimeState(
+          cardId: drawn.cardId,
+          occurrenceId: drawn.occurrenceId,
+          variantId: drawn.variantId,
+          zone: CardZone.HAND,
+        ),
       ];
       _history[drawn.cardId] = CardHistoryState.seenUnplayed;
       needed--;
     }
     _faceToFaceDeck = List.of(deck.faceToFace);
     _distanceDeck = List.of(deck.distance);
+    if (needed < const BalanceConfig().handSize) _recentCardIds = [];
   }
 
   void _buildDeckCycle() {
     final source = <DeckCandidateV3>[];
     for (final definition in _definitions.values) {
-      final card = _networkCard(definition.stableId);
+      final card = _networkCard(
+        definition.stableId,
+        context: _context.copyWith(chiliActive: 5, chiliUnlocked: 5),
+      );
       if (card == null) continue;
       source.add(
         DeckCandidateV3(
@@ -1354,26 +1490,39 @@ final class NetworkGameController extends ChangeNotifier {
         ),
       );
     }
-    final decks = HybridSessionDecks(source: source);
+    final build = const SessionDeckBuilderV3().build(
+      eligible: source,
+      targetBySpice: _targetBySpice(source.length, _deckStyle),
+      style: _deckStyle,
+    );
+    final decks = HybridSessionDecks(source: build.cards);
     _faceToFaceDeck = List.of(decks.faceToFace);
     _distanceDeck = List.of(decks.distance);
+    _deckShortages = List.of(build.shortages);
   }
 
-  NetworkDuelCard? _networkCard(String cardId) {
+  NetworkDuelCard? _networkCard(
+    String cardId, {
+    String? occurrenceId,
+    String? variantId,
+    EngineSessionContext? context,
+  }) {
     final definition = _definitions[cardId];
     final engine = _engineCards[cardId];
     if (definition == null || engine == null) return null;
-    final eligible = const EligibilityEngine()
-        .evaluate(
-          card: engine,
-          context: _context,
-          actor: _profile(playerId),
-          partner: _profile(opponentId),
-          hierarchy: _hierarchy,
-          requirePersonalValue: true,
-        )
-        .eligibleVariants
-        .firstOrNull;
+    final eligible = variantId == null
+        ? const EligibilityEngine()
+              .evaluate(
+                card: engine,
+                context: context ?? _context,
+                actor: _profile(playerId),
+                partner: _profile(opponentId),
+                hierarchy: _hierarchy,
+                requirePersonalValue: true,
+              )
+              .eligibleVariants
+              .firstOrNull
+        : engine.variants.where((item) => item.id == variantId).firstOrNull;
     if (eligible == null) return null;
     final variant = definition.variants.firstWhere(
       (item) => item.stableId == eligible.id,
@@ -1394,10 +1543,15 @@ final class NetworkGameController extends ChangeNotifier {
         role,
         _fixtureValue(playerId, elementId, role),
       ),
+      occurrenceId: occurrenceId,
     );
   }
 
-  NetworkDuelCard? _networkRecoveryCard(String cardId) {
+  NetworkDuelCard? _networkRecoveryCard(
+    String cardId, {
+    String? occurrenceId,
+    String? variantId,
+  }) {
     final definition = _definitions[cardId];
     final engine = _engineCards[cardId];
     if (definition == null || engine == null) return null;
@@ -1408,16 +1562,18 @@ final class NetworkGameController extends ChangeNotifier {
           if (card.zone == CardZone.EXHAUSTED) card.cardId,
       },
     );
-    final eligible = recoveryEngine
-        .actionEligibility(
-          card: engine,
-          context: recoveryContext,
-          actor: _profile(playerId),
-          partner: _profile(opponentId),
-          hierarchy: _hierarchy,
-        )
-        .eligibleVariants
-        .firstOrNull;
+    final eligible = variantId == null
+        ? recoveryEngine
+              .actionEligibility(
+                card: engine,
+                context: recoveryContext,
+                actor: _profile(playerId),
+                partner: _profile(opponentId),
+                hierarchy: _hierarchy,
+              )
+              .eligibleVariants
+              .firstOrNull
+        : engine.variants.where((item) => item.id == variantId).firstOrNull;
     if (eligible == null) return null;
     final variant = definition.variants.firstWhere(
       (item) => item.stableId == eligible.id,
@@ -1438,11 +1594,16 @@ final class NetworkGameController extends ChangeNotifier {
         role,
         _fixtureValue(playerId, elementId, role),
       ),
+      occurrenceId: occurrenceId,
     );
   }
 
-  int _recoveryGain(String cardId) {
-    final card = _networkRecoveryCard(cardId);
+  int _recoveryGain(NetworkRecoveryDto proposal) {
+    final card = _networkRecoveryCard(
+      proposal.cardId,
+      occurrenceId: proposal.occurrenceId,
+      variantId: proposal.variantId,
+    );
     if (card == null) return 0;
     return recoveryEngine
         .resolve(
@@ -1477,13 +1638,15 @@ final class NetworkGameController extends ChangeNotifier {
   }) {
     final cards = <NetworkCompromiseCardDto>[];
     for (final id in cardIds) {
-      final card = auctionCards.where((item) => item.id == id).firstOrNull;
+      final card = auctionCards
+          .where((item) => item.identity == id)
+          .firstOrNull;
       if (card == null) throw ArgumentError('Carte d’enchère indisponible');
       final direction = _networkDirection(card);
       cards.add(
         NetworkCompromiseCardDto(
-          occurrenceId: '$playerId:${round!.roundId}:auction:$id',
-          cardId: id,
+          occurrenceId: card.identity,
+          cardId: card.id,
           variantId: card.variant.id,
           ownerPlayerId: playerId,
           nativeDirection: direction,
@@ -1627,8 +1790,40 @@ final class NetworkGameController extends ChangeNotifier {
       distanceDeck: _distanceDeck,
       deckCycle: _deckCycle,
       infiniteMode: _infiniteMode,
+      deckStyle: _deckStyle,
+      deckShortages: _deckShortages,
+      recentCardIds: _recentCardIds,
     ),
   );
+
+  void _rememberRecent(Iterable<String> cardIds) {
+    _recentCardIds = [
+      ..._recentCardIds,
+      ...cardIds,
+    ].reversed.toSet().take(4).toList().reversed.toList();
+  }
+
+  static Map<int, int> _targetBySpice(int size, PlayerStyle style) {
+    if (size <= 0) return const {};
+    final weights = const BalanceConfig().styleDistributions[style]!;
+    final total = weights.values.fold<double>(0, (sum, value) => sum + value);
+    final targets = <int, int>{};
+    var assigned = 0;
+    for (var level = 1; level <= 5; level++) {
+      final count = (size * weights[level]! / total).floor();
+      targets[level] = count;
+      assigned += count;
+    }
+    var level = style == PlayerStyle.SOFT ? 1 : 5;
+    while (assigned < size) {
+      targets[level] = (targets[level] ?? 0) + 1;
+      assigned++;
+      level = style == PlayerStyle.SOFT
+          ? (level == 5 ? 1 : level + 1)
+          : (level == 1 ? 5 : level - 1);
+    }
+    return targets;
+  }
 
   NetworkCommandDto _command(String type, {String? roundId, int? roundNumber}) {
     final number = roundNumber ?? this.roundNumber;

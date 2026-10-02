@@ -88,8 +88,9 @@ final class MemoryNetworkProfileLearningStore
 
 LearningCardDescriptor v3LearningDescriptor(
   CardDefinition card,
-  CardVariantDefinition variant,
-) {
+  CardVariantDefinition variant, {
+  String? occurrenceId,
+}) {
   final editorial = variant.v3 ?? card.v3;
   return LearningCardDescriptor(
     cardId: card.stableId,
@@ -102,6 +103,7 @@ LearningCardDescriptor v3LearningDescriptor(
             .where((tag) => tag.startsWith('v3.preference.'))
             .take(1),
     ],
+    occurrenceId: occurrenceId,
   );
 }
 
@@ -151,6 +153,21 @@ final class NetworkProfileLearningCoordinator {
   Future<void> recordResistance(ResistanceLearningEvent event) async {
     final current = await state();
     _state = engine.recordResistance(current, event);
+    await store.save(_state!);
+  }
+
+  Future<void> manuallyCustomize({
+    required PreferenceLearningKey key,
+    double? pa,
+    bool excluded = false,
+  }) async {
+    final current = await state();
+    _state = engine.manuallyCustomize(
+      current,
+      key: key,
+      pa: pa,
+      excluded: excluded,
+    );
     await store.save(_state!);
   }
 }

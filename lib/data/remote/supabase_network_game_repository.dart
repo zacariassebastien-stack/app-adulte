@@ -140,6 +140,7 @@ final class SupabaseNetworkGameRepository
   Future<NetworkGameRoundStateDto> continueDeckCycle({
     required NetworkCommandDto command,
     required DeckExhaustionChoice choice,
+    Map<int, int> deckAdjustment = const {},
   }) => _rpc(
     'continue_network_deck_cycle',
     command,
@@ -150,6 +151,10 @@ final class SupabaseNetworkGameRepository
         DeckExhaustionChoice.infinite => 'INFINITE',
         DeckExhaustionChoice.newCustomizedGame => 'NEW_GAME',
         DeckExhaustionChoice.finish => 'FINISH',
+      },
+      'p_adjustment': {
+        for (final entry in deckAdjustment.entries)
+          entry.key.toString(): entry.value,
       },
     },
   );
@@ -201,11 +206,17 @@ final class SupabaseNetworkGameRepository
   Future<NetworkGameRoundStateDto> submitCorruptionOffer({
     required NetworkCommandDto command,
     required CorruptionObjective objective,
-    required List<String> cardIds,
+    required List<ActionPromise> actions,
   }) => _rpc(
     'submit_network_corruption_offer',
     command,
-    extra: {'p_objective': objective.name, 'p_card_ids': cardIds},
+    extra: {
+      'p_objective': objective.name,
+      'p_card_ids': [
+        for (final action in actions)
+          {'card_id': action.cardId, 'occurrence_id': action.identity},
+      ],
+    },
   );
 
   @override

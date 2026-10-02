@@ -123,10 +123,15 @@ final class NetworkVisibilityProjection {
           for (final card in ownCards)
             if (card.zone == 'HAND') card,
         ],
-        lockedCardId: ownCards
-            .where((card) => card.zone == 'HAND' && card.locked)
-            .firstOrNull
-            ?.cardId,
+        lockedCardId:
+            ownCards
+                .where((card) => card.zone == 'HAND' && card.locked)
+                .firstOrNull
+                ?.occurrenceId ??
+            ownCards
+                .where((card) => card.zone == 'HAND' && card.locked)
+                .firstOrNull
+                ?.cardId,
         committedChoice: state.committedChoices[playerId],
         commitNonce: state.commitNonces[playerId],
         personalValues: state.personalValues[playerId] ?? const {},

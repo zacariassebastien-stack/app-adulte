@@ -27,6 +27,7 @@ final class NetworkDuelCard {
     required this.variant,
     required this.role,
     required this.preference,
+    this.occurrenceId,
   });
 
   final CardDefinition definition;
@@ -34,8 +35,10 @@ final class NetworkDuelCard {
   final EngineVariant variant;
   final ProfileRole role;
   final UserPreference preference;
+  final String? occurrenceId;
 
   String get id => engine.id;
+  String get identity => occurrenceId ?? id;
   String get title => definition.title ?? definition.titleKey ?? id;
   int get chiliLevel => variant.chiliLevel;
   int get personalValue => switch (role) {

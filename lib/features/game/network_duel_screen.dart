@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/catalog/catalog.dart';
+import '../../domain/game/game_models.dart';
+import '../../domain/profile/adaptive_profile.dart';
 import '../../engines/auction/auction_engine.dart';
 import '../../engines/corruption/corruption_engine.dart';
 import '../../engines/deck/session_deck_builder.dart';
@@ -83,6 +85,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       title: Text('TOUR ${controller.roundNumber}'),
       actions: [
         IconButton(
+          key: const Key('open-private-profile-settings'),
+          tooltip: 'Profil privé',
+          onPressed: _openProfileSettings,
+          icon: const Icon(Icons.manage_accounts),
+        ),
+        IconButton(
           key: const Key('switch-hybrid-orientation'),
           tooltip: controller.orientation == HybridDeckOrientation.faceToFace
               ? 'Passer en orientation distance'
@@ -161,22 +169,22 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       const SizedBox(height: 12),
       for (final card in controller.hand) ...[
         Card(
-          color: controller.selectedCard?.id == card.id
+          color: controller.selectedCard?.identity == card.identity
               ? Theme.of(context).colorScheme.secondaryContainer
               : null,
           child: ListTile(
-            key: Key('network-card-${card.id}'),
+            key: Key('network-card-${card.identity}'),
             onTap: controller.viewState == NetworkGameViewState.choosing
-                ? () => controller.selectCard(card.id)
+                ? () => controller.selectCard(card.identity)
                 : null,
             leading: IconButton(
-              key: Key('lock-${card.id}'),
-              tooltip: controller.lockedCardId == card.id
+              key: Key('lock-${card.identity}'),
+              tooltip: controller.lockedCardId == card.identity
                   ? 'Déverrouiller'
                   : 'Verrouiller',
-              onPressed: () => controller.toggleLock(card.id),
+              onPressed: () => controller.toggleLock(card.identity),
               icon: Icon(
-                controller.lockedCardId == card.id
+                controller.lockedCardId == card.identity
                     ? Icons.lock
                     : Icons.lock_open,
               ),
@@ -185,7 +193,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             subtitle: Text(
               '${card.role.name} · ${_chilies(card.chiliLevel)} · ${card.personalValue}/20',
             ),
-            trailing: controller.selectedCard?.id == card.id
+            trailing: controller.selectedCard?.identity == card.identity
                 ? const Icon(Icons.check_circle)
                 : null,
           ),
@@ -268,13 +276,13 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           const Text('Cartes ajoutées au compromis'),
           for (final card in controller.auctionCards)
             CheckboxListTile(
-              key: Key('negotiation-card-${card.id}'),
-              value: _negotiationCards.contains(card.id),
+              key: Key('negotiation-card-${card.identity}'),
+              value: _negotiationCards.contains(card.identity),
               onChanged: (selected) => setState(() {
                 if (selected == true) {
-                  _negotiationCards.add(card.id);
+                  _negotiationCards.add(card.identity);
                 } else {
-                  _negotiationCards.remove(card.id);
+                  _negotiationCards.remove(card.identity);
                 }
               }),
               title: Text(card.title),
@@ -525,11 +533,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             'Cycle de cartes terminé',
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          if (controller.round!.deckAdjustment.isNotEmpty)
-            Text(
-              'Répartition ajustée — le deck a été complété automatiquement '
-              'pour cette configuration.',
-            ),
+          if (controller.deckShortages.isNotEmpty) _deckAdjustmentMessage(),
           if (controller.postGameProfileChoice == null) ...[
             const Text('Pour la suite de ton profil privé :'),
             TextButton(
@@ -550,30 +554,41 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               child: const Text('Ne rien faire pour l’instant'),
             ),
           ],
-          FilledButton(
-            key: const Key('continue-spicier'),
-            onPressed: () =>
-                controller.continueDeck(DeckExhaustionChoice.continueSpicier),
-            child: const Text('Continuer plus épicé'),
-          ),
-          OutlinedButton(
-            key: const Key('enable-infinite'),
-            onPressed: () =>
-                controller.continueDeck(DeckExhaustionChoice.infinite),
-            child: const Text('Mode Infini'),
-          ),
-          OutlinedButton(
-            key: const Key('new-customized-game'),
-            onPressed: () =>
-                controller.continueDeck(DeckExhaustionChoice.newCustomizedGame),
-            child: const Text('Nouvelle partie'),
-          ),
-          TextButton(
-            key: const Key('finish-game'),
-            onPressed: () =>
-                controller.continueDeck(DeckExhaustionChoice.finish),
-            child: const Text('Terminer'),
-          ),
+          if (controller.isCycleController) ...[
+            FilledButton(
+              key: const Key('continue-spicier'),
+              onPressed: () => controller.continueDeck(
+                controller.deckStyle == PlayerStyle.INTENABLE
+                    ? DeckExhaustionChoice.continueIntenable
+                    : DeckExhaustionChoice.continueSpicier,
+              ),
+              child: Text(
+                controller.deckStyle == PlayerStyle.SOFT
+                    ? 'Continuer en Épicé'
+                    : 'Continuer en Intenable',
+              ),
+            ),
+            OutlinedButton(
+              key: const Key('enable-infinite'),
+              onPressed: () =>
+                  controller.continueDeck(DeckExhaustionChoice.infinite),
+              child: const Text('Mode Infini'),
+            ),
+            OutlinedButton(
+              key: const Key('new-customized-game'),
+              onPressed: () => controller.continueDeck(
+                DeckExhaustionChoice.newCustomizedGame,
+              ),
+              child: const Text('Nouvelle partie'),
+            ),
+            TextButton(
+              key: const Key('finish-game'),
+              onPressed: () =>
+                  controller.continueDeck(DeckExhaustionChoice.finish),
+              child: const Text('Terminer'),
+            ),
+          ] else
+            _waitingCard('Ton partenaire choisit la suite de la partie…'),
         ] else
           FilledButton(
             key: const Key('ready-next-round'),
@@ -601,7 +616,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             subtitle: const Text('Carte de la défausse'),
             trailing: FilledButton.tonal(
               onPressed: () => controller.proposeCorruption(
-                card.id,
+                card.identity,
                 CorruptionObjective.OWN_INITIAL_ACTION,
               ),
               child: const Text('Proposer'),
@@ -692,8 +707,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                 'Gain si acceptée : ${(card.personalValue * 1.5).ceil()} PA',
               ),
               trailing: FilledButton.tonal(
-                key: Key('recover-with-${card.id}'),
-                onPressed: () => controller.recoverWith(card.id),
+                key: Key('recover-with-${card.identity}'),
+                onPressed: () => controller.recoverWith(card.identity),
                 child: const Text('Recovery'),
               ),
             ),
@@ -831,6 +846,120 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       style: TextStyle(color: Theme.of(context).colorScheme.error),
     ),
   );
+
+  Widget _deckAdjustmentMessage() => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Répartition ajustée',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 6),
+          for (final shortage in controller.deckShortages)
+            Text(
+              '• ${shortage.missingCount} carte${shortage.missingCount > 1 ? 's' : ''} '
+              '${List.filled(shortage.requestedSpice, '🌶️').join()} manquante${shortage.missingCount > 1 ? 's' : ''}',
+            ),
+          const SizedBox(height: 6),
+          const Text(
+            'Des cartes d’intensité proche ont été utilisées afin de préserver la variété du deck.',
+          ),
+        ],
+      ),
+    ),
+  );
+
+  Future<void> _openProfileSettings() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) => SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              MediaQuery.viewInsetsOf(context).bottom + 16,
+            ),
+            child: FutureBuilder<AdaptiveProfileState>(
+              future: controller.profileState(),
+              builder: (context, snapshot) {
+                final entries = snapshot.data?.entries.values.toList() ?? [];
+                return ListView(
+                  shrinkWrap: true,
+                  children: [
+                    Text(
+                      'Profil privé',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const Text(
+                      'Ce réglage et tes valeurs restent uniquement sur cet appareil.',
+                    ),
+                    for (final choice in PostGameProfileChoice.values)
+                      ListTile(
+                        selected: controller.postGameProfileChoice == choice,
+                        title: Text(_profileChoiceLabel(choice)),
+                        trailing: controller.postGameProfileChoice == choice
+                            ? const Icon(Icons.check_circle)
+                            : null,
+                        onTap: () async {
+                          await controller.choosePostGameProfile(choice);
+                          setSheetState(() {});
+                        },
+                      ),
+                    if (controller.postGameProfileChoice ==
+                        PostGameProfileChoice.customize) ...[
+                      const Divider(),
+                      const Text('Préférences rencontrées'),
+                      if (entries.isEmpty)
+                        const Text(
+                          'Les préférences apparaîtront ici après les premières observations.',
+                        ),
+                      for (final entry in entries)
+                        ListTile(
+                          title: Text(entry.key.preferenceId),
+                          subtitle: Text(entry.key.role.name),
+                          trailing: DropdownButton<DetailedPreferenceCategory>(
+                            value: entry.currentCategory,
+                            onChanged: (category) async {
+                              if (category == null) return;
+                              await controller.customizePreference(
+                                entry.key,
+                                category,
+                              );
+                              setSheetState(() {});
+                            },
+                            items: [
+                              for (final category
+                                  in DetailedPreferenceCategory.values)
+                                DropdownMenuItem(
+                                  value: category,
+                                  child: Text(category.label),
+                                ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static String _profileChoiceLabel(PostGameProfileChoice choice) =>
+      switch (choice) {
+        PostGameProfileChoice.customize => 'Personnaliser mon profil',
+        PostGameProfileChoice.trustGame => 'Faire confiance au jeu',
+        PostGameProfileChoice.later => 'Ne rien faire pour l’instant',
+      };
 
   Future<void> _submitCounter() async {
     final amount = int.tryParse(auctionForm.counterAmount.text);

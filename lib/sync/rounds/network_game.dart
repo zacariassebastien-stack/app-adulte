@@ -3,6 +3,7 @@ import '../../engines/corruption/corruption_engine.dart';
 import '../../engines/deck/session_deck_builder.dart';
 import '../../engines/lifecycle/lifecycle_engine.dart';
 import '../../engines/recovery/recovery_engine.dart';
+import '../../domain/game/game_models.dart';
 import '../../domain/session/session_state.dart';
 import '../commit_reveal/commit_reveal.dart';
 import '../protocol/idempotency.dart';
@@ -217,6 +218,7 @@ final class NetworkCorruptionDto {
       for (final action in actions)
         {
           'card_id': action.cardId,
+          'occurrence_id': action.occurrenceId,
           'source': action.source.name,
           'status': action.status.name,
           'visibility': action.visibility.name,
@@ -236,6 +238,7 @@ final class NetworkCorruptionDto {
             if (Map<String, Object?>.from(raw! as Map) case final action)
               ActionPromise(
                 cardId: action['card_id']! as String,
+                occurrenceId: action['occurrence_id'] as String?,
                 source: CardZone.values.byName(action['source']! as String),
                 status: ActionExecutionStatus.values.byName(
                   action['status']! as String,
@@ -430,6 +433,7 @@ final class NetworkGameRoundStateDto {
     this.hybridOrientation = HybridDeckOrientation.faceToFace,
     this.deckCycle = 1,
     this.infiniteMode = false,
+    this.deckStyle = PlayerStyle.SOFT,
     Map<String, int>? deckAdjustment,
     this.ownReveal,
     this.opponentReveal,
@@ -466,6 +470,7 @@ final class NetworkGameRoundStateDto {
   final HybridDeckOrientation hybridOrientation;
   final int deckCycle;
   final bool infiniteMode;
+  final PlayerStyle deckStyle;
   final Map<String, int> deckAdjustment;
   final ChoiceRevealDto? ownReveal;
   final ChoiceRevealDto? opponentReveal;
@@ -501,6 +506,7 @@ final class NetworkGameRoundStateDto {
         : 'DISTANCE',
     'deck_cycle': deckCycle,
     'infinite_mode': infiniteMode,
+    'deck_style': deckStyle.name,
     'deck_adjustment': deckAdjustment,
     'own_reveal': ownReveal?.toJson(),
     'opponent_reveal': opponentReveal?.toJson(),
@@ -562,6 +568,9 @@ final class NetworkGameRoundStateDto {
           : HybridDeckOrientation.faceToFace,
       deckCycle: (json['deck_cycle'] as int?) ?? 1,
       infiniteMode: (json['infinite_mode'] as bool?) ?? false,
+      deckStyle: PlayerStyle.values.byName(
+        (json['deck_style'] as String?) ?? PlayerStyle.SOFT.name,
+      ),
       deckAdjustment: Map<String, int>.from(
         (json['deck_adjustment'] as Map?) ?? const {},
       ),
@@ -640,7 +649,7 @@ abstract interface class NetworkGameRepository {
   Future<NetworkGameRoundStateDto> submitCorruptionOffer({
     required NetworkCommandDto command,
     required CorruptionObjective objective,
-    required List<String> cardIds,
+    required List<ActionPromise> actions,
   });
 
   Future<NetworkGameRoundStateDto> respondCorruption({
@@ -716,6 +725,7 @@ abstract interface class NetworkSessionFlowRepository {
   Future<NetworkGameRoundStateDto> continueDeckCycle({
     required NetworkCommandDto command,
     required DeckExhaustionChoice choice,
+    Map<int, int> deckAdjustment = const {},
   });
 }
 

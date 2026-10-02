@@ -93,4 +93,67 @@ void main() {
     );
     expect(updated['alice']!.entries, isEmpty);
   });
+
+  test(
+    'manual customization changes only the selected sparse preference',
+    () async {
+      final store = MemoryNetworkProfileLearningStore();
+      final initial = AdaptiveProfileState(profileId: 'alice');
+      const engine = ProfileLearningEngine();
+      final first = engine.manuallyCustomize(
+        initial,
+        key: const PreferenceLearningKey(preferenceId: 'v3.preference.a'),
+        pa: 8,
+      );
+      final withSecond = engine.manuallyCustomize(
+        first,
+        key: const PreferenceLearningKey(preferenceId: 'v3.preference.b'),
+        pa: 12,
+      );
+      await store.save(withSecond);
+      final coordinator = NetworkProfileLearningCoordinator(
+        playerId: 'alice',
+        store: store,
+      );
+      const edited = PreferenceLearningKey(preferenceId: 'v3.preference.a');
+      await coordinator.manuallyCustomize(key: edited, pa: 3);
+      final result = store.values['alice']!;
+      expect(result.entry(edited)!.currentPa, 3);
+      expect(
+        result.entry(edited)!.source,
+        AdaptiveProfileSource.manualCustomized,
+      );
+      expect(
+        result
+            .entry(
+              const PreferenceLearningKey(preferenceId: 'v3.preference.b'),
+            )!
+            .currentPa,
+        12,
+      );
+    },
+  );
+
+  test('duplicate content learns one played occurrence only', () async {
+    final store = MemoryNetworkProfileLearningStore();
+    final coordinator = NetworkProfileLearningCoordinator(
+      playerId: 'alice',
+      store: store,
+    );
+    LearningCardDescriptor copy(String occurrence) => LearningCardDescriptor(
+      cardId: 'massage',
+      variantId: 'massage.v',
+      occurrenceId: occurrence,
+      tags: const ['v3.preference.masser', 'v3.direction.faire'],
+      spiceLevel: 2,
+    );
+    await coordinator.recordHand(
+      cards: [copy('massage#17'), copy('massage#42')],
+      played: const {'massage#17'},
+    );
+    final entry = store.values['alice']!.entries.values.first;
+    expect(entry.exposureCount, 2);
+    expect(entry.playedCount, 1);
+    expect(entry.ignoredCount, 1);
+  });
 }

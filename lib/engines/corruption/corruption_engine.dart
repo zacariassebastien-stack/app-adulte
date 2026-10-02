@@ -12,15 +12,19 @@ final class ActionPromise {
   const ActionPromise({
     required this.cardId,
     required this.source,
+    this.occurrenceId,
     this.status = ActionExecutionStatus.PROPOSED,
     this.visibility = PromiseVisibility.VISIBLE,
   });
   final String cardId;
+  final String? occurrenceId;
+  String get identity => occurrenceId ?? cardId;
   final CardZone source;
   final ActionExecutionStatus status;
   final PromiseVisibility visibility;
   ActionPromise copyWith({ActionExecutionStatus? status}) => ActionPromise(
     cardId: cardId,
+    occurrenceId: occurrenceId,
     source: source,
     status: status ?? this.status,
     visibility: visibility,
@@ -85,7 +89,7 @@ final class CorruptionEngine {
           action.source == CardZone.DISCARD) {
         updated = lifecycle.exhaustDiscardAction(
           updated,
-          action.cardId,
+          action.identity,
           actuallyCompleted: true,
         );
         events.add(

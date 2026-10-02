@@ -343,13 +343,19 @@ final class CardRuntimeState {
   const CardRuntimeState({
     required this.cardId,
     required this.zone,
+    String? occurrenceId,
+    this.variantId,
     this.locked = false,
-  });
+  }) : occurrenceId = occurrenceId ?? cardId;
   final String cardId;
+  final String occurrenceId;
+  final String? variantId;
   final CardZone zone;
   final bool locked;
   CardRuntimeState copyWith({CardZone? zone, bool? locked}) => CardRuntimeState(
     cardId: cardId,
+    occurrenceId: occurrenceId,
+    variantId: variantId,
     zone: zone ?? this.zone,
     locked: locked ?? this.locked,
   );

@@ -30,3 +30,16 @@ concerne que la carte initiale et coûte la valeur haute initiale.
 Les requirements filtrent la disponibilité. Seuls les tags
 `v3.preference.*` sont notés et appris. Les directions spécialisent une
 préférence; elles ne reçoivent jamais de score isolé.
+
+## `cardId` et `occurrenceId`
+
+`cardId` identifie le contenu éditorial stable. `occurrenceId` identifie un
+exemplaire précis créé pour un cycle. La main, le verrouillage, l’engagement,
+la défausse, la corruption, la Recovery et les cartes d’enchère manipulent
+toujours l’occurrence. Deux exemplaires du même contenu peuvent donc coexister
+sans que jouer le premier modifie le second.
+
+La source de profil reste la combinaison sémantique de la carte et de son rôle:
+l’occurrence empêche les doubles consommations, mais ne crée pas une nouvelle
+préférence. Une édition manuelle marque uniquement la préférence modifiée
+`MANUAL_CUSTOMIZED`; elle ne modifie ni les autres entrées ni les observations.

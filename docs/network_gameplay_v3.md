@@ -19,3 +19,17 @@ valeur personnelle.
 La reprise conserve les secrets, la main, l’historique et le marqueur local des
 rounds déjà appris. Ainsi une reconnexion ne répète ni exposition, ni
 acceptation, ni dépense.
+
+## `cardId` et `occurrenceId`
+
+Le protocole conserve `cardId` pour retrouver le contenu et `occurrenceId`
+pour cibler l’exemplaire. Le choix commit/reveal place l’occurrence dans le
+payload canonique privé; elle ne devient publique qu’avec la révélation
+autorisée. Les enchères, compromis, corruptions et Recovery transportent
+également l’occurrence et le serveur refuse les doublons d’identité.
+
+L’état public de session contient l’orientation hybride, le numéro de cycle,
+l’intensité, le mode Infini et un résumé neutre des pénuries. Les ordres de
+deck, mains, verrous, profils, exclusions et apprentissages restent locaux.
+Une continuation conserve les PA et change seulement le cycle et, lorsque
+demandé, l’intensité.
