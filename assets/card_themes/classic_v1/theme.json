@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "classic_v1",
+  "name": "Classic V1",
+  "version": 1,
+  "layout_id": "classic_v1",
+  "skin_id": "classic_v1",
+  "illustration_style_id": "default",
+  "minimum_renderer_version": 1,
+  "premium": false,
+  "system": true
+}

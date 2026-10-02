@@ -28,3 +28,7 @@ flutter:
     - assets/catalog/source/tags.v1.json
     - assets/catalog/source/catalog_v3_taxonomy.json
     - assets/catalog/source/roleplay_scenarios.v1.fr.json
+    - assets/card_themes/classic_v1/theme.json
+    - assets/card_themes/classic_v1/layout.json
+    - assets/card_themes/classic_v1/skin.json
+    - assets/card_themes/classic_v1/illustrations.json

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../card_themes/card_renderer.dart';
+import '../../card_themes/card_theme_models.dart';
 import '../../domain/catalog/catalog.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/profile/adaptive_profile.dart';
@@ -168,34 +170,52 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       const Text('Ta main, ton verrou et tes notes restent privés.'),
       const SizedBox(height: 12),
       for (final card in controller.hand) ...[
-        Card(
-          color: controller.selectedCard?.identity == card.identity
-              ? Theme.of(context).colorScheme.secondaryContainer
-              : null,
-          child: ListTile(
-            key: Key('network-card-${card.identity}'),
-            onTap: controller.viewState == NetworkGameViewState.choosing
-                ? () => controller.selectCard(card.identity)
-                : null,
-            leading: IconButton(
-              key: Key('lock-${card.identity}'),
-              tooltip: controller.lockedCardId == card.identity
-                  ? 'Déverrouiller'
-                  : 'Verrouiller',
-              onPressed: () => controller.toggleLock(card.identity),
-              icon: Icon(
-                controller.lockedCardId == card.identity
-                    ? Icons.lock
-                    : Icons.lock_open,
+        SizedBox(
+          height: 250,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: InkWell(
+                  key: Key('network-card-${card.identity}'),
+                  onTap: controller.viewState == NetworkGameViewState.choosing
+                      ? () => controller.selectCard(card.identity)
+                      : null,
+                  child: CardRenderer(
+                    definition: CardRenderDefinition(
+                      cardId: card.id,
+                      variantId: card.variant.id,
+                      title: card.title,
+                      action: card.definition.descriptionKey,
+                      direction: card.role.name,
+                      spice: card.chiliLevel,
+                      personalPa: card.personalValue,
+                      illustrationId: card.definition.illustrationKey,
+                    ),
+                    state: controller.selectedCard?.identity == card.identity
+                        ? CardVisualState.selected
+                        : controller.lockedCardId == card.identity
+                        ? CardVisualState.locked
+                        : CardVisualState.normal,
+                  ),
+                ),
               ),
-            ),
-            title: Text(card.title),
-            subtitle: Text(
-              '${card.role.name} · ${_chilies(card.chiliLevel)} · ${card.personalValue}/20',
-            ),
-            trailing: controller.selectedCard?.identity == card.identity
-                ? const Icon(Icons.check_circle)
-                : null,
+              Positioned(
+                left: 8,
+                top: 8,
+                child: IconButton.filledTonal(
+                  key: Key('lock-${card.identity}'),
+                  tooltip: controller.lockedCardId == card.identity
+                      ? 'Déverrouiller'
+                      : 'Verrouiller',
+                  onPressed: () => controller.toggleLock(card.identity),
+                  icon: Icon(
+                    controller.lockedCardId == card.identity
+                        ? Icons.lock
+                        : Icons.lock_open,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),

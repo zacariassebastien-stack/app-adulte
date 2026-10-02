@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../card_themes/card_theme_models.dart';
+import '../card_themes/card_theme_registry.dart';
+import '../card_themes/card_theme_repository.dart';
 import '../features/lobby/lobby_repository.dart';
 import 'app.dart';
 
@@ -34,9 +37,12 @@ class _CoupleCardsBootstrapState extends State<CoupleCardsBootstrap> {
     final stopwatch = Stopwatch()..start();
     debugPrint('Bootstrap: starting lobby repository initialization');
     try {
-      final repository = await widget.initializeRepository().timeout(
-        widget.initializationTimeout,
-      );
+      final result = await Future.wait<Object>([
+        widget.initializeRepository(),
+        _loadClassicTheme(),
+      ]).timeout(widget.initializationTimeout);
+      final repository = result[0] as LobbyRepository;
+      CardThemeRegistry.installClassic(result[1] as ThemeBundle);
       debugPrint(
         'Bootstrap: lobby repository ready in ${stopwatch.elapsedMilliseconds} ms',
       );
@@ -47,6 +53,15 @@ class _CoupleCardsBootstrapState extends State<CoupleCardsBootstrap> {
       if (mounted) {
         setState(() => _repository = const UnavailableLobbyRepository());
       }
+    }
+  }
+
+  Future<ThemeBundle> _loadClassicTheme() async {
+    try {
+      return await const AssetCardThemeLoader().loadClassic();
+    } on Object catch (error) {
+      debugPrint('Bootstrap: classic_v1 asset fallback used: $error');
+      return CardThemeRegistry.classic;
     }
   }
 

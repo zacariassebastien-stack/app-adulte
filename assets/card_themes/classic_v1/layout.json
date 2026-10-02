@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "classic_v1",
+  "name": "Classic V1",
+  "version": 1,
+  "aspect_ratio": 0.7,
+  "system": true,
+  "front": [
+    {"id":"direction","type":"direction","box":{"x":0.06,"y":0.04,"width":0.54,"height":0.07},"alignment":"start","rotation":0,"padding":0,"margin":0,"visible":true,"z_index":2},
+    {"id":"pa","type":"pa","box":{"x":0.78,"y":0.035,"width":0.16,"height":0.08},"alignment":"end","rotation":0,"padding":0,"margin":0,"visible":true,"z_index":3},
+    {"id":"illustration","type":"illustration","box":{"x":0.06,"y":0.13,"width":0.88,"height":0.43},"alignment":"center","rotation":0,"padding":0,"margin":0,"visible":true,"z_index":0},
+    {"id":"title","type":"title","box":{"x":0.06,"y":0.59,"width":0.88,"height":0.10},"alignment":"start","rotation":0,"padding":0,"margin":0,"visible":true,"z_index":2},
+    {"id":"action","type":"action","box":{"x":0.06,"y":0.69,"width":0.88,"height":0.11},"alignment":"start","rotation":0,"padding":0,"margin":0,"visible":true,"z_index":2},
+    {"id":"zones","type":"zones","box":{"x":0.06,"y":0.81,"width":0.55,"height":0.06},"alignment":"start","rotation":0,"padding":0,"margin":0,"visible":true,"z_index":2},
+    {"id":"spice","type":"spice","box":{"x":0.06,"y":0.89,"width":0.42,"height":0.07},"alignment":"start","rotation":0,"padding":0,"margin":0,"visible":true,"z_index":2},
+    {"id":"details","type":"details","box":{"x":0.50,"y":0.89,"width":0.44,"height":0.07},"alignment":"end","rotation":0,"padding":0,"margin":0,"visible":true,"z_index":2}
+  ],
+  "back": [
+    {"id":"back_identity","type":"backIdentity","box":{"x":0.08,"y":0.30,"width":0.84,"height":0.15},"alignment":"center","rotation":0,"padding":0,"margin":0,"visible":true,"z_index":1},
+    {"id":"back_slogan","type":"backSlogan","box":{"x":0.12,"y":0.48,"width":0.76,"height":0.10},"alignment":"center","rotation":0,"padding":0,"margin":0,"visible":true,"z_index":1},
+    {"id":"back_player","type":"backPlayer","box":{"x":0.12,"y":0.72,"width":0.76,"height":0.08},"alignment":"center","rotation":0,"padding":0,"margin":0,"visible":true,"z_index":1}
+  ]
+}

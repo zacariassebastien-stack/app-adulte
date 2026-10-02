@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../card_themes/card_renderer.dart';
+import '../../card_themes/card_theme_models.dart';
+
 import '../../domain/game/game_screen_data.dart';
 import '../../engines/engines.dart';
 import 'local_game_controller.dart';
@@ -1473,133 +1476,66 @@ class GameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final title = card.titleKey ?? 'Carte';
     final description =
         card.descriptionKey ??
         card.instructionKeys.firstOrNull ??
         'Description à venir';
-    final chili = card.chiliLevels.isEmpty ? '—' : card.chiliLevels.join(' · ');
     final isLocked = locked ?? card.locked;
+    final visualState = unavailable
+        ? CardVisualState.readonly
+        : selected
+        ? CardVisualState.selected
+        : isLocked
+        ? (prominent ? CardVisualState.full : CardVisualState.locked)
+        : prominent
+        ? CardVisualState.full
+        : CardVisualState.normal;
     return Opacity(
       opacity: unavailable ? 0.48 : 1,
-      child: Container(
-        decoration: BoxDecoration(
-          color: colors.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(prominent ? 22 : 14),
-          border: Border.all(
-            color: selected ? colors.primary : colors.outlineVariant,
-            width: selected ? 3 : 1,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: CardRenderer(
+              definition: CardRenderDefinition(
+                cardId: card.cardId,
+                title: title,
+                action: compact ? null : description,
+                direction: card.category,
+                spice: card.chiliLevels.isEmpty ? 1 : card.chiliLevels.first,
+                personalPa: hidePersonalValue ? null : card.personalValue,
+                details: compact
+                    ? null
+                    : card.instructionKeys.skip(1).firstOrNull,
+                illustrationId: card.illustrationKey,
+              ),
+              state: visualState,
+            ),
           ),
-          boxShadow: prominent
-              ? [
-                  BoxShadow(
-                    color: colors.shadow.withValues(alpha: 0.08),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Padding(
-          padding: EdgeInsets.all(compact ? 7 : 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      card.category,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colors.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  if (selected)
-                    Icon(
-                      Icons.check_circle_rounded,
-                      key: Key('card-selected-${card.cardId}'),
-                      size: compact ? 15 : 20,
-                      color: colors.primary,
-                      semanticLabel: 'Carte sélectionnée',
-                    ),
-                  if (isLocked)
-                    Icon(
-                      Icons.lock_rounded,
-                      key: Key('card-lock-${card.cardId}'),
-                      size: compact ? 15 : 20,
-                      semanticLabel: 'Carte verrouillée',
-                    ),
-                ],
+          if (selected)
+            Positioned(
+              right: 5,
+              top: 5,
+              child: Icon(
+                Icons.check_circle_rounded,
+                key: Key('card-selected-${card.cardId}'),
+                size: compact ? 15 : 20,
+                color: Theme.of(context).colorScheme.primary,
+                semanticLabel: 'Carte sélectionnée',
               ),
-              SizedBox(height: compact ? 4 : 8),
-              Expanded(
-                flex: prominent ? 3 : 2,
-                child: Container(
-                  key: Key('illustration-${card.cardId}'),
-                  decoration: BoxDecoration(
-                    color: colors.secondaryContainer,
-                    borderRadius: BorderRadius.circular(compact ? 8 : 14),
-                  ),
-                  child: Icon(
-                    Icons.image_outlined,
-                    size: compact ? 22 : 42,
-                    color: colors.onSecondaryContainer.withValues(alpha: 0.55),
-                  ),
-                ),
+            ),
+          if (isLocked)
+            Positioned(
+              right: 5,
+              top: selected ? (compact ? 22 : 29) : 5,
+              child: Icon(
+                Icons.lock_rounded,
+                key: Key('card-lock-${card.cardId}'),
+                size: compact ? 15 : 20,
+                semanticLabel: 'Carte verrouillée',
               ),
-              SizedBox(height: compact ? 4 : 8),
-              Text(
-                title,
-                maxLines: compact ? 1 : 2,
-                overflow: TextOverflow.ellipsis,
-                style:
-                    (compact
-                            ? Theme.of(context).textTheme.labelMedium
-                            : Theme.of(context).textTheme.titleMedium)
-                        ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              if (!compact) ...[
-                const SizedBox(height: 3),
-                Text(
-                  description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-              SizedBox(height: compact ? 3 : 6),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '🌶️ $chili',
-                      maxLines: 1,
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
-                    if (!hidePersonalValue && card.personalValue != null) ...[
-                      const SizedBox(width: 6),
-                      Text(
-                        '${card.personalValue}/20',
-                        key: Key('personal-value-${card.cardId}'),
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
   }

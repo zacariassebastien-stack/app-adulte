@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../app/asset_catalog.dart';
+import '../../card_themes/card_theme_editor_screen.dart';
 import '../../domain/catalog/catalog.dart';
 import '../game/network_duel_screen.dart';
 import 'active_session_store.dart';
@@ -62,7 +64,22 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Jouer à deux')),
+    appBar: AppBar(
+      title: const Text('Jouer à deux'),
+      actions: [
+        if (kDebugMode)
+          IconButton(
+            key: const Key('open-card-theme-editor'),
+            tooltip: 'Card Theme Editor',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const CardThemeEditorScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.palette_outlined),
+          ),
+      ],
+    ),
     body: SafeArea(
       child: Center(
         child: SingleChildScrollView(
