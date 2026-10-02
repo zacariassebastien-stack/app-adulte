@@ -1,5 +1,6 @@
 import '../../engines/auction/auction_engine.dart';
 import '../../engines/corruption/corruption_engine.dart';
+import '../../engines/deck/session_deck_builder.dart';
 import '../../engines/lifecycle/lifecycle_engine.dart';
 import '../../engines/recovery/recovery_engine.dart';
 import '../../domain/session/session_state.dart';
@@ -7,10 +8,17 @@ import '../commit_reveal/commit_reveal.dart';
 import '../protocol/idempotency.dart';
 import '../protocol/network_dtos.dart';
 
+// Wire enum names intentionally match the stable SQL/JSON protocol.
+// ignore_for_file: constant_identifier_names
+
 enum NetworkGamePhase {
   commit,
   reveal,
   ready,
+  negotiationProposal,
+  negotiationResponse,
+  negotiationAdaptation,
+  negotiationValidation,
   counterDecision,
   finalDefenseDecision,
   tieDecision,
@@ -23,6 +31,163 @@ enum NetworkGamePhase {
   recoveryExecution,
   waitingNext,
   closed,
+}
+
+enum NetworkCompromiseOrigin { INITIAL_DUEL, AUCTION, RECOVERY }
+
+enum NetworkCardDirection { GENERAL, FAIRE, RECEVOIR, MUTUEL, SOLO, SIMULTANE }
+
+NetworkCardDirection invertNetworkDirection(NetworkCardDirection direction) =>
+    switch (direction) {
+      NetworkCardDirection.FAIRE => NetworkCardDirection.RECEVOIR,
+      NetworkCardDirection.RECEVOIR => NetworkCardDirection.FAIRE,
+      _ => direction,
+    };
+
+final class NetworkCompromiseCardDto {
+  const NetworkCompromiseCardDto({
+    required this.occurrenceId,
+    required this.cardId,
+    required this.variantId,
+    required this.ownerPlayerId,
+    required this.nativeDirection,
+    required this.effectiveDirection,
+    required this.origin,
+    required this.snapshotValue,
+    this.logicalOrder,
+  });
+
+  final String occurrenceId;
+  final String cardId;
+  final String variantId;
+  final String ownerPlayerId;
+  final NetworkCardDirection nativeDirection;
+  final NetworkCardDirection effectiveDirection;
+  final NetworkCompromiseOrigin origin;
+  final int snapshotValue;
+  final int? logicalOrder;
+
+  NetworkCompromiseCardDto copyWith({
+    NetworkCardDirection? effectiveDirection,
+    int? logicalOrder,
+  }) => NetworkCompromiseCardDto(
+    occurrenceId: occurrenceId,
+    cardId: cardId,
+    variantId: variantId,
+    ownerPlayerId: ownerPlayerId,
+    nativeDirection: nativeDirection,
+    effectiveDirection: effectiveDirection ?? this.effectiveDirection,
+    origin: origin,
+    snapshotValue: snapshotValue,
+    logicalOrder: logicalOrder ?? this.logicalOrder,
+  );
+
+  Map<String, Object?> toJson() => {
+    'occurrence_id': occurrenceId,
+    'card_id': cardId,
+    'variant_id': variantId,
+    'owner_player_id': ownerPlayerId,
+    'native_direction': nativeDirection.name,
+    'effective_direction': effectiveDirection.name,
+    'origin': origin.name,
+    'snapshot_value': snapshotValue,
+    'logical_order': logicalOrder,
+  };
+
+  factory NetworkCompromiseCardDto.fromJson(Map<String, Object?> json) =>
+      NetworkCompromiseCardDto(
+        occurrenceId: json['occurrence_id']! as String,
+        cardId: json['card_id']! as String,
+        variantId: json['variant_id']! as String,
+        ownerPlayerId: json['owner_player_id']! as String,
+        nativeDirection: NetworkCardDirection.values.byName(
+          json['native_direction']! as String,
+        ),
+        effectiveDirection: NetworkCardDirection.values.byName(
+          json['effective_direction']! as String,
+        ),
+        origin: NetworkCompromiseOrigin.values.byName(
+          json['origin']! as String,
+        ),
+        snapshotValue: json['snapshot_value']! as int,
+        logicalOrder: json['logical_order'] as int?,
+      );
+}
+
+final class NetworkNegotiationOfferDto {
+  NetworkNegotiationOfferDto({
+    required this.inversionRequested,
+    required this.directPa,
+    List<NetworkCompromiseCardDto> cards = const [],
+  }) : cards = List.unmodifiable(cards);
+
+  final bool inversionRequested;
+  final int directPa;
+  final List<NetworkCompromiseCardDto> cards;
+  int get totalValue =>
+      directPa + cards.fold(0, (sum, card) => sum + card.snapshotValue);
+
+  Map<String, Object?> toJson() => {
+    'inversion_requested': inversionRequested,
+    'direct_pa': directPa,
+    'cards': [for (final card in cards) card.toJson()],
+  };
+
+  factory NetworkNegotiationOfferDto.fromJson(Map<String, Object?> json) =>
+      NetworkNegotiationOfferDto(
+        inversionRequested: json['inversion_requested']! as bool,
+        directPa: json['direct_pa']! as int,
+        cards: [
+          for (final raw in (json['cards'] as List?) ?? const [])
+            NetworkCompromiseCardDto.fromJson(
+              Map<String, Object?>.from(raw! as Map),
+            ),
+        ],
+      );
+}
+
+final class NetworkNegotiationResponseDto {
+  const NetworkNegotiationResponseDto({
+    required this.acceptInversion,
+    required this.acceptAuction,
+  });
+  final bool acceptInversion;
+  final bool acceptAuction;
+  Map<String, Object?> toJson() => {
+    'accept_inversion': acceptInversion,
+    'accept_auction': acceptAuction,
+  };
+  factory NetworkNegotiationResponseDto.fromJson(Map<String, Object?> json) =>
+      NetworkNegotiationResponseDto(
+        acceptInversion: json['accept_inversion']! as bool,
+        acceptAuction: json['accept_auction']! as bool,
+      );
+}
+
+final class NetworkNegotiationDto {
+  const NetworkNegotiationDto({this.proposal, this.response, this.finalOffer});
+  final NetworkNegotiationOfferDto? proposal;
+  final NetworkNegotiationResponseDto? response;
+  final NetworkNegotiationOfferDto? finalOffer;
+  Map<String, Object?> toJson() => {
+    'proposal': proposal?.toJson(),
+    'response': response?.toJson(),
+    'final_offer': finalOffer?.toJson(),
+  };
+  factory NetworkNegotiationDto.fromJson(Map<String, Object?> json) {
+    T? optional<T>(String key, T Function(Map<String, Object?>) parse) {
+      final value = json[key];
+      return value == null
+          ? null
+          : parse(Map<String, Object?>.from(value as Map));
+    }
+
+    return NetworkNegotiationDto(
+      proposal: optional('proposal', NetworkNegotiationOfferDto.fromJson),
+      response: optional('response', NetworkNegotiationResponseDto.fromJson),
+      finalOffer: optional('final_offer', NetworkNegotiationOfferDto.fromJson),
+    );
+  }
 }
 
 enum CounterDecision { accept, bid }
@@ -92,6 +257,7 @@ final class NetworkRecoveryDto {
     required this.completed,
     required this.gain,
     this.response,
+    this.occurrenceId,
   });
 
   final String playerId;
@@ -101,6 +267,7 @@ final class NetworkRecoveryDto {
   final bool completed;
   final int gain;
   final RecoveryResponse? response;
+  final String? occurrenceId;
 
   Map<String, Object?> toJson() => {
     'player_id': playerId,
@@ -110,6 +277,7 @@ final class NetworkRecoveryDto {
     'completed': completed,
     'gain': gain,
     'response': response?.name,
+    'occurrence_id': occurrenceId,
   };
 
   factory NetworkRecoveryDto.fromJson(Map<String, Object?> json) =>
@@ -123,6 +291,7 @@ final class NetworkRecoveryDto {
         response: json['response'] == null
             ? null
             : RecoveryResponse.values.byName(json['response']! as String),
+        occurrenceId: json['occurrence_id'] as String?,
       );
 }
 
@@ -131,6 +300,7 @@ final class NetworkInitialResolutionDto {
     required this.tied,
     required this.gap,
     required this.gapCost,
+    this.highValue = 0,
     required Map<String, int> actionPoints,
     this.winnerPlayerId,
     this.loserPlayerId,
@@ -142,6 +312,7 @@ final class NetworkInitialResolutionDto {
   final String? loserPlayerId;
   final int gap;
   final int gapCost;
+  final int highValue;
   final Map<String, int> actionPoints;
   final bool inversionAllowed;
 
@@ -151,6 +322,7 @@ final class NetworkInitialResolutionDto {
     'loser_player_id': loserPlayerId,
     'gap': gap,
     'gap_cost': gapCost,
+    'high_value': highValue,
     'action_points': actionPoints,
     'inversion_allowed': inversionAllowed,
   };
@@ -162,6 +334,7 @@ final class NetworkInitialResolutionDto {
         loserPlayerId: json['loser_player_id'] as String?,
         gap: json['gap']! as int,
         gapCost: json['gap_cost']! as int,
+        highValue: (json['high_value'] as int?) ?? 0,
         actionPoints: Map<String, int>.from(json['action_points']! as Map),
         inversionAllowed: json['inversion_allowed']! as bool,
       );
@@ -195,33 +368,50 @@ final class NetworkAuctionBidDto {
 final class NetworkFinalResolutionDto {
   const NetworkFinalResolutionDto({
     this.retainedPlayerId,
+    this.initialWinnerPlayerId,
+    this.finalWinnerPlayerId,
     this.cardId,
     this.variantId,
     this.inverted = false,
     this.mutualAbandon = false,
+    this.compromise = const [],
   });
 
   final String? retainedPlayerId;
+  final String? initialWinnerPlayerId;
+  final String? finalWinnerPlayerId;
   final String? cardId;
   final String? variantId;
   final bool inverted;
   final bool mutualAbandon;
+  final List<NetworkCompromiseCardDto> compromise;
 
   Map<String, Object?> toJson() => {
     'retained_player_id': retainedPlayerId,
+    'initial_winner_player_id': initialWinnerPlayerId,
+    'final_winner_player_id': finalWinnerPlayerId,
     'card_id': cardId,
     'variant_id': variantId,
     'inverted': inverted,
     'mutual_abandon': mutualAbandon,
+    'compromise': [for (final card in compromise) card.toJson()],
   };
 
   factory NetworkFinalResolutionDto.fromJson(Map<String, Object?> json) =>
       NetworkFinalResolutionDto(
         retainedPlayerId: json['retained_player_id'] as String?,
+        initialWinnerPlayerId: json['initial_winner_player_id'] as String?,
+        finalWinnerPlayerId: json['final_winner_player_id'] as String?,
         cardId: json['card_id'] as String?,
         variantId: json['variant_id'] as String?,
         inverted: json['inverted']! as bool,
         mutualAbandon: json['mutual_abandon']! as bool,
+        compromise: [
+          for (final raw in (json['compromise'] as List?) ?? const [])
+            NetworkCompromiseCardDto.fromJson(
+              Map<String, Object?>.from(raw! as Map),
+            ),
+        ],
       );
 }
 
@@ -237,23 +427,31 @@ final class NetworkGameRoundStateDto {
     required Map<String, int> actionPoints,
     required Set<String> readyNextPlayerIds,
     required Map<String, TieDecision> tieDecisions,
+    this.hybridOrientation = HybridDeckOrientation.faceToFace,
+    this.deckCycle = 1,
+    this.infiniteMode = false,
+    Map<String, int>? deckAdjustment,
     this.ownReveal,
     this.opponentReveal,
     this.initialResolution,
     this.counterBid,
     this.finalDefense,
+    this.negotiation,
     this.finalResolution,
     this.corruption,
     Map<String, NetworkRecoveryDto>? recoveryByPlayer,
     Set<String>? recoveryDonePlayerIds,
+    List<NetworkRecoveryDto>? recoveryHistory,
   }) : commits = Map.unmodifiable(commits),
        actionPoints = Map.unmodifiable(actionPoints),
        readyNextPlayerIds = Set.unmodifiable(readyNextPlayerIds),
        tieDecisions = Map.unmodifiable(tieDecisions),
+       deckAdjustment = Map.unmodifiable(deckAdjustment ?? const {}),
        recoveryByPlayer = Map.unmodifiable(recoveryByPlayer ?? const {}),
        recoveryDonePlayerIds = Set.unmodifiable(
          recoveryDonePlayerIds ?? const {},
-       );
+       ),
+       recoveryHistory = List.unmodifiable(recoveryHistory ?? const []);
 
   final String roundId;
   final String sessionId;
@@ -265,15 +463,21 @@ final class NetworkGameRoundStateDto {
   final Map<String, int> actionPoints;
   final Set<String> readyNextPlayerIds;
   final Map<String, TieDecision> tieDecisions;
+  final HybridDeckOrientation hybridOrientation;
+  final int deckCycle;
+  final bool infiniteMode;
+  final Map<String, int> deckAdjustment;
   final ChoiceRevealDto? ownReveal;
   final ChoiceRevealDto? opponentReveal;
   final NetworkInitialResolutionDto? initialResolution;
   final NetworkAuctionBidDto? counterBid;
   final NetworkAuctionBidDto? finalDefense;
+  final NetworkNegotiationDto? negotiation;
   final NetworkFinalResolutionDto? finalResolution;
   final NetworkCorruptionDto? corruption;
   final Map<String, NetworkRecoveryDto> recoveryByPlayer;
   final Set<String> recoveryDonePlayerIds;
+  final List<NetworkRecoveryDto> recoveryHistory;
 
   bool get ownCommitRecorded => commits.containsKey(playerId);
   bool get ownRevealRecorded => ownReveal != null;
@@ -292,11 +496,18 @@ final class NetworkGameRoundStateDto {
     'tie_decisions': {
       for (final entry in tieDecisions.entries) entry.key: entry.value.name,
     },
+    'hybrid_orientation': hybridOrientation == HybridDeckOrientation.faceToFace
+        ? 'FACE_TO_FACE'
+        : 'DISTANCE',
+    'deck_cycle': deckCycle,
+    'infinite_mode': infiniteMode,
+    'deck_adjustment': deckAdjustment,
     'own_reveal': ownReveal?.toJson(),
     'opponent_reveal': opponentReveal?.toJson(),
     'initial_resolution': initialResolution?.toJson(),
     'counter_bid': counterBid?.toJson(),
     'final_defense': finalDefense?.toJson(),
+    'negotiation': negotiation?.toJson(),
     'final_resolution': finalResolution?.toJson(),
     'corruption': corruption?.toJson(),
     'recovery_by_player': {
@@ -304,6 +515,7 @@ final class NetworkGameRoundStateDto {
         entry.key: entry.value.toJson(),
     },
     'recovery_done': {for (final id in recoveryDonePlayerIds) id: true},
+    'recovery_history': [for (final item in recoveryHistory) item.toJson()],
   };
 
   factory NetworkGameRoundStateDto.fromJson(Map<String, Object?> json) {
@@ -345,6 +557,14 @@ final class NetworkGameRoundStateDto {
         for (final entry in ties.entries)
           entry.key: TieDecision.values.byName(entry.value! as String),
       },
+      hybridOrientation: json['hybrid_orientation'] == 'DISTANCE'
+          ? HybridDeckOrientation.distance
+          : HybridDeckOrientation.faceToFace,
+      deckCycle: (json['deck_cycle'] as int?) ?? 1,
+      infiniteMode: (json['infinite_mode'] as bool?) ?? false,
+      deckAdjustment: Map<String, int>.from(
+        (json['deck_adjustment'] as Map?) ?? const {},
+      ),
       ownReveal: reveal('own_reveal'),
       opponentReveal: reveal('opponent_reveal'),
       initialResolution: optional(
@@ -353,6 +573,7 @@ final class NetworkGameRoundStateDto {
       ),
       counterBid: optional('counter_bid', NetworkAuctionBidDto.fromJson),
       finalDefense: optional('final_defense', NetworkAuctionBidDto.fromJson),
+      negotiation: optional('negotiation', NetworkNegotiationDto.fromJson),
       finalResolution: optional(
         'final_resolution',
         NetworkFinalResolutionDto.fromJson,
@@ -368,6 +589,10 @@ final class NetworkGameRoundStateDto {
         for (final entry in recoveryDone.entries)
           if (entry.value == true) entry.key,
       },
+      recoveryHistory: [
+        for (final raw in (json['recovery_history'] as List?) ?? const [])
+          NetworkRecoveryDto.fromJson(Map<String, Object?>.from(raw! as Map)),
+      ],
     );
   }
 }
@@ -461,10 +686,47 @@ abstract interface class NetworkGameRepository {
   });
 }
 
+/// Capability introduced by the V3 ABA migration. Keeping it separate lets a
+/// client still deserialize a legacy in-flight round while all newly opened
+/// Supabase rounds use the bounded V3 negotiation.
+abstract interface class NetworkNegotiationRepository {
+  Future<NetworkGameRoundStateDto> submitNegotiationProposal({
+    required NetworkCommandDto command,
+    required NetworkNegotiationOfferDto offer,
+  });
+  Future<NetworkGameRoundStateDto> respondNegotiation({
+    required NetworkCommandDto command,
+    required NetworkNegotiationResponseDto response,
+  });
+  Future<NetworkGameRoundStateDto> adaptNegotiation({
+    required NetworkCommandDto command,
+    required NetworkNegotiationOfferDto offer,
+  });
+  Future<NetworkGameRoundStateDto> validateNegotiation({
+    required NetworkCommandDto command,
+    required bool accepted,
+  });
+}
+
+abstract interface class NetworkSessionFlowRepository {
+  Future<NetworkGameRoundStateDto> setHybridOrientation({
+    required NetworkCommandDto command,
+    required HybridDeckOrientation orientation,
+  });
+  Future<NetworkGameRoundStateDto> continueDeckCycle({
+    required NetworkCommandDto command,
+    required DeckExhaustionChoice choice,
+  });
+}
+
 String _phaseWire(NetworkGamePhase phase) => switch (phase) {
   NetworkGamePhase.commit => 'COMMIT',
   NetworkGamePhase.reveal => 'REVEAL',
   NetworkGamePhase.ready => 'READY',
+  NetworkGamePhase.negotiationProposal => 'NEGOTIATION_PROPOSAL',
+  NetworkGamePhase.negotiationResponse => 'NEGOTIATION_RESPONSE',
+  NetworkGamePhase.negotiationAdaptation => 'NEGOTIATION_ADAPTATION',
+  NetworkGamePhase.negotiationValidation => 'NEGOTIATION_VALIDATION',
   NetworkGamePhase.counterDecision => 'COUNTER_DECISION',
   NetworkGamePhase.finalDefenseDecision => 'FINAL_DEFENSE_DECISION',
   NetworkGamePhase.tieDecision => 'TIE_DECISION',
@@ -483,6 +745,10 @@ NetworkGamePhase _phaseFromWire(String value) => switch (value) {
   'COMMIT' => NetworkGamePhase.commit,
   'REVEAL' => NetworkGamePhase.reveal,
   'READY' => NetworkGamePhase.ready,
+  'NEGOTIATION_PROPOSAL' => NetworkGamePhase.negotiationProposal,
+  'NEGOTIATION_RESPONSE' => NetworkGamePhase.negotiationResponse,
+  'NEGOTIATION_ADAPTATION' => NetworkGamePhase.negotiationAdaptation,
+  'NEGOTIATION_VALIDATION' => NetworkGamePhase.negotiationValidation,
   'COUNTER_DECISION' => NetworkGamePhase.counterDecision,
   'FINAL_DEFENSE_DECISION' => NetworkGamePhase.finalDefenseDecision,
   'TIE_DECISION' => NetworkGamePhase.tieDecision,

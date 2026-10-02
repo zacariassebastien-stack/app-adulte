@@ -18,6 +18,10 @@ enum NetworkGameViewState {
   committing,
   waitingForPartner,
   revealing,
+  negotiationProposal,
+  negotiationResponse,
+  negotiationAdaptation,
+  negotiationValidation,
   counterDecision,
   finalDefenseDecision,
   tieDecision,
@@ -42,11 +46,13 @@ final class NetworkGameController extends ChangeNotifier {
     this.contract = const CommitRevealContract(),
     this.duelEngine = const DuelEngine(),
     this.auctionEngine = const AuctionEngine(),
+    this.negotiationEngine = const NegotiationEngineV3(),
     this.lifecycleEngine = const LifecycleEngine(),
     this.drawEngine = const DrawEngine(),
     this.corruptionEngine = const CorruptionEngine(),
     this.recoveryEngine = const RecoveryEngine(),
     NetworkProfileLearningStore? learningStore,
+    PostGameProfileChoiceStore? profileChoiceStore,
     DateTime Function()? clock,
     String Function()? nonceFactory,
   }) : _catalog = catalog,
@@ -79,6 +85,11 @@ final class NetworkGameController extends ChangeNotifier {
       store:
           learningStore ?? const SharedPreferencesNetworkProfileLearningStore(),
     );
+    _profileChoiceStore =
+        profileChoiceStore ??
+        (learningStore is MemoryNetworkProfileLearningStore
+            ? MemoryPostGameProfileChoiceStore()
+            : const SharedPreferencesPostGameProfileChoiceStore());
   }
 
   final LobbySession session;
@@ -88,6 +99,7 @@ final class NetworkGameController extends ChangeNotifier {
   final CommitRevealContract contract;
   final DuelEngine duelEngine;
   final AuctionEngine auctionEngine;
+  final NegotiationEngineV3 negotiationEngine;
   final LifecycleEngine lifecycleEngine;
   final DrawEngine drawEngine;
   final CorruptionEngine corruptionEngine;
@@ -95,12 +107,13 @@ final class NetworkGameController extends ChangeNotifier {
   final DateTime Function() clock;
   final String Function() nonceFactory;
   late final NetworkProfileLearningCoordinator learning;
+  late final PostGameProfileChoiceStore _profileChoiceStore;
   final Catalog _catalog;
   late final List<String> playerIds;
   late final Map<String, CardDefinition> _definitions;
   late final Map<String, EngineCard> _engineCards;
   late final ProfileHierarchy _hierarchy;
-  late final EngineSessionContext _context;
+  late EngineSessionContext _context;
 
   NetworkGameViewState viewState = NetworkGameViewState.loading;
   NetworkGameRoundStateDto? round;
@@ -111,6 +124,10 @@ final class NetworkGameController extends ChangeNotifier {
   List<CardRuntimeState> _runtime = const [];
   Map<String, CardHistoryState> _history = {};
   Set<int> _learningRecordedRounds = {};
+  List<DeckCandidateV3> _faceToFaceDeck = [];
+  List<DeckCandidateV3> _distanceDeck = [];
+  int _deckCycle = 1;
+  bool _infiniteMode = false;
   ChoiceRevealDto? _activeReveal;
   bool _nextRoundPrepared = false;
   StreamSubscription<NetworkGameRoundStateDto>? _subscription;
@@ -119,6 +136,7 @@ final class NetworkGameController extends ChangeNotifier {
   bool _resolving = false;
   bool _transitioning = false;
   bool _disposed = false;
+  PostGameProfileChoice? postGameProfileChoice;
 
   String get opponentId => playerIds.firstWhere((id) => id != playerId);
   int get roundNumber => round?.roundNumber ?? 1;
@@ -126,6 +144,7 @@ final class NetworkGameController extends ChangeNotifier {
   NetworkInitialResolutionDto? get initialResolution =>
       round?.initialResolution;
   NetworkFinalResolutionDto? get finalResolution => round?.finalResolution;
+  NetworkNegotiationDto? get negotiation => round?.negotiation;
   NetworkCorruptionDto? get corruption => round?.corruption;
   NetworkRecoveryDto? get pendingRecovery => round?.recoveryByPlayer.values
       .where((item) => !round!.recoveryDonePlayerIds.contains(item.playerId))
@@ -136,16 +155,29 @@ final class NetworkGameController extends ChangeNotifier {
   bool get hasSubmittedTieDecision =>
       round?.tieDecisions.containsKey(playerId) ?? false;
   int get minimumDefense => (round?.counterBid?.amount ?? 0) + 1;
+  bool get usesV3Negotiation => repository is NetworkNegotiationRepository;
   String? get lockedCardId => _runtime
       .where((card) => card.zone == CardZone.HAND && card.locked)
       .map((card) => card.cardId)
       .firstOrNull;
   List<CardRuntimeState> get runtime => List.unmodifiable(_runtime);
   Map<String, CardHistoryState> get history => Map.unmodifiable(_history);
+  HybridDeckOrientation get orientation =>
+      round?.hybridOrientation ?? HybridDeckOrientation.faceToFace;
+  bool get deckExhausted => _faceToFaceDeck.isEmpty && _distanceDeck.isEmpty;
+  int get faceToFaceDeckRemaining => _faceToFaceDeck.length;
+  int get distanceDeckRemaining => _distanceDeck.length;
 
   List<NetworkDuelCard> get hand => [
     for (final item in _runtime.where((card) => card.zone == CardZone.HAND))
       ?_networkCard(item.cardId),
+  ];
+
+  List<NetworkDuelCard> get auctionCards => [
+    for (final item in _runtime)
+      if ((item.zone == CardZone.HAND || item.zone == CardZone.DISCARD) &&
+          item.cardId != _activeReveal?.choice.cardId)
+        ?_networkCard(item.cardId),
   ];
 
   String? get corruptionActorId {
@@ -177,6 +209,7 @@ final class NetworkGameController extends ChangeNotifier {
   Future<void> start() async {
     if (_subscription != null) return;
     try {
+      postGameProfileChoice = await _profileChoiceStore.load(playerId);
       final current = await repository.openCurrentRound(
         command: _command('OPEN', roundId: null, roundNumber: 0),
       );
@@ -185,6 +218,46 @@ final class NetworkGameController extends ChangeNotifier {
     } catch (error) {
       _fail(error);
     }
+  }
+
+  Future<void> choosePostGameProfile(PostGameProfileChoice choice) async {
+    postGameProfileChoice = choice;
+    await _profileChoiceStore.save(playerId, choice);
+    notifyListeners();
+  }
+
+  Future<void> switchOrientation(HybridDeckOrientation value) async {
+    if (repository is! NetworkSessionFlowRepository || value == orientation) {
+      return;
+    }
+    await _networkAction(
+      (repository as NetworkSessionFlowRepository).setHybridOrientation(
+        command: _command('SET_ORIENTATION'),
+        orientation: value,
+      ),
+    );
+  }
+
+  Future<void> continueDeck(DeckExhaustionChoice choice) async {
+    if (repository is! NetworkSessionFlowRepository) return;
+    if (choice != DeckExhaustionChoice.newCustomizedGame &&
+        choice != DeckExhaustionChoice.finish) {
+      final cycle = DeckCycleState(
+        style: PlayerStyle.EPICE,
+        infinite: _infiniteMode,
+      ).next(choice);
+      _deckCycle++;
+      _infiniteMode = cycle.infinite;
+      _buildDeckCycle();
+      _refill(roundNumber + 1);
+      await _persist();
+    }
+    await _networkAction(
+      (repository as NetworkSessionFlowRepository).continueDeckCycle(
+        command: _command('CONTINUE_CYCLE'),
+        choice: choice,
+      ),
+    );
   }
 
   void toggleLock(String cardId) {
@@ -261,6 +334,97 @@ final class NetworkGameController extends ChangeNotifier {
     } finally {
       _committing = false;
     }
+  }
+
+  Future<void> proposeNegotiation({
+    required bool inversion,
+    required int directPa,
+    Set<String> cardIds = const {},
+  }) async {
+    if (viewState != NetworkGameViewState.negotiationProposal ||
+        !isInitialLoser) {
+      return;
+    }
+    final offer = _negotiationOffer(
+      inversion: inversion,
+      directPa: directPa,
+      cardIds: cardIds,
+    );
+    _validateNegotiationOffer(offer, NegotiationPhase.proposal);
+    await _networkAction(
+      (repository as NetworkNegotiationRepository).submitNegotiationProposal(
+        command: _command('NEGOTIATION_PROPOSAL'),
+        offer: offer,
+      ),
+    );
+  }
+
+  Future<void> respondNegotiation({
+    required bool acceptInversion,
+    required bool acceptAuction,
+  }) async {
+    if (viewState != NetworkGameViewState.negotiationResponse ||
+        !isInitialWinner) {
+      return;
+    }
+    final response = NetworkNegotiationResponseDto(
+      acceptInversion: acceptInversion,
+      acceptAuction: acceptAuction,
+    );
+    final state = _negotiationState(NegotiationPhase.response);
+    negotiationEngine.respond(
+      state,
+      NegotiationResponse(
+        acceptInversion: acceptInversion,
+        acceptAuction: acceptAuction,
+      ),
+    );
+    await _networkAction(
+      (repository as NetworkNegotiationRepository).respondNegotiation(
+        command: _command('NEGOTIATION_RESPONSE'),
+        response: response,
+      ),
+    );
+  }
+
+  Future<void> adaptNegotiation({
+    required bool inversion,
+    required int directPa,
+    Set<String> cardIds = const {},
+  }) async {
+    if (viewState != NetworkGameViewState.negotiationAdaptation ||
+        !isInitialLoser) {
+      return;
+    }
+    final offer = _negotiationOffer(
+      inversion: inversion,
+      directPa: directPa,
+      cardIds: cardIds,
+    );
+    _validateNegotiationOffer(offer, NegotiationPhase.adaptation);
+    await _networkAction(
+      (repository as NetworkNegotiationRepository).adaptNegotiation(
+        command: _command('NEGOTIATION_ADAPTATION'),
+        offer: offer,
+      ),
+    );
+  }
+
+  Future<void> validateNegotiation({required bool accepted}) async {
+    if (viewState != NetworkGameViewState.negotiationValidation ||
+        !isInitialWinner) {
+      return;
+    }
+    negotiationEngine.validate(
+      _negotiationState(NegotiationPhase.validation),
+      accepted: accepted,
+    );
+    await _networkAction(
+      (repository as NetworkNegotiationRepository).validateNegotiation(
+        command: _command('NEGOTIATION_VALIDATION'),
+        accepted: accepted,
+      ),
+    );
   }
 
   Future<void> acceptInitialResult() async {
@@ -456,10 +620,11 @@ final class NetworkGameController extends ChangeNotifier {
       source: source,
       completed: false,
       gain: 0,
+      occurrenceId: '$playerId:${round!.roundId}:recovery:$cardId',
     );
     await _networkAction(
       repository.submitRecovery(
-        command: _command('RECOVERY'),
+        command: _command('RECOVERY_${round!.recoveryHistory.length}_$cardId'),
         recovery: recovery,
       ),
     );
@@ -474,7 +639,9 @@ final class NetworkGameController extends ChangeNotifier {
     }
     await _networkAction(
       repository.respondRecovery(
-        command: _command('RECOVERY_RESPONSE'),
+        command: _command(
+          'RECOVERY_RESPONSE_${round!.recoveryHistory.length}_${proposal.occurrenceId}',
+        ),
         response: response,
       ),
     );
@@ -495,10 +662,13 @@ final class NetworkGameController extends ChangeNotifier {
       completed: completed,
       gain: completed ? _recoveryGain(proposal.cardId) : 0,
       response: proposal.response,
+      occurrenceId: proposal.occurrenceId,
     );
     await _networkAction(
       repository.resolveRecovery(
-        command: _command('RECOVERY_RESOLVE'),
+        command: _command(
+          'RECOVERY_RESOLVE_${round!.recoveryHistory.length}_${proposal.occurrenceId}',
+        ),
         recovery: resolved,
       ),
     );
@@ -611,6 +781,18 @@ final class NetworkGameController extends ChangeNotifier {
         notifyListeners();
         await _resolveOnce(value);
         return;
+      case NetworkGamePhase.negotiationProposal:
+        viewState = NetworkGameViewState.negotiationProposal;
+        break;
+      case NetworkGamePhase.negotiationResponse:
+        viewState = NetworkGameViewState.negotiationResponse;
+        break;
+      case NetworkGamePhase.negotiationAdaptation:
+        viewState = NetworkGameViewState.negotiationAdaptation;
+        break;
+      case NetworkGamePhase.negotiationValidation:
+        viewState = NetworkGameViewState.negotiationValidation;
+        break;
       case NetworkGamePhase.counterDecision:
         viewState = NetworkGameViewState.counterDecision;
         break;
@@ -679,6 +861,29 @@ final class NetworkGameController extends ChangeNotifier {
 
   Future<void> _reconcilePublicLifecycle(NetworkGameRoundStateDto value) async {
     var changed = false;
+    final publicResult = value.finalResolution;
+    if (publicResult != null) {
+      final auctionOccurrences = publicResult.compromise
+          .where(
+            (card) =>
+                card.ownerPlayerId == playerId &&
+                card.origin == NetworkCompromiseOrigin.AUCTION,
+          )
+          .map((card) => card.cardId)
+          .toSet();
+      if (auctionOccurrences.isNotEmpty) {
+        final reconciled = [
+          for (final card in _runtime)
+            if (auctionOccurrences.contains(card.cardId) &&
+                card.zone != CardZone.EXHAUSTED)
+              card.copyWith(zone: CardZone.ENGAGED, locked: false)
+            else
+              card,
+        ];
+        changed = changed || !_sameRuntime(_runtime, reconciled);
+        _runtime = reconciled;
+      }
+    }
     final publicCorruption = value.corruption;
     if (publicCorruption != null &&
         publicCorruption.offeredBy == playerId &&
@@ -702,9 +907,10 @@ final class NetworkGameController extends ChangeNotifier {
       changed = !_sameRuntime(_runtime, reconciled);
       _runtime = reconciled;
     }
-    final publicRecovery = value.recoveryByPlayer[playerId];
-    if (publicRecovery != null &&
-        value.recoveryDonePlayerIds.contains(playerId)) {
+    final publicRecovery = value.recoveryHistory
+        .where((item) => item.playerId == playerId && item.completed)
+        .lastOrNull;
+    if (publicRecovery != null) {
       final reconciled = recoveryEngine.applyLifecycle(
         cards: _runtime,
         cardId: publicRecovery.cardId,
@@ -785,7 +991,15 @@ final class NetworkGameController extends ChangeNotifier {
         loserPlayerId: loser,
         gap: resolved.gap,
         gapCost: resolved.gapCost,
-        actionPoints: resolved.actionPoints,
+        highValue: [
+          commitments[playerIds[0]]!.snapshot.personalValue,
+          commitments[playerIds[1]]!.snapshot.personalValue,
+        ].reduce(max),
+        // ABA owns the only final debit. Publishing the DuelEngine result here
+        // would charge the initial gap before B has negotiated.
+        actionPoints: usesV3Negotiation
+            ? value.actionPoints
+            : resolved.actionPoints,
         inversionAllowed: winner == null
             ? false
             : commitments[winner]!.cardInvertible,
@@ -846,6 +1060,13 @@ final class NetworkGameController extends ChangeNotifier {
       _activeReveal = saved.activeReveal;
       _nextRoundPrepared = saved.nextRoundPrepared;
       _learningRecordedRounds = Set.of(saved.learningRecordedRounds);
+      _faceToFaceDeck = List.of(saved.faceToFaceDeck);
+      _distanceDeck = List.of(saved.distanceDeck);
+      _deckCycle = saved.deckCycle;
+      _infiniteMode = saved.infiniteMode;
+      if (_faceToFaceDeck.isEmpty && _distanceDeck.isEmpty) {
+        _buildDeckCycle();
+      }
       if (_nextRoundPrepared && saved.roundNumber == current.roundNumber) {
         _nextRoundPrepared = false;
         await _persist(roundNumber: current.roundNumber);
@@ -858,6 +1079,7 @@ final class NetworkGameController extends ChangeNotifier {
     ];
     _history = {};
     _learningRecordedRounds = {};
+    _buildDeckCycle();
     _refill(current.roundNumber);
     await _persist(roundNumber: current.roundNumber);
   }
@@ -900,6 +1122,10 @@ final class NetworkGameController extends ChangeNotifier {
       played: {
         if (reveal != null)
           '${reveal.choice.cardId}|${reveal.choice.variantId}',
+        for (final card in result.compromise)
+          if (card.ownerPlayerId == playerId &&
+              card.origin == NetworkCompromiseOrigin.AUCTION)
+            '${card.cardId}|${card.variantId}',
       },
       locked: {
         for (final card in _runtime.where((card) => card.locked))
@@ -907,26 +1133,130 @@ final class NetworkGameController extends ChangeNotifier {
             if (descriptor.cardId == card.cardId) descriptor.identity,
       },
     );
-    if (!result.mutualAbandon &&
-        result.cardId != null &&
-        result.variantId != null &&
-        result.retainedPlayerId != null) {
-      final definition = _definitions[result.cardId!];
-      final variant = definition?.variants
-          .where((item) => item.stableId == result.variantId)
-          .firstOrNull;
-      if (definition != null && variant != null) {
-        await learning.recordAccepted([
+    if (!result.mutualAbandon) {
+      final accepted = <ResolvedLearningCard>[];
+      final compromise = result.compromise.isNotEmpty
+          ? result.compromise
+          : <NetworkCompromiseCardDto>[
+              if (result.cardId != null &&
+                  result.variantId != null &&
+                  result.retainedPlayerId != null)
+                NetworkCompromiseCardDto(
+                  occurrenceId: 'legacy:${result.cardId}',
+                  cardId: result.cardId!,
+                  variantId: result.variantId!,
+                  ownerPlayerId: result.retainedPlayerId!,
+                  nativeDirection: NetworkCardDirection.GENERAL,
+                  effectiveDirection: NetworkCardDirection.GENERAL,
+                  origin: NetworkCompromiseOrigin.INITIAL_DUEL,
+                  snapshotValue: 0,
+                ),
+            ];
+      for (final item in compromise) {
+        final definition = _definitions[item.cardId];
+        final variant = definition?.variants
+            .where((candidate) => candidate.stableId == item.variantId)
+            .firstOrNull;
+        if (definition == null || variant == null) continue;
+        accepted.add(
           _resolvedLearningCard(
             v3LearningDescriptor(definition, variant),
-            ownerId: result.retainedPlayerId!,
-            inverted: result.inverted,
+            ownerId: item.ownerPlayerId,
+            inverted:
+                item.origin == NetworkCompromiseOrigin.INITIAL_DUEL &&
+                item.nativeDirection != item.effectiveDirection,
           ),
-        ]);
+        );
       }
+      if (accepted.isNotEmpty) await learning.recordAccepted(accepted);
+      final recoveryAccepted = <ResolvedLearningCard>[];
+      for (final recovery
+          in round?.recoveryHistory ?? const <NetworkRecoveryDto>[]) {
+        if (!recovery.completed) continue;
+        final definition = _definitions[recovery.cardId];
+        final variant = definition?.variants
+            .where((item) => item.stableId == recovery.variantId)
+            .firstOrNull;
+        if (definition == null || variant == null) continue;
+        recoveryAccepted.add(
+          _resolvedLearningCard(
+            v3LearningDescriptor(definition, variant),
+            ownerId: recovery.playerId,
+            inverted: false,
+          ),
+        );
+      }
+      if (recoveryAccepted.isNotEmpty) {
+        await learning.recordAccepted(recoveryAccepted);
+      }
+      await _recordNegotiationResistance(result);
     }
     _learningRecordedRounds.add(roundNumber);
     await _persist();
+  }
+
+  Future<void> _recordNegotiationResistance(
+    NetworkFinalResolutionDto result,
+  ) async {
+    final negotiation = round?.negotiation;
+    final proposal = negotiation?.proposal;
+    final response = negotiation?.response;
+    if (proposal == null || response == null) return;
+
+    if (isInitialWinner && !response.acceptAuction) {
+      for (final item in proposal.cards) {
+        final definition = _definitions[item.cardId];
+        final variant = definition?.variants
+            .where((candidate) => candidate.stableId == item.variantId)
+            .firstOrNull;
+        if (definition == null || variant == null) continue;
+        await learning.recordResistance(
+          ResistanceLearningEvent(
+            playerId: playerId,
+            card: v3LearningDescriptor(definition, variant),
+            resistedRole: _learningRoleFor(item, playerId),
+            signal: ResistanceSignal.resultModification,
+          ),
+        );
+      }
+    }
+
+    if (isInitialLoser && proposal.inversionRequested) {
+      final initial = result.compromise
+          .where((item) => item.origin == NetworkCompromiseOrigin.INITIAL_DUEL)
+          .firstOrNull;
+      if (initial == null) return;
+      final definition = _definitions[initial.cardId];
+      final variant = definition?.variants
+          .where((candidate) => candidate.stableId == initial.variantId)
+          .firstOrNull;
+      if (definition == null || variant == null) return;
+      await learning.recordResistance(
+        ResistanceLearningEvent(
+          playerId: playerId,
+          card: v3LearningDescriptor(definition, variant),
+          resistedRole: _learningRoleFor(initial, playerId),
+          signal: ResistanceSignal.inversionSought,
+        ),
+      );
+    }
+  }
+
+  static LearningRole _learningRoleFor(
+    NetworkCompromiseCardDto card,
+    String participantId,
+  ) {
+    final owner = card.ownerPlayerId == participantId;
+    return switch (card.nativeDirection) {
+      NetworkCardDirection.FAIRE =>
+        owner ? LearningRole.faire : LearningRole.recevoir,
+      NetworkCardDirection.RECEVOIR =>
+        owner ? LearningRole.recevoir : LearningRole.faire,
+      NetworkCardDirection.MUTUEL => LearningRole.mutuel,
+      NetworkCardDirection.SOLO => LearningRole.solo,
+      NetworkCardDirection.SIMULTANE => LearningRole.simultane,
+      NetworkCardDirection.GENERAL => LearningRole.general,
+    };
   }
 
   ResolvedLearningCard _resolvedLearningCard(
@@ -976,32 +1306,57 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   void _refill(int targetRound) {
-    final current = _runtime
-        .where((card) => card.zone == CardZone.HAND)
-        .map((card) => _engineCards[card.cardId]!)
-        .toList();
-    final drawn = drawEngine.refill(
-      currentHand: current,
-      cards: _engineCards.values.toList(),
-      context: _context,
-      actor: _profile(playerId),
-      partner: _profile(opponentId),
-      hierarchy: _hierarchy,
-      style: PlayerStyle.EPICE,
-      history: DrawHistory(cards: _history),
-      random: SeededRandomSource(_stableHash('$playerId/$targetRound')),
+    var needed =
+        const BalanceConfig().handSize -
+        _runtime.where((card) => card.zone == CardZone.HAND).length;
+    if (needed <= 0) return;
+    if (deckExhausted && _infiniteMode) _buildDeckCycle();
+    final deck = SessionDeckRuntime(
+      faceToFace: _faceToFaceDeck,
+      distance: _distanceDeck,
+      random: Random(_stableHash('$playerId/$targetRound/$_deckCycle')),
     );
-    final ids = drawn.map((card) => card.id).toSet();
-    _runtime = [
-      for (final card in _runtime)
-        if (ids.contains(card.cardId))
-          card.copyWith(zone: CardZone.HAND)
-        else
-          card,
-    ];
-    for (final id in ids) {
-      _history[id] = CardHistoryState.seenUnplayed;
+    while (needed > 0) {
+      final drawn = deck.draw(orientation);
+      if (drawn == null) break;
+      final alreadyActive = _runtime.any(
+        (card) =>
+            card.cardId == drawn.cardId &&
+            (card.zone == CardZone.HAND || card.zone == CardZone.ENGAGED),
+      );
+      if (alreadyActive) continue;
+      _runtime = [
+        for (final card in _runtime)
+          card.cardId == drawn.cardId
+              ? card.copyWith(zone: CardZone.HAND, locked: false)
+              : card,
+      ];
+      _history[drawn.cardId] = CardHistoryState.seenUnplayed;
+      needed--;
     }
+    _faceToFaceDeck = List.of(deck.faceToFace);
+    _distanceDeck = List.of(deck.distance);
+  }
+
+  void _buildDeckCycle() {
+    final source = <DeckCandidateV3>[];
+    for (final definition in _definitions.values) {
+      final card = _networkCard(definition.stableId);
+      if (card == null) continue;
+      source.add(
+        DeckCandidateV3(
+          cardId: card.id,
+          variantId: card.variant.id,
+          spiceLevel: card.chiliLevel,
+          distanceExcluded: card.variant.tags.contains(
+            'v3.technique.distance_exclue',
+          ),
+        ),
+      );
+    }
+    final decks = HybridSessionDecks(source: source);
+    _faceToFaceDeck = List.of(decks.faceToFace);
+    _distanceDeck = List.of(decks.distance);
   }
 
   NetworkDuelCard? _networkCard(String cardId) {
@@ -1115,6 +1470,107 @@ final class NetworkGameController extends ChangeNotifier {
         .gain;
   }
 
+  NetworkNegotiationOfferDto _negotiationOffer({
+    required bool inversion,
+    required int directPa,
+    required Set<String> cardIds,
+  }) {
+    final cards = <NetworkCompromiseCardDto>[];
+    for (final id in cardIds) {
+      final card = auctionCards.where((item) => item.id == id).firstOrNull;
+      if (card == null) throw ArgumentError('Carte d’enchère indisponible');
+      final direction = _networkDirection(card);
+      cards.add(
+        NetworkCompromiseCardDto(
+          occurrenceId: '$playerId:${round!.roundId}:auction:$id',
+          cardId: id,
+          variantId: card.variant.id,
+          ownerPlayerId: playerId,
+          nativeDirection: direction,
+          effectiveDirection: direction,
+          origin: NetworkCompromiseOrigin.AUCTION,
+          snapshotValue: card.personalValue,
+          logicalOrder: cards.length + 1,
+        ),
+      );
+    }
+    return NetworkNegotiationOfferDto(
+      inversionRequested: inversion,
+      directPa: directPa,
+      cards: cards,
+    );
+  }
+
+  void _validateNegotiationOffer(
+    NetworkNegotiationOfferDto offer,
+    NegotiationPhase phase,
+  ) {
+    final engineOffer = NegotiationOffer(
+      inversionRequested: offer.inversionRequested,
+      personalPa: offer.directPa,
+      cardIds: [for (final card in offer.cards) card.occurrenceId],
+      cardValues: {
+        for (final card in offer.cards) card.occurrenceId: card.snapshotValue,
+      },
+    );
+    final state = _negotiationState(phase);
+    if (phase == NegotiationPhase.proposal) {
+      negotiationEngine.propose(state, engineOffer);
+    } else {
+      negotiationEngine.adapt(state, engineOffer);
+    }
+  }
+
+  NegotiationState _negotiationState(NegotiationPhase phase) {
+    final initial = initialResolution!;
+    final dto = negotiation;
+    NegotiationOffer? engineOffer(NetworkNegotiationOfferDto? value) =>
+        value == null
+        ? null
+        : NegotiationOffer(
+            inversionRequested: value.inversionRequested,
+            personalPa: value.directPa,
+            cardIds: [for (final card in value.cards) card.occurrenceId],
+            cardValues: {
+              for (final card in value.cards)
+                card.occurrenceId: card.snapshotValue,
+            },
+          );
+    final response = dto?.response;
+    return NegotiationState(
+      initialWinnerId: initial.winnerPlayerId!,
+      initialLoserId: initial.loserPlayerId!,
+      initialHighValue: initial.highValue,
+      initialGapCost: initial.gapCost,
+      actionPoints: actionPoints,
+      phase: phase,
+      proposal: engineOffer(dto?.proposal),
+      response: response == null
+          ? null
+          : NegotiationResponse(
+              acceptInversion: response.acceptInversion,
+              acceptAuction: response.acceptAuction,
+            ),
+      finalOffer: engineOffer(dto?.finalOffer),
+    );
+  }
+
+  static NetworkCardDirection _networkDirection(NetworkDuelCard card) {
+    final tags = card.variant.tags;
+    if (tags.contains('v3.direction.mutuel')) {
+      return NetworkCardDirection.MUTUEL;
+    }
+    if (tags.contains('v3.direction.simultane')) {
+      return NetworkCardDirection.SIMULTANE;
+    }
+    if (tags.contains('v3.direction.solo')) return NetworkCardDirection.SOLO;
+    return switch (card.role) {
+      ProfileRole.FAIRE => NetworkCardDirection.FAIRE,
+      ProfileRole.RECEVOIR => NetworkCardDirection.RECEVOIR,
+      _ => NetworkCardDirection.GENERAL,
+    };
+  }
+
   PlayerGameProfile _profile(String id) => PlayerGameProfile(
     playerId: id,
     preferences: {
@@ -1167,6 +1623,10 @@ final class NetworkGameController extends ChangeNotifier {
       activeReveal: _activeReveal,
       nextRoundPrepared: _nextRoundPrepared,
       learningRecordedRounds: _learningRecordedRounds,
+      faceToFaceDeck: _faceToFaceDeck,
+      distanceDeck: _distanceDeck,
+      deckCycle: _deckCycle,
+      infiniteMode: _infiniteMode,
     ),
   );
 

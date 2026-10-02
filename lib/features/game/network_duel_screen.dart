@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import '../../domain/catalog/catalog.dart';
 import '../../engines/auction/auction_engine.dart';
 import '../../engines/corruption/corruption_engine.dart';
+import '../../engines/deck/session_deck_builder.dart';
 import '../../engines/recovery/recovery_engine.dart';
 import '../../sync/rounds/network_game.dart';
 import '../lobby/lobby_models.dart';
 import 'network_duel_secret_store.dart';
 import 'network_auction_form_controller.dart';
 import 'network_game_controller.dart';
+import 'network_profile_learning.dart';
 
 class NetworkDuelScreen extends StatefulWidget {
   const NetworkDuelScreen({
@@ -33,6 +35,10 @@ class NetworkDuelScreen extends StatefulWidget {
 class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   late final NetworkGameController controller;
   final auctionForm = NetworkAuctionFormController();
+  final Set<String> _negotiationCards = {};
+  bool _requestInversion = false;
+  bool _acceptInversion = false;
+  bool _acceptAuction = false;
   String? actionError;
 
   @override
@@ -52,7 +58,13 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     if (!mounted) return;
     final changedRound = auctionForm.enterRound(controller.roundNumber);
     setState(() {
-      if (changedRound) actionError = null;
+      if (changedRound) {
+        actionError = null;
+        _negotiationCards.clear();
+        _requestInversion = false;
+        _acceptInversion = false;
+        _acceptAuction = false;
+      }
     });
   }
 
@@ -67,7 +79,27 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text('TOUR ${controller.roundNumber}')),
+    appBar: AppBar(
+      title: Text('TOUR ${controller.roundNumber}'),
+      actions: [
+        IconButton(
+          key: const Key('switch-hybrid-orientation'),
+          tooltip: controller.orientation == HybridDeckOrientation.faceToFace
+              ? 'Passer en orientation distance'
+              : 'Passer en orientation face à face',
+          onPressed: () => controller.switchOrientation(
+            controller.orientation == HybridDeckOrientation.faceToFace
+                ? HybridDeckOrientation.distance
+                : HybridDeckOrientation.faceToFace,
+          ),
+          icon: Icon(
+            controller.orientation == HybridDeckOrientation.faceToFace
+                ? Icons.people
+                : Icons.phone_android,
+          ),
+        ),
+      ],
+    ),
     body: SafeArea(
       child: Column(
         children: [
@@ -99,6 +131,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     NetworkGameViewState.committing => _choosing(),
     NetworkGameViewState.waitingForPartner ||
     NetworkGameViewState.revealing => _waiting(),
+    NetworkGameViewState.negotiationProposal => _negotiationProposal(),
+    NetworkGameViewState.negotiationResponse => _negotiationResponse(),
+    NetworkGameViewState.negotiationAdaptation => _negotiationAdaptation(),
+    NetworkGameViewState.negotiationValidation => _negotiationValidation(),
     NetworkGameViewState.counterDecision => _counterDecision(),
     NetworkGameViewState.finalDefenseDecision => _finalDefense(),
     NetworkGameViewState.tieDecision => _tieDecision(),
@@ -174,6 +210,163 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         : 'En attente de ton partenaire…',
     key: const Key('network-duel-waiting'),
   );
+
+  Widget _negotiationProposal() => _negotiationEditor(
+    title: 'Proposer un compromis',
+    waiting: 'Ton partenaire prépare une proposition…',
+    buttonLabel: 'Envoyer la proposition',
+    onSubmit: () => _submitNegotiation(adaptation: false),
+  );
+
+  Widget _negotiationAdaptation() {
+    final response = controller.negotiation!.response!;
+    return _negotiationEditor(
+      title: 'Adapter ma proposition',
+      waiting: 'Ton partenaire adapte sa proposition…',
+      buttonLabel: 'Envoyer le choix final',
+      allowInversion: response.acceptInversion,
+      allowAuction: response.acceptAuction,
+      onSubmit: () => _submitNegotiation(adaptation: true),
+    );
+  }
+
+  Widget _negotiationEditor({
+    required String title,
+    required String waiting,
+    required String buttonLabel,
+    required VoidCallback onSubmit,
+    bool allowInversion = true,
+    bool allowAuction = true,
+  }) => ListView(
+    key: Key(title),
+    padding: const EdgeInsets.all(16),
+    children: [
+      _initialResult(controller.initialResolution!),
+      const SizedBox(height: 12),
+      if (!controller.isInitialLoser)
+        _waitingCard(waiting)
+      else ...[
+        Text(title, style: Theme.of(context).textTheme.headlineSmall),
+        if (controller.inversionAllowed && allowInversion)
+          SwitchListTile(
+            key: const Key('negotiation-inversion'),
+            value: _requestInversion,
+            onChanged: (value) => setState(() => _requestInversion = value),
+            title: const Text('Proposer une inversion'),
+          ),
+        if (allowAuction) ...[
+          TextField(
+            key: const Key('negotiation-direct-pa'),
+            controller: auctionForm.counterAmount,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'PA personnels (facultatif)',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text('Cartes ajoutées au compromis'),
+          for (final card in controller.auctionCards)
+            CheckboxListTile(
+              key: Key('negotiation-card-${card.id}'),
+              value: _negotiationCards.contains(card.id),
+              onChanged: (selected) => setState(() {
+                if (selected == true) {
+                  _negotiationCards.add(card.id);
+                } else {
+                  _negotiationCards.remove(card.id);
+                }
+              }),
+              title: Text(card.title),
+              subtitle: Text(
+                '${card.role.name} · ${_chilies(card.chiliLevel)}',
+              ),
+            ),
+        ],
+        FilledButton(
+          key: const Key('submit-negotiation'),
+          onPressed: onSubmit,
+          child: Text(buttonLabel),
+        ),
+      ],
+      if (actionError case final message?) _errorText(message),
+    ],
+  );
+
+  Widget _negotiationResponse() {
+    final proposal = controller.negotiation!.proposal!;
+    return ListView(
+      key: const Key('negotiation-response'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        _initialResult(controller.initialResolution!),
+        if (!controller.isInitialWinner)
+          _waitingCard('Ton partenaire répond à ta proposition…')
+        else ...[
+          Text(
+            'Répondre au compromis',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          if (proposal.inversionRequested)
+            SwitchListTile(
+              key: const Key('accept-negotiation-inversion'),
+              value: _acceptInversion,
+              onChanged: (value) => setState(() => _acceptInversion = value),
+              title: const Text('Accepter l’inversion'),
+            ),
+          if (proposal.totalValue > 0)
+            SwitchListTile(
+              key: const Key('accept-negotiation-auction'),
+              value: _acceptAuction,
+              onChanged: (value) => setState(() => _acceptAuction = value),
+              title: Text('Accepter l’enchère (${proposal.totalValue})'),
+            ),
+          FilledButton(
+            key: const Key('respond-negotiation'),
+            onPressed: () => controller.respondNegotiation(
+              acceptInversion: _acceptInversion,
+              acceptAuction: _acceptAuction,
+            ),
+            child: const Text('Envoyer ma réponse'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _negotiationValidation() {
+    final offer = controller.negotiation!.finalOffer!;
+    return ListView(
+      key: const Key('negotiation-validation'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        _initialResult(controller.initialResolution!),
+        if (!controller.isInitialWinner)
+          _waitingCard('Ton partenaire valide le compromis…')
+        else ...[
+          Text(
+            'Compromis final',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          if (offer.inversionRequested)
+            const Text('• Inversion de la carte initiale'),
+          if (offer.directPa > 0) Text('• ${offer.directPa} PA personnels'),
+          for (final card in offer.cards) Text('• ${_title(card.cardId)}'),
+          const SizedBox(height: 12),
+          FilledButton(
+            key: const Key('validate-negotiation'),
+            onPressed: () => controller.validateNegotiation(accepted: true),
+            child: const Text('Valider le compromis'),
+          ),
+          OutlinedButton(
+            key: const Key('refuse-negotiation'),
+            onPressed: () => controller.validateNegotiation(accepted: false),
+            child: const Text('Conserver le résultat initial'),
+          ),
+        ],
+      ],
+    );
+  }
 
   Widget _counterDecision() {
     final initial = controller.initialResolution!;
@@ -312,16 +505,81 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         Text(title, style: Theme.of(context).textTheme.headlineSmall),
         if (!result.mutualAbandon) ...[
           const SizedBox(height: 12),
-          Text('Carte : ${_title(result.cardId!)}'),
-          Text('Variante : ${result.variantId}'),
-          if (result.inverted) const Text('Rôles physiques inversés'),
+          if (result.compromise.isNotEmpty) ...[
+            for (final card in result.compromise)
+              ListTile(
+                title: Text(_title(card.cardId)),
+                subtitle: Text(
+                  '${card.effectiveDirection.name} · ${card.origin.name}',
+                ),
+              ),
+          ] else if (result.cardId != null) ...[
+            Text('Carte : ${_title(result.cardId!)}'),
+            Text('Variante : ${result.variantId}'),
+            if (result.inverted) const Text('Rôles physiques inversés'),
+          ],
         ],
         const SizedBox(height: 20),
-        FilledButton(
-          key: const Key('ready-next-round'),
-          onPressed: controller.readyForNextRound,
-          child: const Text('Tour suivant'),
-        ),
+        if (controller.deckExhausted) ...[
+          Text(
+            'Cycle de cartes terminé',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          if (controller.round!.deckAdjustment.isNotEmpty)
+            Text(
+              'Répartition ajustée — le deck a été complété automatiquement '
+              'pour cette configuration.',
+            ),
+          if (controller.postGameProfileChoice == null) ...[
+            const Text('Pour la suite de ton profil privé :'),
+            TextButton(
+              onPressed: () => controller.choosePostGameProfile(
+                PostGameProfileChoice.customize,
+              ),
+              child: const Text('Personnaliser mon profil'),
+            ),
+            TextButton(
+              onPressed: () => controller.choosePostGameProfile(
+                PostGameProfileChoice.trustGame,
+              ),
+              child: const Text('Faire confiance au jeu'),
+            ),
+            TextButton(
+              onPressed: () =>
+                  controller.choosePostGameProfile(PostGameProfileChoice.later),
+              child: const Text('Ne rien faire pour l’instant'),
+            ),
+          ],
+          FilledButton(
+            key: const Key('continue-spicier'),
+            onPressed: () =>
+                controller.continueDeck(DeckExhaustionChoice.continueSpicier),
+            child: const Text('Continuer plus épicé'),
+          ),
+          OutlinedButton(
+            key: const Key('enable-infinite'),
+            onPressed: () =>
+                controller.continueDeck(DeckExhaustionChoice.infinite),
+            child: const Text('Mode Infini'),
+          ),
+          OutlinedButton(
+            key: const Key('new-customized-game'),
+            onPressed: () =>
+                controller.continueDeck(DeckExhaustionChoice.newCustomizedGame),
+            child: const Text('Nouvelle partie'),
+          ),
+          TextButton(
+            key: const Key('finish-game'),
+            onPressed: () =>
+                controller.continueDeck(DeckExhaustionChoice.finish),
+            child: const Text('Terminer'),
+          ),
+        ] else
+          FilledButton(
+            key: const Key('ready-next-round'),
+            onPressed: controller.readyForNextRound,
+            child: const Text('Tour suivant'),
+          ),
       ],
     );
   }
@@ -582,6 +840,35 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     }
     try {
       await controller.submitCounterBid(amount, auctionForm.counterTarget);
+      if (mounted) setState(() => actionError = null);
+    } catch (error) {
+      if (mounted) setState(() => actionError = error.toString());
+    }
+  }
+
+  Future<void> _submitNegotiation({required bool adaptation}) async {
+    final amount = auctionForm.counterAmount.text.trim().isEmpty
+        ? 0
+        : int.tryParse(auctionForm.counterAmount.text);
+    if (amount == null) {
+      setState(() => actionError = 'Montant invalide.');
+      return;
+    }
+    try {
+      if (adaptation) {
+        final response = controller.negotiation!.response!;
+        await controller.adaptNegotiation(
+          inversion: response.acceptInversion && _requestInversion,
+          directPa: response.acceptAuction ? amount : 0,
+          cardIds: response.acceptAuction ? _negotiationCards : const {},
+        );
+      } else {
+        await controller.proposeNegotiation(
+          inversion: _requestInversion,
+          directPa: amount,
+          cardIds: _negotiationCards,
+        );
+      }
       if (mounted) setState(() => actionError = null);
     } catch (error) {
       if (mounted) setState(() => actionError = error.toString());

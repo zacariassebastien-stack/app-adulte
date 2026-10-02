@@ -5,10 +5,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../engines/auction/auction_engine.dart';
 import '../../engines/corruption/corruption_engine.dart';
+import '../../engines/deck/session_deck_builder.dart';
 import '../../engines/recovery/recovery_engine.dart';
 import '../../sync/sync.dart';
 
-final class SupabaseNetworkGameRepository implements NetworkGameRepository {
+final class SupabaseNetworkGameRepository
+    implements
+        NetworkGameRepository,
+        NetworkNegotiationRepository,
+        NetworkSessionFlowRepository {
   SupabaseNetworkGameRepository({required this.client});
 
   final SupabaseClient client;
@@ -75,6 +80,78 @@ final class SupabaseNetworkGameRepository implements NetworkGameRepository {
     'submit_network_initial_resolution',
     command,
     extra: {'p_resolution': resolution.toJson()},
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> submitNegotiationProposal({
+    required NetworkCommandDto command,
+    required NetworkNegotiationOfferDto offer,
+  }) => _rpc(
+    'submit_network_negotiation_proposal',
+    command,
+    extra: {'p_offer': offer.toJson()},
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> respondNegotiation({
+    required NetworkCommandDto command,
+    required NetworkNegotiationResponseDto response,
+  }) => _rpc(
+    'respond_network_negotiation',
+    command,
+    extra: {'p_response': response.toJson()},
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> adaptNegotiation({
+    required NetworkCommandDto command,
+    required NetworkNegotiationOfferDto offer,
+  }) => _rpc(
+    'adapt_network_negotiation',
+    command,
+    extra: {'p_offer': offer.toJson()},
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> validateNegotiation({
+    required NetworkCommandDto command,
+    required bool accepted,
+  }) => _rpc(
+    'validate_network_negotiation',
+    command,
+    extra: {'p_accepted': accepted},
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> setHybridOrientation({
+    required NetworkCommandDto command,
+    required HybridDeckOrientation orientation,
+  }) => _rpc(
+    'set_network_hybrid_orientation',
+    command,
+    extra: {
+      'p_orientation': orientation == HybridDeckOrientation.faceToFace
+          ? 'FACE_TO_FACE'
+          : 'DISTANCE',
+    },
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> continueDeckCycle({
+    required NetworkCommandDto command,
+    required DeckExhaustionChoice choice,
+  }) => _rpc(
+    'continue_network_deck_cycle',
+    command,
+    extra: {
+      'p_choice': switch (choice) {
+        DeckExhaustionChoice.continueSpicier => 'CONTINUE_SPICIER',
+        DeckExhaustionChoice.continueIntenable => 'CONTINUE_INTENABLE',
+        DeckExhaustionChoice.infinite => 'INFINITE',
+        DeckExhaustionChoice.newCustomizedGame => 'NEW_GAME',
+        DeckExhaustionChoice.finish => 'FINISH',
+      },
+    },
   );
 
   @override
@@ -296,6 +373,8 @@ final class SupabaseNetworkGameRepository implements NetworkGameRepository {
       'ROUND_INVALID_BID',
       'ROUND_INSUFFICIENT_PA',
       'ROUND_INVERSION_FORBIDDEN',
+      'ROUND_AUCTION_CARD_REUSED',
+      'ROUND_NEGOTIATION_INVALID',
       'ROUND_RESOLUTION_MISMATCH',
       'ROUND_CORRUPTION_FORBIDDEN',
       'ROUND_RECOVERY_NOT_ELIGIBLE',

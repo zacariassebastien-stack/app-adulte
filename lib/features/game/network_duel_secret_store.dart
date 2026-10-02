@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/session/session_state.dart';
 import '../../engines/draw/draw_engine.dart';
+import '../../engines/deck/session_deck_builder.dart';
 import '../../sync/commit_reveal/commit_reveal.dart';
 
 final class NetworkPrivateGameState {
@@ -15,9 +16,15 @@ final class NetworkPrivateGameState {
     this.activeReveal,
     this.nextRoundPrepared = false,
     Set<int> learningRecordedRounds = const {},
+    List<DeckCandidateV3> faceToFaceDeck = const [],
+    List<DeckCandidateV3> distanceDeck = const [],
+    this.deckCycle = 1,
+    this.infiniteMode = false,
   }) : cards = List.unmodifiable(cards),
        history = Map.unmodifiable(history),
-       learningRecordedRounds = Set.unmodifiable(learningRecordedRounds);
+       learningRecordedRounds = Set.unmodifiable(learningRecordedRounds),
+       faceToFaceDeck = List.unmodifiable(faceToFaceDeck),
+       distanceDeck = List.unmodifiable(distanceDeck);
 
   final int roundNumber;
   final List<CardRuntimeState> cards;
@@ -25,6 +32,10 @@ final class NetworkPrivateGameState {
   final ChoiceRevealDto? activeReveal;
   final bool nextRoundPrepared;
   final Set<int> learningRecordedRounds;
+  final List<DeckCandidateV3> faceToFaceDeck;
+  final List<DeckCandidateV3> distanceDeck;
+  final int deckCycle;
+  final bool infiniteMode;
 
   Map<String, Object?> toJson() => {
     'round_number': roundNumber,
@@ -38,6 +49,10 @@ final class NetworkPrivateGameState {
     'active_reveal': activeReveal?.toJson(),
     'next_round_prepared': nextRoundPrepared,
     'learning_recorded_rounds': learningRecordedRounds.toList()..sort(),
+    'face_to_face_deck': [for (final card in faceToFaceDeck) _deckJson(card)],
+    'distance_deck': [for (final card in distanceDeck) _deckJson(card)],
+    'deck_cycle': deckCycle,
+    'infinite_mode': infiniteMode,
   };
 
   factory NetworkPrivateGameState.fromJson(Map<String, Object?> json) =>
@@ -68,7 +83,29 @@ final class NetworkPrivateGameState {
             ((json['learning_recorded_rounds'] as List?) ?? const [])
                 .cast<int>()
                 .toSet(),
+        faceToFaceDeck: _deckList(json['face_to_face_deck']),
+        distanceDeck: _deckList(json['distance_deck']),
+        deckCycle: (json['deck_cycle'] as int?) ?? 1,
+        infiniteMode: (json['infinite_mode'] as bool?) ?? false,
       );
+
+  static Map<String, Object?> _deckJson(DeckCandidateV3 card) => {
+    'card_id': card.cardId,
+    'variant_id': card.variantId,
+    'spice_level': card.spiceLevel,
+    'distance_excluded': card.distanceExcluded,
+  };
+
+  static List<DeckCandidateV3> _deckList(Object? value) => [
+    for (final raw in (value as List?) ?? const [])
+      if (Map<String, Object?>.from(raw! as Map) case final card)
+        DeckCandidateV3(
+          cardId: card['card_id']! as String,
+          variantId: card['variant_id']! as String,
+          spiceLevel: card['spice_level']! as int,
+          distanceExcluded: card['distance_excluded']! as bool,
+        ),
+  ];
 }
 
 abstract interface class NetworkDuelSecretStore {

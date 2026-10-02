@@ -11,6 +11,45 @@ abstract interface class NetworkProfileLearningStore {
   Future<void> save(AdaptiveProfileState state);
 }
 
+enum PostGameProfileChoice { customize, trustGame, later }
+
+abstract interface class PostGameProfileChoiceStore {
+  Future<PostGameProfileChoice?> load(String playerId);
+  Future<void> save(String playerId, PostGameProfileChoice choice);
+}
+
+final class SharedPreferencesPostGameProfileChoiceStore
+    implements PostGameProfileChoiceStore {
+  const SharedPreferencesPostGameProfileChoiceStore();
+  @override
+  Future<PostGameProfileChoice?> load(String playerId) async {
+    final preferences = await SharedPreferences.getInstance();
+    final value = preferences.getString('post_game_profile_choice.$playerId');
+    return value == null ? null : PostGameProfileChoice.values.byName(value);
+  }
+
+  @override
+  Future<void> save(String playerId, PostGameProfileChoice choice) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(
+      'post_game_profile_choice.$playerId',
+      choice.name,
+    );
+  }
+}
+
+final class MemoryPostGameProfileChoiceStore
+    implements PostGameProfileChoiceStore {
+  final Map<String, PostGameProfileChoice> values = {};
+  @override
+  Future<PostGameProfileChoice?> load(String playerId) async =>
+      values[playerId];
+  @override
+  Future<void> save(String playerId, PostGameProfileChoice choice) async {
+    values[playerId] = choice;
+  }
+}
+
 final class SharedPreferencesNetworkProfileLearningStore
     implements NetworkProfileLearningStore {
   const SharedPreferencesNetworkProfileLearningStore();
