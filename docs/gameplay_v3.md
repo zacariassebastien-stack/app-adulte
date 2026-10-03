@@ -31,6 +31,21 @@ Les requirements filtrent la disponibilité. Seuls les tags
 `v3.preference.*` sont notés et appris. Les directions spécialisent une
 préférence; elles ne reçoivent jamais de score isolé.
 
+## Direction d'occurrence
+
+Une carte réversible `FAIRE ↔ RECEVOIR` possède une valeur privée pour chaque
+direction mais une seule identité éditoriale. À la création de l'occurrence,
+le moteur choisit une direction native à 50/50. Si une direction est exclue,
+l'autre est imposée; si les deux le sont, la carte est inéligible. Le choix est
+persisté dans `CardRuntimeState.nativeDirection` et
+`effectiveDirection` commence avec la même valeur.
+
+Seule l'inversion ABA de la carte initiale échange la direction effective et
+la valeur PA active. Elle ne relance aucun tirage et ne modifie pas la direction
+native. Les cartes d'enchère et de Recovery conservent leur direction. Une
+carte MUTUELLE reste MUTUELLE, affiche une seule valeur et ne peut pas utiliser
+cette inversion.
+
 ## `cardId` et `occurrenceId`
 
 `cardId` identifie le contenu éditorial stable. `occurrenceId` identifie un
@@ -38,6 +53,10 @@ exemplaire précis créé pour un cycle. La main, le verrouillage, l’engagemen
 la défausse, la corruption, la Recovery et les cartes d’enchère manipulent
 toujours l’occurrence. Deux exemplaires du même contenu peuvent donc coexister
 sans que jouer le premier modifie le second.
+
+L'occurrence porte également ses directions native et effective. Elles sont
+stockées avec la main privée, de sorte qu'une reconstruction d'écran ou une
+reconnexion ne peut pas tirer une nouvelle direction.
 
 La source de profil reste la combinaison sémantique de la carte et de son rôle:
 l’occurrence empêche les doubles consommations, mais ne crée pas une nouvelle

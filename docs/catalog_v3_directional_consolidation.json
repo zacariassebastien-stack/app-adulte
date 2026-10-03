@@ -1,0 +1,732 @@
+{
+  "schema_version": 2,
+  "consolidations": [
+    {
+      "card_id": "card.kiss_me",
+      "kept_variant_id": "variant.kiss_me.base",
+      "removed_variant_id": null,
+      "old_title": "Embrasse-moi",
+      "neutral_title": "Embrasser"
+    },
+    {
+      "card_id": "card.kiss_me",
+      "kept_variant_id": "variant.kiss_me.lingering",
+      "removed_variant_id": null,
+      "old_title": "Baiser prolongé",
+      "neutral_title": "Baiser prolongé"
+    },
+    {
+      "card_id": "card.neck_kisses",
+      "kept_variant_id": "variant.neck_kisses.base",
+      "removed_variant_id": null,
+      "old_title": "Bisous dans le cou",
+      "neutral_title": "Embrasser dans le cou"
+    },
+    {
+      "card_id": "card.caress",
+      "kept_variant_id": "variant.caress.base",
+      "removed_variant_id": "variant.caress.base.receive",
+      "old_title": "Caresse ton partenaire",
+      "neutral_title": "Caresser"
+    },
+    {
+      "card_id": "card.caress",
+      "kept_variant_id": "variant.caress.sensual",
+      "removed_variant_id": "variant.caress.sensual.receive",
+      "old_title": "Caresse sensuellement ton partenaire",
+      "neutral_title": "Caresse sensuelle"
+    },
+    {
+      "card_id": "card.caress",
+      "kept_variant_id": "variant.caress.intimate",
+      "removed_variant_id": "variant.caress.intimate.receive",
+      "old_title": "Caresse les parties intimes de ton partenaire",
+      "neutral_title": "Caresse intime"
+    },
+    {
+      "card_id": "card.caress",
+      "kept_variant_id": "variant.v3.caress.bras_give",
+      "removed_variant_id": "variant.v3.caress.bras_receive",
+      "old_title": "Caresse les bras de ton partenaire",
+      "neutral_title": "Caresser les bras"
+    },
+    {
+      "card_id": "card.caress",
+      "kept_variant_id": "variant.v3.caress.cuisses_give",
+      "removed_variant_id": "variant.v3.caress.cuisses_receive",
+      "old_title": "Caresse les cuisses de ton partenaire",
+      "neutral_title": "Caresser les cuisses"
+    },
+    {
+      "card_id": "card.caress",
+      "kept_variant_id": "variant.v3.caress.ventre_give",
+      "removed_variant_id": "variant.v3.caress.ventre_receive",
+      "old_title": "Caresse le ventre de ton partenaire",
+      "neutral_title": "Caresser le ventre"
+    },
+    {
+      "card_id": "card.sensual_caress",
+      "kept_variant_id": "variant.sensual_caress.base",
+      "removed_variant_id": "variant.sensual_caress.base.receive",
+      "old_title": "Caresse sensuellement ton partenaire",
+      "neutral_title": "Caresse"
+    },
+    {
+      "card_id": "card.intimate_caress",
+      "kept_variant_id": "variant.intimate_caress.base",
+      "removed_variant_id": "variant.intimate_caress.base.receive",
+      "old_title": "Caresse les parties intimes de ton partenaire",
+      "neutral_title": "Caresse — parties intimes"
+    },
+    {
+      "card_id": "card.massage",
+      "kept_variant_id": "variant.massage.base",
+      "removed_variant_id": "variant.massage.base.receive",
+      "old_title": "Masse ton partenaire",
+      "neutral_title": "Masser"
+    },
+    {
+      "card_id": "card.massage",
+      "kept_variant_id": "variant.massage.sensual",
+      "removed_variant_id": "variant.massage.sensual.receive",
+      "old_title": "Masse sensuellement ton partenaire",
+      "neutral_title": "Massage sensuel"
+    },
+    {
+      "card_id": "card.massage",
+      "kept_variant_id": "variant.massage.intimate",
+      "removed_variant_id": "variant.massage.intimate.receive",
+      "old_title": "Masse les parties intimes de ton partenaire",
+      "neutral_title": "Massage intime"
+    },
+    {
+      "card_id": "card.massage",
+      "kept_variant_id": "variant.v3.massage.dos_give",
+      "removed_variant_id": "variant.v3.massage.dos_receive",
+      "old_title": "Masse le dos de ton partenaire",
+      "neutral_title": "Massage du dos"
+    },
+    {
+      "card_id": "card.massage",
+      "kept_variant_id": "variant.v3.massage.epaules_give",
+      "removed_variant_id": "variant.v3.massage.epaules_receive",
+      "old_title": "Masse les épaules de ton partenaire",
+      "neutral_title": "Massage des épaules"
+    },
+    {
+      "card_id": "card.massage",
+      "kept_variant_id": "variant.v3.massage.jambes_give",
+      "removed_variant_id": "variant.v3.massage.jambes_receive",
+      "old_title": "Masse les jambes de ton partenaire",
+      "neutral_title": "Massage des jambes"
+    },
+    {
+      "card_id": "card.sensual_massage",
+      "kept_variant_id": "variant.sensual_massage.base",
+      "removed_variant_id": "variant.sensual_massage.base.receive",
+      "old_title": "Masse sensuellement ton partenaire",
+      "neutral_title": "Massage"
+    },
+    {
+      "card_id": "card.intimate_massage",
+      "kept_variant_id": "variant.intimate_massage.base",
+      "removed_variant_id": "variant.intimate_massage.base.receive",
+      "old_title": "Masse les parties intimes de ton partenaire",
+      "neutral_title": "Massage — parties intimes"
+    },
+    {
+      "card_id": "card.remove_one_clothing",
+      "kept_variant_id": "variant.remove_one_clothing.base",
+      "removed_variant_id": "variant.remove_one_clothing.base.receive",
+      "old_title": "Retire un vêtement de ton partenaire",
+      "neutral_title": "Retirer un vêtement"
+    },
+    {
+      "card_id": "card.remove_two_clothing",
+      "kept_variant_id": "variant.remove_two_clothing.base",
+      "removed_variant_id": "variant.remove_two_clothing.base.receive",
+      "old_title": "Retire deux vêtements de ton partenaire",
+      "neutral_title": "Retirer deux vêtements"
+    },
+    {
+      "card_id": "card.undress_me",
+      "kept_variant_id": "variant.undress_me.base",
+      "removed_variant_id": null,
+      "old_title": "Déshabille-moi",
+      "neutral_title": "Déshabiller"
+    },
+    {
+      "card_id": "card.undress_partner",
+      "kept_variant_id": "variant.undress_partner.base",
+      "removed_variant_id": null,
+      "old_title": "Déshabille ton partenaire",
+      "neutral_title": "Retirer un vêtement"
+    },
+    {
+      "card_id": "card.choose_outfit",
+      "kept_variant_id": "variant.choose_outfit.base",
+      "removed_variant_id": null,
+      "old_title": "Choisis la tenue de ton partenaire",
+      "neutral_title": "Choix de tenue"
+    },
+    {
+      "card_id": "card.imposed_position",
+      "kept_variant_id": "variant.imposed_position.base",
+      "removed_variant_id": "variant.imposed_position.base.receive",
+      "old_title": "Impose une posture à ton partenaire",
+      "neutral_title": "Imposer une posture"
+    },
+    {
+      "card_id": "card.copy_position",
+      "kept_variant_id": "variant.copy_position.base",
+      "removed_variant_id": null,
+      "old_title": "Reproduis la posture montrée par ton partenaire",
+      "neutral_title": "Reproduire une posture"
+    },
+    {
+      "card_id": "card.simulate_act",
+      "kept_variant_id": "variant.simulate_act.guided",
+      "removed_variant_id": null,
+      "old_title": "Suis les consignes de ton partenaire pendant la simulation",
+      "neutral_title": "Simulation guidée"
+    },
+    {
+      "card_id": "card.simulate_penetration",
+      "kept_variant_id": "variant.simulate_penetration.base",
+      "removed_variant_id": "variant.simulate_penetration.base.receive",
+      "old_title": "Simule une pénétration sur ton partenaire",
+      "neutral_title": "Simulation de pénétration"
+    },
+    {
+      "card_id": "card.simulate_oral",
+      "kept_variant_id": "variant.simulate_oral.base",
+      "removed_variant_id": "variant.simulate_oral.lick.receive",
+      "old_title": "Simule une stimulation orale en léchant ton partenaire",
+      "neutral_title": "Simulation de stimulation orale"
+    },
+    {
+      "card_id": "card.simulate_oral",
+      "kept_variant_id": "variant.simulate_oral.suck",
+      "removed_variant_id": "variant.simulate_oral.suck.receive",
+      "old_title": "Simule une stimulation orale en suçant ton partenaire",
+      "neutral_title": "Simulation de succion"
+    },
+    {
+      "card_id": "card.simulate_facesitting",
+      "kept_variant_id": "variant.simulate_facesitting.base",
+      "removed_variant_id": "variant.simulate_facesitting.base.receive",
+      "old_title": "Simule un facesitting sur ton partenaire",
+      "neutral_title": "Simulation de facesitting"
+    },
+    {
+      "card_id": "card.masturbate_partner",
+      "kept_variant_id": "variant.masturbate_partner.base",
+      "removed_variant_id": null,
+      "old_title": "Masturbe ton partenaire",
+      "neutral_title": "Masturbation du partenaire"
+    },
+    {
+      "card_id": "card.oral_give",
+      "kept_variant_id": "variant.oral_give.base",
+      "removed_variant_id": null,
+      "old_title": "Lèche les parties intimes de ton partenaire",
+      "neutral_title": "Stimulation orale par léchage"
+    },
+    {
+      "card_id": "card.oral_give",
+      "kept_variant_id": "variant.oral_give.suck",
+      "removed_variant_id": null,
+      "old_title": "Suce les parties intimes de ton partenaire",
+      "neutral_title": "Stimulation orale par succion"
+    },
+    {
+      "card_id": "card.oral_receive",
+      "kept_variant_id": "variant.oral_receive.base",
+      "removed_variant_id": null,
+      "old_title": "Laisse ton partenaire lécher tes parties intimes",
+      "neutral_title": "Stimulation orale — parties intimes"
+    },
+    {
+      "card_id": "card.oral_receive",
+      "kept_variant_id": "variant.oral_receive.suck",
+      "removed_variant_id": null,
+      "old_title": "Laisse ton partenaire sucer tes parties intimes",
+      "neutral_title": "Reçois du sexe oral — parties intimes"
+    },
+    {
+      "card_id": "card.vaginal_penetration",
+      "kept_variant_id": "variant.vaginal_penetration.base",
+      "removed_variant_id": "variant.vaginal_penetration.base.receive",
+      "old_title": "Pénètre vaginalement ton partenaire",
+      "neutral_title": "Pénétration vaginale"
+    },
+    {
+      "card_id": "card.vaginal_penetration",
+      "kept_variant_id": "variant.v3.vaginal_penetration.sex_give",
+      "removed_variant_id": "variant.v3.vaginal_penetration.sex_receive",
+      "old_title": "Pénètre vaginalement avec ton sexe",
+      "neutral_title": "Pénétration vaginale avec le sexe"
+    },
+    {
+      "card_id": "card.choose_sex_position",
+      "kept_variant_id": "variant.choose_sex_position.base",
+      "removed_variant_id": null,
+      "old_title": "Choisis une position sexuelle pour la manche",
+      "neutral_title": "Choisir une position sexuelle"
+    },
+    {
+      "card_id": "card.choose_sex_position",
+      "kept_variant_id": "variant.v3.choose_sex_position.s",
+      "removed_variant_id": null,
+      "old_title": "Choisis une position sexuelle simple",
+      "neutral_title": "Choisir une position sexuelle simple"
+    },
+    {
+      "card_id": "card.choose_sex_position",
+      "kept_variant_id": "variant.v3.choose_sex_position.a",
+      "removed_variant_id": null,
+      "old_title": "Choisis une position sexuelle avancée",
+      "neutral_title": "Choisir une position sexuelle avancée"
+    },
+    {
+      "card_id": "card.choose_sex_position",
+      "kept_variant_id": "variant.v3.choose_sex_position.e",
+      "removed_variant_id": null,
+      "old_title": "Choisis une position sexuelle experte",
+      "neutral_title": "Choisir une position sexuelle experte"
+    },
+    {
+      "card_id": "card.anal_caress",
+      "kept_variant_id": "variant.anal_caress.base",
+      "removed_variant_id": "variant.anal_caress.base.receive",
+      "old_title": "Caresse la zone anale de ton partenaire",
+      "neutral_title": "Caresse anale"
+    },
+    {
+      "card_id": "card.anal_manual",
+      "kept_variant_id": "variant.anal_manual.base",
+      "removed_variant_id": "variant.anal_manual.base.receive",
+      "old_title": "Caresse extérieurement la zone anale de ton partenaire",
+      "neutral_title": "Stimulation anale externe"
+    },
+    {
+      "card_id": "card.anal_manual",
+      "kept_variant_id": "variant.anal_manual.internal",
+      "removed_variant_id": "variant.anal_manual.internal.receive",
+      "old_title": "Pénètre analement ton partenaire avec les doigts",
+      "neutral_title": "Stimulation anale avec les doigts"
+    },
+    {
+      "card_id": "card.anal_penetration",
+      "kept_variant_id": "variant.anal_penetration.base",
+      "removed_variant_id": "variant.anal_penetration.base.receive",
+      "old_title": "Pénètre analement ton partenaire",
+      "neutral_title": "Pénétration anale"
+    },
+    {
+      "card_id": "card.anal_penetration",
+      "kept_variant_id": "variant.v3.anal_penetration.sex_give",
+      "removed_variant_id": "variant.v3.anal_penetration.sex_receive",
+      "old_title": "Pénètre analement avec ton sexe",
+      "neutral_title": "Pénétration anale avec le sexe"
+    },
+    {
+      "card_id": "card.anal_oral",
+      "kept_variant_id": "variant.anal_oral.base",
+      "removed_variant_id": "variant.anal_oral.base.receive",
+      "old_title": "Lèche la zone anale de ton partenaire",
+      "neutral_title": "Stimulation orale anale"
+    },
+    {
+      "card_id": "card.facesitting",
+      "kept_variant_id": "variant.facesitting.base",
+      "removed_variant_id": "variant.facesitting.receive",
+      "old_title": "Assieds-toi sur le visage de ton partenaire",
+      "neutral_title": "Facesitting"
+    },
+    {
+      "card_id": "card.chest_play",
+      "kept_variant_id": "variant.chest_play.base",
+      "removed_variant_id": "variant.chest_play.base.receive",
+      "old_title": "Caresse la poitrine de ton partenaire",
+      "neutral_title": "Caresse de la poitrine"
+    },
+    {
+      "card_id": "card.chest_play",
+      "kept_variant_id": "variant.chest_play.massage",
+      "removed_variant_id": "variant.chest_play.massage.receive",
+      "old_title": "Masse la poitrine de ton partenaire",
+      "neutral_title": "Massage de la poitrine"
+    },
+    {
+      "card_id": "card.nipple_stimulation",
+      "kept_variant_id": "variant.nipple_stimulation.base",
+      "removed_variant_id": "variant.nipple_stimulation.base.receive",
+      "old_title": "Caresse les tétons de ton partenaire",
+      "neutral_title": "Caresse des tétons"
+    },
+    {
+      "card_id": "card.nipple_stimulation",
+      "kept_variant_id": "variant.nipple_stimulation.pinch",
+      "removed_variant_id": "variant.nipple_stimulation.pinch.receive",
+      "old_title": "Pince les tétons de ton partenaire",
+      "neutral_title": "Pincement des tétons"
+    },
+    {
+      "card_id": "card.feet_play",
+      "kept_variant_id": "variant.feet_play.base",
+      "removed_variant_id": "variant.feet_play.receive",
+      "old_title": "Masse les pieds de ton partenaire",
+      "neutral_title": "Massage des pieds"
+    },
+    {
+      "card_id": "card.dominate_me",
+      "kept_variant_id": "variant.dominate_me.base",
+      "removed_variant_id": null,
+      "old_title": "Domine-moi",
+      "neutral_title": "Domination consentie"
+    },
+    {
+      "card_id": "card.dominate_me",
+      "kept_variant_id": "variant.dominate_me.orders",
+      "removed_variant_id": null,
+      "old_title": "Laisse ton partenaire te donner des consignes",
+      "neutral_title": "Consignes consenties"
+    },
+    {
+      "card_id": "card.dominate_me",
+      "kept_variant_id": "variant.dominate_me.restraint",
+      "removed_variant_id": null,
+      "old_title": "Laisse ton partenaire t’immobiliser avec ton accord",
+      "neutral_title": "Immobilisation consentie"
+    },
+    {
+      "card_id": "card.submit",
+      "kept_variant_id": "variant.submit.base",
+      "removed_variant_id": null,
+      "old_title": "Soumets-toi aux décisions de ton partenaire",
+      "neutral_title": "Service consenti"
+    },
+    {
+      "card_id": "card.submit",
+      "kept_variant_id": "variant.submit.orders",
+      "removed_variant_id": null,
+      "old_title": "Suis les consignes de ton partenaire",
+      "neutral_title": "Suivre des consignes"
+    },
+    {
+      "card_id": "card.give_order",
+      "kept_variant_id": "variant.give_order.base",
+      "removed_variant_id": null,
+      "old_title": "Reçois un ordre de ton partenaire",
+      "neutral_title": "Ordre"
+    },
+    {
+      "card_id": "card.obey_order",
+      "kept_variant_id": "variant.obey_order.base",
+      "removed_variant_id": null,
+      "old_title": "Suis l’ordre de ton partenaire",
+      "neutral_title": "Ordre"
+    },
+    {
+      "card_id": "card.i_decide",
+      "kept_variant_id": "variant.i_decide.base",
+      "removed_variant_id": null,
+      "old_title": "Décide pour ton partenaire",
+      "neutral_title": "Prise de décision"
+    },
+    {
+      "card_id": "card.you_decide",
+      "kept_variant_id": "variant.you_decide.base",
+      "removed_variant_id": null,
+      "old_title": "Laisse ton partenaire décider",
+      "neutral_title": "Contrôle"
+    },
+    {
+      "card_id": "card.no_touch",
+      "kept_variant_id": "variant.no_touch.base",
+      "removed_variant_id": "variant.no_touch.base.receive",
+      "old_title": "Interdis à ton partenaire de te toucher",
+      "neutral_title": "Interdiction de toucher"
+    },
+    {
+      "card_id": "card.watch_no_touch",
+      "kept_variant_id": "variant.watch_no_touch.base",
+      "removed_variant_id": null,
+      "old_title": "Obéis : regarde ton partenaire sans le toucher",
+      "neutral_title": "Regarder sans toucher"
+    },
+    {
+      "card_id": "card.hands_bound",
+      "kept_variant_id": "variant.hands_bound.base",
+      "removed_variant_id": "variant.hands_bound.base.receive",
+      "old_title": "Attache les mains de ton partenaire",
+      "neutral_title": "Attacher les mains"
+    },
+    {
+      "card_id": "card.tie_me",
+      "kept_variant_id": "variant.tie_me.base",
+      "removed_variant_id": null,
+      "old_title": "Laisse ton partenaire t’attacher",
+      "neutral_title": "Attacher"
+    },
+    {
+      "card_id": "card.blindfold",
+      "kept_variant_id": "variant.blindfold.base",
+      "removed_variant_id": "variant.blindfold.base.receive",
+      "old_title": "Bande les yeux de ton partenaire",
+      "neutral_title": "Bandeau sur les yeux"
+    },
+    {
+      "card_id": "card.close_eyes",
+      "kept_variant_id": "variant.close_eyes.base",
+      "removed_variant_id": null,
+      "old_title": "Ferme les yeux à la demande de ton partenaire",
+      "neutral_title": "Fermer les yeux"
+    },
+    {
+      "card_id": "card.temperature_play",
+      "kept_variant_id": "variant.temperature_play.base",
+      "removed_variant_id": "variant.temperature_play.base.receive",
+      "old_title": "Applique un jeu de température à ton partenaire",
+      "neutral_title": "Jeu de température"
+    },
+    {
+      "card_id": "card.spanking",
+      "kept_variant_id": "variant.spanking.base",
+      "removed_variant_id": "variant.spanking.base.receive",
+      "old_title": "Donne une fessée à ton partenaire",
+      "neutral_title": "Fessée"
+    },
+    {
+      "card_id": "card.bite",
+      "kept_variant_id": "variant.bite.base",
+      "removed_variant_id": "variant.bite.base.receive",
+      "old_title": "Mords ton partenaire",
+      "neutral_title": "Mordre"
+    },
+    {
+      "card_id": "card.scratches",
+      "kept_variant_id": "variant.scratches.base",
+      "removed_variant_id": "variant.scratches.base.receive",
+      "old_title": "Griffe ton partenaire",
+      "neutral_title": "Griffer"
+    },
+    {
+      "card_id": "card.immobilize",
+      "kept_variant_id": "variant.immobilize.base",
+      "removed_variant_id": null,
+      "old_title": "Laisse ton partenaire t’immobiliser",
+      "neutral_title": "Immobiliser"
+    },
+    {
+      "card_id": "card.make_wait",
+      "kept_variant_id": "variant.make_wait.base",
+      "removed_variant_id": null,
+      "old_title": "Laisse ton partenaire te faire attendre",
+      "neutral_title": "Faire attendre"
+    },
+    {
+      "card_id": "card.flirty_message",
+      "kept_variant_id": "variant.flirty_message.base",
+      "removed_variant_id": null,
+      "old_title": "Envoie un message coquin",
+      "neutral_title": "Message coquin"
+    },
+    {
+      "card_id": "card.flirty_message",
+      "kept_variant_id": "variant.v3.flirty_message.voice_receive",
+      "removed_variant_id": null,
+      "old_title": "Écoute le message vocal coquin",
+      "neutral_title": "Message vocal coquin"
+    },
+    {
+      "card_id": "card.remote_instruction",
+      "kept_variant_id": "variant.remote_instruction.base",
+      "removed_variant_id": null,
+      "old_title": "Suis une consigne à distance",
+      "neutral_title": "Consigne à distance"
+    },
+    {
+      "card_id": "card.v3.sextoy_play",
+      "kept_variant_id": "variant.v3.sextoy_play.give",
+      "removed_variant_id": "variant.v3.sextoy_play.receive",
+      "old_title": "Utilise le sextoy sur ton partenaire",
+      "neutral_title": "Utiliser un sextoy"
+    },
+    {
+      "card_id": "card.v3.remote_toy_control",
+      "kept_variant_id": "variant.v3.remote_toy_control.give",
+      "removed_variant_id": "variant.v3.remote_toy_control.receive",
+      "old_title": "Prends le contrôle du jouet distant",
+      "neutral_title": "Contrôle du jouet à distance"
+    },
+    {
+      "card_id": "card.v3.shared_adult_content",
+      "kept_variant_id": "variant.v3.shared_adult_content.partner_choice",
+      "removed_variant_id": null,
+      "old_title": "Laisse ton partenaire choisir le contenu",
+      "neutral_title": "Choix du contenu adulte"
+    },
+    {
+      "card_id": "card.v3.orgasm_permission",
+      "kept_variant_id": "variant.v3.orgasm_permission.ask",
+      "removed_variant_id": null,
+      "old_title": "Demande la permission pour ton orgasme",
+      "neutral_title": "Permission d’orgasme"
+    },
+    {
+      "card_id": "card.v3.orgasm_permission",
+      "kept_variant_id": "variant.v3.orgasm_permission.grant",
+      "removed_variant_id": null,
+      "old_title": "Décide quand ton partenaire peut atteindre l’orgasme",
+      "neutral_title": "Permission d’orgasme"
+    },
+    {
+      "card_id": "card.v3.ejaculation_choice",
+      "kept_variant_id": "variant.v3.ejaculation_choice.give",
+      "removed_variant_id": "variant.v3.ejaculation_choice.receive",
+      "old_title": "Choisis d’éjaculer, dans les limites convenues",
+      "neutral_title": "Choix d’éjaculation"
+    },
+    {
+      "card_id": "card.v3.swallow_choice",
+      "kept_variant_id": "variant.v3.swallow_choice.perform",
+      "removed_variant_id": null,
+      "old_title": "Choisis d’avaler, dans les limites convenues",
+      "neutral_title": "Choix d’avaler"
+    },
+    {
+      "card_id": "card.v3.spit_choice",
+      "kept_variant_id": "variant.v3.spit_choice.perform",
+      "removed_variant_id": null,
+      "old_title": "Choisis de cracher, dans les limites convenues",
+      "neutral_title": "Choix de cracher"
+    },
+    {
+      "card_id": "card.v3.degrading_words",
+      "kept_variant_id": "variant.v3.degrading_words.give",
+      "removed_variant_id": "variant.v3.degrading_words.receive",
+      "old_title": "Prononce les mots dégradants convenus",
+      "neutral_title": "Paroles dégradantes consenties"
+    },
+    {
+      "card_id": "card.v3.beg_for_it",
+      "kept_variant_id": "variant.v3.beg_for_it.perform",
+      "removed_variant_id": null,
+      "old_title": "Supplie avec les mots convenus",
+      "neutral_title": "Supplier"
+    },
+    {
+      "card_id": "card.v3.roleplay_scene",
+      "kept_variant_id": "variant.v3.roleplay_scene.guided",
+      "removed_variant_id": null,
+      "old_title": "Laisse ton partenaire guider le scénario",
+      "neutral_title": "Guidage du scénario"
+    },
+    {
+      "card_id": "card.v3.texture_and_breath",
+      "kept_variant_id": "variant.v3.texture_and_breath.texture_give",
+      "removed_variant_id": "variant.v3.texture_and_breath.texture_receive",
+      "old_title": "Fais découvrir une texture convenue",
+      "neutral_title": "Découverte d’une texture"
+    },
+    {
+      "card_id": "card.v3.texture_and_breath",
+      "kept_variant_id": "variant.v3.texture_and_breath.breath_give",
+      "removed_variant_id": "variant.v3.texture_and_breath.breath_receive",
+      "old_title": "Souffle doucement sur la peau de ton partenaire",
+      "neutral_title": "Souffler sur la peau"
+    },
+    {
+      "card_id": "card.v3.auditory_deprivation",
+      "kept_variant_id": "variant.v3.auditory_deprivation.give",
+      "removed_variant_id": "variant.v3.auditory_deprivation.receive",
+      "old_title": "Propose à ton partenaire une privation auditive temporaire",
+      "neutral_title": "Privation auditive"
+    },
+    {
+      "card_id": "card.v3.silence_rule",
+      "kept_variant_id": "variant.v3.silence_rule.give",
+      "removed_variant_id": "variant.v3.silence_rule.receive",
+      "old_title": "Propose une courte règle de silence",
+      "neutral_title": "Règle de silence"
+    },
+    {
+      "card_id": "card.v3.neck_hold",
+      "kept_variant_id": "variant.v3.neck_hold.give",
+      "removed_variant_id": "variant.v3.neck_hold.receive",
+      "old_title": "Propose un maintien léger du cou, dans les limites convenues",
+      "neutral_title": "Maintien léger du cou, dans les limites convenues"
+    },
+    {
+      "card_id": "card.v3.gentle_pull",
+      "kept_variant_id": "variant.v3.gentle_pull.give",
+      "removed_variant_id": "variant.v3.gentle_pull.receive",
+      "old_title": "Tire doucement ton partenaire vers toi",
+      "neutral_title": "Tirer doucement"
+    },
+    {
+      "card_id": "card.v3.sensual_tasting",
+      "kept_variant_id": "variant.v3.sensual_tasting.food_give",
+      "removed_variant_id": "variant.v3.sensual_tasting.food_receive",
+      "old_title": "Fais goûter un aliment choisi",
+      "neutral_title": "Dégustation d’un aliment"
+    },
+    {
+      "card_id": "card.v3.sensual_tasting",
+      "kept_variant_id": "variant.v3.sensual_tasting.drink_give",
+      "removed_variant_id": "variant.v3.sensual_tasting.drink_receive",
+      "old_title": "Fais goûter une boisson non alcoolisée",
+      "neutral_title": "Dégustation d’une boisson"
+    }
+  ],
+  "summary": {
+    "disabled_mirror_cards": 8,
+    "disabled_mirror_variants": 56,
+    "playable_concept_cards": 96,
+    "playable_content_variants": 141
+  },
+  "card_consolidations": [
+    {
+      "source_card_id": "card.sensual_caress",
+      "replacement_card_id": "card.caress",
+      "replacement_variant_id": "variant.caress.sensual"
+    },
+    {
+      "source_card_id": "card.intimate_caress",
+      "replacement_card_id": "card.caress",
+      "replacement_variant_id": "variant.caress.intimate"
+    },
+    {
+      "source_card_id": "card.sensual_massage",
+      "replacement_card_id": "card.massage",
+      "replacement_variant_id": "variant.massage.sensual"
+    },
+    {
+      "source_card_id": "card.intimate_massage",
+      "replacement_card_id": "card.massage",
+      "replacement_variant_id": "variant.massage.intimate"
+    },
+    {
+      "source_card_id": "card.undress_partner",
+      "replacement_card_id": "card.undress_me",
+      "replacement_variant_id": "variant.undress_me.base"
+    },
+    {
+      "source_card_id": "card.oral_receive",
+      "replacement_card_id": "card.oral_give",
+      "replacement_variant_id": "variant.oral_give.base"
+    },
+    {
+      "source_card_id": "card.obey_order",
+      "replacement_card_id": "card.give_order",
+      "replacement_variant_id": "variant.give_order.base"
+    },
+    {
+      "source_card_id": "card.you_decide",
+      "replacement_card_id": "card.i_decide",
+      "replacement_variant_id": "variant.i_decide.base"
+    }
+  ]
+}

@@ -16,6 +16,8 @@ final class CardRenderDefinition {
     this.zones = const [],
     this.spice = 1,
     this.personalPa,
+    this.oppositePa,
+    this.oppositeDirection,
     this.details,
     this.illustrationId,
   });
@@ -25,9 +27,13 @@ final class CardRenderDefinition {
   final List<String> zones;
   final int spice;
   final int? personalPa;
+  final int? oppositePa;
+  final String? oppositeDirection;
 
   CardRenderDefinition copyWith({
     int? personalPa,
+    int? oppositePa,
+    String? oppositeDirection,
     bool removePersonalPa = false,
   }) => CardRenderDefinition(
     cardId: cardId,
@@ -39,6 +45,8 @@ final class CardRenderDefinition {
     zones: zones,
     spice: spice,
     personalPa: removePersonalPa ? null : (personalPa ?? this.personalPa),
+    oppositePa: removePersonalPa ? null : (oppositePa ?? this.oppositePa),
+    oppositeDirection: oppositeDirection ?? this.oppositeDirection,
     details: details,
     illustrationId: illustrationId,
   );
@@ -328,12 +336,24 @@ class CardRenderer extends StatelessWidget {
         children: [
           if (pa != null)
             Text(
-              '$pa/20',
+              '$pa PA',
               key: Key('personal-value-${definition.cardId}'),
               style: TextStyle(
                 color: Color(style.color),
                 fontSize: style.size * scale,
                 fontWeight: FontWeight.bold,
+              ),
+            ),
+          if (expanded &&
+              definition.oppositePa != null &&
+              definition.oppositeDirection != null)
+            Text(
+              '${definition.oppositeDirection} : ${definition.oppositePa} PA',
+              key: Key('opposite-value-${definition.cardId}'),
+              style: TextStyle(
+                color: Color(style.color).withValues(alpha: .78),
+                fontSize: style.size * scale * .48,
+                fontWeight: FontWeight.w500,
               ),
             ),
           if (locked && expanded)

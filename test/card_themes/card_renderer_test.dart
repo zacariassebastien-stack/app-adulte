@@ -13,6 +13,8 @@ const definition = CardRenderDefinition(
   zones: ['DOS', 'COU'],
   spice: 5,
   personalPa: 12,
+  oppositePa: 8,
+  oppositeDirection: 'Faire',
   details: 'Précisions supplémentaires',
 );
 
@@ -55,14 +57,15 @@ void main() {
       state: CardVisualState.locked,
     );
     expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
-    expect(find.text('12/20'), findsNothing);
+    expect(find.text('12 PA'), findsNothing);
 
     await render(
       tester,
       size: const Size(240, 360),
       state: CardVisualState.full,
     );
-    expect(find.text('12/20'), findsOneWidget);
+    expect(find.text('12 PA'), findsOneWidget);
+    expect(find.text('Faire : 8 PA'), findsOneWidget);
   });
 
   testWidgets('hidden state renders canonical back and hides private value', (
@@ -75,8 +78,38 @@ void main() {
     );
 
     expect(find.text('ENCHAIRE'), findsOneWidget);
-    expect(find.text('12/20'), findsNothing);
+    expect(find.text('12 PA'), findsNothing);
     expect(find.textContaining('titre de carte'), findsNothing);
+  });
+
+  testWidgets('compact state prioritizes active PA over opposite PA', (
+    tester,
+  ) async {
+    await render(tester, size: const Size(180, 260));
+    expect(find.text('12 PA'), findsOneWidget);
+    expect(find.text('Faire : 8 PA'), findsNothing);
+  });
+
+  testWidgets('mutual card displays one PA value', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: SizedBox(
+          width: 320,
+          height: 480,
+          child: CardRenderer(
+            state: CardVisualState.full,
+            definition: CardRenderDefinition(
+              cardId: 'mutual',
+              title: 'Action mutuelle',
+              direction: 'MUTUEL',
+              personalPa: 8,
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('8 PA'), findsOneWidget);
+    expect(find.byKey(const Key('opposite-value-mutual')), findsNothing);
   });
 
   testWidgets('readonly state is explicit', (tester) async {

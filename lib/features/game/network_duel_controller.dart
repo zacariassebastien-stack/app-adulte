@@ -28,6 +28,8 @@ final class NetworkDuelCard {
     required this.role,
     required this.preference,
     this.occurrenceId,
+    this.nativeDirection = CardOccurrenceDirection.GENERAL,
+    this.effectiveDirection = CardOccurrenceDirection.GENERAL,
   });
 
   final CardDefinition definition;
@@ -36,6 +38,8 @@ final class NetworkDuelCard {
   final ProfileRole role;
   final UserPreference preference;
   final String? occurrenceId;
+  final CardOccurrenceDirection nativeDirection;
+  final CardOccurrenceDirection effectiveDirection;
 
   String get id => engine.id;
   String get identity => occurrenceId ?? id;
@@ -45,6 +49,16 @@ final class NetworkDuelCard {
     ProfileRole.GENERAL => preference.generalValue!,
     ProfileRole.FAIRE => preference.faireValue!,
     ProfileRole.RECEVOIR => preference.recevoirValue!,
+  };
+  int? get oppositePersonalValue => switch (role) {
+    ProfileRole.FAIRE => preference.recevoirValue,
+    ProfileRole.RECEVOIR => preference.faireValue,
+    ProfileRole.GENERAL => null,
+  };
+  ProfileRole? get oppositeRole => switch (role) {
+    ProfileRole.FAIRE => ProfileRole.RECEVOIR,
+    ProfileRole.RECEVOIR => ProfileRole.FAIRE,
+    ProfileRole.GENERAL => null,
   };
 }
 

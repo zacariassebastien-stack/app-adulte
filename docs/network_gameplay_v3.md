@@ -5,11 +5,21 @@ par `commandId`. La main, le verrou, le nonce commit/reveal, les valeurs privée
 et l’apprentissage restent sur l’appareil du joueur. Le catalogue runtime est
 adapté depuis les champs V3 avant le calcul d’éligibilité.
 
-Le commit/reveal existant reste inchangé. Une résolution utilise les valeurs
-figées au commit. La négociation V3 est modélisée par un moteur pur borné qui
+Le commit/reveal conserve son enveloppe canonique et couvre désormais la
+direction de l'occurrence. Une résolution utilise les valeurs figées au commit.
+La négociation V3 est modélisée par un moteur pur borné qui
 sépare proposition, réponse, adaptation, validation et résolution. Les cartes
 engagées dans un compromis conservent leur direction native; seule la carte du
 duel initial peut être inversée.
+
+Le payload canonique du commit couvre aussi `native_direction`,
+`effective_direction` et la valeur privée de la direction opposée. Avant la
+révélation, ces données restent dans le secret local et leur digest empêche une
+substitution. Au reveal initial, native et effective doivent être identiques.
+La seule transition ultérieure autorisée est l'inversion ABA officielle. La
+migration locale `202610030001_directional_occurrence_pa.sql`, à appliquer
+ultérieurement, sélectionne alors la valeur opposée et publie uniquement le
+snapshot nécessaire à la résolution, jamais le profil ni la main.
 
 La migration `202610010001_gameplay_v3_recovery.sql` aligne Supabase sur le
 seuil fixe de 10 PA et accepte le gain maximal V3 de 30 PA. La proposition
@@ -18,7 +28,8 @@ valeur personnelle.
 
 La reprise conserve les secrets, la main, l’historique et le marqueur local des
 rounds déjà appris. Ainsi une reconnexion ne répète ni exposition, ni
-acceptation, ni dépense.
+acceptation, ni dépense. Elle conserve aussi les directions native et effective
+de chaque occurrence.
 
 ## `cardId` et `occurrenceId`
 

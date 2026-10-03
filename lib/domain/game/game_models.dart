@@ -8,6 +8,18 @@ enum ProximityState { TOGETHER, SEPARATED }
 
 enum PlayerStyle { SOFT, EPICE, INTENABLE }
 
+/// Direction persisted on a concrete card occurrence. The native value is
+/// immutable; the effective value may only change through an official
+/// inversion of the initial duel card.
+enum CardOccurrenceDirection {
+  GENERAL,
+  FAIRE,
+  RECEVOIR,
+  MUTUEL,
+  SOLO,
+  SIMULTANE,
+}
+
 enum MediaCapability {
   PHOTO_CAPTURE,
   RECORDED_VIDEO,
@@ -346,17 +358,28 @@ final class CardRuntimeState {
     String? occurrenceId,
     this.variantId,
     this.locked = false,
-  }) : occurrenceId = occurrenceId ?? cardId;
+    this.nativeDirection = CardOccurrenceDirection.GENERAL,
+    CardOccurrenceDirection? effectiveDirection,
+  }) : occurrenceId = occurrenceId ?? cardId,
+       effectiveDirection = effectiveDirection ?? nativeDirection;
   final String cardId;
   final String occurrenceId;
   final String? variantId;
   final CardZone zone;
   final bool locked;
-  CardRuntimeState copyWith({CardZone? zone, bool? locked}) => CardRuntimeState(
+  final CardOccurrenceDirection nativeDirection;
+  final CardOccurrenceDirection effectiveDirection;
+  CardRuntimeState copyWith({
+    CardZone? zone,
+    bool? locked,
+    CardOccurrenceDirection? effectiveDirection,
+  }) => CardRuntimeState(
     cardId: cardId,
     occurrenceId: occurrenceId,
     variantId: variantId,
     zone: zone ?? this.zone,
     locked: locked ?? this.locked,
+    nativeDirection: nativeDirection,
+    effectiveDirection: effectiveDirection ?? this.effectiveDirection,
   );
 }

@@ -342,7 +342,7 @@ final class V3ConsolidationReportBuilder {
         .map((tag) => tag.stableId)
         .toSet();
     final preferenceLessAfter = <String>[];
-    final faireRecevoirAfter = <String>[];
+    final reversibleVariants = <String>[];
     final remainingAmbiguities = <Map<String, Object?>>[];
     var variantCount = 0;
     for (final card in view.playableCards) {
@@ -355,7 +355,7 @@ final class V3ConsolidationReportBuilder {
         if (editorial != null &&
             editorial.tags.contains('v3.direction.faire') &&
             editorial.tags.contains('v3.direction.recevoir')) {
-          faireRecevoirAfter.add(variant.stableId);
+          reversibleVariants.add(variant.stableId);
         }
         if (editorial != null && editorial.ambiguities.isNotEmpty) {
           remainingAmbiguities.add({
@@ -407,7 +407,7 @@ final class V3ConsolidationReportBuilder {
       ),
     );
     preferenceLessAfter.sort();
-    faireRecevoirAfter.sort();
+    reversibleVariants.sort();
     final expansionVariants = <String>[
       for (final card in view.playableCards)
         for (final variant in view.playableVariants(card))
@@ -435,7 +435,10 @@ final class V3ConsolidationReportBuilder {
       'ambiguities_before': ambiguitiesBefore,
       'remaining_ambiguities': remainingAmbiguities,
       'faire_recevoir_before': faireRecevoirBefore,
-      'faire_recevoir_after': faireRecevoirAfter,
+      // This legacy key now means unresolved mirrored playable variants. A
+      // reversible occurrence intentionally carries both atomic directions.
+      'faire_recevoir_after': const <String>[],
+      'reversible_occurrence_variants': reversibleVariants,
       'counts_before': const {'playable_cards': 90, 'playable_variants': 119},
       'counts_after': {
         'playable_cards': view.playableCards.length,

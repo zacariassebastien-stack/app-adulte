@@ -13,6 +13,8 @@ import 'card_theme_validator.dart';
 
 enum _PreviewMode { single, representative, catalogue }
 
+enum _DirectionPreview { faire, recevoir, mutuel }
+
 class CardThemeEditorScreen extends StatefulWidget {
   const CardThemeEditorScreen({
     this.repository = const SharedPreferencesCardThemeRepository(),
@@ -37,6 +39,7 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
   String? selectedBlockId;
   bool showBack = false;
   _PreviewMode previewMode = _PreviewMode.single;
+  _DirectionPreview directionPreview = _DirectionPreview.faire;
   List<ThemeValidationIssue> issues = const [];
   String? message;
 
@@ -192,6 +195,21 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
             (card) => card.stableId == id,
           );
         }),
+      ),
+      const SizedBox(height: 12),
+      SegmentedButton<_DirectionPreview>(
+        key: const Key('direction-preview-selector'),
+        segments: const [
+          ButtonSegment(value: _DirectionPreview.faire, label: Text('Faire')),
+          ButtonSegment(
+            value: _DirectionPreview.recevoir,
+            label: Text('Recevoir'),
+          ),
+          ButtonSegment(value: _DirectionPreview.mutuel, label: Text('Mutuel')),
+        ],
+        selected: {directionPreview},
+        onSelectionChanged: (value) =>
+            setState(() => directionPreview = value.single),
       ),
       const SizedBox(height: 12),
       SegmentedButton<_PreviewMode>(
@@ -695,16 +713,32 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
         .where((tag) => tag.startsWith('v3.zone.'))
         .map((tag) => tag.split('.').last.toUpperCase())
         .toList();
+    final activePa = switch (directionPreview) {
+      _DirectionPreview.faire => 1,
+      _DirectionPreview.recevoir => 20,
+      _DirectionPreview.mutuel => 8,
+    };
+    final oppositePa = switch (directionPreview) {
+      _DirectionPreview.faire => 20,
+      _DirectionPreview.recevoir => 1,
+      _DirectionPreview.mutuel => null,
+    };
     return CardRenderDefinition(
       cardId: card.stableId,
       variantId: variant.stableId,
       title: variant.title ?? card.title ?? card.titleKey ?? card.stableId,
       subtitle: card.directionality?.name,
       action: variant.instructionKey ?? card.descriptionKey ?? '',
-      direction: card.directionality?.name ?? 'GÉNÉRAL',
+      direction: directionPreview.name.toUpperCase(),
       zones: zones,
       spice: variant.chiliLevel,
-      personalPa: 8,
+      personalPa: activePa,
+      oppositePa: oppositePa,
+      oppositeDirection: switch (directionPreview) {
+        _DirectionPreview.faire => 'Recevoir',
+        _DirectionPreview.recevoir => 'Faire',
+        _DirectionPreview.mutuel => null,
+      },
       details: zones.isEmpty ? 'Carte ENCHAIRE' : zones.join(' · '),
       illustrationId: card.illustrationKey,
     );

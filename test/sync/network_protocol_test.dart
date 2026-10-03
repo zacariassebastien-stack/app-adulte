@@ -214,6 +214,45 @@ void main() {
       );
     });
 
+    test('native and effective occurrence directions are committed', () {
+      final directional = ChoicePayload(
+        cardId: 'card.kiss_me',
+        variantId: 'variant.kiss_me.base',
+        parameters: const {
+          'role': 'RECEVOIR',
+          'personal_value': 8,
+          'opposite_personal_value': 12,
+          'native_direction': 'RECEVOIR',
+          'effective_direction': 'RECEVOIR',
+          'occurrence_id': 'occurrence-1',
+        },
+      );
+      final directionalCommitment = contract.commit(
+        sessionRound: 'session-1.round-3',
+        playerId: 'alice',
+        choice: directional,
+        nonce: 'direction-nonce',
+      );
+      final changedDirection = ChoicePayload(
+        cardId: directional.cardId,
+        variantId: directional.variantId,
+        parameters: {...directional.parameters, 'effective_direction': 'FAIRE'},
+      );
+
+      expect(
+        contract.verify(
+          directionalCommitment,
+          ChoiceRevealDto(
+            sessionRound: 'session-1.round-3',
+            playerId: 'alice',
+            choice: changedDirection,
+            nonce: 'direction-nonce',
+          ),
+        ),
+        isFalse,
+      );
+    });
+
     test('wrong nonce fails', () {
       expect(contract.verify(commitment, reveal(nonce: 'wrong')), isFalse);
     });
@@ -287,6 +326,23 @@ void main() {
       expect(migration, contains('extensions.digest('));
       expect(migration, contains("'sha256'::text"));
     });
+
+    test(
+      'directional PA migration validates and applies official inversion',
+      () {
+        final migration = File(
+          'supabase/migrations/202610030001_directional_occurrence_pa.sql',
+        ).readAsStringSync();
+        expect(migration, contains('ROUND_DIRECTION_MISMATCH'));
+        expect(migration, contains('ROUND_INVERSION_UNAVAILABLE'));
+        expect(migration, contains("'{parameters,opposite_personal_value}'"));
+        expect(migration, contains("when 'FAIRE' then case when v_inverted"));
+        expect(
+          migration,
+          contains("when 'RECEVOIR' then case when v_inverted"),
+        );
+      },
+    );
   });
 
   test('commandId round-trips and duplicate commands are recognized', () {

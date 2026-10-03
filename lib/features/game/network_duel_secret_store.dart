@@ -87,6 +87,8 @@ final class NetworkPrivateGameState {
           'variant_id': card.variantId,
           'zone': card.zone.name,
           'locked': card.locked,
+          'native_direction': card.nativeDirection.name,
+          'effective_direction': card.effectiveDirection.name,
         },
     ],
     'history': {
@@ -130,6 +132,14 @@ final class NetworkPrivateGameState {
                 variantId: card['variant_id'] as String?,
                 zone: CardZone.values.byName(card['zone']! as String),
                 locked: card['locked']! as bool,
+                nativeDirection: CardOccurrenceDirection.values.byName(
+                  (card['native_direction'] as String?) ?? 'GENERAL',
+                ),
+                effectiveDirection: CardOccurrenceDirection.values.byName(
+                  (card['effective_direction'] as String?) ??
+                      (card['native_direction'] as String?) ??
+                      'GENERAL',
+                ),
               ),
         ],
         history: {

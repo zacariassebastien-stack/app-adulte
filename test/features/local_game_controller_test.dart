@@ -190,7 +190,7 @@ void main() {
       expect(find.text('Tu remportes le duel'), findsOneWidget);
       expect(find.text('Écart : 5 · Coût : 5 PA'), findsOneWidget);
       expect(find.text('PA : 100 → 95'), findsOneWidget);
-      expect(find.text('11/20'), findsNothing);
+      expect(find.text('11 PA'), findsNothing);
       expect(tester.takeException(), isNull);
 
       await tester.ensureVisible(find.byKey(const Key('continue-after-duel')));

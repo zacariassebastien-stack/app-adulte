@@ -82,7 +82,7 @@ void main() {
     );
     expect(find.text('Description complète de la carte 0.'), findsOneWidget);
     expect(find.text('🌶️ 1  🌶️ 2'), findsOneWidget);
-    expect(find.text('10/20'), findsWidgets);
+    expect(find.text('10 PA'), findsWidgets);
     expect(find.text('Déverrouillée'), findsWidgets);
     expect(find.text('En savoir plus'), findsOneWidget);
     expect(find.text('Information complémentaire de test.'), findsOneWidget);
@@ -150,7 +150,7 @@ void main() {
     await chooseCard(tester, 0);
 
     expect(find.text('Titre complet 0'), findsNothing);
-    expect(find.text('10/20'), findsNothing);
+    expect(find.text('10 PA'), findsNothing);
     expect(find.text('Carte partenaire'), findsNothing);
     expect(
       find.text('Carte choisie — En attente de ton partenaire'),
@@ -195,8 +195,8 @@ void main() {
     await tester.tap(find.byKey(const Key('simulate-partner-choice')));
     await tester.pump();
 
-    expect(find.text('10/20'), findsNothing);
-    expect(find.text('19/20'), findsNothing);
+    expect(find.text('10 PA'), findsNothing);
+    expect(find.text('19 PA'), findsNothing);
     expect(find.text('Choix partenaire'), findsOneWidget);
   });
 
@@ -287,7 +287,7 @@ void main() {
     expect(find.byKey(const Key('player-hand')), findsNothing);
     expect(find.byKey(const Key('lock-card-button')), findsNothing);
     expect(find.byKey(const Key('choose-card-button')), findsNothing);
-    expect(find.text('10/20'), findsNothing);
+    expect(find.text('10 PA'), findsNothing);
     expect(selected, isNull);
   });
 }

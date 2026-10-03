@@ -77,8 +77,8 @@ void main() {
     expect(find.byKey(const Key('player-hand')), findsNothing);
     expect(find.text('76'), findsNothing);
     expect(find.byKey(const Key('personal-value-card-0')), findsNothing);
-    expect(find.text('10/20'), findsNothing);
-    expect(find.text('15/20'), findsNothing);
+    expect(find.text('10 PA'), findsNothing);
+    expect(find.text('15 PA'), findsNothing);
   });
 
   testWidgets('small Android screen has no overflow', (tester) async {

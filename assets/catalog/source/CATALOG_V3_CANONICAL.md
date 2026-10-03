@@ -47,9 +47,24 @@ distincts. Lorsqu'un ancien tag est réutilisé dans les deux sens, comme
 `tag.clothing.partner_remove`, la direction historique de la carte fait foi et
 le mapping du tag n'en invente aucune.
 
+Une action réellement réversible est une seule carte conceptuelle. Sa variante
+porte les deux tags atomiques `FAIRE` et `RECEVOIR`, tandis qu'une occurrence
+concrète en tire une seule à 50/50 parmi les directions autorisées par le profil
+privé. La direction native est persistée et ne change jamais lors d'un rebuild,
+d'une reconnexion ou d'une Recovery. Une inversion ABA modifie uniquement la
+direction effective de la carte initiale. `MUTUEL`, `SOLO`, `SIMULTANE` et les
+autres directions spécialisées ne passent pas par ce tirage.
+
+Chaque préférence réversible conserve deux valeurs PA indépendantes. Le titre
+décrit l'action sans encoder le rôle. Les anciens miroirs restent lisibles mais
+sont retirés du deck V3 avec un mapping explicite dans
+`docs/catalog_v3_directional_consolidation.json`.
+
 ## PA
 
-Seules les préférences V3 participent à la valeur personnelle. La valeur de
+Seules les préférences V3 participent à la valeur personnelle. Pour une action
+réversible, la grande valeur est celle de la direction effective et la petite
+valeur est celle de la direction opposée. La valeur de
 base est le plus haut score de préférence pertinent. Le bonus de combinaison
 est 0 pour une préférence significative (score >= 12), +1 pour deux, +2 pour
 trois ou plus. Il n'y a pas de plafond artificiel à 20. Les zones, directions,

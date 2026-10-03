@@ -32,3 +32,9 @@ nouveau build mobile.
 
 Les références d’illustrations utilisent les mêmes chemins que l’application.
 Une image absente affiche le placeholder standard du `CardRenderer`.
+
+Le sélecteur de direction de preview couvre trois cas : FAIRE (`1 PA`, inverse
+RECEVOIR à `20 PA`), RECEVOIR (`20 PA`, inverse FAIRE à `1 PA`) et MUTUEL
+(`8 PA` sans valeur inverse). Il permet de vérifier le contraste de la valeur
+principale, la ligne secondaire et les valeurs extrêmes sans réintégrer
+l'éditeur dans l'application mobile.

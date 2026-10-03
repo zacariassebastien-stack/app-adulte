@@ -55,6 +55,26 @@ final class CatalogEngineAdapter {
   );
 
   List<ConsentRule> _v3Consent(V3EditorialData data) {
+    final reversible =
+        data.tags.contains('v3.direction.faire') &&
+        data.tags.contains('v3.direction.recevoir');
+    if (reversible) {
+      return [
+        for (final tag in data.tags)
+          if (tag.startsWith('v3.preference.')) ...[
+            ConsentRule(
+              elementId: tag,
+              role: ProfileRole.FAIRE,
+              oneOfGroup: 'direction:$tag',
+            ),
+            ConsentRule(
+              elementId: tag,
+              role: ProfileRole.RECEVOIR,
+              oneOfGroup: 'direction:$tag',
+            ),
+          ],
+      ];
+    }
     final role = data.tags.contains('v3.direction.faire')
         ? ProfileRole.FAIRE
         : data.tags.contains('v3.direction.recevoir')

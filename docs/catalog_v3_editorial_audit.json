@@ -1,24 +1,32 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "catalog_version": 3,
-  "audited_card_titles": 104,
-  "audited_variant_titles": 206,
-  "correction_count": 78,
-  "unchanged_title_count": 232,
+  "audited_card_titles": 96,
+  "audited_variant_titles": 141,
+  "correction_count": 189,
+  "unchanged_title_count": 48,
   "invariants": {
     "stable_ids_changed": 0,
-    "tags_changed": 0,
     "engagement_levels_changed": 0,
     "requirements_changed": 0,
-    "regard_exterieur_playable_variants": 0
+    "regard_exterieur_playable_variants": 0,
+    "directional_mirror_cards_disabled": 8,
+    "directional_mirror_variants_disabled": 56
   },
   "corrections": [
     {
-      "stable_id": "card.nudity",
-      "old_title": "Mets-toi nu(e)",
-      "new_title": "Déshabille-toi complètement",
-      "correction_type": "INCLUSIVE_WORDING",
-      "justification": "Supprime la parenthèse genrée tout en conservant la même action."
+      "stable_id": "card.anal_penetration",
+      "old_title": "PÃ©nÃ©tration anale",
+      "new_title": "Pénétration anale",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.bath_together",
+      "old_title": "Bain Ã  deux",
+      "new_title": "Bain à deux",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
     },
     {
       "stable_id": "card.chest_play",
@@ -28,102 +36,102 @@
       "justification": "Remplace la barre oblique par une formulation française neutre."
     },
     {
-      "stable_id": "card.give_order",
-      "old_title": "Donne-moi un ordre",
-      "new_title": "Reçois un ordre",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Aligne le titre sur la direction RECEVOIR."
-    },
-    {
-      "stable_id": "card.obey_order",
-      "old_title": "Obéis à mon ordre",
-      "new_title": "Suis un ordre",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Aligne le titre sur l’action FAIRE du joueur."
-    },
-    {
-      "stable_id": "card.i_decide",
-      "old_title": "Je décide",
-      "new_title": "Décide pour ton partenaire",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Rend explicite le rôle FAIRE."
-    },
-    {
-      "stable_id": "card.you_decide",
-      "old_title": "Tu décides",
-      "new_title": "Laisse ton partenaire décider",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Rend explicite le rôle RECEVOIR."
-    },
-    {
-      "stable_id": "card.tie_me",
-      "old_title": "Attache-moi",
-      "new_title": "Laisse-toi attacher",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Rend explicite le rôle RECEVOIR."
-    },
-    {
-      "stable_id": "card.immobilize",
-      "old_title": "Immobilise-moi",
-      "new_title": "Laisse-toi immobiliser",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Rend explicite le rôle RECEVOIR."
-    },
-    {
-      "stable_id": "card.make_wait",
-      "old_title": "Fais-moi attendre",
-      "new_title": "Laisse ton partenaire te faire attendre",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Rend explicite la réception de la dynamique de contrôle."
-    },
-    {
-      "stable_id": "card.private_voyeur",
-      "old_title": "Voyeur privé",
-      "new_title": "Regarde ton partenaire en privé",
-      "correction_type": "TAG_ALIGNMENT",
-      "justification": "Transforme le nom abstrait en action correspondant à REGARDER."
-    },
-    {
-      "stable_id": "card.private_runway",
-      "old_title": "Défilé privé",
-      "new_title": "Défile pour ton partenaire",
-      "correction_type": "TAG_ALIGNMENT",
-      "justification": "Transforme le fragment en action correspondant à ETRE_REGARDE."
-    },
-    {
-      "stable_id": "card.sexting",
-      "old_title": "Sexting",
-      "new_title": "Messages coquins",
-      "correction_type": "FRENCH_WORDING",
-      "justification": "Remplace l’anglicisme par un intitulé français clair."
-    },
-    {
-      "stable_id": "card.suggestive_photo",
-      "old_title": "Photo suggestive",
-      "new_title": "Envoie une photo suggestive",
-      "correction_type": "TAG_ALIGNMENT",
-      "justification": "Rend visible l’action ENVOYER."
-    },
-    {
-      "stable_id": "card.underwear_photo",
-      "old_title": "Photo en sous-vêtements",
-      "new_title": "Envoie une photo en sous-vêtements",
-      "correction_type": "TAG_ALIGNMENT",
-      "justification": "Rend visible l’action ENVOYER."
-    },
-    {
-      "stable_id": "card.nude_photo",
-      "old_title": "Photo nue",
-      "new_title": "Envoie une photo nue",
-      "correction_type": "TAG_ALIGNMENT",
-      "justification": "Rend visible l’action ENVOYER."
-    },
-    {
       "stable_id": "card.choose_my_photo",
       "old_title": "Choisis ma photo",
       "new_title": "Laisse ton partenaire choisir ta photo",
       "correction_type": "ROLE_CLARITY",
       "justification": "Clarifie qui choisit et qui envoie."
+    },
+    {
+      "stable_id": "card.choose_outfit",
+      "old_title": "Choisis ma tenue",
+      "new_title": "Choix de tenue",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.choose_sex_position",
+      "old_title": "Choisis une position sexuelle",
+      "new_title": "Choisir une position sexuelle",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.close_eyes",
+      "old_title": "Ferme les yeux",
+      "new_title": "Fermer les yeux",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.clothed_rubbing",
+      "old_title": "Frottements habillÃ©s",
+      "new_title": "Frottements habillés",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.copy_position",
+      "old_title": "Copie ma position",
+      "new_title": "Reproduire une posture",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.dominate_me",
+      "old_title": "Domine-moi",
+      "new_title": "Domination consentie",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.genital_rubbing",
+      "old_title": "Frottement gÃ©nital",
+      "new_title": "Frottement génital",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.give_order",
+      "old_title": "Donne-moi un ordre",
+      "new_title": "Ordre",
+      "correction_type": "ROLE_CLARITY",
+      "justification": "Aligne le titre sur la direction RECEVOIR."
+    },
+    {
+      "stable_id": "card.hands_bound",
+      "old_title": "Mains attachÃ©es",
+      "new_title": "Mains attachées",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.hug",
+      "old_title": "CÃ¢lin",
+      "new_title": "Câlin",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.i_decide",
+      "old_title": "Je décide",
+      "new_title": "Décider",
+      "correction_type": "ROLE_CLARITY",
+      "justification": "Rend explicite le rôle FAIRE."
+    },
+    {
+      "stable_id": "card.immobilize",
+      "old_title": "Immobilise-moi",
+      "new_title": "Immobiliser",
+      "correction_type": "ROLE_CLARITY",
+      "justification": "Rend explicite le rôle RECEVOIR."
+    },
+    {
+      "stable_id": "card.imposed_position",
+      "old_title": "Position imposÃ©e",
+      "new_title": "Imposer une posture",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
     },
     {
       "stable_id": "card.intimate_video",
@@ -133,109 +141,613 @@
       "justification": "Rend visible l’action ENVOYER."
     },
     {
+      "stable_id": "card.kiss_me",
+      "old_title": "Embrasse-moi",
+      "new_title": "Embrasser",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.let_me_watch",
+      "old_title": "Laisse-moi te regarder",
+      "new_title": "Regarder",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.make_wait",
+      "old_title": "Fais-moi attendre",
+      "new_title": "Faire attendre",
+      "correction_type": "ROLE_CLARITY",
+      "justification": "Rend explicite la réception de la dynamique de contrôle."
+    },
+    {
+      "stable_id": "card.masturbate_partner",
+      "old_title": "Masturbe ton partenaire",
+      "new_title": "Masturbation du partenaire",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.neck_kisses",
+      "old_title": "Bisous dans le cou",
+      "new_title": "Embrasser dans le cou",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.nipple_stimulation",
+      "old_title": "Stimulation des tÃ©tons",
+      "new_title": "Stimulation des tétons",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.nude_photo",
+      "old_title": "Photo nue",
+      "new_title": "Envoie une photo nue",
+      "correction_type": "TAG_ALIGNMENT",
+      "justification": "Rend visible l’action ENVOYER."
+    },
+    {
+      "stable_id": "card.nudity",
+      "old_title": "Mets-toi nu(e)",
+      "new_title": "Déshabille-toi complètement",
+      "correction_type": "INCLUSIVE_WORDING",
+      "justification": "Supprime la parenthèse genrée tout en conservant la même action."
+    },
+    {
+      "stable_id": "card.private_exhibition",
+      "old_title": "Exhibition privÃ©e",
+      "new_title": "Exhibition privée",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.private_runway",
+      "old_title": "Défilé privé",
+      "new_title": "Défile pour ton partenaire",
+      "correction_type": "TAG_ALIGNMENT",
+      "justification": "Transforme le fragment en action correspondant à ETRE_REGARDE."
+    },
+    {
+      "stable_id": "card.private_voyeur",
+      "old_title": "Voyeur privé",
+      "new_title": "Regarde ton partenaire en privé",
+      "correction_type": "TAG_ALIGNMENT",
+      "justification": "Transforme le nom abstrait en action correspondant à REGARDER."
+    },
+    {
       "stable_id": "card.remote_instruction",
       "old_title": "Donne-moi une consigne à distance",
-      "new_title": "Suis une consigne à distance",
+      "new_title": "Consigne à distance",
       "correction_type": "ROLE_CLARITY",
       "justification": "Aligne le titre sur ORDRES + RECEVOIR."
     },
     {
-      "stable_id": "variant.caress.sensual",
-      "old_title": "Caresse ton partenaire sensuelle",
-      "new_title": "Caresse sensuellement ton partenaire",
-      "correction_type": "GRAMMAR_AGREEMENT",
-      "justification": "Corrige l’adjectif mal rattaché au partenaire."
+      "stable_id": "card.remove_one_clothing",
+      "old_title": "EnlÃ¨ve un vÃªtement",
+      "new_title": "Retirer un vêtement",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.remove_two_clothing",
+      "old_title": "EnlÃ¨ve deux vÃªtements",
+      "new_title": "Retirer deux vêtements",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.sexting",
+      "old_title": "Sexting",
+      "new_title": "Messages coquins",
+      "correction_type": "FRENCH_WORDING",
+      "justification": "Remplace l’anglicisme par un intitulé français clair."
+    },
+    {
+      "stable_id": "card.shower_together",
+      "old_title": "Douche Ã  deux",
+      "new_title": "Douche à deux",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.simulate_act",
+      "old_title": "Simule un acte sexuel",
+      "new_title": "Simulation d’un acte sexuel",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.simulate_facesitting",
+      "old_title": "Simule un facesitting",
+      "new_title": "Simulation de facesitting",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.simulate_oral",
+      "old_title": "Simule un acte oral",
+      "new_title": "Simulation de stimulation orale",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.simulate_penetration",
+      "old_title": "Simule une pÃ©nÃ©tration",
+      "new_title": "Simulation de pénétration",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.simultaneous_self_masturbation",
+      "old_title": "Masturbation simultanÃ©e",
+      "new_title": "Masturbation simultanée",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.spanking",
+      "old_title": "FessÃ©e",
+      "new_title": "Fessée",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.submit",
+      "old_title": "Soumets-toi",
+      "new_title": "Soumission consentie",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.suggestive_photo",
+      "old_title": "Photo suggestive",
+      "new_title": "Envoie une photo suggestive",
+      "correction_type": "TAG_ALIGNMENT",
+      "justification": "Rend visible l’action ENVOYER."
+    },
+    {
+      "stable_id": "card.temperature_play",
+      "old_title": "Jeu de tempÃ©rature",
+      "new_title": "Jeu de température",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.tie_me",
+      "old_title": "Attache-moi",
+      "new_title": "Attacher",
+      "correction_type": "ROLE_CLARITY",
+      "justification": "Rend explicite le rôle RECEVOIR."
+    },
+    {
+      "stable_id": "card.underwear_only",
+      "old_title": "Reste en sous-vÃªtements",
+      "new_title": "Reste en sous-vêtements",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.underwear_photo",
+      "old_title": "Photo en sous-vêtements",
+      "new_title": "Envoie une photo en sous-vêtements",
+      "correction_type": "TAG_ALIGNMENT",
+      "justification": "Rend visible l’action ENVOYER."
+    },
+    {
+      "stable_id": "card.undress_me",
+      "old_title": "DÃ©shabille-moi",
+      "new_title": "Déshabiller",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.v3.auditory_deprivation",
+      "old_title": "Coupe le son",
+      "new_title": "Privation auditive",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.v3.beg_for_it",
+      "old_title": "Supplie-moi",
+      "new_title": "Supplier",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.v3.degrading_words",
+      "old_title": "Paroles dÃ©gradantes consenties",
+      "new_title": "Paroles dégradantes consenties",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.v3.ejaculation_choice",
+      "old_title": "Choix dâ€™Ã©jaculation",
+      "new_title": "Choix d’éjaculation",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.v3.exposed_setting",
+      "old_title": "Sensation dâ€™exposition",
+      "new_title": "Sensation d’exposition",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.v3.gentle_pull",
+      "old_title": "Tire-moi vers toi",
+      "new_title": "Tirer doucement",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.v3.remote_toy_control",
+      "old_title": "ContrÃ´le Ã  distance",
+      "new_title": "Contrôle du jouet à distance",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.v3.roleplay_scene",
+      "old_title": "Entre dans le rÃ´le",
+      "new_title": "Jeu de rôle",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.v3.sensual_tasting",
+      "old_title": "DÃ©gustation sensuelle",
+      "new_title": "Dégustation sensuelle",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.v3.shared_adult_content",
+      "old_title": "Contenu adulte partagÃ©",
+      "new_title": "Contenu adulte partagé",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.v3.silence_rule",
+      "old_title": "RÃ¨gle de silence",
+      "new_title": "Règle de silence",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.v3.swallow_choice",
+      "old_title": "Choix dâ€™avaler",
+      "new_title": "Choix d’avaler",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.v3.unusual_private_place",
+      "old_title": "Ailleurs, en privÃ©",
+      "new_title": "Ailleurs, en privé",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.vaginal_penetration",
+      "old_title": "PÃ©nÃ©tration vaginale",
+      "new_title": "Pénétration vaginale",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "card.watch_no_touch",
+      "old_title": "Regarde sans toucher",
+      "new_title": "Regarder sans toucher",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.anal_caress.base",
+      "old_title": "Caresse la zone anale de ton partenaire",
+      "new_title": "Caresse anale",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.anal_manual.base",
+      "old_title": "Caresse extÃ©rieurement la zone anale de ton partenaire",
+      "new_title": "Stimulation anale externe",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.anal_manual.internal",
+      "old_title": "PÃ©nÃ¨tre analement ton partenaire avec les doigts",
+      "new_title": "Stimulation anale avec les doigts",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.anal_oral.base",
+      "old_title": "LÃ¨che la zone anale de ton partenaire",
+      "new_title": "Stimulation orale anale",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.anal_penetration.base",
+      "old_title": "PÃ©nÃ¨tre analement ton partenaire",
+      "new_title": "Pénétration anale",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.bath_together.base",
+      "old_title": "Bain à deux",
+      "new_title": "Prenez un bain ensemble",
+      "correction_type": "ACTIONABLE_WORDING",
+      "justification": "Transforme le nom en instruction mutuelle."
+    },
+    {
+      "stable_id": "variant.bite.base",
+      "old_title": "Mords ton partenaire",
+      "new_title": "Mordre",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.blindfold.base",
+      "old_title": "Bande les yeux de ton partenaire",
+      "new_title": "Bandeau sur les yeux",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.caress.base",
+      "old_title": "Caresse ton partenaire",
+      "new_title": "Caresser",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
     },
     {
       "stable_id": "variant.caress.intimate",
       "old_title": "Caresse ton partenaire intime",
-      "new_title": "Caresse les parties intimes de ton partenaire",
+      "new_title": "Caresse intime",
+      "correction_type": "TAG_ALIGNMENT",
+      "justification": "Nommer la zone supprime l’ambiguïté de l’adjectif."
+    },
+    {
+      "stable_id": "variant.caress.sensual",
+      "old_title": "Caresse ton partenaire sensuelle",
+      "new_title": "Caresse sensuelle",
+      "correction_type": "GRAMMAR_AGREEMENT",
+      "justification": "Corrige l’adjectif mal rattaché au partenaire."
+    },
+    {
+      "stable_id": "variant.chest_play.base",
+      "old_title": "Caresse la poitrine de ton partenaire",
+      "new_title": "Caresse de la poitrine",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.chest_play.massage",
+      "old_title": "Masse la poitrine de ton partenaire",
+      "new_title": "Massage de la poitrine",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.choose_my_photo.base",
+      "old_title": "Choisis ma photo",
+      "new_title": "Laisse ton partenaire choisir la photo que tu envoies",
+      "correction_type": "ROLE_CLARITY",
+      "justification": "Clarifie contrôle et envoi."
+    },
+    {
+      "stable_id": "variant.choose_outfit.base",
+      "old_title": "Choisis la tenue de ton partenaire",
+      "new_title": "Choix de tenue",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.choose_sex_position.base",
+      "old_title": "Choisis une position sexuelle pour la manche",
+      "new_title": "Choisir une position sexuelle",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.close_eyes.base",
+      "old_title": "Ferme les yeux Ã  la demande de ton partenaire",
+      "new_title": "Fermer les yeux",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.clothed_rubbing.base",
+      "old_title": "Frottements habillÃ©s",
+      "new_title": "Frottements habillés",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.copy_position.base",
+      "old_title": "Reproduis la posture montrÃ©e par ton partenaire",
+      "new_title": "Reproduire une posture",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.dominate_me.base",
+      "old_title": "Domine-moi",
+      "new_title": "Domination consentie",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.dominate_me.orders",
+      "old_title": "Avec consignes",
+      "new_title": "Consignes consenties",
+      "correction_type": "ROLE_CLARITY",
+      "justification": "Remplace le fragment et explicite RECEVOIR."
+    },
+    {
+      "stable_id": "variant.dominate_me.restraint",
+      "old_title": "Avec immobilisation consentie",
+      "new_title": "Immobilisation consentie",
+      "correction_type": "CONSENT_WORDING",
+      "justification": "Remplace le fragment par une formulation consentie."
+    },
+    {
+      "stable_id": "variant.facesitting.base",
+      "old_title": "Assieds-toi sur le visage de ton partenaire",
+      "new_title": "Facesitting",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.feet_play.base",
+      "old_title": "Masse les pieds de ton partenaire",
+      "new_title": "Massage des pieds",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.genital_rubbing.base",
+      "old_title": "Frottement génital",
+      "new_title": "Frottez vos parties intimes l’une contre l’autre",
+      "correction_type": "ACTIONABLE_WORDING",
+      "justification": "Transforme le nom en instruction MUTUELLE."
+    },
+    {
+      "stable_id": "variant.give_order.base",
+      "old_title": "Donne-moi un ordre",
+      "new_title": "Ordre",
+      "correction_type": "ROLE_CLARITY",
+      "justification": "Aligne le texte sur ORDRES + RECEVOIR."
+    },
+    {
+      "stable_id": "variant.hands_bound.base",
+      "old_title": "Attache les mains de ton partenaire",
+      "new_title": "Attacher les mains",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.hug.base",
+      "old_title": "CÃ¢lin",
+      "new_title": "Câlin",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.hug.long",
+      "old_title": "CÃ¢lin prolongÃ©",
+      "new_title": "Câlin prolongé",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.i_decide.base",
+      "old_title": "Je décide",
+      "new_title": "Prise de décision",
+      "correction_type": "ROLE_CLARITY",
+      "justification": "Rend le rôle FAIRE explicite."
+    },
+    {
+      "stable_id": "variant.immobilize.base",
+      "old_title": "Immobilise-moi",
+      "new_title": "Immobiliser",
+      "correction_type": "ROLE_CLARITY",
+      "justification": "Rend IMMOBILISER + RECEVOIR explicite."
+    },
+    {
+      "stable_id": "variant.imposed_position.base",
+      "old_title": "Impose une posture Ã  ton partenaire",
+      "new_title": "Imposer une posture",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.intimate_video.base",
+      "old_title": "Vidéo intime",
+      "new_title": "Envoie une vidéo intime",
+      "correction_type": "TAG_ALIGNMENT",
+      "justification": "Rend visible ENVOYER."
+    },
+    {
+      "stable_id": "variant.intimate_video.nude",
+      "old_title": "Vidéo nue",
+      "new_title": "Envoie une vidéo nue",
+      "correction_type": "TAG_ALIGNMENT",
+      "justification": "Rend visible ENVOYER."
+    },
+    {
+      "stable_id": "variant.intimate_video.suggestive",
+      "old_title": "Vidéo suggestive",
+      "new_title": "Envoie une vidéo suggestive",
+      "correction_type": "TAG_ALIGNMENT",
+      "justification": "Rend visible ENVOYER."
+    },
+    {
+      "stable_id": "variant.kiss_me.base",
+      "old_title": "Embrasse-moi",
+      "new_title": "Embrasser",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.kiss_me.lingering",
+      "old_title": "Baiser prolongÃ©",
+      "new_title": "Baiser prolongé",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.let_me_watch.base",
+      "old_title": "Laisse-moi te regarder",
+      "new_title": "Regarder",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.make_wait.base",
+      "old_title": "Fais-moi attendre",
+      "new_title": "Faire attendre",
+      "correction_type": "ROLE_CLARITY",
+      "justification": "Rend la réception du contrôle explicite."
+    },
+    {
+      "stable_id": "variant.massage.base",
+      "old_title": "Masse ton partenaire",
+      "new_title": "Masser",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.massage.intimate",
+      "old_title": "Masse ton partenaire intime",
+      "new_title": "Massage intime",
       "correction_type": "TAG_ALIGNMENT",
       "justification": "Nommer la zone supprime l’ambiguïté de l’adjectif."
     },
     {
       "stable_id": "variant.massage.sensual",
       "old_title": "Masse ton partenaire sensuel",
-      "new_title": "Masse sensuellement ton partenaire",
+      "new_title": "Massage sensuel",
       "correction_type": "GRAMMAR_AGREEMENT",
       "justification": "Corrige l’adjectif mal rattaché au partenaire."
     },
     {
-      "stable_id": "variant.massage.intimate",
-      "old_title": "Masse ton partenaire intime",
-      "new_title": "Masse les parties intimes de ton partenaire",
-      "correction_type": "TAG_ALIGNMENT",
-      "justification": "Nommer la zone supprime l’ambiguïté de l’adjectif."
-    },
-    {
-      "stable_id": "variant.v3.massage.dos_give",
-      "old_title": "Masse dos de ton partenaire",
-      "new_title": "Masse le dos de ton partenaire",
-      "correction_type": "MISSING_ARTICLE",
-      "justification": "Ajoute l’article requis."
-    },
-    {
-      "stable_id": "variant.v3.massage.dos_receive",
-      "old_title": "Reçois un massage de dos",
-      "new_title": "Reçois un massage du dos",
-      "correction_type": "MISSING_ARTICLE",
-      "justification": "Utilise la contraction française correcte."
-    },
-    {
-      "stable_id": "variant.v3.massage.epaules_give",
-      "old_title": "Masse épaules de ton partenaire",
-      "new_title": "Masse les épaules de ton partenaire",
-      "correction_type": "MISSING_ARTICLE",
-      "justification": "Ajoute l’article requis."
-    },
-    {
-      "stable_id": "variant.v3.massage.epaules_receive",
-      "old_title": "Reçois un massage de épaules",
-      "new_title": "Reçois un massage des épaules",
-      "correction_type": "MISSING_ARTICLE",
-      "justification": "Utilise l’article pluriel correct."
-    },
-    {
-      "stable_id": "variant.v3.massage.jambes_give",
-      "old_title": "Masse jambes de ton partenaire",
-      "new_title": "Masse les jambes de ton partenaire",
-      "correction_type": "MISSING_ARTICLE",
-      "justification": "Ajoute l’article requis."
-    },
-    {
-      "stable_id": "variant.v3.massage.jambes_receive",
-      "old_title": "Reçois un massage de jambes",
-      "new_title": "Reçois un massage des jambes",
-      "correction_type": "MISSING_ARTICLE",
-      "justification": "Utilise l’article pluriel correct."
-    },
-    {
-      "stable_id": "variant.undressing.base",
-      "old_title": "Choisis combien de tes vêtements retirer",
-      "new_title": "Choisis combien de vêtements tu retires",
-      "correction_type": "WORD_ORDER",
-      "justification": "Rend la phrase naturelle sans changer clothingDelta."
-    },
-    {
-      "stable_id": "variant.remove_one_clothing.base",
-      "old_title": "Retire un vêtement à ton partenaire",
-      "new_title": "Retire un vêtement de ton partenaire",
-      "correction_type": "PREPOSITION",
-      "justification": "Corrige la préposition."
-    },
-    {
-      "stable_id": "variant.remove_two_clothing.base",
-      "old_title": "Retire deux vêtements à ton partenaire",
-      "new_title": "Retire deux vêtements de ton partenaire",
-      "correction_type": "PREPOSITION",
-      "justification": "Corrige la préposition."
-    },
-    {
-      "stable_id": "variant.nudity.base",
-      "old_title": "Mets-toi nu(e)",
-      "new_title": "Déshabille-toi complètement",
-      "correction_type": "INCLUSIVE_WORDING",
-      "justification": "Supprime la parenthèse genrée."
+      "stable_id": "variant.masturbate_partner.base",
+      "old_title": "Masturbe ton partenaire",
+      "new_title": "Masturbation du partenaire",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
     },
     {
       "stable_id": "variant.masturbation.self",
@@ -252,137 +764,60 @@
       "justification": "Remplace le fragment par une action explicite."
     },
     {
+      "stable_id": "variant.neck_kisses.base",
+      "old_title": "Bisous dans le cou",
+      "new_title": "Embrasser dans le cou",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.nipple_stimulation.base",
+      "old_title": "Caresse les tÃ©tons de ton partenaire",
+      "new_title": "Caresse des tétons",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.nipple_stimulation.pinch",
+      "old_title": "Pince les tÃ©tons de ton partenaire",
+      "new_title": "Pincement des tétons",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.no_touch.base",
+      "old_title": "Interdis Ã  ton partenaire de te toucher",
+      "new_title": "Interdiction de toucher",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.nude_photo.base",
+      "old_title": "Photo nue",
+      "new_title": "Envoie une photo nue",
+      "correction_type": "TAG_ALIGNMENT",
+      "justification": "Rend visible ENVOYER."
+    },
+    {
+      "stable_id": "variant.nudity.base",
+      "old_title": "Mets-toi nu(e)",
+      "new_title": "Déshabille-toi complètement",
+      "correction_type": "INCLUSIVE_WORDING",
+      "justification": "Supprime la parenthèse genrée."
+    },
+    {
       "stable_id": "variant.oral_give.base",
       "old_title": "Lécher les parties intimes",
-      "new_title": "Lèche les parties intimes de ton partenaire",
+      "new_title": "Stimulation orale par léchage",
       "correction_type": "TUTOIEMENT",
       "justification": "Passe de l’infinitif à l’instruction cohérente."
     },
     {
       "stable_id": "variant.oral_give.suck",
       "old_title": "Sucer les parties intimes",
-      "new_title": "Suce les parties intimes de ton partenaire",
+      "new_title": "Stimulation orale par succion",
       "correction_type": "TUTOIEMENT",
       "justification": "Passe de l’infinitif à l’instruction cohérente."
-    },
-    {
-      "stable_id": "variant.oral_receive.base",
-      "old_title": "Être léché(e)",
-      "new_title": "Laisse ton partenaire lécher tes parties intimes",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Supprime la parenthèse genrée et explicite RECEVOIR."
-    },
-    {
-      "stable_id": "variant.oral_receive.suck",
-      "old_title": "Être sucé(e)",
-      "new_title": "Laisse ton partenaire sucer tes parties intimes",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Supprime la parenthèse genrée et explicite RECEVOIR."
-    },
-    {
-      "stable_id": "variant.anal_oral.base.receive",
-      "old_title": "Reçois une stimulation orale anale",
-      "new_title": "Reçois une stimulation orale de la zone anale",
-      "correction_type": "WORDING",
-      "justification": "Corrige l’enchaînement maladroit des adjectifs."
-    },
-    {
-      "stable_id": "variant.genital_rubbing.base",
-      "old_title": "Frottement génital",
-      "new_title": "Frottez vos parties intimes l’une contre l’autre",
-      "correction_type": "ACTIONABLE_WORDING",
-      "justification": "Transforme le nom en instruction MUTUELLE."
-    },
-    {
-      "stable_id": "variant.nipple_stimulation.base.receive",
-      "old_title": "Reçois une caresse des tétons",
-      "new_title": "Reçois des caresses sur les tétons",
-      "correction_type": "PREPOSITION",
-      "justification": "Corrige la relation entre l’action et la zone."
-    },
-    {
-      "stable_id": "variant.dominate_me.orders",
-      "old_title": "Avec consignes",
-      "new_title": "Laisse ton partenaire te donner des consignes",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Remplace le fragment et explicite RECEVOIR."
-    },
-    {
-      "stable_id": "variant.dominate_me.restraint",
-      "old_title": "Avec immobilisation consentie",
-      "new_title": "Laisse ton partenaire t’immobiliser avec ton accord",
-      "correction_type": "CONSENT_WORDING",
-      "justification": "Remplace le fragment par une formulation consentie."
-    },
-    {
-      "stable_id": "variant.give_order.base",
-      "old_title": "Donne-moi un ordre",
-      "new_title": "Reçois un ordre de ton partenaire",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Aligne le texte sur ORDRES + RECEVOIR."
-    },
-    {
-      "stable_id": "variant.obey_order.base",
-      "old_title": "Obéis à mon ordre",
-      "new_title": "Suis l’ordre de ton partenaire",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Aligne le texte sur ORDRES + FAIRE."
-    },
-    {
-      "stable_id": "variant.i_decide.base",
-      "old_title": "Je décide",
-      "new_title": "Décide pour ton partenaire",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Rend le rôle FAIRE explicite."
-    },
-    {
-      "stable_id": "variant.you_decide.base",
-      "old_title": "Tu décides",
-      "new_title": "Laisse ton partenaire décider",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Rend le rôle RECEVOIR explicite."
-    },
-    {
-      "stable_id": "variant.tie_me.base",
-      "old_title": "Attache-moi",
-      "new_title": "Laisse ton partenaire t’attacher",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Rend ATTACHER + RECEVOIR explicite."
-    },
-    {
-      "stable_id": "variant.immobilize.base",
-      "old_title": "Immobilise-moi",
-      "new_title": "Laisse ton partenaire t’immobiliser",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Rend IMMOBILISER + RECEVOIR explicite."
-    },
-    {
-      "stable_id": "variant.make_wait.base",
-      "old_title": "Fais-moi attendre",
-      "new_title": "Laisse ton partenaire te faire attendre",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Rend la réception du contrôle explicite."
-    },
-    {
-      "stable_id": "variant.private_exhibition.underwear",
-      "old_title": "En sous-vêtements",
-      "new_title": "Présente-toi en sous-vêtements à ton partenaire",
-      "correction_type": "ACTIONABLE_WORDING",
-      "justification": "Évite le fragment sans introduire de tiers."
-    },
-    {
-      "stable_id": "variant.private_voyeur.base",
-      "old_title": "Voyeur privé",
-      "new_title": "Regarde ton partenaire en privé",
-      "correction_type": "TAG_ALIGNMENT",
-      "justification": "Aligne le texte sur REGARDER sans suggérer de tiers."
-    },
-    {
-      "stable_id": "variant.private_runway.base",
-      "old_title": "Défilé privé",
-      "new_title": "Défile pour ton partenaire",
-      "correction_type": "TAG_ALIGNMENT",
-      "justification": "Aligne le texte sur ETRE_REGARDE sans suggérer de tiers."
     },
     {
       "stable_id": "variant.pose.partner_choice",
@@ -392,18 +827,53 @@
       "justification": "Transforme le fragment en instruction claire."
     },
     {
-      "stable_id": "variant.shower_together.base",
-      "old_title": "Douche à deux",
-      "new_title": "Prenez une douche ensemble",
+      "stable_id": "variant.private_exhibition.underwear",
+      "old_title": "En sous-vêtements",
+      "new_title": "Présente-toi en sous-vêtements à ton partenaire",
       "correction_type": "ACTIONABLE_WORDING",
-      "justification": "Transforme le nom en instruction mutuelle."
+      "justification": "Évite le fragment sans introduire de tiers."
     },
     {
-      "stable_id": "variant.bath_together.base",
-      "old_title": "Bain à deux",
-      "new_title": "Prenez un bain ensemble",
-      "correction_type": "ACTIONABLE_WORDING",
-      "justification": "Transforme le nom en instruction mutuelle."
+      "stable_id": "variant.private_runway.base",
+      "old_title": "Défilé privé",
+      "new_title": "Défile pour ton partenaire",
+      "correction_type": "TAG_ALIGNMENT",
+      "justification": "Aligne le texte sur ETRE_REGARDE sans suggérer de tiers."
+    },
+    {
+      "stable_id": "variant.private_voyeur.base",
+      "old_title": "Voyeur privé",
+      "new_title": "Regarde ton partenaire en privé",
+      "correction_type": "TAG_ALIGNMENT",
+      "justification": "Aligne le texte sur REGARDER sans suggérer de tiers."
+    },
+    {
+      "stable_id": "variant.remote_instruction.base",
+      "old_title": "Donne-moi une consigne à distance",
+      "new_title": "Consigne à distance",
+      "correction_type": "ROLE_CLARITY",
+      "justification": "Aligne le texte sur ORDRES + RECEVOIR."
+    },
+    {
+      "stable_id": "variant.remove_one_clothing.base",
+      "old_title": "Retire un vêtement à ton partenaire",
+      "new_title": "Retirer un vêtement",
+      "correction_type": "PREPOSITION",
+      "justification": "Corrige la préposition."
+    },
+    {
+      "stable_id": "variant.remove_two_clothing.base",
+      "old_title": "Retire deux vêtements à ton partenaire",
+      "new_title": "Retirer deux vêtements",
+      "correction_type": "PREPOSITION",
+      "justification": "Corrige la préposition."
+    },
+    {
+      "stable_id": "variant.scratches.base",
+      "old_title": "Griffe ton partenaire",
+      "new_title": "Griffer",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
     },
     {
       "stable_id": "variant.sexting.base",
@@ -420,11 +890,116 @@
       "justification": "Remplace le fragment et conserve MUTUEL + RECEVOIR."
     },
     {
-      "stable_id": "variant.flirty_message.base",
-      "old_title": "Message coquin",
-      "new_title": "Envoie un message coquin",
-      "correction_type": "TAG_ALIGNMENT",
-      "justification": "Rend visible ENVOYER + FAIRE."
+      "stable_id": "variant.shower_together.base",
+      "old_title": "Douche à deux",
+      "new_title": "Prenez une douche ensemble",
+      "correction_type": "ACTIONABLE_WORDING",
+      "justification": "Transforme le nom en instruction mutuelle."
+    },
+    {
+      "stable_id": "variant.simulate_69.base",
+      "old_title": "Simulez un 69 en lÃ©chant",
+      "new_title": "Simulez un 69 en léchant",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.simulate_69.suck",
+      "old_title": "Simulez un 69 en suÃ§ant",
+      "new_title": "Simulez un 69 en suçant",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.simulate_act.guided",
+      "old_title": "Suis les consignes de ton partenaire pendant la simulation",
+      "new_title": "Simulation guidée",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.simulate_facesitting.base",
+      "old_title": "Simule un facesitting sur ton partenaire",
+      "new_title": "Simulation de facesitting",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.simulate_oral.base",
+      "old_title": "Simule une stimulation orale en lÃ©chant ton partenaire",
+      "new_title": "Simulation de stimulation orale",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.simulate_oral.suck",
+      "old_title": "Simule une stimulation orale en suÃ§ant ton partenaire",
+      "new_title": "Simulation de succion",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.simulate_penetration.base",
+      "old_title": "Simule une pÃ©nÃ©tration sur ton partenaire",
+      "new_title": "Simulation de pénétration",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.simultaneous_self_masturbation.base",
+      "old_title": "Chacun se masturbe en mÃªme temps",
+      "new_title": "Chacun se masturbe en même temps",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.sixty_nine.base",
+      "old_title": "69 â€” lÃ©cher",
+      "new_title": "69 — lécher",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.sixty_nine.suck",
+      "old_title": "69 â€” sucer",
+      "new_title": "69 — sucer",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.spanking.base",
+      "old_title": "Donne une fessÃ©e Ã  ton partenaire",
+      "new_title": "Fessée",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.striptease.full",
+      "old_title": "Version intÃ©grale",
+      "new_title": "Version intégrale",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.striptease.underwear",
+      "old_title": "Jusqu'aux sous-vÃªtements",
+      "new_title": "Jusqu'aux sous-vêtements",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.submit.base",
+      "old_title": "Soumets-toi aux dÃ©cisions de ton partenaire",
+      "new_title": "Service consenti",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.submit.orders",
+      "old_title": "Suis les consignes de ton partenaire",
+      "new_title": "Suivre des consignes",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
     },
     {
       "stable_id": "variant.suggestive_photo.base",
@@ -441,6 +1016,27 @@
       "justification": "Clarifie contrôle et envoi."
     },
     {
+      "stable_id": "variant.temperature_play.base",
+      "old_title": "Applique un jeu de tempÃ©rature Ã  ton partenaire",
+      "new_title": "Jeu de température",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.tie_me.base",
+      "old_title": "Attache-moi",
+      "new_title": "Attacher",
+      "correction_type": "ROLE_CLARITY",
+      "justification": "Rend ATTACHER + RECEVOIR explicite."
+    },
+    {
+      "stable_id": "variant.underwear_only.base",
+      "old_title": "Reste en sous-vÃªtements",
+      "new_title": "Reste en sous-vêtements",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
       "stable_id": "variant.underwear_photo.base",
       "old_title": "Photo en sous-vêtements",
       "new_title": "Envoie une photo en sous-vêtements",
@@ -448,116 +1044,298 @@
       "justification": "Rend visible ENVOYER."
     },
     {
-      "stable_id": "variant.nude_photo.base",
-      "old_title": "Photo nue",
-      "new_title": "Envoie une photo nue",
-      "correction_type": "TAG_ALIGNMENT",
-      "justification": "Rend visible ENVOYER."
+      "stable_id": "variant.undress_me.base",
+      "old_title": "DÃ©shabille-moi",
+      "new_title": "Déshabiller",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
     },
     {
-      "stable_id": "variant.choose_my_photo.base",
-      "old_title": "Choisis ma photo",
-      "new_title": "Laisse ton partenaire choisir la photo que tu envoies",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Clarifie contrôle et envoi."
+      "stable_id": "variant.undressing.base",
+      "old_title": "Choisis combien de tes vêtements retirer",
+      "new_title": "Choisis combien de vêtements tu retires",
+      "correction_type": "WORD_ORDER",
+      "justification": "Rend la phrase naturelle sans changer clothingDelta."
     },
     {
-      "stable_id": "variant.intimate_video.base",
-      "old_title": "Vidéo intime",
-      "new_title": "Envoie une vidéo intime",
-      "correction_type": "TAG_ALIGNMENT",
-      "justification": "Rend visible ENVOYER."
+      "stable_id": "variant.undressing.one",
+      "old_title": "Retire un de tes vÃªtements",
+      "new_title": "Retire un de tes vêtements",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
     },
     {
-      "stable_id": "variant.intimate_video.suggestive",
-      "old_title": "Vidéo suggestive",
-      "new_title": "Envoie une vidéo suggestive",
-      "correction_type": "TAG_ALIGNMENT",
-      "justification": "Rend visible ENVOYER."
+      "stable_id": "variant.undressing.two",
+      "old_title": "Retire deux de tes vÃªtements",
+      "new_title": "Retire deux de tes vêtements",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
     },
     {
-      "stable_id": "variant.intimate_video.nude",
-      "old_title": "Vidéo nue",
-      "new_title": "Envoie une vidéo nue",
-      "correction_type": "TAG_ALIGNMENT",
-      "justification": "Rend visible ENVOYER."
-    },
-    {
-      "stable_id": "variant.remote_instruction.base",
-      "old_title": "Donne-moi une consigne à distance",
-      "new_title": "Suis une consigne à distance",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Aligne le texte sur ORDRES + RECEVOIR."
-    },
-    {
-      "stable_id": "variant.v3.sextoy_play.receive",
-      "old_title": "Laisse le sextoy être utilisé sur toi",
-      "new_title": "Laisse ton partenaire utiliser le sextoy sur toi",
-      "correction_type": "ACTIVE_WORDING",
-      "justification": "Remplace la voix passive sans changer RECEVOIR."
-    },
-    {
-      "stable_id": "variant.v3.ejaculation_choice.give",
-      "old_title": "Propose une éjaculation convenue",
-      "new_title": "Choisis d’éjaculer, dans les limites convenues",
-      "correction_type": "CONSENT_WORDING",
-      "justification": "Centre la formulation sur le choix sans détailler l’acte."
-    },
-    {
-      "stable_id": "variant.v3.degrading_words.receive",
-      "old_title": "Reçois les mots dégradants convenus",
-      "new_title": "Écoute les mots dégradants convenus",
-      "correction_type": "NATURAL_WORDING",
-      "justification": "Remplace le verbe recevoir, maladroit avec des paroles."
-    },
-    {
-      "stable_id": "variant.v3.texture_and_breath.texture_receive",
-      "old_title": "Découvre une texture choisie",
-      "new_title": "Découvre la texture choisie par ton partenaire",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Précise qui choisit la texture."
-    },
-    {
-      "stable_id": "variant.v3.texture_and_breath.breath_give",
-      "old_title": "Souffle doucement sur la peau",
-      "new_title": "Souffle doucement sur la peau de ton partenaire",
-      "correction_type": "MISSING_TARGET",
-      "justification": "Précise la cible FAIRE."
-    },
-    {
-      "stable_id": "variant.v3.texture_and_breath.breath_receive",
-      "old_title": "Reçois un souffle doux sur la peau",
-      "new_title": "Laisse ton partenaire souffler doucement sur ta peau",
-      "correction_type": "ROLE_CLARITY",
-      "justification": "Rend RECEVOIR explicite."
+      "stable_id": "variant.v3.anal_penetration.sex_give",
+      "old_title": "PÃ©nÃ¨tre analement avec ton sexe",
+      "new_title": "Pénétration anale avec le sexe",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
     },
     {
       "stable_id": "variant.v3.auditory_deprivation.give",
       "old_title": "Prive temporairement ton partenaire du son",
-      "new_title": "Propose à ton partenaire une privation auditive temporaire",
+      "new_title": "Privation auditive",
       "correction_type": "CONSENT_WORDING",
       "justification": "Évite une formulation imposée et reste non technique."
     },
     {
+      "stable_id": "variant.v3.beg_for_it.perform",
+      "old_title": "Supplie avec les mots convenus",
+      "new_title": "Supplier",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.caress.bras_give",
+      "old_title": "Caresse les bras de ton partenaire",
+      "new_title": "Caresser les bras",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.caress.cuisses_give",
+      "old_title": "Caresse les cuisses de ton partenaire",
+      "new_title": "Caresser les cuisses",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.caress.ventre_give",
+      "old_title": "Caresse le ventre de ton partenaire",
+      "new_title": "Caresser le ventre",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.choose_sex_position.a",
+      "old_title": "Choisis une position sexuelle avancÃ©e",
+      "new_title": "Choisir une position sexuelle avancée",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.choose_sex_position.e",
+      "old_title": "Choisis une position sexuelle experte",
+      "new_title": "Choisir une position sexuelle experte",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.choose_sex_position.s",
+      "old_title": "Choisis une position sexuelle simple",
+      "new_title": "Choisir une position sexuelle simple",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.costume_and_light_outfit.costume",
+      "old_title": "PrÃ©sente-toi dans un dÃ©guisement choisi",
+      "new_title": "Présente-toi dans un déguisement choisi",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.costume_and_light_outfit.light",
+      "old_title": "PrÃ©sente-toi dans une tenue lÃ©gÃ¨re",
+      "new_title": "Présente-toi dans une tenue légère",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.degrading_words.give",
+      "old_title": "Prononce les mots dÃ©gradants convenus",
+      "new_title": "Paroles dégradantes consenties",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.ejaculation_choice.give",
+      "old_title": "Propose une éjaculation convenue",
+      "new_title": "Choix d’éjaculation",
+      "correction_type": "CONSENT_WORDING",
+      "justification": "Centre la formulation sur le choix sans détailler l’acte."
+    },
+    {
+      "stable_id": "variant.v3.exposed_setting.mutual",
+      "old_title": "CrÃ©ez une mise en scÃ¨ne donnant une sensation dâ€™exposition, dans un cadre autorisÃ©",
+      "new_title": "Créez une mise en scène donnant une sensation d’exposition, dans un cadre autorisé",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.flirty_message.voice_receive",
+      "old_title": "Ã‰coute le message vocal coquin",
+      "new_title": "Message vocal coquin",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.gentle_pull.give",
+      "old_title": "Tire doucement ton partenaire vers toi",
+      "new_title": "Tirer doucement",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.massage.dos_give",
+      "old_title": "Masse dos de ton partenaire",
+      "new_title": "Massage du dos",
+      "correction_type": "MISSING_ARTICLE",
+      "justification": "Ajoute l’article requis."
+    },
+    {
+      "stable_id": "variant.v3.massage.epaules_give",
+      "old_title": "Masse épaules de ton partenaire",
+      "new_title": "Massage des épaules",
+      "correction_type": "MISSING_ARTICLE",
+      "justification": "Ajoute l’article requis."
+    },
+    {
+      "stable_id": "variant.v3.massage.jambes_give",
+      "old_title": "Masse jambes de ton partenaire",
+      "new_title": "Massage des jambes",
+      "correction_type": "MISSING_ARTICLE",
+      "justification": "Ajoute l’article requis."
+    },
+    {
+      "stable_id": "variant.v3.neck_hold.give",
+      "old_title": "Propose un maintien lÃ©ger du cou, dans les limites convenues",
+      "new_title": "Maintien léger du cou, dans les limites convenues",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.orgasm_permission.ask",
+      "old_title": "Demande la permission pour ton orgasme",
+      "new_title": "Permission d’orgasme",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.orgasm_permission.grant",
+      "old_title": "DÃ©cide quand ton partenaire peut atteindre lâ€™orgasme",
+      "new_title": "Permission d’orgasme",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.remote_toy_control.give",
+      "old_title": "Prends le contrÃ´le du jouet distant",
+      "new_title": "Contrôle du jouet à distance",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.roleplay_scene.guided",
+      "old_title": "Laisse ton partenaire guider le scÃ©nario",
+      "new_title": "Guidage du scénario",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.roleplay_scene.mutual",
+      "old_title": "Jouez ensemble le scÃ©nario choisi",
+      "new_title": "Jouez ensemble le scénario choisi",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.sensual_tasting.drink_give",
+      "old_title": "Fais goÃ»ter une boisson non alcoolisÃ©e",
+      "new_title": "Dégustation d’une boisson",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.sensual_tasting.food_give",
+      "old_title": "Fais goÃ»ter un aliment choisi",
+      "new_title": "Dégustation d’un aliment",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.sextoy_play.give",
+      "old_title": "Utilise le sextoy sur ton partenaire",
+      "new_title": "Utiliser un sextoy",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.shared_adult_content.partner_choice",
+      "old_title": "Laisse ton partenaire choisir le contenu",
+      "new_title": "Choix du contenu adulte",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
       "stable_id": "variant.v3.silence_rule.give",
       "old_title": "Impose une courte règle de silence",
-      "new_title": "Propose une courte règle de silence",
+      "new_title": "Règle de silence",
       "correction_type": "CONSENT_WORDING",
       "justification": "Évite une formulation imposée."
     },
     {
-      "stable_id": "variant.v3.sensual_tasting.food_receive",
-      "old_title": "Goûte un aliment proposé",
-      "new_title": "Goûte un aliment proposé par ton partenaire",
-      "correction_type": "MISSING_ACTOR",
-      "justification": "Précise qui propose."
+      "stable_id": "variant.v3.spit_choice.perform",
+      "old_title": "Choisis de cracher, dans les limites convenues",
+      "new_title": "Choix de cracher",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
     },
     {
-      "stable_id": "variant.v3.sensual_tasting.drink_receive",
-      "old_title": "Goûte une boisson non alcoolisée",
-      "new_title": "Goûte une boisson non alcoolisée proposée par ton partenaire",
-      "correction_type": "MISSING_ACTOR",
-      "justification": "Précise qui propose."
+      "stable_id": "variant.v3.swallow_choice.perform",
+      "old_title": "Choisis dâ€™avaler, dans les limites convenues",
+      "new_title": "Choix d’avaler",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.texture_and_breath.breath_give",
+      "old_title": "Souffle doucement sur la peau",
+      "new_title": "Souffler sur la peau",
+      "correction_type": "MISSING_TARGET",
+      "justification": "Précise la cible FAIRE."
+    },
+    {
+      "stable_id": "variant.v3.texture_and_breath.texture_give",
+      "old_title": "Fais dÃ©couvrir une texture convenue",
+      "new_title": "Découverte d’une texture",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.unusual_private_place.mutual",
+      "old_title": "Choisissez un lieu privÃ© inhabituel",
+      "new_title": "Choisissez un lieu privé inhabituel",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.v3.vaginal_penetration.sex_give",
+      "old_title": "PÃ©nÃ¨tre vaginalement avec ton sexe",
+      "new_title": "Pénétration vaginale avec le sexe",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.vaginal_penetration.base",
+      "old_title": "PÃ©nÃ¨tre vaginalement ton partenaire",
+      "new_title": "Pénétration vaginale",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
+    },
+    {
+      "stable_id": "variant.watch_no_touch.base",
+      "old_title": "ObÃ©is : regarde ton partenaire sans le toucher",
+      "new_title": "Regarder sans toucher",
+      "correction_type": "DIRECTIONAL_NEUTRALITY",
+      "justification": "Le titre décrit le contenu de la carte sans encoder le rôle tiré."
     }
   ]
 }

@@ -172,6 +172,80 @@ void main() {
     },
   );
 
+  test('private directional consent constrains occurrence direction', () async {
+    PlayerGameProfile profile({required bool allowRecevoir}) {
+      final preferenceIds = catalog.cards
+          .expand((card) => card.variants)
+          .expand((variant) => variant.v3?.tags ?? const <String>[])
+          .where((tag) => tag.startsWith('v3.preference.'))
+          .toSet();
+      return PlayerGameProfile(
+        playerId: 'alice',
+        preferences: {
+          for (final id in preferenceIds)
+            id: PreferenceValue(
+              status: PreferenceStatus.ACCEPTED,
+              general: 10,
+              recevoir: allowRecevoir ? 8 : null,
+            ),
+        },
+      );
+    }
+
+    final receivingBackend = _Backend();
+    final receiving = NetworkGameController(
+      session: session,
+      playerId: 'alice',
+      repository: receivingBackend.repository('alice'),
+      privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: catalog,
+      privateProfile: profile(allowRecevoir: true),
+    );
+    addTearDown(receiving.dispose);
+    await receiving.start();
+    expect(
+      receiving.runtime.map((card) => card.nativeDirection),
+      isNot(contains(CardOccurrenceDirection.FAIRE)),
+    );
+    expect(
+      receiving.runtime.map((card) => card.nativeDirection),
+      contains(CardOccurrenceDirection.RECEVOIR),
+    );
+    expect(
+      receiving.hand
+          .where(
+            (card) => card.nativeDirection == CardOccurrenceDirection.RECEVOIR,
+          )
+          .map((card) => card.oppositePersonalValue),
+      everyElement(isNull),
+    );
+
+    final excludedBackend = _Backend();
+    final excluded = NetworkGameController(
+      session: session,
+      playerId: 'alice',
+      repository: excludedBackend.repository('alice'),
+      privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: catalog,
+      privateProfile: profile(allowRecevoir: false),
+    );
+    addTearDown(excluded.dispose);
+    await excluded.start();
+    expect(
+      excluded.runtime.map((card) => card.nativeDirection),
+      isNot(
+        contains(
+          anyOf(
+            CardOccurrenceDirection.FAIRE,
+            CardOccurrenceDirection.RECEVOIR,
+          ),
+        ),
+      ),
+    );
+  });
+
   test(
     'committed choice can be cancelled exactly once before reveal',
     () async {
@@ -796,9 +870,18 @@ void main() {
       await setup.bob.respondToRecovery(RecoveryResponse.ACCEPT);
       await _settle();
       expect(setup.alice.viewState, NetworkGameViewState.recoveryExecution);
+      final resolvedOption = setup.alice.recoveryCards.singleWhere(
+        (card) => card.identity == option.identity,
+      );
+      expect(resolvedOption.role, option.role);
+      expect(resolvedOption.personalValue, option.personalValue);
       await setup.alice.completeRecovery(completed: true);
       await setup.alice.completeRecovery(completed: true);
       await _settle();
+      expect(
+        setup.backend.round.recoveries['alice']!.gain,
+        (option.personalValue * 1.5).ceil(),
+      );
       expect(
         setup.backend.points['alice'],
         before + (option.personalValue * 1.5).ceil(),
@@ -1543,6 +1626,7 @@ final class _Repository
       completed: false,
       gain: proposal.gain,
       response: response,
+      occurrenceId: proposal.occurrenceId,
     );
     if (response == RecoveryResponse.REFUSE) {
       backend.round.recoveryDone.add(entry.key);

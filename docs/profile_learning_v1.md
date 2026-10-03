@@ -22,6 +22,12 @@ Les événements acceptés sont :
 
 Une carte ignorée n’ajoute aucune résistance. Un STOP ou un résultat non accepté n’ajoute aucune preuve. Pour une action dirigée, seuls les rôles finaux alimentent `FAIRE` et `RECEVOIR`, y compris après inversion.
 
+Une carte conceptuelle réversible ne fusionne jamais ses deux estimations :
+`FAIRE` et `RECEVOIR` restent deux clés d'apprentissage privées. L'occurrence
+conserve sa direction native, mais la résolution crédite uniquement sa
+direction effective. Ainsi une occurrence tirée RECEVOIR puis officiellement
+inversée nourrit FAIRE, sans ajouter de preuve RECEVOIR.
+
 ## Calcul
 
 La fenêtre principale conserve les 20 dernières observations pertinentes par clé, avec les cumuls historiques en parallèle.

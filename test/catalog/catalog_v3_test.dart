@@ -235,7 +235,7 @@ void main() {
       taxonomy: taxonomy,
       roleplayScenarios: roleplayScenarios,
     );
-    expect(view.playableCards, hasLength(104));
+    expect(view.playableCards, hasLength(96));
     expect(
       view.playableCards.map((card) => card.stableId),
       contains('card.simultaneous_self_masturbation'),
@@ -349,7 +349,7 @@ void main() {
       taxonomy,
       roleplayScenarios,
     );
-    expect(report['playable_cards_analyzed'], 104);
+    expect(report['playable_cards_analyzed'], 96);
     expect(report['coverage_by_category'], isA<Map<String, Object?>>());
     expect(
       (report['coverage_by_category']! as Map<String, Object?>).keys,
@@ -514,7 +514,14 @@ void main() {
     expect(visible.v3!.requirements.isDistanceCompatible, isTrue);
     expect(card(32).v3!.requirements.isDistanceCompatible, isTrue);
 
-    expect(tags(33), {'v3.preference.masturbation', 'v3.direction.faire'});
+    expect(
+      tags(33),
+      containsAll([
+        'v3.preference.masturbation',
+        'v3.direction.faire',
+        'v3.direction.recevoir',
+      ]),
+    );
     expect(card(33).v3!.requirements.distanceExcluded, isTrue);
     expect(tags(34), contains('v3.direction.mutuel'));
     expect(tags(34), isNot(contains('v3.direction.simultane')));
@@ -558,16 +565,35 @@ void main() {
     );
     expect(tags(49), contains('v3.zone.tetons'));
     expect(tags(49), isNot(contains('v3.zone.poitrine')));
-    expect(
-      tags(51),
-      containsAll(['v3.preference.controle', 'v3.direction.recevoir']),
-    );
-    expect(tags(53), {'v3.preference.ordres', 'v3.direction.recevoir'});
-    expect(tags(54), {'v3.preference.ordres', 'v3.direction.faire'});
-    expect(tags(55), {'v3.preference.controle', 'v3.direction.faire'});
-    expect(tags(56), {'v3.preference.controle', 'v3.direction.recevoir'});
+    for (final order in [51, 55, 56]) {
+      expect(
+        tags(order),
+        containsAll([
+          'v3.preference.controle',
+          'v3.direction.faire',
+          'v3.direction.recevoir',
+        ]),
+      );
+    }
+    for (final order in [53, 54]) {
+      expect(
+        tags(order),
+        containsAll([
+          'v3.preference.ordres',
+          'v3.direction.faire',
+          'v3.direction.recevoir',
+        ]),
+      );
+    }
     expect(card(59).v3!.requirements.requiresConstraintAccessory, isTrue);
-    expect(tags(60), {'v3.preference.attacher', 'v3.direction.recevoir'});
+    expect(
+      tags(60),
+      containsAll([
+        'v3.preference.attacher',
+        'v3.direction.faire',
+        'v3.direction.recevoir',
+      ]),
+    );
     expect(card(60).v3!.requirements.requiresConstraintAccessory, isTrue);
   });
 
@@ -581,7 +607,14 @@ void main() {
     expect(tags(62), isNot(contains('v3.preference.yeux_fermes')));
     expect(tags(62), contains('v3.preference.ordres'));
     expect(tags(66), containsAll(['v3.preference.frapper', 'v3.zone.fesses']));
-    expect(tags(69), {'v3.preference.immobiliser', 'v3.direction.recevoir'});
+    expect(
+      tags(69),
+      containsAll([
+        'v3.preference.immobiliser',
+        'v3.direction.faire',
+        'v3.direction.recevoir',
+      ]),
+    );
     expect(tags(71), contains('v3.preference.etre_regarde'));
     expect(tags(71), isNot(contains('v3.preference.regarder')));
     expect(card(71).v3DeckEnabled, isTrue);
@@ -622,7 +655,14 @@ void main() {
       expect(card(order).v3DeckEnabled, isFalse);
       expect(card(order).v3ReplacementSessionField, 'visioEnabled');
     }
-    expect(tags(90), {'v3.preference.ordres', 'v3.direction.recevoir'});
+    expect(
+      tags(90),
+      containsAll([
+        'v3.preference.ordres',
+        'v3.direction.faire',
+        'v3.direction.recevoir',
+      ]),
+    );
     expect(card(65).v3!.rationalizationCandidates, [
       'card.blindfold',
       'card.close_eyes',
@@ -758,8 +798,8 @@ void main() {
       expect(report['faire_recevoir_before'], hasLength(26));
       expect(report['faire_recevoir_after'], isEmpty);
       expect(report['counts_after'], {
-        'playable_cards': 104,
-        'playable_variants': 206,
+        'playable_cards': 96,
+        'playable_variants': 141,
       });
       expect(
         jsonDecode(
@@ -797,7 +837,7 @@ void main() {
   });
 
   test(
-    'directions are split and explicit sexual engagement stays moderate',
+    'reversible actions carry both directions and engagement stays moderate',
     () {
       final view = V3CatalogView(
         catalog: catalog,
@@ -806,11 +846,18 @@ void main() {
       );
       for (final card in view.playableCards) {
         for (final variant in view.playableVariants(card)) {
-          expect(
-            variant.v3!.tags.toSet(),
-            isNot(containsAll({'v3.direction.faire', 'v3.direction.recevoir'})),
-            reason: variant.stableId,
-          );
+          final directions = variant.v3!.tags
+              .where((tag) => tag.startsWith('v3.direction.'))
+              .toSet();
+          if (card.directionality == CardDirectionality.FAIRE_RECEVOIR &&
+              (directions.contains('v3.direction.faire') ||
+                  directions.contains('v3.direction.recevoir'))) {
+            expect(
+              directions,
+              containsAll({'v3.direction.faire', 'v3.direction.recevoir'}),
+              reason: variant.stableId,
+            );
+          }
           expect(variant.v3!.ambiguities, isEmpty, reason: variant.stableId);
         }
       }
@@ -833,6 +880,36 @@ void main() {
       }
     },
   );
+
+  test('direction-only mirror cards map to one playable concept', () {
+    final report =
+        jsonDecode(
+              File(
+                'docs/catalog_v3_directional_consolidation.json',
+              ).readAsStringSync(),
+            )
+            as Map<String, Object?>;
+    final mappings = (report['card_consolidations']! as List<Object?>)
+        .cast<Map<String, Object?>>();
+    expect(mappings, hasLength(8));
+    for (final mapping in mappings) {
+      final source = catalog.cards.singleWhere(
+        (card) => card.stableId == mapping['source_card_id'],
+      );
+      final target = catalog.cards.singleWhere(
+        (card) => card.stableId == mapping['replacement_card_id'],
+      );
+      expect(source.v3DeckEnabled, isFalse, reason: source.stableId);
+      expect(source.v3ReplacementCardId, target.stableId);
+      expect(target.v3DeckEnabled, isTrue, reason: target.stableId);
+      expect(
+        target.variants
+            .where((variant) => variant.v3DeckEnabled)
+            .map((variant) => variant.stableId),
+        contains(mapping['replacement_variant_id']),
+      );
+    }
+  });
 
   test('expansion keeps intentionally uncovered tags at zero', () {
     final report = const V3CoverageReportBuilder().build(

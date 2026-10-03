@@ -54,9 +54,11 @@ final class NetworkGameController extends ChangeNotifier {
     this.recoveryEngine = const RecoveryEngine(),
     NetworkProfileLearningStore? learningStore,
     PostGameProfileChoiceStore? profileChoiceStore,
+    PlayerGameProfile? privateProfile,
     DateTime Function()? clock,
     String Function()? nonceFactory,
   }) : _catalog = catalog,
+       _privateProfile = privateProfile,
        clock = clock ?? DateTime.now,
        nonceFactory = nonceFactory ?? _secureNonce {
     final ids = session.players.map((player) => player.userId).toList()..sort();
@@ -110,6 +112,7 @@ final class NetworkGameController extends ChangeNotifier {
   late final NetworkProfileLearningCoordinator learning;
   late final PostGameProfileChoiceStore _profileChoiceStore;
   final Catalog _catalog;
+  final PlayerGameProfile? _privateProfile;
   late final List<String> playerIds;
   late final Map<String, CardDefinition> _definitions;
   late final Map<String, EngineCard> _engineCards;
@@ -413,6 +416,9 @@ final class NetworkGameController extends ChangeNotifier {
         parameters: {
           'role': card.role.name,
           'personal_value': card.personalValue,
+          'opposite_personal_value': card.oppositePersonalValue,
+          'native_direction': card.nativeDirection.name,
+          'effective_direction': card.effectiveDirection.name,
           'occurrence_id': card.identity,
           'committed_at': clock().toUtc().toIso8601String(),
         },
@@ -1083,6 +1089,24 @@ final class NetworkGameController extends ChangeNotifier {
         changed = changed || !_sameRuntime(_runtime, reconciled);
         _runtime = reconciled;
       }
+      final initialCards = publicResult.compromise.where(
+        (card) =>
+            card.ownerPlayerId == playerId &&
+            card.origin == NetworkCompromiseOrigin.INITIAL_DUEL,
+      );
+      if (initialCards.firstOrNull case final initial?) {
+        final direction = CardOccurrenceDirection.values.byName(
+          initial.effectiveDirection.name,
+        );
+        final reconciled = [
+          for (final card in _runtime)
+            card.occurrenceId == initial.occurrenceId
+                ? card.copyWith(effectiveDirection: direction)
+                : card,
+        ];
+        changed = changed || !_sameRuntime(_runtime, reconciled);
+        _runtime = reconciled;
+      }
     }
     final publicCorruption = value.corruption;
     if (publicCorruption != null &&
@@ -1135,7 +1159,9 @@ final class NetworkGameController extends ChangeNotifier {
           a.variantId != b.variantId ||
           a.occurrenceId != b.occurrenceId ||
           a.zone != b.zone ||
-          a.locked != b.locked) {
+          a.locked != b.locked ||
+          a.nativeDirection != b.nativeDirection ||
+          a.effectiveDirection != b.effectiveDirection) {
         return false;
       }
     }
@@ -1231,7 +1257,27 @@ final class NetworkGameController extends ChangeNotifier {
       reveal.choice.parameters['role']! as String,
     );
     final value = reveal.choice.parameters['personal_value']! as int;
-    if (role != _roleFor(card, variant) || value < 1 || value > 20) {
+    final nativeName = reveal.choice.parameters['native_direction'] as String?;
+    final effectiveName =
+        reveal.choice.parameters['effective_direction'] as String?;
+    final native = nativeName == null
+        ? _fixedDirection(card, variant)
+        : CardOccurrenceDirection.values.byName(nativeName);
+    final effective = effectiveName == null
+        ? native
+        : CardOccurrenceDirection.values.byName(effectiveName);
+    final expectedRole = _profileRole(
+      effective,
+      fallback: _roleFor(card, variant),
+    );
+    final opposite = reveal.choice.parameters['opposite_personal_value'];
+    final reversible = _isReversible(card, variant);
+    if (role != expectedRole ||
+        effective != native ||
+        value < 1 ||
+        value > 20 ||
+        (opposite != null &&
+            (opposite is! int || opposite < 1 || opposite > 20))) {
       throw StateError('Invalid revealed snapshot');
     }
     return duelEngine.commit(
@@ -1243,9 +1289,7 @@ final class NetworkGameController extends ChangeNotifier {
       committedAt: DateTime.parse(
         reveal.choice.parameters['committed_at']! as String,
       ),
-      cardInvertible:
-          (variant.inversionOverride ?? card.inversionPolicy) !=
-          InversionPolicy.NONE,
+      cardInvertible: reversible && opposite is int,
     );
   }
 
@@ -1389,9 +1433,7 @@ final class NetworkGameController extends ChangeNotifier {
               occurrenceId: item.occurrenceId,
             ),
             ownerId: item.ownerPlayerId,
-            inverted:
-                item.origin == NetworkCompromiseOrigin.INITIAL_DUEL &&
-                item.nativeDirection != item.effectiveDirection,
+            effectiveDirection: item.effectiveDirection,
           ),
         );
       }
@@ -1413,7 +1455,14 @@ final class NetworkGameController extends ChangeNotifier {
               occurrenceId: recovery.occurrenceId,
             ),
             ownerId: recovery.playerId,
-            inverted: false,
+            effectiveDirection: _runtime
+                .where((item) => item.occurrenceId == recovery.occurrenceId)
+                .map(
+                  (item) => NetworkCardDirection.values.byName(
+                    item.effectiveDirection.name,
+                  ),
+                )
+                .firstOrNull,
           ),
         );
       }
@@ -1493,23 +1542,26 @@ final class NetworkGameController extends ChangeNotifier {
   ResolvedLearningCard _resolvedLearningCard(
     LearningCardDescriptor card, {
     required String ownerId,
-    required bool inverted,
+    NetworkCardDirection? effectiveDirection,
   }) {
-    if (card.tags.contains('v3.direction.mutuel')) {
+    if (effectiveDirection == NetworkCardDirection.MUTUEL ||
+        card.tags.contains('v3.direction.mutuel')) {
       return ResolvedLearningCard(
         card: card,
         participation: ResolvedParticipation.mutual,
         participantPlayerIds: playerIds,
       );
     }
-    if (card.tags.contains('v3.direction.simultane')) {
+    if (effectiveDirection == NetworkCardDirection.SIMULTANE ||
+        card.tags.contains('v3.direction.simultane')) {
       return ResolvedLearningCard(
         card: card,
         participation: ResolvedParticipation.simultaneous,
         participantPlayerIds: playerIds,
       );
     }
-    if (card.tags.contains('v3.direction.solo')) {
+    if (effectiveDirection == NetworkCardDirection.SOLO ||
+        card.tags.contains('v3.direction.solo')) {
       return ResolvedLearningCard(
         card: card,
         participation: ResolvedParticipation.solo,
@@ -1517,8 +1569,10 @@ final class NetworkGameController extends ChangeNotifier {
       );
     }
     final other = playerIds.firstWhere((id) => id != ownerId);
-    final ownerReceives = card.tags.contains('v3.direction.recevoir');
-    final ownerPerforms = inverted ? ownerReceives : !ownerReceives;
+    final ownerPerforms =
+        effectiveDirection == NetworkCardDirection.FAIRE ||
+        (effectiveDirection == null &&
+            !card.tags.contains('v3.direction.recevoir'));
     return ResolvedLearningCard(
       card: card,
       participation: ResolvedParticipation.directed,
@@ -1560,6 +1614,8 @@ final class NetworkGameController extends ChangeNotifier {
         (card) => card.occurrenceId == drawn.occurrenceId,
       );
       if (alreadyActive) continue;
+      final selection = _directionFor(drawn);
+      if (selection == null) continue;
       _runtime = [
         ..._runtime,
         CardRuntimeState(
@@ -1567,6 +1623,8 @@ final class NetworkGameController extends ChangeNotifier {
           occurrenceId: drawn.occurrenceId,
           variantId: drawn.variantId,
           zone: CardZone.HAND,
+          nativeDirection: selection.nativeDirection,
+          effectiveDirection: selection.effectiveDirection,
         ),
       ];
       _history[drawn.cardId] = CardHistoryState.seenUnplayed;
@@ -1633,12 +1691,22 @@ final class NetworkGameController extends ChangeNotifier {
     final variant = definition.variants.firstWhere(
       (item) => item.stableId == eligible.id,
     );
-    final role = _roleFor(definition, variant);
+    final occurrence = occurrenceId == null
+        ? null
+        : _runtime
+              .where((item) => item.occurrenceId == occurrenceId)
+              .firstOrNull;
+    final role = _profileRole(
+      occurrence?.effectiveDirection ?? _fixedDirection(definition, variant),
+      fallback: _roleFor(definition, variant),
+    );
     final elementId =
         eligible.tags
             .where((tag) => tag.startsWith('v3.preference.'))
             .firstOrNull ??
         _legacyElementId(definition, variant, role);
+    final activeValue = _privateValue(elementId, role);
+    if (activeValue == null) return null;
     return NetworkDuelCard(
       definition: definition,
       engine: engine,
@@ -1647,9 +1715,16 @@ final class NetworkGameController extends ChangeNotifier {
       preference: _preference(
         elementId,
         role,
-        _fixtureValue(playerId, elementId, role),
+        activeValue,
+        faire: _privateValue(elementId, ProfileRole.FAIRE),
+        recevoir: _privateValue(elementId, ProfileRole.RECEVOIR),
       ),
       occurrenceId: occurrenceId,
+      nativeDirection:
+          occurrence?.nativeDirection ?? _fixedDirection(definition, variant),
+      effectiveDirection:
+          occurrence?.effectiveDirection ??
+          _fixedDirection(definition, variant),
     );
   }
 
@@ -1684,12 +1759,22 @@ final class NetworkGameController extends ChangeNotifier {
     final variant = definition.variants.firstWhere(
       (item) => item.stableId == eligible.id,
     );
-    final role = _roleFor(definition, variant);
+    final occurrence = occurrenceId == null
+        ? null
+        : _runtime
+              .where((item) => item.occurrenceId == occurrenceId)
+              .firstOrNull;
+    final role = _profileRole(
+      occurrence?.effectiveDirection ?? _fixedDirection(definition, variant),
+      fallback: _roleFor(definition, variant),
+    );
     final elementId =
         eligible.tags
             .where((tag) => tag.startsWith('v3.preference.'))
             .firstOrNull ??
         _legacyElementId(definition, variant, role);
+    final activeValue = _privateValue(elementId, role);
+    if (activeValue == null) return null;
     return NetworkDuelCard(
       definition: definition,
       engine: engine,
@@ -1698,9 +1783,16 @@ final class NetworkGameController extends ChangeNotifier {
       preference: _preference(
         elementId,
         role,
-        _fixtureValue(playerId, elementId, role),
+        activeValue,
+        faire: _privateValue(elementId, ProfileRole.FAIRE),
+        recevoir: _privateValue(elementId, ProfileRole.RECEVOIR),
       ),
       occurrenceId: occurrenceId,
+      nativeDirection:
+          occurrence?.nativeDirection ?? _fixedDirection(definition, variant),
+      effectiveDirection:
+          occurrence?.effectiveDirection ??
+          _fixedDirection(definition, variant),
     );
   }
 
@@ -1840,30 +1932,33 @@ final class NetworkGameController extends ChangeNotifier {
     };
   }
 
-  PlayerGameProfile _profile(String id) => PlayerGameProfile(
-    playerId: id,
-    preferences: {
-      for (final element in _catalog.profileElements)
-        element.stableId: PreferenceValue(
-          status: PreferenceStatus.ACCEPTED,
-          general: _fixtureValue(id, element.stableId, ProfileRole.GENERAL),
-          faire: _fixtureValue(id, element.stableId, ProfileRole.FAIRE),
-          recevoir: _fixtureValue(id, element.stableId, ProfileRole.RECEVOIR),
-        ),
-      for (final tag
-          in _engineCards.values
-              .expand((card) => card.variants)
-              .expand((variant) => variant.tags)
-              .where((tag) => tag.startsWith('v3.preference.'))
-              .toSet())
-        tag: PreferenceValue(
-          status: PreferenceStatus.ACCEPTED,
-          general: _fixtureValue(id, tag, ProfileRole.GENERAL),
-          faire: _fixtureValue(id, tag, ProfileRole.FAIRE),
-          recevoir: _fixtureValue(id, tag, ProfileRole.RECEVOIR),
-        ),
-    },
-  );
+  PlayerGameProfile _profile(String id) {
+    if (id == playerId && _privateProfile != null) return _privateProfile;
+    return PlayerGameProfile(
+      playerId: id,
+      preferences: {
+        for (final element in _catalog.profileElements)
+          element.stableId: PreferenceValue(
+            status: PreferenceStatus.ACCEPTED,
+            general: _fixtureValue(id, element.stableId, ProfileRole.GENERAL),
+            faire: _fixtureValue(id, element.stableId, ProfileRole.FAIRE),
+            recevoir: _fixtureValue(id, element.stableId, ProfileRole.RECEVOIR),
+          ),
+        for (final tag
+            in _engineCards.values
+                .expand((card) => card.variants)
+                .expand((variant) => variant.tags)
+                .where((tag) => tag.startsWith('v3.preference.'))
+                .toSet())
+          tag: PreferenceValue(
+            status: PreferenceStatus.ACCEPTED,
+            general: _fixtureValue(id, tag, ProfileRole.GENERAL),
+            faire: _fixtureValue(id, tag, ProfileRole.FAIRE),
+            recevoir: _fixtureValue(id, tag, ProfileRole.RECEVOIR),
+          ),
+      },
+    );
+  }
 
   String _legacyElementId(
     CardDefinition definition,
@@ -2016,19 +2111,113 @@ final class NetworkGameController extends ChangeNotifier {
   static UserPreference _preference(
     String elementId,
     ProfileRole role,
-    int value,
-  ) => UserPreference.fromJson({
+    int value, {
+    int? faire,
+    int? recevoir,
+  }) => UserPreference.fromJson({
     'profile_element_id': elementId,
     'status': PreferenceStatus.ACCEPTED.name,
     'general_value': role == ProfileRole.GENERAL ? value : null,
-    'faire_value': role == ProfileRole.FAIRE ? value : null,
-    'recevoir_value': role == ProfileRole.RECEVOIR ? value : null,
+    'faire_value': faire ?? (role == ProfileRole.FAIRE ? value : null),
+    'recevoir_value': recevoir ?? (role == ProfileRole.RECEVOIR ? value : null),
     'updated_at': DateTime.utc(2026, 1, 1).toIso8601String(),
     'source': PreferenceSource.ONBOARDING.name,
   });
 
+  CardDirectionSelection? _directionFor(DeckCandidateV3 candidate) {
+    final definition = _definitions[candidate.cardId];
+    final variant = definition?.variants
+        .where((item) => item.stableId == candidate.variantId)
+        .firstOrNull;
+    if (definition == null || variant == null) return null;
+    final fixed = _fixedDirection(definition, variant);
+    final reversible = _isReversible(definition, variant);
+    final preferenceIds =
+        (variant.v3?.tags ?? definition.v3?.tags ?? const <String>[])
+            .where((tag) => tag.startsWith('v3.preference.'))
+            .toList();
+    if (preferenceIds.isEmpty) {
+      preferenceIds.add(
+        _legacyElementId(definition, variant, ProfileRole.GENERAL),
+      );
+    }
+    final profile = _profile(playerId);
+    final faireAllowed = preferenceIds.every((elementId) {
+      final preference = profile.preference(elementId);
+      return preference.status == PreferenceStatus.ACCEPTED &&
+          preference.faire != null;
+    });
+    final recevoirAllowed = preferenceIds.every((elementId) {
+      final preference = profile.preference(elementId);
+      return preference.status == PreferenceStatus.ACCEPTED &&
+          preference.recevoir != null;
+    });
+    try {
+      return const CardDirectionEngine().select(
+        reversible: reversible,
+        fixedDirection: fixed,
+        faireAllowed: faireAllowed,
+        recevoirAllowed: recevoirAllowed,
+        chooseFaire: Random(
+          _stableHash(
+            '${session.id}/$playerId/${candidate.occurrenceId}/direction',
+          ),
+        ).nextBool(),
+      );
+    } on StateError {
+      return null;
+    }
+  }
+
+  static ProfileRole _profileRole(
+    CardOccurrenceDirection direction, {
+    required ProfileRole fallback,
+  }) => switch (direction) {
+    CardOccurrenceDirection.FAIRE => ProfileRole.FAIRE,
+    CardOccurrenceDirection.RECEVOIR => ProfileRole.RECEVOIR,
+    _ => fallback,
+  };
+
+  static CardOccurrenceDirection _fixedDirection(
+    CardDefinition card,
+    CardVariantDefinition variant,
+  ) {
+    final tags = variant.v3?.tags ?? card.v3?.tags ?? const <String>[];
+    if (tags.contains('v3.direction.mutuel')) {
+      return CardOccurrenceDirection.MUTUEL;
+    }
+    if (tags.contains('v3.direction.simultane')) {
+      return CardOccurrenceDirection.SIMULTANE;
+    }
+    if (tags.contains('v3.direction.solo')) return CardOccurrenceDirection.SOLO;
+    if (tags.contains('v3.direction.recevoir')) {
+      return CardOccurrenceDirection.RECEVOIR;
+    }
+    if (tags.contains('v3.direction.faire')) {
+      return CardOccurrenceDirection.FAIRE;
+    }
+    return CardOccurrenceDirection.GENERAL;
+  }
+
+  static bool _isReversible(
+    CardDefinition card,
+    CardVariantDefinition variant,
+  ) {
+    final direction = _fixedDirection(card, variant);
+    return (variant.inversionOverride ?? card.inversionPolicy) ==
+            InversionPolicy.SWAP_ACTOR_TARGET &&
+        (direction == CardOccurrenceDirection.FAIRE ||
+            direction == CardOccurrenceDirection.RECEVOIR);
+  }
+
   int _fixtureValue(String id, String element, ProfileRole role) =>
       8 + (_stableHash('$id/$element/${role.name}') % 11);
+
+  int? _privateValue(String elementId, ProfileRole role) {
+    final profile = _privateProfile;
+    if (profile == null) return _fixtureValue(playerId, elementId, role);
+    return profile.preference(elementId).valueFor(role);
+  }
 
   static int _stableHash(String value) {
     var hash = 17;

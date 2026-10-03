@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../card_themes/card_renderer.dart';
 import '../../domain/catalog/catalog.dart';
+import '../../domain/catalog/enums.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/profile/adaptive_profile.dart';
 import '../../engines/auction/auction_engine.dart';
@@ -33,6 +34,7 @@ class NetworkDuelScreen extends StatefulWidget {
     this.activeSessionStore = const SharedPreferencesActiveSessionStore(),
     this.historyStore = const SharedPreferencesGameHistoryStore(),
     this.preferences,
+    this.privateProfile,
     super.key,
   });
 
@@ -44,6 +46,7 @@ class NetworkDuelScreen extends StatefulWidget {
   final ActiveSessionStore activeSessionStore;
   final GameHistoryStore historyStore;
   final GamePreferencesController? preferences;
+  final PlayerGameProfile? privateProfile;
 
   @override
   State<NetworkDuelScreen> createState() => _NetworkDuelScreenState();
@@ -75,6 +78,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       repository: widget.repository,
       privateStore: widget.secretStore,
       catalog: widget.catalog,
+      privateProfile: widget.privateProfile,
     )..addListener(_refresh);
     controller.start();
   }
@@ -234,6 +238,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       direction: card.role.name,
       spice: card.chiliLevel,
       personalPa: card.personalValue,
+      oppositePa: card.oppositePersonalValue,
+      oppositeDirection: switch (card.oppositeRole) {
+        ProfileRole.FAIRE => 'Faire',
+        ProfileRole.RECEVOIR => 'Recevoir',
+        _ => null,
+      },
       illustrationId: card.definition.illustrationKey,
     ),
   );

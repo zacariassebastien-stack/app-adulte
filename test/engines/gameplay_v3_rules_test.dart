@@ -14,12 +14,12 @@ void main() {
     final runtime = catalog.cards
         .map(const CatalogEngineAdapter.v3().card)
         .toList();
-    expect(runtime.where((card) => card.enabled), hasLength(104));
+    expect(runtime.where((card) => card.enabled), hasLength(96));
     expect(
       runtime
           .where((card) => card.enabled)
           .expand((card) => card.variants.where((variant) => variant.enabled)),
-      hasLength(206),
+      hasLength(141),
     );
     expect(
       runtime
