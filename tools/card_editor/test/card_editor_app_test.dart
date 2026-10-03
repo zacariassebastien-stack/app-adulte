@@ -35,8 +35,9 @@ void main() {
     expect(find.text('ENCHAIRE Signature V1'), findsWidgets);
     expect(find.byKey(const Key('card-inner-border')), findsOneWidget);
     expect(find.byKey(const Key('direction-preview-selector')), findsOneWidget);
-    expect(find.text('1 PA'), findsOneWidget);
-    expect(find.text('Recevoir : 20 PA'), findsOneWidget);
+    expect(find.text('8 PA'), findsOneWidget);
+    expect(find.text('MUTUEL'), findsOneWidget);
+    expect(find.textContaining('Recevoir :'), findsNothing);
     expect(find.textContaining('Supabase'), findsNothing);
     expect(tester.takeException(), isNull);
   });

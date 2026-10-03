@@ -34,6 +34,8 @@
         {
           "stable_id": "variant.hug.base",
           "title": "Câlin",
+          "action_text": "Prenez-vous dans les bras et gardez le contact quelques instants.",
+          "details_text": "Le câlin peut être tendre, serré ou prolongé. Chacun reste libre d’en ajuster la durée et l’intensité.",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -133,6 +135,8 @@
         {
           "stable_id": "variant.kiss_me.base",
           "title": "Embrasser",
+          "action_text": "Partagez un baiser selon la direction indiquée par la carte.",
+          "details_text": "Le baiser peut être bref ou prolongé, doux ou plus intense, selon l’envie du moment.",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -1087,6 +1091,8 @@
         {
           "stable_id": "variant.massage.sensual",
           "title": "Massage sensuel",
+          "action_text": "Accordez un massage sensuel à votre partenaire, ou laissez-vous masser si la direction est inversée.",
+          "details_text": "Prenez votre temps et adaptez la pression et la durée au confort de chacun.",
           "chili_level": 2,
           "additional_tags": [
             "massage.sensual"

@@ -1,1 +1,38 @@
-[]
+[
+  {
+    "illustration_id": "enchaire_signature_v1.card.hug.illustration",
+    "card_id": "card.hug",
+    "style_id": "signature",
+    "asset_path": "assets/card_themes/enchaire_signature_v1/illustrations/calin.png",
+    "focus_x": 0.5,
+    "focus_y": 0.5,
+    "fit": "contain",
+    "opacity": 1.0,
+    "preserve_aspect_ratio": true,
+    "safe_area": null
+  },
+  {
+    "illustration_id": "enchaire_signature_v1.card.kiss_me.illustration",
+    "card_id": "card.kiss_me",
+    "style_id": "signature",
+    "asset_path": "assets/card_themes/enchaire_signature_v1/illustrations/embrasser.png",
+    "focus_x": 0.5,
+    "focus_y": 0.5,
+    "fit": "contain",
+    "opacity": 1.0,
+    "preserve_aspect_ratio": true,
+    "safe_area": null
+  },
+  {
+    "illustration_id": "enchaire_signature_v1.card.massage.illustration",
+    "card_id": "card.massage",
+    "style_id": "signature",
+    "asset_path": "assets/card_themes/enchaire_signature_v1/illustrations/massage_sensuel.png",
+    "focus_x": 0.5,
+    "focus_y": 0.5,
+    "fit": "contain",
+    "opacity": 1.0,
+    "preserve_aspect_ratio": true,
+    "safe_area": null
+  }
+]

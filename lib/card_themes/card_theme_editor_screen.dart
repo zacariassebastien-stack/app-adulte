@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../app/asset_catalog.dart';
 import '../domain/catalog/catalog.dart';
 import '../domain/catalog/definitions.dart';
+import '../domain/catalog/enums.dart';
 import 'card_illustration_editor_adapter.dart';
 import 'card_renderer.dart';
 import 'card_theme_models.dart';
@@ -14,7 +15,7 @@ import 'card_theme_validator.dart';
 
 enum _PreviewMode { single, representative, catalogue }
 
-enum _DirectionPreview { faire, recevoir, mutuel }
+enum CardEditorPreviewDirection { faire, recevoir, mutuel }
 
 class CardThemeEditorScreen extends StatefulWidget {
   const CardThemeEditorScreen({
@@ -39,10 +40,12 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
   Catalog? catalog;
   ThemeBundle? active;
   CardDefinition? previewCard;
+  CardVariantDefinition? previewVariant;
   String? selectedBlockId;
   bool showBack = false;
   _PreviewMode previewMode = _PreviewMode.single;
-  _DirectionPreview directionPreview = _DirectionPreview.faire;
+  CardEditorPreviewDirection directionPreview =
+      CardEditorPreviewDirection.faire;
   List<ThemeValidationIssue> issues = const [];
   String? message;
 
@@ -54,6 +57,7 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
       bundles = widget.initialBundles!;
       active = bundles.first;
       previewCard = catalog!.cards.firstWhere((card) => card.v3DeckEnabled);
+      previewVariant = _previewVariants(previewCard!).first;
       _validate();
     } else {
       unawaited(_load());
@@ -75,6 +79,7 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
       previewCard = loadedCatalog.cards.firstWhere(
         (card) => card.v3DeckEnabled,
       );
+      previewVariant = _previewVariants(previewCard!).first;
       _validate();
     });
   }
@@ -197,7 +202,27 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
           previewCard = catalog!.cards.firstWhere(
             (card) => card.stableId == id,
           );
+          previewVariant = _previewVariants(previewCard!).first;
           selectedBlockId = null;
+        }),
+      ),
+      const SizedBox(height: 8),
+      DropdownButtonFormField<String>(
+        key: const Key('preview-variant-selector'),
+        isExpanded: true,
+        initialValue: previewVariant!.stableId,
+        decoration: const InputDecoration(labelText: 'Variante de preview'),
+        items: [
+          for (final variant in _previewVariants(previewCard!))
+            DropdownMenuItem(
+              value: variant.stableId,
+              child: Text(variant.title ?? variant.stableId),
+            ),
+        ],
+        onChanged: (id) => setState(() {
+          previewVariant = _previewVariants(
+            previewCard!,
+          ).firstWhere((variant) => variant.stableId == id);
         }),
       ),
       if (widget.illustrationAdapter != null) ...[
@@ -221,15 +246,21 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
           ),
       ],
       const SizedBox(height: 12),
-      SegmentedButton<_DirectionPreview>(
+      SegmentedButton<CardEditorPreviewDirection>(
         key: const Key('direction-preview-selector'),
         segments: const [
-          ButtonSegment(value: _DirectionPreview.faire, label: Text('Faire')),
           ButtonSegment(
-            value: _DirectionPreview.recevoir,
+            value: CardEditorPreviewDirection.faire,
+            label: Text('Faire'),
+          ),
+          ButtonSegment(
+            value: CardEditorPreviewDirection.recevoir,
             label: Text('Recevoir'),
           ),
-          ButtonSegment(value: _DirectionPreview.mutuel, label: Text('Mutuel')),
+          ButtonSegment(
+            value: CardEditorPreviewDirection.mutuel,
+            label: Text('Mutuel'),
+          ),
         ],
         selected: {directionPreview},
         onSelectionChanged: (value) =>
@@ -297,7 +328,7 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
           height: 470,
           child: CardRenderer(
             key: const Key('editor-card-preview'),
-            definition: _definition(previewCard!),
+            definition: _definition(previewCard!, previewVariant),
             bundle: active,
             state: showBack ? CardVisualState.hidden : CardVisualState.full,
             playerName: 'Joueur',
@@ -1083,42 +1114,83 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
     return chosen.toList();
   }
 
-  CardRenderDefinition _definition(CardDefinition card) {
-    final variant = card.variants.first;
-    final editorial = variant.v3 ?? card.v3;
-    final tags = editorial?.tags ?? const <String>[];
-    final zones = tags
-        .where((tag) => tag.startsWith('v3.zone.'))
-        .map((tag) => tag.split('.').last.toUpperCase())
+  List<CardVariantDefinition> _previewVariants(CardDefinition card) {
+    final playable = card.variants
+        .where((variant) => variant.v3DeckEnabled)
         .toList();
-    final activePa = switch (directionPreview) {
-      _DirectionPreview.faire => 1,
-      _DirectionPreview.recevoir => 20,
-      _DirectionPreview.mutuel => 8,
-    };
-    final oppositePa = switch (directionPreview) {
-      _DirectionPreview.faire => 20,
-      _DirectionPreview.recevoir => 1,
-      _DirectionPreview.mutuel => null,
-    };
-    return CardRenderDefinition(
-      cardId: card.stableId,
-      variantId: variant.stableId,
-      title: variant.title ?? card.title ?? card.titleKey ?? card.stableId,
-      subtitle: card.directionality?.name,
-      action: variant.instructionKey ?? card.descriptionKey ?? '',
-      direction: directionPreview.name.toUpperCase(),
-      zones: zones,
-      spice: variant.chiliLevel,
-      personalPa: activePa,
-      oppositePa: oppositePa,
-      oppositeDirection: switch (directionPreview) {
-        _DirectionPreview.faire => 'Recevoir',
-        _DirectionPreview.recevoir => 'Faire',
-        _DirectionPreview.mutuel => null,
-      },
-      details: zones.isEmpty ? 'Carte ENCHAIRE' : zones.join(' · '),
-      illustrationId: card.illustrationKey,
-    );
+    return playable.isEmpty ? card.variants : playable;
   }
+
+  CardRenderDefinition _definition(
+    CardDefinition card, [
+    CardVariantDefinition? selectedVariant,
+  ]) => buildCardEditorPreviewDefinition(
+    card: card,
+    variant: selectedVariant ?? _previewVariants(card).first,
+    requestedDirection: directionPreview,
+  );
+}
+
+CardRenderDefinition buildCardEditorPreviewDefinition({
+  required CardDefinition card,
+  required CardVariantDefinition variant,
+  CardEditorPreviewDirection requestedDirection =
+      CardEditorPreviewDirection.faire,
+}) {
+  final editorial = variant.v3 ?? card.v3;
+  final tags = editorial?.tags ?? const <String>[];
+  final zones = tags
+      .where((tag) => tag.startsWith('v3.zone.'))
+      .map((tag) => tag.split('.').last.toUpperCase())
+      .toList();
+  final previewDirection = switch (card.directionality) {
+    CardDirectionality.MUTUAL => CardEditorPreviewDirection.mutuel,
+    CardDirectionality.FAIRE => CardEditorPreviewDirection.faire,
+    CardDirectionality.RECEVOIR => CardEditorPreviewDirection.recevoir,
+    _ => requestedDirection,
+  };
+  final reversible =
+      card.directionality == CardDirectionality.FAIRE_RECEVOIR ||
+      card.directionality == null;
+  final activePa = switch (previewDirection) {
+    CardEditorPreviewDirection.faire => 1,
+    CardEditorPreviewDirection.recevoir => 20,
+    CardEditorPreviewDirection.mutuel => 8,
+  };
+  final oppositePa = reversible
+      ? switch (previewDirection) {
+          CardEditorPreviewDirection.faire => 20,
+          CardEditorPreviewDirection.recevoir => 1,
+          CardEditorPreviewDirection.mutuel => null,
+        }
+      : null;
+  return CardRenderDefinition(
+    cardId: card.stableId,
+    variantId: variant.stableId,
+    title: variant.title ?? card.title ?? card.titleKey ?? card.stableId,
+    subtitle: card.directionality?.name,
+    action:
+        variant.actionText ??
+        card.actionText ??
+        variant.instructionKey ??
+        card.descriptionKey ??
+        '',
+    direction: previewDirection.name.toUpperCase(),
+    zones: zones,
+    spice: variant.chiliLevel,
+    personalPa: activePa,
+    oppositePa: oppositePa,
+    oppositeDirection: reversible
+        ? switch (previewDirection) {
+            CardEditorPreviewDirection.faire => 'Recevoir',
+            CardEditorPreviewDirection.recevoir => 'Faire',
+            CardEditorPreviewDirection.mutuel => null,
+          }
+        : null,
+    details:
+        variant.detailsText ??
+        card.detailsText ??
+        (zones.isEmpty ? 'Carte ENCHAIRE' : zones.join(' · ')),
+    illustrationId: card.illustrationKey,
+  );
 }

@@ -2,11 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:couple_cards/card_themes/card_illustration_editor_adapter.dart';
+import 'package:couple_cards/card_themes/card_renderer.dart';
 import 'package:couple_cards/card_themes/card_theme_editor_screen.dart';
 import 'package:couple_cards/card_themes/card_theme_models.dart';
 import 'package:couple_cards/card_themes/card_theme_repository.dart';
 import 'package:couple_cards/card_themes/classic_theme.dart';
 import 'package:couple_cards/card_themes/signature_theme.dart';
+import 'package:couple_cards/data/catalog_loader/catalog_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,7 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../fixtures/catalog_fixture.dart';
 
 void main() {
-  testWidgets('editor loads classic preview and duplicates before editing', (
+  testWidgets('editor loads classic preview and directional controls', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({});
@@ -54,12 +56,6 @@ void main() {
     expect(find.textContaining('Faire :'), findsNothing);
     expect(find.textContaining('Recevoir :'), findsNothing);
 
-    await tester.tap(find.text('Dupliquer layout'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
-
-    expect(find.text('layout dupliqué.'), findsOneWidget);
-    expect((await repository.loadAll()).length, 3);
     expect(tester.takeException(), isNull);
   });
 
@@ -132,7 +128,71 @@ void main() {
     ]);
     expect(themes.first.skin.innerBorderWidth, greaterThan(0));
     expect(themes.first.skin.panelBorderWidth, greaterThan(0));
+    expect(
+      {
+        for (final asset in themes.first.illustrations)
+          asset.cardId: asset.assetPath,
+      },
+      {
+        'card.hug':
+            'assets/card_themes/enchaire_signature_v1/illustrations/calin.png',
+        'card.kiss_me':
+            'assets/card_themes/enchaire_signature_v1/illustrations/embrasser.png',
+        'card.massage':
+            'assets/card_themes/enchaire_signature_v1/illustrations/massage_sensuel.png',
+      },
+    );
+    for (final asset in themes.first.illustrations) {
+      expect(File(asset.assetPath).existsSync(), isTrue, reason: asset.cardId);
+      expect(asset.fit, IllustrationFit.contain);
+      expect(asset.opacity, 1);
+      expect(asset.preserveAspectRatio, isTrue);
+      expect(asset.focusX, .5);
+      expect(asset.focusY, .5);
+    }
   });
+
+  test(
+    'editor definitions use canonical content for the first three cards',
+    () async {
+      final catalog = await const CatalogLoader().load(
+        (path) => File(path).readAsString(),
+      );
+      final cards = {for (final card in catalog.cards) card.stableId: card};
+      CardRenderDefinition definition(String cardId, String variantId) {
+        final card = cards[cardId]!;
+        return buildCardEditorPreviewDefinition(
+          card: card,
+          variant: card.variants.singleWhere(
+            (variant) => variant.stableId == variantId,
+          ),
+        );
+      }
+
+      final hug = definition('card.hug', 'variant.hug.base');
+      expect(hug.title, 'Câlin');
+      expect(hug.action, startsWith('Prenez-vous dans les bras'));
+      expect(hug.details, startsWith('Le câlin peut être tendre'));
+      expect(hug.direction, 'MUTUEL');
+      expect(hug.oppositePa, isNull);
+      expect(hug.oppositeDirection, isNull);
+
+      final kiss = definition('card.kiss_me', 'variant.kiss_me.base');
+      expect(kiss.title, 'Embrasser');
+      expect(kiss.action, startsWith('Partagez un baiser'));
+      expect(kiss.details, startsWith('Le baiser peut être bref'));
+      expect(kiss.oppositePa, 20);
+      expect(kiss.oppositeDirection, 'Recevoir');
+
+      final massage = definition('card.massage', 'variant.massage.sensual');
+      expect(massage.title, 'Massage sensuel');
+      expect(massage.action, startsWith('Accordez un massage sensuel'));
+      expect(massage.details, startsWith('Prenez votre temps'));
+      expect(massage.oppositePa, 20);
+      expect(massage.oppositeDirection, 'Recevoir');
+      expect(massage.details, isNot('Carte ENCHAIRE'));
+    },
+  );
 
   testWidgets('editor associates and removes an illustration with fallback', (
     tester,

@@ -36,6 +36,50 @@ void main() {
       'issues': issues.map((e) => e.toJson()).toList(),
     });
   });
+  test('first ENCHAIRE set exposes canonical editorial content', () {
+    CardVariantDefinition variant(String cardId, String variantId) => catalog
+        .cards
+        .singleWhere((card) => card.stableId == cardId)
+        .variants
+        .singleWhere((variant) => variant.stableId == variantId);
+
+    final hug = variant('card.hug', 'variant.hug.base');
+    expect(hug.title, 'Câlin');
+    expect(
+      hug.actionText,
+      'Prenez-vous dans les bras et gardez le contact quelques instants.',
+    );
+    expect(
+      hug.detailsText,
+      'Le câlin peut être tendre, serré ou prolongé. Chacun reste libre '
+      'd’en ajuster la durée et l’intensité.',
+    );
+
+    final kiss = variant('card.kiss_me', 'variant.kiss_me.base');
+    expect(kiss.title, 'Embrasser');
+    expect(
+      kiss.actionText,
+      'Partagez un baiser selon la direction indiquée par la carte.',
+    );
+    expect(
+      kiss.detailsText,
+      'Le baiser peut être bref ou prolongé, doux ou plus intense, selon '
+      'l’envie du moment.',
+    );
+
+    final massage = variant('card.massage', 'variant.massage.sensual');
+    expect(massage.title, 'Massage sensuel');
+    expect(
+      massage.actionText,
+      'Accordez un massage sensuel à votre partenaire, ou laissez-vous '
+      'masser si la direction est inversée.',
+    );
+    expect(
+      massage.detailsText,
+      'Prenez votre temps et adaptez la pression et la durée au confort '
+      'de chacun.',
+    );
+  });
   test(
     'repair preserves original IDs, profiles, tags and all requirements',
     () {

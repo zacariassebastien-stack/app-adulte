@@ -227,26 +227,35 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     );
   }
 
-  CardHandItem _handItem(NetworkDuelCard card) => CardHandItem(
-    id: card.identity,
-    locked: controller.lockedCardId == card.identity,
-    definition: CardRenderDefinition(
-      cardId: card.id,
-      variantId: card.variant.id,
-      title: card.title,
-      action: card.definition.descriptionKey,
-      direction: card.role.name,
-      spice: card.chiliLevel,
-      personalPa: card.personalValue,
-      oppositePa: card.oppositePersonalValue,
-      oppositeDirection: switch (card.oppositeRole) {
-        ProfileRole.FAIRE => 'Faire',
-        ProfileRole.RECEVOIR => 'Recevoir',
-        _ => null,
-      },
-      illustrationId: card.definition.illustrationKey,
-    ),
-  );
+  CardHandItem _handItem(NetworkDuelCard card) {
+    final editorialVariant = card.definition.variants
+        .where((variant) => variant.stableId == card.variant.id)
+        .firstOrNull;
+    return CardHandItem(
+      id: card.identity,
+      locked: controller.lockedCardId == card.identity,
+      definition: CardRenderDefinition(
+        cardId: card.id,
+        variantId: card.variant.id,
+        title: card.title,
+        action:
+            editorialVariant?.actionText ??
+            card.definition.actionText ??
+            card.definition.descriptionKey,
+        details: editorialVariant?.detailsText ?? card.definition.detailsText,
+        direction: card.role.name,
+        spice: card.chiliLevel,
+        personalPa: card.personalValue,
+        oppositePa: card.oppositePersonalValue,
+        oppositeDirection: switch (card.oppositeRole) {
+          ProfileRole.FAIRE => 'Faire',
+          ProfileRole.RECEVOIR => 'Recevoir',
+          _ => null,
+        },
+        illustrationId: card.definition.illustrationKey,
+      ),
+    );
+  }
 
   void _openDiscard() {
     final now = DateTime.now();
