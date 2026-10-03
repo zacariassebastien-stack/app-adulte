@@ -38,3 +38,14 @@ RECEVOIR à `20 PA`), RECEVOIR (`20 PA`, inverse FAIRE à `1 PA`) et MUTUEL
 (`8 PA` sans valeur inverse). Il permet de vérifier le contraste de la valeur
 principale, la ligne secondaire et les valeurs extrêmes sans réintégrer
 l'éditeur dans l'application mobile.
+
+`enchaire_signature_v1` apparaît en premier et constitue la référence
+canonique. Il peut être modifié et sauvegardé directement par cet outil ;
+`classic_v1` reste protégé. Pour une déclinaison, dupliquer le pack Signature
+afin de conserver l'original et d'obtenir de nouveaux IDs.
+
+Le panneau de propriétés expose le fond et son dégradé, la matière, les deux
+bordures et leur écart, les rayons, le glow, les panneaux, les ombres, les
+couleurs de texte, les polices, les tailles et les espacements. Les contrôles
+de bloc conservent la responsabilité du layout : position, taille, marge,
+padding, rotation, visibilité et ordre visuel.

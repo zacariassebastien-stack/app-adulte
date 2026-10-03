@@ -1,31 +1,48 @@
 # Card Theme Editor
 
-L’éditeur est un outil interne disponible uniquement en build debug. Depuis le lobby **Jouer à deux**, utiliser l’icône palette dans la barre supérieure. Il n’apparaît pas dans une build release.
+Le Card Editor est un outil Windows autonome situé dans `tools/card_editor`.
+Il n'est pas accessible depuis l'application mobile et ne démarre ni lobby, ni
+gameplay, ni Supabase.
 
-L’écran permet de choisir une carte, un thème, le recto ou le verso et trois modes de preview : carte unique, échantillon représentatif et catalogue complet virtualisé. L’échantillon inclut des titres courts et longs, des textes longs, les niveaux 1 et 5 et plusieurs directions.
+Le renderer compose toujours une carte à partir de quatre éléments distincts :
 
-En mode carte unique :
+`CardRenderDefinition + CardLayout + CardSkin + IllustrationAsset`.
 
-- toucher un bloc pour le sélectionner ;
-- le glisser pour le déplacer ;
-- utiliser la poignée bleue pour le redimensionner ;
-- régler rotation, alignement, marge, padding et visibilité dans le panneau ;
-- modifier couleurs, bordure, rayon, ombre et glow du skin ;
-- lire immédiatement les erreurs du validateur.
+- `CardRenderDefinition` porte le contenu d'une occurrence ;
+- `CardLayout` porte les positions, dimensions, alignements, marges, paddings,
+  rotations, visibilité et ordre des blocs ;
+- `CardSkin` porte la palette, les deux bordures, le glow, le fond, la matière,
+  les panneaux et la typographie ;
+- `IllustrationAsset` associe une image interchangeable et son point focal.
 
-Les ressources `classic_v1` sont protégées. Il faut les dupliquer avant modification. Les boutons permettent de dupliquer un layout, un skin ou un pack ; chaque duplication reçoit de nouveaux IDs. Les brouillons sont sauvegardés localement avec `SharedPreferences`.
+## Thèmes fournis
 
-## Créer un nouveau thème sans coder
+- `enchaire_signature_v1` est la référence visuelle officielle. Il est
+  sélectionné au premier démarrage, modifiable et sauvegardable dans l'outil ;
+- `classic_v1` reste disponible pour compatibilité et comparaison. Il faut le
+  dupliquer avant modification.
 
-1. Ouvrir **Card Theme Editor** depuis le menu debug.
-2. Sélectionner `classic_v1`, puis utiliser **Dupliquer layout**, **Dupliquer skin** ou **Dupliquer pack**.
-3. Déplacer et redimensionner les blocs sur la preview.
-4. Modifier les propriétés du skin dans le panneau de droite.
-5. Associer les références d’illustrations dans le manifeste si un style illustré existe ; le style par défaut reste le fallback.
-6. Contrôler la preview représentative, puis **Preview catalogue**.
-7. Sauvegarder et utiliser **Exporter le thème** pour copier le manifeste versionné.
-8. Ajouter le manifeste et ses assets validés au pack distribué, puis activer son ID dans la future sélection de thème.
+L'écran permet de choisir une carte, un thème, le recto ou le verso et trois
+modes de preview : carte unique, échantillon représentatif et catalogue
+complet virtualisé. Le sélecteur FAIRE / RECEVOIR / MUTUEL couvre les valeurs
+PA extrêmes et vérifie qu'aucune valeur inverse n'apparaît pour MUTUEL.
 
-## Validation
+Les contrôles exposent les fonds, panneaux, bordures externe et interne,
+épaisseurs, écart du double cadre, rayons, glow, ombres, matière, couleurs de
+texte, familles typographiques, tailles et espacements. Un bloc sélectionné
+peut être déplacé, redimensionné et régler son alignement, sa rotation, sa
+marge, son padding et sa visibilité.
 
-Le validateur signale notamment les blocs hors carte, tailles nulles, IDs dupliqués, liens de layout/skin absents, version incompatible, focus d’image invalide et titre masqué. Le catalogue n’est jamais modifié par l’éditeur.
+## Créer un thème dérivé
+
+1. Sélectionner `enchaire_signature_v1`.
+2. Utiliser **Dupliquer pack** pour obtenir des IDs éditables indépendants.
+3. Ajuster le skin et déplacer les blocs du layout.
+4. Vérifier les previews recto, verso, FAIRE, RECEVOIR et MUTUEL.
+5. Vérifier l'échantillon pour les titres et textes longs, les piments 1/5,
+   l'illustration absente et les PA 1/20.
+6. Sauvegarder. Les quatre manifestes sont écrits dans
+   `assets/card_themes/<theme_id>/`.
+
+Les coordonnées restent relatives. Une preview réussie ne dépend donc pas de
+la résolution de la fenêtre de l'éditeur.

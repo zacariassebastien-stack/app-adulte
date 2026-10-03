@@ -104,14 +104,29 @@ class CardRenderer extends StatelessWidget {
           child: SizedBox.fromSize(
             size: size,
             child: DecoratedBox(
+              key: const Key('card-outer-frame'),
               decoration: BoxDecoration(
-                color: Color(_back ? skin.backBackground : skin.background),
-                borderRadius: BorderRadius.circular(skin.radius),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: _back
+                      ? [
+                          Color(skin.backBackground),
+                          Color(skin.backgroundGradientEnd ?? skin.background),
+                        ]
+                      : [
+                          Color(skin.background),
+                          Color(skin.backgroundGradientEnd ?? skin.background),
+                        ],
+                ),
+                borderRadius: BorderRadius.circular(skin.resolvedCornerRadius),
                 border: Border.all(
-                  color: Color(selected ? skin.primary : skin.border),
+                  color: Color(
+                    selected ? skin.primary : skin.resolvedOuterBorderColor,
+                  ),
                   width: selected
-                      ? math.max(3, skin.borderThickness)
-                      : skin.borderThickness,
+                      ? math.max(3, skin.resolvedOuterBorderWidth)
+                      : skin.resolvedOuterBorderWidth,
                 ),
                 boxShadow: [
                   if (skin.shadow > 0)
@@ -120,18 +135,65 @@ class CardRenderer extends StatelessWidget {
                       blurRadius: skin.shadow,
                       offset: Offset(0, skin.shadow / 3),
                     ),
-                  if (skin.glow > 0)
+                  if (skin.resolvedGlowRadius > 0)
                     BoxShadow(
-                      color: Color(skin.primary).withValues(alpha: .35),
-                      blurRadius: skin.glow,
-                      spreadRadius: skin.glow / 4,
+                      color: Color(skin.primary).withValues(
+                        alpha: (skin.glowOpacity * skin.glowIntensity).clamp(
+                          0,
+                          1,
+                        ),
+                      ),
+                      blurRadius: skin.resolvedGlowRadius,
+                      spreadRadius: skin.glowIntensity * 2,
                     ),
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(skin.radius),
+                borderRadius: BorderRadius.circular(
+                  math.max(
+                    0,
+                    skin.resolvedCornerRadius - skin.resolvedOuterBorderWidth,
+                  ),
+                ),
                 child: Stack(
                   children: [
+                    if (skin.textureOpacity > 0)
+                      Positioned.fill(
+                        child: CustomPaint(
+                          key: const Key('card-texture'),
+                          painter: _CardTexturePainter(
+                            color: Color(skin.textureColor),
+                            opacity: skin.textureOpacity,
+                          ),
+                        ),
+                      ),
+                    if (skin.innerBorderWidth > 0)
+                      Positioned.fill(
+                        child: Padding(
+                          padding: EdgeInsets.all(
+                            skin.resolvedOuterBorderWidth + skin.borderGap,
+                          ),
+                          child: IgnorePointer(
+                            child: DecoratedBox(
+                              key: const Key('card-inner-border'),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(
+                                  math.max(
+                                    0,
+                                    skin.resolvedCornerRadius -
+                                        skin.borderGap -
+                                        skin.resolvedOuterBorderWidth,
+                                  ),
+                                ),
+                                border: Border.all(
+                                  color: Color(skin.resolvedInnerBorderColor),
+                                  width: skin.innerBorderWidth,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     for (final block in blocks)
                       _positioned(context, theme, block, size),
                     if (state == CardVisualState.readonly ||
@@ -166,6 +228,28 @@ class CardRenderer extends StatelessWidget {
       padding: EdgeInsets.all(block.padding * size.width),
       child: _block(context, theme, block, size.width),
     );
+    if (_usesPanel(block.type) && theme.skin.panelBorderWidth > 0) {
+      content = DecoratedBox(
+        key: Key('card-panel-${block.id}'),
+        decoration: BoxDecoration(
+          color: Color(theme.skin.panel),
+          borderRadius: BorderRadius.circular(theme.skin.panelRadius),
+          border: Border.all(
+            color: Color(theme.skin.resolvedPanelBorderColor),
+            width: theme.skin.panelBorderWidth,
+          ),
+          boxShadow: [
+            if (theme.skin.panelShadow > 0)
+              BoxShadow(
+                color: Colors.black.withValues(alpha: .22),
+                blurRadius: theme.skin.panelShadow,
+                offset: Offset(0, theme.skin.panelShadow / 3),
+              ),
+          ],
+        ),
+        child: content,
+      );
+    }
     content = Transform.rotate(angle: block.rotation, child: content);
     if (_interactiveEditor) {
       content = GestureDetector(
@@ -255,11 +339,15 @@ class CardRenderer extends StatelessWidget {
         fontWeight:
             FontWeight.values[((spec.weight / 100).round() - 1).clamp(0, 8)],
         fontFamily: spec.fontFamily,
+        fontFamilyFallback: spec.fontFamilyFallback,
+        letterSpacing: spec.letterSpacing * scale,
+        height: spec.height,
       ),
     );
     final lockedAtRest = locked || state == CardVisualState.locked;
     final expanded =
         state == CardVisualState.focused || state == CardVisualState.full;
+    final premiumExpanded = skin.panelBorderWidth > 0 && scale >= .72;
     return switch (block.type) {
       CardBlockType.title => text(
         definition.title,
@@ -271,46 +359,76 @@ class CardRenderer extends StatelessWidget {
         skin.bodyStyle,
         maxLines: 2,
       ),
-      CardBlockType.action => text(
-        definition.action ?? '',
-        skin.bodyStyle,
-        maxLines: 3,
-      ),
-      CardBlockType.direction => text(
-        definition.direction ?? '',
-        skin.directionStyle ?? skin.badgeStyle,
-        maxLines: 1,
-      ),
-      CardBlockType.zones => text(
-        definition.zones.join(' · '),
-        skin.badgeStyle,
-        maxLines: 1,
-      ),
-      CardBlockType.spice => text(
-        List.filled(definition.spice, '🌶️').join(),
-        skin.spiceStyle ?? skin.badgeStyle,
-        maxLines: 1,
-      ),
-      CardBlockType.details => text(
-        definition.details ?? '',
-        skin.bodyStyle,
-        maxLines: 2,
-      ),
+      CardBlockType.action =>
+        premiumExpanded
+            ? _labeledPanelContent(
+                icon: Icons.adjust_rounded,
+                label: 'ACTION',
+                value: definition.action ?? '',
+                skin: skin,
+                scale: scale,
+                maxLines: 4,
+              )
+            : text(definition.action ?? '', skin.bodyStyle, maxLines: 3),
+      CardBlockType.direction =>
+        premiumExpanded
+            ? _labeledPanelContent(
+                icon: Icons.auto_awesome_outlined,
+                label: 'SENSATION',
+                value: definition.direction ?? 'GÉNÉRAL',
+                skin: skin,
+                scale: scale,
+                maxLines: 1,
+              )
+            : text(
+                definition.direction ?? '',
+                skin.directionStyle ?? skin.badgeStyle,
+                maxLines: 1,
+              ),
+      CardBlockType.zones =>
+        premiumExpanded
+            ? _labeledPanelContent(
+                icon: Icons.place_outlined,
+                label: 'ZONES / NOMBRE',
+                value: definition.zones.isEmpty
+                    ? 'LIBRE'
+                    : '${definition.zones.join(' · ')}  ${definition.zones.length}',
+                skin: skin,
+                scale: scale,
+                maxLines: 2,
+              )
+            : text(definition.zones.join(' · '), skin.badgeStyle, maxLines: 1),
+      CardBlockType.spice =>
+        premiumExpanded
+            ? _spiceBlock(skin, scale)
+            : text(
+                List.filled(definition.spice, '🌶️').join(),
+                skin.spiceStyle ?? skin.badgeStyle,
+                maxLines: 1,
+              ),
+      CardBlockType.details =>
+        premiumExpanded
+            ? _labeledPanelContent(
+                icon: Icons.info_outline_rounded,
+                label: 'PRÉCISIONS',
+                value: definition.details ?? 'Aucune précision supplémentaire.',
+                skin: skin,
+                scale: scale,
+                maxLines: 4,
+                muted: true,
+              )
+            : text(definition.details ?? '', skin.bodyStyle, maxLines: 2),
       CardBlockType.pa => _paBlock(skin, scale, lockedAtRest, expanded),
       CardBlockType.illustration => _illustration(theme, skin),
-      CardBlockType.decoration => const SizedBox.shrink(),
-      CardBlockType.backIdentity => text(
-        'ENCHAIRE',
-        skin.titleStyle.copyForBack(),
-        maxLines: 1,
-      ),
+      CardBlockType.decoration => _ornament(block.id, skin),
+      CardBlockType.backIdentity => _backIdentity(skin, scale),
       CardBlockType.backSlogan => text(
-        'À deux, chaque choix compte.',
+        'En chair et en cartes.',
         skin.bodyStyle.copyForBack(),
         maxLines: 2,
       ),
       CardBlockType.backPlayer => text(
-        playerName == null ? '' : 'Pour $playerName',
+        playerName?.toUpperCase() ?? '',
         skin.badgeStyle.copyForBack(),
         maxLines: 1,
       ),
@@ -334,6 +452,13 @@ class CardRenderer extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          if (skin.panelBorderWidth > 0 && expanded && scale >= .72)
+            Text(
+              'VALEUR PERSONNELLE',
+              style: _textStyle(skin.badgeStyle, scale),
+            ),
+          if (skin.panelBorderWidth > 0 && expanded && scale >= .72)
+            SizedBox(height: 4 * scale),
           if (pa != null)
             Text(
               '$pa PA',
@@ -342,6 +467,10 @@ class CardRenderer extends StatelessWidget {
                 color: Color(style.color),
                 fontSize: style.size * scale,
                 fontWeight: FontWeight.bold,
+                fontFamily: style.fontFamily,
+                fontFamilyFallback: style.fontFamilyFallback,
+                letterSpacing: style.letterSpacing * scale,
+                height: style.height,
               ),
             ),
           if (expanded &&
@@ -354,6 +483,9 @@ class CardRenderer extends StatelessWidget {
                 color: Color(style.color).withValues(alpha: .78),
                 fontSize: style.size * scale * .48,
                 fontWeight: FontWeight.w500,
+                fontFamily: skin.bodyStyle.fontFamily,
+                fontFamilyFallback: skin.bodyStyle.fontFamilyFallback,
+                letterSpacing: skin.bodyStyle.letterSpacing * scale,
               ),
             ),
           if (locked && expanded)
@@ -382,14 +514,130 @@ class CardRenderer extends StatelessWidget {
         ),
       ),
     );
-    if (asset == null || asset.assetPath.isEmpty) return placeholder;
-    return Image.asset(
-      asset.assetPath,
-      fit: BoxFit.cover,
-      alignment: Alignment(asset.focusX * 2 - 1, asset.focusY * 2 - 1),
-      errorBuilder: (_, _, _) => placeholder,
+    final image = asset == null || asset.assetPath.isEmpty
+        ? placeholder
+        : Image.asset(
+            asset.assetPath,
+            fit: BoxFit.cover,
+            alignment: Alignment(asset.focusX * 2 - 1, asset.focusY * 2 - 1),
+            errorBuilder: (_, _, _) => placeholder,
+          );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(skin.panelRadius),
+      child: image,
     );
   }
+
+  bool _usesPanel(CardBlockType type) => switch (type) {
+    CardBlockType.action ||
+    CardBlockType.details ||
+    CardBlockType.direction ||
+    CardBlockType.pa ||
+    CardBlockType.spice ||
+    CardBlockType.zones => true,
+    _ => false,
+  };
+
+  Widget _labeledPanelContent({
+    required IconData icon,
+    required String label,
+    required String value,
+    required CardSkin skin,
+    required double scale,
+    required int maxLines,
+    bool muted = false,
+  }) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14 * scale, color: Color(skin.primary)),
+          SizedBox(width: 6 * scale),
+          Flexible(
+            child: Text(label, style: _textStyle(skin.badgeStyle, scale)),
+          ),
+        ],
+      ),
+      SizedBox(height: 5 * scale),
+      Flexible(
+        child: Text(
+          value,
+          maxLines: maxLines,
+          overflow: TextOverflow.ellipsis,
+          style: _textStyle(
+            muted ? (skin.panelStyle ?? skin.bodyStyle) : skin.bodyStyle,
+            scale,
+          ),
+        ),
+      ),
+    ],
+  );
+
+  Widget _spiceBlock(CardSkin skin, double scale) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text('PIMENT', style: _textStyle(skin.badgeStyle, scale)),
+      const Spacer(),
+      FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          children: [
+            Text(
+              List.filled(definition.spice, '🌶').join(),
+              style: _textStyle(skin.spiceStyle ?? skin.badgeStyle, scale),
+            ),
+            SizedBox(width: 4 * scale),
+            Text(
+              '${definition.spice}',
+              style: _textStyle(
+                (skin.paStyle ?? skin.badgeStyle).copyWith(size: 16),
+                scale,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+
+  Widget _backIdentity(CardSkin skin, double scale) => FittedBox(
+    fit: BoxFit.scaleDown,
+    child: Text.rich(
+      TextSpan(
+        style: _textStyle(skin.titleStyle.copyForBack(), scale),
+        children: [
+          const TextSpan(text: 'EN'),
+          TextSpan(
+            text: 'CHA',
+            style: TextStyle(color: Color(skin.primary)),
+          ),
+          const TextSpan(text: 'IRE'),
+        ],
+      ),
+    ),
+  );
+
+  Widget _ornament(String id, CardSkin skin) => CustomPaint(
+    key: Key('card-$id'),
+    painter: _SignatureOrnamentPainter(
+      color: Color(skin.innerBorderColor ?? skin.primary),
+      inverted: id.contains('bottom'),
+    ),
+  );
+
+  TextStyle _textStyle(CardTextStyleSpec spec, double scale) => TextStyle(
+    color: Color(spec.color),
+    fontSize: spec.size * scale,
+    fontWeight:
+        FontWeight.values[((spec.weight / 100).round() - 1).clamp(0, 8)],
+    fontFamily: spec.fontFamily,
+    fontFamilyFallback: spec.fontFamilyFallback,
+    letterSpacing: spec.letterSpacing * scale,
+    height: spec.height,
+  );
 
   Widget _stateOverlay(CardSkin skin) {
     final label = switch (state) {
@@ -420,5 +668,78 @@ extension on CardTextStyleSpec {
     size: size,
     weight: weight,
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    letterSpacing: letterSpacing,
+    height: height,
   );
+}
+
+final class _CardTexturePainter extends CustomPainter {
+  const _CardTexturePainter({required this.color, required this.opacity});
+  final Color color;
+  final double opacity;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color.withValues(alpha: opacity);
+    const spacing = 13.0;
+    for (var y = 5.0; y < size.height; y += spacing) {
+      final row = (y / spacing).floor();
+      for (var x = row.isEven ? 4.0 : 10.0; x < size.width; x += 19) {
+        final pulse = ((x * 17 + y * 31).round() % 5) / 10 + .35;
+        paint.color = color.withValues(alpha: opacity * pulse);
+        canvas.drawCircle(Offset(x, y), .42, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_CardTexturePainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.opacity != opacity;
+}
+
+final class _SignatureOrnamentPainter extends CustomPainter {
+  const _SignatureOrnamentPainter({
+    required this.color,
+    required this.inverted,
+  });
+  final Color color;
+  final bool inverted;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withValues(alpha: .82)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(.8, size.width / 280);
+    final center = Offset(size.width / 2, size.height / 2);
+    final direction = inverted ? -1.0 : 1.0;
+    final path = Path()
+      ..moveTo(size.width * .06, center.dy)
+      ..lineTo(size.width * .34, center.dy)
+      ..moveTo(size.width * .66, center.dy)
+      ..lineTo(size.width * .94, center.dy)
+      ..moveTo(center.dx, center.dy - direction * size.height * .34)
+      ..cubicTo(
+        size.width * .38,
+        center.dy - direction * size.height * .08,
+        size.width * .38,
+        center.dy + direction * size.height * .22,
+        center.dx,
+        center.dy + direction * size.height * .30,
+      )
+      ..cubicTo(
+        size.width * .62,
+        center.dy + direction * size.height * .22,
+        size.width * .62,
+        center.dy - direction * size.height * .08,
+        center.dx,
+        center.dy - direction * size.height * .34,
+      );
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_SignatureOrnamentPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.inverted != inverted;
 }

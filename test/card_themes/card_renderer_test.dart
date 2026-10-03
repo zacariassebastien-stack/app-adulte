@@ -1,5 +1,6 @@
 import 'package:couple_cards/card_themes/card_renderer.dart';
 import 'package:couple_cards/card_themes/card_theme_models.dart';
+import 'package:couple_cards/card_themes/signature_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -23,6 +24,7 @@ void main() {
     WidgetTester tester, {
     required Size size,
     CardVisualState state = CardVisualState.normal,
+    ThemeBundle? bundle,
   }) async {
     await tester.binding.setSurfaceSize(size);
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -30,7 +32,12 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: SizedBox.expand(
-            child: CardRenderer(definition: definition, state: state),
+            child: CardRenderer(
+              definition: definition,
+              state: state,
+              bundle: bundle,
+              playerName: 'SEB',
+            ),
           ),
         ),
       ),
@@ -111,6 +118,64 @@ void main() {
     expect(find.text('8 PA'), findsOneWidget);
     expect(find.byKey(const Key('opposite-value-mutual')), findsNothing);
   });
+
+  testWidgets('signature front renders texture, double frame and panels', (
+    tester,
+  ) async {
+    await render(
+      tester,
+      size: const Size(330, 480),
+      state: CardVisualState.full,
+      bundle: EnchaireSignatureTheme.bundle,
+    );
+
+    expect(find.byKey(const Key('card-outer-frame')), findsOneWidget);
+    expect(find.byKey(const Key('card-inner-border')), findsOneWidget);
+    expect(find.byKey(const Key('card-texture')), findsOneWidget);
+    expect(find.byKey(const Key('card-panel-pa')), findsOneWidget);
+    expect(find.text('VALEUR PERSONNELLE'), findsOneWidget);
+    expect(find.text('12 PA'), findsOneWidget);
+    expect(find.text('Faire : 8 PA'), findsOneWidget);
+    expect(find.text('ACTION'), findsOneWidget);
+    expect(find.text('PRÉCISIONS'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('signature back stays sparse and uses canonical identity', (
+    tester,
+  ) async {
+    await render(
+      tester,
+      size: const Size(330, 480),
+      state: CardVisualState.hidden,
+      bundle: EnchaireSignatureTheme.bundle,
+    );
+
+    expect(find.text('ENCHAIRE'), findsOneWidget);
+    expect(find.text('En chair et en cartes.'), findsOneWidget);
+    expect(find.text('SEB'), findsOneWidget);
+    expect(find.byKey(const Key('card-ornament_top')), findsOneWidget);
+    expect(find.byKey(const Key('card-ornament_bottom')), findsOneWidget);
+    expect(find.text('12 PA'), findsNothing);
+  });
+
+  testWidgets(
+    'signature long content and missing illustration do not overflow',
+    (tester) async {
+      await render(
+        tester,
+        size: const Size(280, 420),
+        state: CardVisualState.full,
+        bundle: EnchaireSignatureTheme.bundle,
+      );
+
+      expect(
+        find.byKey(const Key('illustration-card.preview')),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('readonly state is explicit', (tester) async {
     await render(

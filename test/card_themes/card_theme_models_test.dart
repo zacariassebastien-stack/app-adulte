@@ -2,6 +2,7 @@ import 'package:couple_cards/card_themes/card_theme_models.dart';
 import 'package:couple_cards/card_themes/card_theme_repository.dart';
 import 'package:couple_cards/card_themes/card_theme_validator.dart';
 import 'package:couple_cards/card_themes/classic_theme.dart';
+import 'package:couple_cards/card_themes/signature_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -44,6 +45,21 @@ void main() {
       expect(layout.id, 'layout_copy');
       expect(skin.id, 'skin_copy');
       expect(pack.id, 'pack_copy');
+    });
+
+    test('signature skin preserves premium frame and typography controls', () {
+      final restored = CardSkin.fromJson(EnchaireSignatureTheme.skin.toJson());
+
+      expect(restored.id, 'enchaire_signature_v1');
+      expect(restored.resolvedOuterBorderColor, 0xFFFF527A);
+      expect(restored.resolvedInnerBorderColor, 0xFFF7A0B4);
+      expect(restored.innerBorderWidth, greaterThan(0));
+      expect(restored.borderGap, greaterThan(0));
+      expect(restored.textureOpacity, inInclusiveRange(0, .05));
+      expect(restored.panelBorderWidth, greaterThan(0));
+      expect(restored.titleStyle.fontFamily, 'Georgia');
+      expect(restored.titleStyle.fontFamilyFallback, contains('Noto Serif'));
+      expect(restored.badgeStyle.letterSpacing, greaterThan(1));
     });
 
     test('theme manifest export and import preserve every model', () {

@@ -108,7 +108,7 @@ final class ProjectCardThemeRepository implements CardThemeRepository {
 
   @override
   Future<void> save(ThemeBundle bundle) async {
-    if (bundle.pack.system) {
+    if (bundle.pack.system && bundle.pack.id != 'enchaire_signature_v1') {
       throw StateError('Les ressources système doivent être dupliquées.');
     }
     _validateId(bundle.pack.id);
@@ -178,7 +178,16 @@ final class ProjectCardThemeRepository implements CardThemeRepository {
   String export(ThemeBundle bundle) => bundle.export();
 
   Future<void> _writeIndex(Iterable<String> ids) async {
-    final sorted = ids.toSet().toList()..sort();
+    final sorted = ids.toSet().toList()
+      ..sort((left, right) {
+        int priority(String id) => switch (id) {
+          'enchaire_signature_v1' => 0,
+          'classic_v1' => 1,
+          _ => 2,
+        };
+        final order = priority(left).compareTo(priority(right));
+        return order != 0 ? order : left.compareTo(right);
+      });
     const encoder = JsonEncoder.withIndent('  ');
     await indexFile.writeAsString(
       '${encoder.convert({'schema_version': 1, 'themes': sorted})}\n',

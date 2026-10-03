@@ -96,7 +96,7 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
         IconButton(
           key: const Key('theme-save'),
           tooltip: 'Sauvegarder',
-          onPressed: active?.pack.system == false ? _save : null,
+          onPressed: active == null || !_canEdit ? null : _save,
           icon: const Icon(Icons.save_outlined),
         ),
       ],
@@ -319,7 +319,7 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
         const SizedBox(height: 8),
         Text('Layout : ${active!.layout.name}'),
         Text('Skin : ${skin.name}'),
-        if (!active!.pack.system) ...[
+        if (_canEdit) ...[
           TextFormField(
             key: ValueKey('layout-name-${active!.layout.id}'),
             initialValue: active!.layout.name,
@@ -377,9 +377,19 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
           (color) => _updateSkin(skin.copyWith(background: color)),
         ),
         _colorField(
-          'Bordure',
-          skin.border,
-          (color) => _updateSkin(skin.copyWith(border: color)),
+          'Fond dégradé',
+          skin.backgroundGradientEnd ?? skin.background,
+          (color) => _updateSkin(skin.copyWith(backgroundGradientEnd: color)),
+        ),
+        _colorField(
+          'Bordure externe',
+          skin.resolvedOuterBorderColor,
+          (color) => _updateSkin(skin.copyWith(outerBorderColor: color)),
+        ),
+        _colorField(
+          'Bordure interne',
+          skin.resolvedInnerBorderColor,
+          (color) => _updateSkin(skin.copyWith(innerBorderColor: color)),
         ),
         _colorField(
           'Couleur principale',
@@ -391,17 +401,84 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
           skin.panel,
           (color) => _updateSkin(skin.copyWith(panel: color)),
         ),
-        _slider('Épaisseur bordure', skin.borderThickness, 0, 8, (value) {
-          _updateSkin(skin.copyWith(borderThickness: value));
+        _colorField(
+          'Bordure panneau',
+          skin.resolvedPanelBorderColor,
+          (color) => _updateSkin(skin.copyWith(panelBorderColor: color)),
+        ),
+        _colorField(
+          'Texte titre',
+          skin.titleStyle.color,
+          (color) => _updateSkin(
+            skin.copyWith(titleStyle: skin.titleStyle.copyWith(color: color)),
+          ),
+        ),
+        _colorField(
+          'Texte secondaire',
+          skin.bodyStyle.color,
+          (color) => _updateSkin(
+            skin.copyWith(bodyStyle: skin.bodyStyle.copyWith(color: color)),
+          ),
+        ),
+        _colorField(
+          'Texte atténué',
+          (skin.panelStyle ?? skin.bodyStyle).color,
+          (color) => _updateSkin(
+            skin.copyWith(
+              panelStyle: (skin.panelStyle ?? skin.bodyStyle).copyWith(
+                color: color,
+              ),
+            ),
+          ),
+        ),
+        _colorField(
+          'Accent',
+          skin.primary,
+          (color) => _updateSkin(skin.copyWith(primary: color)),
+        ),
+        _slider(
+          'Épaisseur bordure externe',
+          skin.resolvedOuterBorderWidth,
+          0,
+          8,
+          (value) {
+            _updateSkin(skin.copyWith(outerBorderWidth: value));
+          },
+        ),
+        _slider('Épaisseur bordure interne', skin.innerBorderWidth, 0, 5, (
+          value,
+        ) {
+          _updateSkin(skin.copyWith(innerBorderWidth: value));
         }),
-        _slider('Rayon', skin.radius, 0, 40, (value) {
-          _updateSkin(skin.copyWith(radius: value));
+        _slider('Écart des bordures', skin.borderGap, 0, 20, (value) {
+          _updateSkin(skin.copyWith(borderGap: value));
+        }),
+        _slider('Rayon des coins', skin.resolvedCornerRadius, 0, 48, (value) {
+          _updateSkin(skin.copyWith(cornerRadius: value));
+        }),
+        _slider('Opacité matière', skin.textureOpacity, 0, .12, (value) {
+          _updateSkin(skin.copyWith(textureOpacity: value));
         }),
         _slider('Ombre', skin.shadow, 0, 30, (value) {
           _updateSkin(skin.copyWith(shadow: value));
         }),
-        _slider('Glow', skin.glow, 0, 30, (value) {
-          _updateSkin(skin.copyWith(glow: value));
+        _slider('Rayon du glow', skin.resolvedGlowRadius, 0, 30, (value) {
+          _updateSkin(skin.copyWith(glowRadius: value));
+        }),
+        _slider('Intensité du glow', skin.glowIntensity, 0, 1, (value) {
+          _updateSkin(skin.copyWith(glowIntensity: value));
+        }),
+        _slider('Opacité du glow', skin.glowOpacity, 0, 1, (value) {
+          _updateSkin(skin.copyWith(glowOpacity: value));
+        }),
+        _slider('Bordure des panneaux', skin.panelBorderWidth, 0, 4, (value) {
+          _updateSkin(skin.copyWith(panelBorderWidth: value));
+        }),
+        _slider('Rayon des panneaux', skin.panelRadius, 0, 30, (value) {
+          _updateSkin(skin.copyWith(panelRadius: value));
+        }),
+        _slider('Ombre des panneaux', skin.panelShadow, 0, 16, (value) {
+          _updateSkin(skin.copyWith(panelShadow: value));
         }),
         _slider('Taille du titre', skin.titleStyle.size, 8, 32, (value) {
           _updateSkin(
@@ -411,6 +488,57 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
         _slider('Taille du corps', skin.bodyStyle.size, 7, 24, (value) {
           _updateSkin(
             skin.copyWith(bodyStyle: skin.bodyStyle.copyWith(size: value)),
+          );
+        }),
+        _slider('Taille des labels', skin.badgeStyle.size, 6, 18, (value) {
+          _updateSkin(
+            skin.copyWith(badgeStyle: skin.badgeStyle.copyWith(size: value)),
+          );
+        }),
+        _slider('Espacement titre', skin.titleStyle.letterSpacing, -1, 5, (
+          value,
+        ) {
+          _updateSkin(
+            skin.copyWith(
+              titleStyle: skin.titleStyle.copyWith(letterSpacing: value),
+            ),
+          );
+        }),
+        _slider('Espacement labels', skin.badgeStyle.letterSpacing, 0, 5, (
+          value,
+        ) {
+          _updateSkin(
+            skin.copyWith(
+              badgeStyle: skin.badgeStyle.copyWith(letterSpacing: value),
+            ),
+          );
+        }),
+        _slider('Espacement corps', skin.bodyStyle.letterSpacing, -1, 4, (
+          value,
+        ) {
+          _updateSkin(
+            skin.copyWith(
+              bodyStyle: skin.bodyStyle.copyWith(letterSpacing: value),
+            ),
+          );
+        }),
+        _fontField('Police du titre', skin.titleStyle.fontFamily, (font) {
+          _updateSkin(
+            skin.copyWith(
+              titleStyle: skin.titleStyle.copyWith(fontFamily: font),
+            ),
+          );
+        }),
+        _fontField('Police des labels', skin.badgeStyle.fontFamily, (font) {
+          _updateSkin(
+            skin.copyWith(
+              badgeStyle: skin.badgeStyle.copyWith(fontFamily: font),
+            ),
+          );
+        }),
+        _fontField('Police du corps', skin.bodyStyle.fontFamily, (font) {
+          _updateSkin(
+            skin.copyWith(bodyStyle: skin.bodyStyle.copyWith(fontFamily: font)),
           );
         }),
         const Divider(),
@@ -462,6 +590,20 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
       },
     );
   }
+
+  Widget _fontField(
+    String label,
+    String? value,
+    ValueChanged<String> changed,
+  ) => TextFormField(
+    initialValue: value ?? '',
+    decoration: InputDecoration(labelText: label),
+    onFieldSubmitted: (font) => changed(font.trim()),
+  );
+
+  bool get _canEdit =>
+      active?.pack.system == false ||
+      active?.pack.id == 'enchaire_signature_v1';
 
   CardLayoutBlock? get _selectedBlock {
     if (selectedBlockId == null) return null;
@@ -521,7 +663,7 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
       );
 
   void _updateBlock(CardLayoutBlock changed) {
-    if (active!.pack.system || active!.layout.system) {
+    if (!_canEdit) {
       setState(() => message = 'Dupliquez classic_v1 avant de le modifier.');
       return;
     }
@@ -545,7 +687,7 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
   }
 
   void _updateSkin(CardSkin skin) {
-    if (active!.pack.system || active!.skin.system) {
+    if (!_canEdit) {
       setState(() => message = 'Dupliquez classic_v1 avant de le modifier.');
       return;
     }
@@ -561,7 +703,7 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
   }
 
   void _renameLayout(String name) {
-    if (name.isEmpty || active!.pack.system || active!.layout.system) return;
+    if (name.isEmpty || !_canEdit) return;
     setState(() {
       active = ThemeBundle(
         pack: active!.pack,
@@ -573,7 +715,7 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
   }
 
   void _renameSkin(String name) {
-    if (name.isEmpty || active!.pack.system || active!.skin.system) return;
+    if (name.isEmpty || !_canEdit) return;
     setState(() {
       active = ThemeBundle(
         pack: active!.pack,
@@ -604,6 +746,8 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
       skinId: skin.id,
       illustrationStyleId: source.pack.illustrationStyleId,
       previewCardId: source.pack.previewCardId,
+      minimumRendererVersion: source.pack.minimumRendererVersion,
+      premium: source.pack.premium,
     );
     final duplicate = ThemeBundle(
       pack: pack,

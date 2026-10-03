@@ -39,10 +39,16 @@ class _CoupleCardsBootstrapState extends State<CoupleCardsBootstrap> {
     try {
       final result = await Future.wait<Object>([
         widget.initializeRepository(),
-        _loadClassicTheme(),
+        _loadCanonicalThemes(),
       ]).timeout(widget.initializationTimeout);
       final repository = result[0] as LobbyRepository;
-      CardThemeRegistry.installClassic(result[1] as ThemeBundle);
+      final themes = result[1] as List<ThemeBundle>;
+      CardThemeRegistry.installClassic(
+        themes.firstWhere((theme) => theme.pack.id == 'classic_v1'),
+      );
+      CardThemeRegistry.installSignature(
+        themes.firstWhere((theme) => theme.pack.id == 'enchaire_signature_v1'),
+      );
       debugPrint(
         'Bootstrap: lobby repository ready in ${stopwatch.elapsedMilliseconds} ms',
       );
@@ -56,12 +62,12 @@ class _CoupleCardsBootstrapState extends State<CoupleCardsBootstrap> {
     }
   }
 
-  Future<ThemeBundle> _loadClassicTheme() async {
+  Future<List<ThemeBundle>> _loadCanonicalThemes() async {
     try {
-      return await const AssetCardThemeLoader().loadClassic();
+      return await const AssetCardThemeLoader().loadAll();
     } on Object catch (error) {
-      debugPrint('Bootstrap: classic_v1 asset fallback used: $error');
-      return CardThemeRegistry.classic;
+      debugPrint('Bootstrap: canonical theme asset fallback used: $error');
+      return [CardThemeRegistry.signature, CardThemeRegistry.classic];
     }
   }
 

@@ -30,3 +30,4 @@ flutter:
     - assets/catalog/source/roleplay_scenarios.v1.fr.json
     - assets/card_themes/index.json
     - assets/card_themes/classic_v1/
+    - assets/card_themes/enchaire_signature_v1/

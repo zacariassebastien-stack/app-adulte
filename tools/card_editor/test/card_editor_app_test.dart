@@ -32,7 +32,8 @@ void main() {
 
     expect(find.text('Card Theme Editor'), findsOneWidget);
     expect(find.byType(CardRenderer), findsOneWidget);
-    expect(find.text('Classic V1'), findsWidgets);
+    expect(find.text('ENCHAIRE Signature V1'), findsWidgets);
+    expect(find.byKey(const Key('card-inner-border')), findsOneWidget);
     expect(find.byKey(const Key('direction-preview-selector')), findsOneWidget);
     expect(find.text('1 PA'), findsOneWidget);
     expect(find.text('Recevoir : 20 PA'), findsOneWidget);

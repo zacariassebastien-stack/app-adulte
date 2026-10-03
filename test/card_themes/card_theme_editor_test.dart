@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:couple_cards/card_themes/card_theme_editor_screen.dart';
 import 'package:couple_cards/card_themes/card_theme_repository.dart';
 import 'package:couple_cards/card_themes/classic_theme.dart';
+import 'package:couple_cards/card_themes/signature_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -55,7 +56,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('layout dupliqué.'), findsOneWidget);
-    expect((await repository.loadAll()).length, 2);
+    expect((await repository.loadAll()).length, 3);
     expect(tester.takeException(), isNull);
   });
 
@@ -70,6 +71,64 @@ void main() {
     expect(first.pack.id, 'classic_v1');
     expect(identical(first, second), isTrue);
     expect(AssetCardThemeLoader.parseCount, 1);
+  });
+
+  testWidgets('editor exposes the signature theme and premium controls', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final repository = SharedPreferencesCardThemeRepository(
+      preferences: await SharedPreferences.getInstance(),
+    );
+    await tester.binding.setSurfaceSize(const Size(1400, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CardThemeEditorScreen(
+          repository: repository,
+          initialCatalog: loadFixture(fixture()),
+          initialBundles: [
+            EnchaireSignatureTheme.bundle,
+            ClassicCardTheme.bundle,
+          ],
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('ENCHAIRE Signature V1'), findsWidgets);
+    expect(
+      tester.widget<IconButton>(find.byKey(const Key('theme-save'))).onPressed,
+      isNotNull,
+    );
+    expect(find.textContaining('Épaisseur bordure externe'), findsOneWidget);
+    await tester.drag(find.byType(ListView).last, const Offset(0, -500));
+    await tester.pump();
+    expect(find.textContaining('Épaisseur bordure interne'), findsOneWidget);
+    await tester.drag(find.byType(ListView).last, const Offset(0, -600));
+    await tester.pump();
+    expect(find.textContaining('Rayon du glow'), findsOneWidget);
+    expect(find.textContaining('Rayon des panneaux'), findsOneWidget);
+    await tester.drag(find.byType(ListView).last, const Offset(0, -1200));
+    await tester.pump();
+    expect(find.text('Police du titre'), findsOneWidget);
+    expect(find.byKey(const Key('card-inner-border')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('asset loader exposes signature first and keeps classic', () async {
+    AssetCardThemeLoader.clearCacheForTesting();
+    final themes = await const AssetCardThemeLoader().loadAll(
+      bundle: _FileAssetBundle(),
+    );
+
+    expect(themes.map((theme) => theme.pack.id), [
+      'enchaire_signature_v1',
+      'classic_v1',
+    ]);
+    expect(themes.first.skin.innerBorderWidth, greaterThan(0));
+    expect(themes.first.skin.panelBorderWidth, greaterThan(0));
   });
 }
 

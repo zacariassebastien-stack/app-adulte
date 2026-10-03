@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "id": "enchaire_signature_v1",
+  "name": "ENCHAIRE Signature V1",
+  "version": 1,
+  "layout_id": "enchaire_signature_v1",
+  "skin_id": "enchaire_signature_v1",
+  "illustration_style_id": "signature",
+  "preview_card_id": "card.kiss_me",
+  "minimum_renderer_version": 1,
+  "premium": true,
+  "system": true
+}

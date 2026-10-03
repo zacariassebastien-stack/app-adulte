@@ -27,7 +27,7 @@ void main() {
       expect(store.value.sound, isFalse);
       expect(store.value.vibrations, isFalse);
       expect(store.value.animations, isFalse);
-      expect(CardThemeRegistry.selected.pack.id, 'classic_v1');
+      expect(CardThemeRegistry.selected.pack.id, 'enchaire_signature_v1');
       controller.dispose();
     },
   );
@@ -153,7 +153,10 @@ void main() {
 
 final class _Themes implements CardThemeRepository {
   @override
-  Future<List<ThemeBundle>> loadAll() async => [CardThemeRegistry.classic];
+  Future<List<ThemeBundle>> loadAll() async => [
+    CardThemeRegistry.signature,
+    CardThemeRegistry.classic,
+  ];
   @override
   Future<void> delete(String packId) async {}
   @override

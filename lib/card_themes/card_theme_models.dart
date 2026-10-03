@@ -206,22 +206,35 @@ final class CardTextStyleSpec {
     required this.size,
     this.weight = 400,
     this.fontFamily,
+    this.fontFamilyFallback = const [],
+    this.letterSpacing = 0,
+    this.height = 1.2,
   });
   final int color;
   final double size;
   final int weight;
   final String? fontFamily;
+  final List<String> fontFamilyFallback;
+  final double letterSpacing, height;
   ThemeJson toJson() => {
     'color': color,
     'size': size,
     'weight': weight,
     'font_family': fontFamily,
+    'font_family_fallback': fontFamilyFallback,
+    'letter_spacing': letterSpacing,
+    'height': height,
   };
   factory CardTextStyleSpec.fromJson(ThemeJson json) => CardTextStyleSpec(
     color: (json['color'] as num).toInt(),
     size: _double(json, 'size'),
     weight: (json['weight'] as num?)?.toInt() ?? 400,
     fontFamily: json['font_family'] as String?,
+    fontFamilyFallback: List<String>.from(
+      (json['font_family_fallback'] as List<Object?>?) ?? const [],
+    ),
+    letterSpacing: _double(json, 'letter_spacing', fallback: 0),
+    height: _double(json, 'height', fallback: 1.2),
   );
 
   CardTextStyleSpec copyWith({
@@ -229,11 +242,17 @@ final class CardTextStyleSpec {
     double? size,
     int? weight,
     String? fontFamily,
+    List<String>? fontFamilyFallback,
+    double? letterSpacing,
+    double? height,
   }) => CardTextStyleSpec(
     color: color ?? this.color,
     size: size ?? this.size,
     weight: weight ?? this.weight,
     fontFamily: fontFamily ?? this.fontFamily,
+    fontFamilyFallback: fontFamilyFallback ?? this.fontFamilyFallback,
+    letterSpacing: letterSpacing ?? this.letterSpacing,
+    height: height ?? this.height,
   );
 }
 
@@ -259,6 +278,23 @@ final class CardSkin {
     this.spiceStyle,
     this.directionStyle,
     this.panelStyle,
+    this.backgroundGradientEnd,
+    this.textureColor = 0xFFFFFFFF,
+    this.textureOpacity = 0,
+    this.outerBorderColor,
+    this.innerBorderColor,
+    this.outerBorderWidth,
+    this.innerBorderWidth = 0,
+    this.borderGap = 0,
+    this.cornerRadius,
+    this.glowRadius,
+    this.glowIntensity = .5,
+    this.glowOpacity = .3,
+    this.panelBorderColor,
+    this.panelBorderWidth = 0,
+    this.panelRadius = 12,
+    this.panelShadow = 0,
+    this.separatorColor,
     this.decorativeAssets = const [],
     this.system = false,
   });
@@ -266,6 +302,16 @@ final class CardSkin {
   final int version;
   final int background, border, primary, secondary, panel, backBackground;
   final double borderThickness, radius, glow, shadow;
+  final int? backgroundGradientEnd;
+  final int textureColor;
+  final double textureOpacity;
+  final int? outerBorderColor,
+      innerBorderColor,
+      panelBorderColor,
+      separatorColor;
+  final double? outerBorderWidth, cornerRadius, glowRadius;
+  final double innerBorderWidth, borderGap, glowIntensity, glowOpacity;
+  final double panelBorderWidth, panelRadius, panelShadow;
   final CardTextStyleSpec titleStyle, bodyStyle, badgeStyle;
   final CardTextStyleSpec? paStyle, spiceStyle, directionStyle, panelStyle;
   final List<String> decorativeAssets;
@@ -294,6 +340,23 @@ final class CardSkin {
     'spice_style': spiceStyle?.toJson(),
     'direction_style': directionStyle?.toJson(),
     'panel_style': panelStyle?.toJson(),
+    'background_gradient_end': backgroundGradientEnd,
+    'texture_color': textureColor,
+    'texture_opacity': textureOpacity,
+    'outer_border_color': resolvedOuterBorderColor,
+    'inner_border_color': resolvedInnerBorderColor,
+    'outer_border_width': resolvedOuterBorderWidth,
+    'inner_border_width': innerBorderWidth,
+    'border_gap': borderGap,
+    'corner_radius': resolvedCornerRadius,
+    'glow_radius': resolvedGlowRadius,
+    'glow_intensity': glowIntensity,
+    'glow_opacity': glowOpacity,
+    'panel_border_color': resolvedPanelBorderColor,
+    'panel_border_width': panelBorderWidth,
+    'panel_radius': panelRadius,
+    'panel_shadow': panelShadow,
+    'separator_color': resolvedSeparatorColor,
     'decorative_assets': decorativeAssets,
   };
 
@@ -327,6 +390,23 @@ final class CardSkin {
     panelStyle: json['panel_style'] == null
         ? null
         : CardTextStyleSpec.fromJson(json['panel_style']! as ThemeJson),
+    backgroundGradientEnd: (json['background_gradient_end'] as num?)?.toInt(),
+    textureColor: (json['texture_color'] as num?)?.toInt() ?? 0xFFFFFFFF,
+    textureOpacity: _double(json, 'texture_opacity', fallback: 0),
+    outerBorderColor: (json['outer_border_color'] as num?)?.toInt(),
+    innerBorderColor: (json['inner_border_color'] as num?)?.toInt(),
+    outerBorderWidth: (json['outer_border_width'] as num?)?.toDouble(),
+    innerBorderWidth: _double(json, 'inner_border_width', fallback: 0),
+    borderGap: _double(json, 'border_gap', fallback: 0),
+    cornerRadius: (json['corner_radius'] as num?)?.toDouble(),
+    glowRadius: (json['glow_radius'] as num?)?.toDouble(),
+    glowIntensity: _double(json, 'glow_intensity', fallback: .5),
+    glowOpacity: _double(json, 'glow_opacity', fallback: .3),
+    panelBorderColor: (json['panel_border_color'] as num?)?.toInt(),
+    panelBorderWidth: _double(json, 'panel_border_width', fallback: 0),
+    panelRadius: _double(json, 'panel_radius', fallback: 12),
+    panelShadow: _double(json, 'panel_shadow', fallback: 0),
+    separatorColor: (json['separator_color'] as num?)?.toInt(),
     decorativeAssets: List<String>.from(
       (json['decorative_assets'] as List<Object?>?) ?? const [],
     ),
@@ -353,6 +433,23 @@ final class CardSkin {
     spiceStyle: spiceStyle,
     directionStyle: directionStyle,
     panelStyle: panelStyle,
+    backgroundGradientEnd: backgroundGradientEnd,
+    textureColor: textureColor,
+    textureOpacity: textureOpacity,
+    outerBorderColor: outerBorderColor,
+    innerBorderColor: innerBorderColor,
+    outerBorderWidth: outerBorderWidth,
+    innerBorderWidth: innerBorderWidth,
+    borderGap: borderGap,
+    cornerRadius: cornerRadius,
+    glowRadius: glowRadius,
+    glowIntensity: glowIntensity,
+    glowOpacity: glowOpacity,
+    panelBorderColor: panelBorderColor,
+    panelBorderWidth: panelBorderWidth,
+    panelRadius: panelRadius,
+    panelShadow: panelShadow,
+    separatorColor: separatorColor,
     decorativeAssets: decorativeAssets,
   );
 
@@ -364,12 +461,30 @@ final class CardSkin {
     int? secondary,
     int? panel,
     int? backBackground,
+    int? backgroundGradientEnd,
+    int? textureColor,
+    double? textureOpacity,
     double? borderThickness,
     double? radius,
     double? glow,
     double? shadow,
+    int? outerBorderColor,
+    int? innerBorderColor,
+    double? outerBorderWidth,
+    double? innerBorderWidth,
+    double? borderGap,
+    double? cornerRadius,
+    double? glowRadius,
+    double? glowIntensity,
+    double? glowOpacity,
+    int? panelBorderColor,
+    double? panelBorderWidth,
+    double? panelRadius,
+    double? panelShadow,
+    int? separatorColor,
     CardTextStyleSpec? titleStyle,
     CardTextStyleSpec? bodyStyle,
+    CardTextStyleSpec? badgeStyle,
     CardTextStyleSpec? paStyle,
     CardTextStyleSpec? spiceStyle,
     CardTextStyleSpec? directionStyle,
@@ -384,13 +499,30 @@ final class CardSkin {
     secondary: secondary ?? this.secondary,
     panel: panel ?? this.panel,
     backBackground: backBackground ?? this.backBackground,
+    backgroundGradientEnd: backgroundGradientEnd ?? this.backgroundGradientEnd,
+    textureColor: textureColor ?? this.textureColor,
+    textureOpacity: textureOpacity ?? this.textureOpacity,
     borderThickness: borderThickness ?? this.borderThickness,
     radius: radius ?? this.radius,
     glow: glow ?? this.glow,
     shadow: shadow ?? this.shadow,
+    outerBorderColor: outerBorderColor ?? this.outerBorderColor,
+    innerBorderColor: innerBorderColor ?? this.innerBorderColor,
+    outerBorderWidth: outerBorderWidth ?? this.outerBorderWidth,
+    innerBorderWidth: innerBorderWidth ?? this.innerBorderWidth,
+    borderGap: borderGap ?? this.borderGap,
+    cornerRadius: cornerRadius ?? this.cornerRadius,
+    glowRadius: glowRadius ?? this.glowRadius,
+    glowIntensity: glowIntensity ?? this.glowIntensity,
+    glowOpacity: glowOpacity ?? this.glowOpacity,
+    panelBorderColor: panelBorderColor ?? this.panelBorderColor,
+    panelBorderWidth: panelBorderWidth ?? this.panelBorderWidth,
+    panelRadius: panelRadius ?? this.panelRadius,
+    panelShadow: panelShadow ?? this.panelShadow,
+    separatorColor: separatorColor ?? this.separatorColor,
     titleStyle: titleStyle ?? this.titleStyle,
     bodyStyle: bodyStyle ?? this.bodyStyle,
-    badgeStyle: badgeStyle,
+    badgeStyle: badgeStyle ?? this.badgeStyle,
     paStyle: paStyle ?? this.paStyle,
     spiceStyle: spiceStyle ?? this.spiceStyle,
     directionStyle: directionStyle ?? this.directionStyle,
@@ -398,6 +530,14 @@ final class CardSkin {
     decorativeAssets: decorativeAssets,
     system: system,
   );
+
+  int get resolvedOuterBorderColor => outerBorderColor ?? border;
+  int get resolvedInnerBorderColor => innerBorderColor ?? border;
+  int get resolvedPanelBorderColor => panelBorderColor ?? border;
+  int get resolvedSeparatorColor => separatorColor ?? secondary;
+  double get resolvedOuterBorderWidth => outerBorderWidth ?? borderThickness;
+  double get resolvedCornerRadius => cornerRadius ?? radius;
+  double get resolvedGlowRadius => glowRadius ?? glow;
 }
 
 final class CardThemePack {
@@ -452,6 +592,8 @@ final class CardThemePack {
         skinId: skinId,
         illustrationStyleId: illustrationStyleId,
         previewCardId: previewCardId,
+        minimumRendererVersion: minimumRendererVersion,
+        premium: premium,
       );
 }
 

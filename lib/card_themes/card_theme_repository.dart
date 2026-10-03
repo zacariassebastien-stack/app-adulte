@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'card_theme_models.dart';
 import 'card_theme_validator.dart';
 import 'classic_theme.dart';
+import 'signature_theme.dart';
 
 abstract interface class CardThemeRepository {
   Future<List<ThemeBundle>> loadAll();
@@ -34,7 +35,7 @@ final class SharedPreferencesCardThemeRepository
     } on FlutterError {
       // Pure Dart consumers have no Flutter services binding. The classic
       // theme also keeps the app usable if bundled theme assets are damaged.
-      bundled = [ClassicCardTheme.bundle];
+      bundled = [EnchaireSignatureTheme.bundle, ClassicCardTheme.bundle];
     }
     final encoded = (await _prefs).getStringList(_key) ?? const [];
     final custom = <ThemeBundle>[];

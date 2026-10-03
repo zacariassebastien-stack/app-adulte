@@ -1,12 +1,15 @@
 import 'card_theme_models.dart';
 import 'classic_theme.dart';
+import 'signature_theme.dart';
 
 abstract final class CardThemeRegistry {
   static ThemeBundle _classic = ClassicCardTheme.bundle;
+  static ThemeBundle _signature = EnchaireSignatureTheme.bundle;
   static ThemeBundle? _selected;
 
   static ThemeBundle get classic => _classic;
-  static ThemeBundle get selected => _selected ?? _classic;
+  static ThemeBundle get signature => _signature;
+  static ThemeBundle get selected => _selected ?? _signature;
 
   static void select(ThemeBundle bundle) => _selected = bundle;
 
@@ -19,8 +22,20 @@ abstract final class CardThemeRegistry {
     _classic = bundle;
   }
 
+  static void installSignature(ThemeBundle bundle) {
+    if (bundle.pack.id != EnchaireSignatureTheme.id ||
+        bundle.layout.id != EnchaireSignatureTheme.id ||
+        bundle.skin.id != EnchaireSignatureTheme.id) {
+      throw ArgumentError(
+        'The canonical signature theme must use enchaire_signature_v1 IDs.',
+      );
+    }
+    _signature = bundle;
+  }
+
   static void resetForTesting() {
     _classic = ClassicCardTheme.bundle;
+    _signature = EnchaireSignatureTheme.bundle;
     _selected = null;
   }
 }

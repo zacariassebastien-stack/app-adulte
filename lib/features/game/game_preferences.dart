@@ -12,7 +12,7 @@ final class GamePreferences {
     this.sound = true,
     this.vibrations = true,
     this.animations = true,
-    this.themeId = 'classic_v1',
+    this.themeId = 'enchaire_signature_v1',
   });
 
   final bool sound, vibrations, animations;
@@ -42,7 +42,7 @@ final class GamePreferences {
         sound: (json['sound'] as bool?) ?? true,
         vibrations: (json['vibrations'] as bool?) ?? true,
         animations: (json['animations'] as bool?) ?? true,
-        themeId: (json['theme_id'] as String?) ?? 'classic_v1',
+        themeId: (json['theme_id'] as String?) ?? 'enchaire_signature_v1',
       );
 }
 
@@ -93,7 +93,10 @@ final class GamePreferencesController extends ChangeNotifier {
   final GamePreferencesStore store;
   final CardThemeRepository themes;
   GamePreferences value = const GamePreferences();
-  List<ThemeBundle> availableThemes = [CardThemeRegistry.classic];
+  List<ThemeBundle> availableThemes = [
+    CardThemeRegistry.signature,
+    CardThemeRegistry.classic,
+  ];
 
   Future<void> load() async {
     final loaded = await Future.wait<Object>([store.load(), themes.loadAll()]);
@@ -102,7 +105,7 @@ final class GamePreferencesController extends ChangeNotifier {
     final selected = availableThemes
         .where((theme) => theme.pack.id == value.themeId)
         .firstOrNull;
-    CardThemeRegistry.select(selected ?? CardThemeRegistry.classic);
+    CardThemeRegistry.select(selected ?? CardThemeRegistry.signature);
     notifyListeners();
   }
 
