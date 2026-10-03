@@ -3,14 +3,19 @@ import '../data/catalog_loader/catalog_loader.dart';
 import '../domain/domain.dart';
 
 /// Flutter adapter; the domain and data loader remain usable in pure Dart.
-Future<Catalog> loadAssetCatalog({AssetBundle? bundle}) => const CatalogLoader()
-    .load((path) => (bundle ?? rootBundle).loadString(path));
+Future<Catalog> loadAssetCatalog({
+  AssetBundle? bundle,
+  String assetPrefix = '',
+}) => const CatalogLoader().load(
+  (path) => (bundle ?? rootBundle).loadString('$assetPrefix$path'),
+);
 
 Future<RoleplayScenarioLibrary> loadAssetRoleplayScenarios({
   AssetBundle? bundle,
+  String assetPrefix = '',
 }) async => RoleplayScenarioLibrary.decode(
   await (bundle ?? rootBundle).loadString(
-    'assets/catalog/source/roleplay_scenarios.v1.fr.json',
+    '${assetPrefix}assets/catalog/source/roleplay_scenarios.v1.fr.json',
   ),
 );
 

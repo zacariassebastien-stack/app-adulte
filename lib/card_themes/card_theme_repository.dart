@@ -1,10 +1,10 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'card_theme_models.dart';
-import 'card_theme_registry.dart';
 import 'card_theme_validator.dart';
 import 'classic_theme.dart';
 
@@ -28,6 +28,14 @@ final class SharedPreferencesCardThemeRepository
 
   @override
   Future<List<ThemeBundle>> loadAll() async {
+    late List<ThemeBundle> bundled;
+    try {
+      bundled = await const AssetCardThemeLoader().loadAll(bundle: assets);
+    } on FlutterError {
+      // Pure Dart consumers have no Flutter services binding. The classic
+      // theme also keeps the app usable if bundled theme assets are damaged.
+      bundled = [ClassicCardTheme.bundle];
+    }
     final encoded = (await _prefs).getStringList(_key) ?? const [];
     final custom = <ThemeBundle>[];
     for (final source in encoded) {
@@ -37,7 +45,11 @@ final class SharedPreferencesCardThemeRepository
         // One invalid local draft must not hide the canonical theme.
       }
     }
-    return [CardThemeRegistry.classic, ...custom];
+    final byId = {for (final theme in bundled) theme.pack.id: theme};
+    for (final theme in custom) {
+      byId[theme.pack.id] = theme;
+    }
+    return byId.values.toList(growable: false);
   }
 
   @override
@@ -104,6 +116,7 @@ final class SharedPreferencesCardThemeRepository
 final class AssetCardThemeLoader {
   const AssetCardThemeLoader();
   static ThemeBundle? _cache;
+  static List<ThemeBundle>? _allCache;
   static int parseCount = 0;
 
   Future<ThemeBundle> loadClassic({AssetBundle? bundle}) async {
@@ -130,8 +143,48 @@ final class AssetCardThemeLoader {
     );
   }
 
+  Future<List<ThemeBundle>> loadAll({
+    AssetBundle? bundle,
+    String assetPrefix = '',
+  }) async {
+    final useCache = bundle == null && assetPrefix.isEmpty;
+    if (useCache && _allCache != null) return _allCache!;
+    final assets = bundle ?? rootBundle;
+    final index =
+        jsonDecode(
+              await assets.loadString(
+                '${assetPrefix}assets/card_themes/index.json',
+              ),
+            )
+            as Map<String, Object?>;
+    final ids = (index['themes']! as List).cast<String>();
+    final themes = <ThemeBundle>[];
+    for (final id in ids) {
+      final base = '${assetPrefix}assets/card_themes/$id';
+      final values = await Future.wait([
+        assets.loadString('$base/theme.json'),
+        assets.loadString('$base/layout.json'),
+        assets.loadString('$base/skin.json'),
+        assets.loadString('$base/illustrations.json'),
+      ]);
+      themes.add(
+        ThemeBundle(
+          pack: CardThemePack.fromJson(jsonDecode(values[0]) as ThemeJson),
+          layout: CardLayout.fromJson(jsonDecode(values[1]) as ThemeJson),
+          skin: CardSkin.fromJson(jsonDecode(values[2]) as ThemeJson),
+          illustrations: (jsonDecode(values[3]) as List<Object?>)
+              .map((item) => IllustrationAsset.fromJson(item! as ThemeJson))
+              .toList(),
+        ),
+      );
+    }
+    if (useCache) _allCache = List.unmodifiable(themes);
+    return List.unmodifiable(themes);
+  }
+
   static void clearCacheForTesting() {
     _cache = null;
+    _allCache = null;
     parseCount = 0;
   }
 }

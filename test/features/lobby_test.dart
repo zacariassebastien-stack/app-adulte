@@ -255,6 +255,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.byKey(const Key('open-card-theme-editor')), findsNothing);
     await tester.tap(find.byKey(const Key('create-lobby')));
     await tester.pump();
     expect(find.byKey(const Key('lobby-waiting')), findsOneWidget);

@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:couple_cards/card_themes/card_theme_editor_screen.dart';
 import 'package:couple_cards/card_themes/card_theme_repository.dart';
 import 'package:couple_cards/card_themes/classic_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -42,15 +45,24 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('classic asset theme is parsed once and cached', (tester) async {
+  test('classic asset theme is parsed once and cached', () async {
     AssetCardThemeLoader.clearCacheForTesting();
     const loader = AssetCardThemeLoader();
+    final assets = _FileAssetBundle();
 
-    final first = await loader.loadClassic();
-    final second = await loader.loadClassic();
+    final first = await loader.loadClassic(bundle: assets);
+    final second = await loader.loadClassic(bundle: assets);
 
     expect(first.pack.id, 'classic_v1');
     expect(identical(first, second), isTrue);
     expect(AssetCardThemeLoader.parseCount, 1);
   });
+}
+
+final class _FileAssetBundle extends CachingAssetBundle {
+  @override
+  Future<ByteData> load(String key) async {
+    final bytes = await File(key).readAsBytes();
+    return ByteData.sublistView(bytes);
+  }
 }

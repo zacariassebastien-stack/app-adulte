@@ -606,7 +606,7 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
   Future<void> _save() async {
     try {
       await widget.repository.save(active!);
-      if (mounted) setState(() => message = 'Thème sauvegardé localement.');
+      if (mounted) setState(() => message = 'Thème sauvegardé.');
     } on Object catch (error) {
       if (mounted) setState(() => message = error.toString());
     }
