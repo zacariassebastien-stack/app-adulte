@@ -136,4 +136,53 @@ flutter:
       expect(reloaded.skin.glowOpacity, .2);
     },
   );
+
+  test('imports, saves, reloads and removes a card illustration', () async {
+    final repository = ProjectCardThemeRepository(projectRoot: root);
+    final signature = (await repository.loadAll()).singleWhere(
+      (theme) => theme.pack.id == 'enchaire_signature_v1',
+    );
+    final source = File('${root.path}/selected image.png');
+    await source.writeAsBytes([137, 80, 78, 71]);
+
+    final assetPath = await repository.importIllustration(
+      packId: signature.pack.id,
+      cardId: 'card.hug',
+      sourcePath: source.path,
+    );
+    final asset = IllustrationAsset(
+      illustrationId: 'enchaire_signature_v1.card.hug.illustration',
+      cardId: 'card.hug',
+      styleId: 'default',
+      assetPath: assetPath,
+      focusX: .2,
+      focusY: .8,
+      fit: IllustrationFit.contain,
+      opacity: .45,
+      preserveAspectRatio: false,
+    );
+    await repository.save(
+      ThemeBundle(
+        pack: signature.pack,
+        layout: signature.layout,
+        skin: signature.skin,
+        illustrations: [asset],
+      ),
+    );
+
+    final reloaded = (await repository.loadAll()).singleWhere(
+      (theme) => theme.pack.id == signature.pack.id,
+    );
+    final restored = reloaded.illustrationFor('card.hug', 'default')!;
+    expect(restored.assetPath, assetPath);
+    expect(restored.focusX, .2);
+    expect(restored.focusY, .8);
+    expect(restored.fit, IllustrationFit.contain);
+    expect(restored.opacity, .45);
+    expect(restored.preserveAspectRatio, isFalse);
+    expect(repository.illustrationFile(restored).existsSync(), isTrue);
+
+    await repository.removeIllustrationFile(restored);
+    expect(repository.illustrationFile(restored).existsSync(), isFalse);
+  });
 }

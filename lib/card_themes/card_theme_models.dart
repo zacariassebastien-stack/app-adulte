@@ -20,6 +20,8 @@ enum CardBlockType {
 
 enum CardTextAlign { start, center, end }
 
+enum IllustrationFit { cover, contain }
+
 enum CardVisualState {
   normal,
   focused,
@@ -605,10 +607,16 @@ final class IllustrationAsset {
     required this.assetPath,
     this.focusX = .5,
     this.focusY = .5,
+    this.fit = IllustrationFit.cover,
+    this.opacity = 1,
+    this.preserveAspectRatio = true,
     this.safeArea,
   });
   final String illustrationId, cardId, styleId, assetPath;
   final double focusX, focusY;
+  final IllustrationFit fit;
+  final double opacity;
+  final bool preserveAspectRatio;
   final RelativeBox? safeArea;
   ThemeJson toJson() => {
     'illustration_id': illustrationId,
@@ -617,6 +625,9 @@ final class IllustrationAsset {
     'asset_path': assetPath,
     'focus_x': focusX,
     'focus_y': focusY,
+    'fit': fit.name,
+    'opacity': opacity,
+    'preserve_aspect_ratio': preserveAspectRatio,
     'safe_area': safeArea?.toJson(),
   };
   factory IllustrationAsset.fromJson(ThemeJson json) => IllustrationAsset(
@@ -626,9 +637,35 @@ final class IllustrationAsset {
     assetPath: _string(json, 'asset_path'),
     focusX: _double(json, 'focus_x', fallback: .5),
     focusY: _double(json, 'focus_y', fallback: .5),
+    fit: IllustrationFit.values.byName(
+      (json['fit'] as String?) ?? IllustrationFit.cover.name,
+    ),
+    opacity: _double(json, 'opacity', fallback: 1),
+    preserveAspectRatio: (json['preserve_aspect_ratio'] as bool?) ?? true,
     safeArea: json['safe_area'] == null
         ? null
         : RelativeBox.fromJson(json['safe_area']! as ThemeJson),
+  );
+
+  IllustrationAsset copyWith({
+    String? assetPath,
+    double? focusX,
+    double? focusY,
+    IllustrationFit? fit,
+    double? opacity,
+    bool? preserveAspectRatio,
+    RelativeBox? safeArea,
+  }) => IllustrationAsset(
+    illustrationId: illustrationId,
+    cardId: cardId,
+    styleId: styleId,
+    assetPath: assetPath ?? this.assetPath,
+    focusX: focusX ?? this.focusX,
+    focusY: focusY ?? this.focusY,
+    fit: fit ?? this.fit,
+    opacity: opacity ?? this.opacity,
+    preserveAspectRatio: preserveAspectRatio ?? this.preserveAspectRatio,
+    safeArea: safeArea ?? this.safeArea,
   );
 }
 

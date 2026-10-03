@@ -62,6 +62,7 @@ class CardRenderer extends StatelessWidget {
     this.selectedBlockId,
     this.onBlockSelected,
     this.onBlockChanged,
+    this.illustrationProvider,
     super.key,
   });
 
@@ -72,6 +73,8 @@ class CardRenderer extends StatelessWidget {
   final String? playerName, selectedBlockId;
   final ValueChanged<String>? onBlockSelected;
   final ValueChanged<CardLayoutBlock>? onBlockChanged;
+  final ImageProvider<Object>? Function(IllustrationAsset asset)?
+  illustrationProvider;
 
   bool get _back => state == CardVisualState.hidden;
   bool get _interactiveEditor => onBlockChanged != null;
@@ -167,6 +170,10 @@ class CardRenderer extends StatelessWidget {
                           ),
                         ),
                       ),
+                    for (final block in blocks.where(
+                      (block) => block.type == CardBlockType.illustration,
+                    ))
+                      _positioned(context, theme, block, size),
                     if (skin.innerBorderWidth > 0)
                       Positioned.fill(
                         child: Padding(
@@ -194,7 +201,9 @@ class CardRenderer extends StatelessWidget {
                           ),
                         ),
                       ),
-                    for (final block in blocks)
+                    for (final block in blocks.where(
+                      (block) => block.type != CardBlockType.illustration,
+                    ))
                       _positioned(context, theme, block, size),
                     if (state == CardVisualState.readonly ||
                         state == CardVisualState.discarded ||
@@ -287,12 +296,7 @@ class CardRenderer extends StatelessWidget {
                     key: Key('resize-${block.id}'),
                     onPanUpdate: (details) => onBlockChanged?.call(
                       block.copyWith(
-                        box: box.copyWith(
-                          width: (box.width + details.delta.dx / size.width)
-                              .clamp(.03, 1 - box.x),
-                          height: (box.height + details.delta.dy / size.height)
-                              .clamp(.03, 1 - box.y),
-                        ),
+                        box: _resizedBox(theme, block, size, details.delta),
                       ),
                     ),
                     child: const ColoredBox(
@@ -307,12 +311,45 @@ class CardRenderer extends StatelessWidget {
       );
     }
     return Positioned(
+      key: Key('card-block-${block.id}'),
       left: left,
       top: top,
       width: width,
       height: height,
       child: content,
     );
+  }
+
+  RelativeBox _resizedBox(
+    ThemeBundle theme,
+    CardLayoutBlock block,
+    Size size,
+    Offset delta,
+  ) {
+    final box = block.box;
+    final preserve =
+        block.type == CardBlockType.illustration &&
+        (theme
+                .illustrationFor(
+                  definition.cardId,
+                  theme.pack.illustrationStyleId,
+                )
+                ?.preserveAspectRatio ??
+            true);
+    if (!preserve) {
+      return box.copyWith(
+        width: (box.width + delta.dx / size.width).clamp(.03, 1 - box.x),
+        height: (box.height + delta.dy / size.height).clamp(.03, 1 - box.y),
+      );
+    }
+    final ratio = box.width / box.height;
+    var width = (box.width + delta.dx / size.width).clamp(.03, 1 - box.x);
+    var height = width / ratio;
+    if (height > 1 - box.y) {
+      height = 1 - box.y;
+      width = height * ratio;
+    }
+    return box.copyWith(width: width, height: height);
   }
 
   Widget _block(
@@ -514,13 +551,21 @@ class CardRenderer extends StatelessWidget {
         ),
       ),
     );
+    final provider = asset == null ? null : illustrationProvider?.call(asset);
     final image = asset == null || asset.assetPath.isEmpty
         ? placeholder
-        : Image.asset(
-            asset.assetPath,
-            fit: BoxFit.cover,
-            alignment: Alignment(asset.focusX * 2 - 1, asset.focusY * 2 - 1),
-            errorBuilder: (_, _, _) => placeholder,
+        : Opacity(
+            key: Key('illustration-opacity-${definition.cardId}'),
+            opacity: asset.opacity.clamp(0, 1),
+            child: Image(
+              key: Key('illustration-${definition.cardId}'),
+              image: provider ?? AssetImage(asset.assetPath),
+              fit: asset.fit == IllustrationFit.contain
+                  ? BoxFit.contain
+                  : BoxFit.cover,
+              alignment: Alignment(asset.focusX * 2 - 1, asset.focusY * 2 - 1),
+              errorBuilder: (_, _, _) => placeholder,
+            ),
           );
     return ClipRRect(
       borderRadius: BorderRadius.circular(skin.panelRadius),
@@ -548,7 +593,7 @@ class CardRenderer extends StatelessWidget {
     bool muted = false,
   }) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisSize: MainAxisSize.min,
+    mainAxisSize: MainAxisSize.max,
     children: [
       Row(
         mainAxisSize: MainAxisSize.min,
@@ -556,12 +601,17 @@ class CardRenderer extends StatelessWidget {
           Icon(icon, size: 14 * scale, color: Color(skin.primary)),
           SizedBox(width: 6 * scale),
           Flexible(
-            child: Text(label, style: _textStyle(skin.badgeStyle, scale)),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: _textStyle(skin.badgeStyle, scale),
+            ),
           ),
         ],
       ),
       SizedBox(height: 5 * scale),
-      Flexible(
+      Expanded(
         child: Text(
           value,
           maxLines: maxLines,
@@ -577,7 +627,7 @@ class CardRenderer extends StatelessWidget {
 
   Widget _spiceBlock(CardSkin skin, double scale) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisSize: MainAxisSize.min,
+    mainAxisSize: MainAxisSize.max,
     children: [
       Text('PIMENT', style: _textStyle(skin.badgeStyle, scale)),
       const Spacer(),

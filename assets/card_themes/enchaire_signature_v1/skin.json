@@ -5,38 +5,115 @@
   "version": 1,
   "system": true,
   "background": 4279045134,
-  "background_gradient_end": 4279833366,
-  "texture_color": 4294961636,
-  "texture_opacity": 0.022,
   "border": 4294922874,
   "primary": 4294918000,
   "secondary": 4280622113,
   "panel": 3859877650,
   "back_background": 4278847755,
-  "border_thickness": 3,
-  "radius": 28,
-  "glow": 12,
-  "shadow": 16,
+  "border_thickness": 3.0,
+  "radius": 28.0,
+  "glow": 12.0,
+  "shadow": 16.0,
+  "title_style": {
+    "color": 4294965234,
+    "size": 27.775999999999996,
+    "weight": 600,
+    "font_family": "Georgia",
+    "font_family_fallback": [
+      "Noto Serif",
+      "serif"
+    ],
+    "letter_spacing": 0.15,
+    "height": 1.02
+  },
+  "body_style": {
+    "color": 4293780704,
+    "size": 12.168000000000001,
+    "weight": 400,
+    "font_family": "Segoe UI",
+    "font_family_fallback": [
+      "Roboto",
+      "sans-serif"
+    ],
+    "letter_spacing": 0.0,
+    "height": 1.32
+  },
+  "badge_style": {
+    "color": 4294504427,
+    "size": 8.879999999999999,
+    "weight": 600,
+    "font_family": "Segoe UI",
+    "font_family_fallback": [
+      "Roboto",
+      "sans-serif"
+    ],
+    "letter_spacing": 1.55,
+    "height": 1.1
+  },
+  "pa_style": {
+    "color": 4294920055,
+    "size": 22.0,
+    "weight": 700,
+    "font_family": "Segoe UI",
+    "font_family_fallback": [
+      "Roboto",
+      "sans-serif"
+    ],
+    "letter_spacing": 0.0,
+    "height": 1.0
+  },
+  "spice_style": {
+    "color": 4294920055,
+    "size": 11.0,
+    "weight": 600,
+    "font_family": "Segoe UI",
+    "font_family_fallback": [
+      "Roboto",
+      "sans-serif"
+    ],
+    "letter_spacing": 0.0,
+    "height": 1.2
+  },
+  "direction_style": {
+    "color": 4294965234,
+    "size": 10.0,
+    "weight": 600,
+    "font_family": "Segoe UI",
+    "font_family_fallback": [
+      "Roboto",
+      "sans-serif"
+    ],
+    "letter_spacing": 1.35,
+    "height": 1.2
+  },
+  "panel_style": {
+    "color": 4292331716,
+    "size": 9.5,
+    "weight": 400,
+    "font_family": "Segoe UI",
+    "font_family_fallback": [
+      "Roboto",
+      "sans-serif"
+    ],
+    "letter_spacing": 0.0,
+    "height": 1.28
+  },
+  "background_gradient_end": 4279833366,
+  "texture_color": 4294961636,
+  "texture_opacity": 0.022,
   "outer_border_color": 4294922874,
   "inner_border_color": 4294418612,
-  "outer_border_width": 3,
+  "outer_border_width": 3.0,
   "inner_border_width": 1.15,
-  "border_gap": 9,
-  "corner_radius": 28,
-  "glow_radius": 12,
+  "border_gap": 9.0,
+  "corner_radius": 28.22400000000001,
+  "glow_radius": 12.0,
   "glow_intensity": 0.45,
   "glow_opacity": 0.28,
   "panel_border_color": 4286604909,
   "panel_border_width": 0.8,
-  "panel_radius": 11,
-  "panel_shadow": 4,
+  "panel_radius": 11.0,
+  "panel_shadow": 4.0,
   "separator_color": 4287393398,
-  "title_style": {"color":4294965234,"size":25,"weight":600,"font_family":"Georgia","font_family_fallback":["Noto Serif","serif"],"letter_spacing":0.15,"height":1.02},
-  "body_style": {"color":4293780704,"size":11.5,"weight":400,"font_family":"Segoe UI","font_family_fallback":["Roboto","sans-serif"],"letter_spacing":0,"height":1.32},
-  "badge_style": {"color":4294504427,"size":8.5,"weight":600,"font_family":"Segoe UI","font_family_fallback":["Roboto","sans-serif"],"letter_spacing":1.55,"height":1.1},
-  "pa_style": {"color":4294920055,"size":22,"weight":700,"font_family":"Segoe UI","font_family_fallback":["Roboto","sans-serif"],"letter_spacing":0,"height":1},
-  "spice_style": {"color":4294920055,"size":11,"weight":600,"font_family":"Segoe UI","font_family_fallback":["Roboto","sans-serif"],"letter_spacing":0,"height":1.2},
-  "direction_style": {"color":4294965234,"size":10,"weight":600,"font_family":"Segoe UI","font_family_fallback":["Roboto","sans-serif"],"letter_spacing":1.35,"height":1.2},
-  "panel_style": {"color":4292331716,"size":9.5,"weight":400,"font_family":"Segoe UI","font_family_fallback":["Roboto","sans-serif"],"letter_spacing":0,"height":1.28},
   "decorative_assets": []
 }

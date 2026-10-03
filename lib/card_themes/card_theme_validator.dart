@@ -45,7 +45,16 @@ final class CardThemeValidator {
         issues.add(_error('outside_card', 'Bloc hors carte : ${block.id}.'));
       }
     }
+    final illustratedCards = <String>{};
     for (final asset in bundle.illustrations) {
+      if (!illustratedCards.add(asset.cardId)) {
+        issues.add(
+          _error(
+            'duplicate_card_illustration',
+            'Plusieurs illustrations sont associées à ${asset.cardId}.',
+          ),
+        );
+      }
       if (asset.assetPath.trim().isEmpty) {
         issues.add(
           _error('image_missing', 'Image absente : ${asset.illustrationId}.'),
@@ -57,6 +66,14 @@ final class CardThemeValidator {
           asset.focusY > 1) {
         issues.add(
           _error('invalid_focus', 'Focus invalide : ${asset.illustrationId}.'),
+        );
+      }
+      if (asset.opacity < 0 || asset.opacity > 1) {
+        issues.add(
+          _error(
+            'invalid_opacity',
+            'Opacité invalide : ${asset.illustrationId}.',
+          ),
         );
       }
     }

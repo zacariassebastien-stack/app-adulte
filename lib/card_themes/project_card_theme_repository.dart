@@ -20,6 +20,58 @@ final class ProjectCardThemeRepository implements CardThemeRepository {
   File get indexFile =>
       File('${themesDirectory.path}${Platform.pathSeparator}index.json');
 
+  /// Copies an editor-selected image into the theme asset directory and
+  /// returns the stable path that mobile builds bundle on their next build.
+  Future<String> importIllustration({
+    required String packId,
+    required String cardId,
+    required String sourcePath,
+  }) async {
+    _validateId(packId);
+    final source = File(sourcePath);
+    if (!await source.exists()) {
+      throw FileSystemException('Illustration introuvable', sourcePath);
+    }
+    final extension = source.uri.pathSegments.last
+        .split('.')
+        .last
+        .toLowerCase();
+    if (!const {'png', 'jpg', 'jpeg', 'webp'}.contains(extension)) {
+      throw const FormatException(
+        'Format non pris en charge. Utilisez PNG, JPG, JPEG ou WebP.',
+      );
+    }
+    final slug = cardId
+        .replaceFirst(RegExp(r'^card\.'), '')
+        .replaceAll(RegExp('[^a-zA-Z0-9_-]+'), '_')
+        .toLowerCase();
+    final relativePath =
+        'assets/card_themes/$packId/illustrations/$slug.$extension';
+    final target = File(
+      relativePath
+          .replaceAll('/', Platform.pathSeparator)
+          .replaceFirst(
+            'assets',
+            '${projectRoot.path}${Platform.pathSeparator}assets',
+          ),
+    );
+    await target.parent.create(recursive: true);
+    if (source.absolute.path != target.absolute.path) {
+      await source.copy(target.path);
+    }
+    return relativePath;
+  }
+
+  File illustrationFile(IllustrationAsset asset) => File(
+    '${projectRoot.path}${Platform.pathSeparator}'
+    '${_validatedAssetPath(asset.assetPath)}',
+  );
+
+  Future<void> removeIllustrationFile(IllustrationAsset asset) async {
+    final file = illustrationFile(asset);
+    if (await file.exists()) await file.delete();
+  }
+
   static Directory locateProjectRoot({
     Directory? startDirectory,
     List<String> arguments = const [],
@@ -227,5 +279,17 @@ final class ProjectCardThemeRepository implements CardThemeRepository {
     if (!RegExp(r'^[a-z0-9][a-z0-9_-]*$').hasMatch(id)) {
       throw FormatException('Identifiant de thème invalide : $id');
     }
+  }
+
+  String _validatedAssetPath(String assetPath) {
+    final normalized = assetPath.replaceAll('/', Platform.pathSeparator);
+    final prefix =
+        'assets${Platform.pathSeparator}card_themes'
+        '${Platform.pathSeparator}';
+    if (!normalized.startsWith(prefix) ||
+        normalized.split(Platform.pathSeparator).contains('..')) {
+      throw FormatException('Chemin d’illustration invalide : $assetPath');
+    }
+    return normalized;
   }
 }

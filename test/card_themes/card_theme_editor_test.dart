@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:couple_cards/card_themes/card_illustration_editor_adapter.dart';
 import 'package:couple_cards/card_themes/card_theme_editor_screen.dart';
+import 'package:couple_cards/card_themes/card_theme_models.dart';
 import 'package:couple_cards/card_themes/card_theme_repository.dart';
 import 'package:couple_cards/card_themes/classic_theme.dart';
 import 'package:couple_cards/card_themes/signature_theme.dart';
@@ -130,6 +133,46 @@ void main() {
     expect(themes.first.skin.innerBorderWidth, greaterThan(0));
     expect(themes.first.skin.panelBorderWidth, greaterThan(0));
   });
+
+  testWidgets('editor associates and removes an illustration with fallback', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final repository = SharedPreferencesCardThemeRepository(
+      preferences: await SharedPreferences.getInstance(),
+    );
+    final adapter = _FakeIllustrationAdapter();
+    await tester.binding.setSurfaceSize(const Size(1400, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CardThemeEditorScreen(
+          repository: repository,
+          initialCatalog: loadFixture(fixture()),
+          initialBundles: [EnchaireSignatureTheme.bundle],
+          illustrationAdapter: adapter,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('associate-illustration')));
+    await tester.pumpAndSettle();
+    expect(find.text('Remplacer l’illustration'), findsOneWidget);
+    expect(find.byKey(const Key('illustration-fit')), findsOneWidget);
+    expect(
+      find.byKey(const Key('illustration-opacity-card.draw')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const Key('remove-illustration')));
+    await tester.pumpAndSettle();
+    expect(adapter.removed, isTrue);
+    expect(find.text('Associer une illustration'), findsOneWidget);
+    expect(find.byKey(const Key('illustration-card.draw')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 final class _FileAssetBundle extends CachingAssetBundle {
@@ -137,5 +180,29 @@ final class _FileAssetBundle extends CachingAssetBundle {
   Future<ByteData> load(String key) async {
     final bytes = await File(key).readAsBytes();
     return ByteData.sublistView(bytes);
+  }
+}
+
+final class _FakeIllustrationAdapter implements CardIllustrationEditorAdapter {
+  bool removed = false;
+  final MemoryImage provider = MemoryImage(
+    base64Decode(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk'
+      '+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+    ),
+  );
+
+  @override
+  Future<String?> chooseAndImport({
+    required ThemeBundle bundle,
+    required String cardId,
+  }) async => 'assets/card_themes/${bundle.pack.id}/illustrations/test.png';
+
+  @override
+  ImageProvider<Object>? previewProvider(IllustrationAsset asset) => provider;
+
+  @override
+  Future<void> remove(IllustrationAsset asset) async {
+    removed = true;
   }
 }

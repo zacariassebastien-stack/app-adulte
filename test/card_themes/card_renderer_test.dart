@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:couple_cards/card_themes/card_renderer.dart';
 import 'package:couple_cards/card_themes/card_theme_models.dart';
 import 'package:couple_cards/card_themes/signature_theme.dart';
@@ -25,6 +27,8 @@ void main() {
     required Size size,
     CardVisualState state = CardVisualState.normal,
     ThemeBundle? bundle,
+    ImageProvider<Object>? Function(IllustrationAsset asset)?
+    illustrationProvider,
   }) async {
     await tester.binding.setSurfaceSize(size);
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -37,6 +41,7 @@ void main() {
               state: state,
               bundle: bundle,
               playerName: 'SEB',
+              illustrationProvider: illustrationProvider,
             ),
           ),
         ),
@@ -173,6 +178,67 @@ void main() {
         find.byKey(const Key('illustration-card.preview')),
         findsOneWidget,
       );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'illustration stays behind the frame and honors opacity and fit',
+    (tester) async {
+      final illustration = IllustrationAsset(
+        illustrationId: 'preview',
+        cardId: definition.cardId,
+        styleId: 'signature',
+        assetPath: 'assets/preview.png',
+        fit: IllustrationFit.contain,
+        opacity: .35,
+      );
+      final source = EnchaireSignatureTheme.bundle;
+      final bundle = ThemeBundle(
+        pack: source.pack,
+        layout: source.layout,
+        skin: source.skin,
+        illustrations: [illustration],
+      );
+      final bytes = base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk'
+        '+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+      );
+
+      await render(
+        tester,
+        size: const Size(330, 480),
+        state: CardVisualState.full,
+        bundle: bundle,
+        illustrationProvider: (_) => MemoryImage(bytes),
+      );
+
+      final opacity = tester.widget<Opacity>(
+        find.byKey(const Key('illustration-opacity-card.preview')),
+      );
+      final image = tester.widget<Image>(
+        find.byKey(const Key('illustration-card.preview')),
+      );
+      expect(opacity.opacity, .35);
+      expect(image.fit, BoxFit.contain);
+
+      final stack = tester.widget<Stack>(find.byType(Stack).first);
+      final illustrationIndex = stack.children.indexWhere(
+        (child) => child.key == const Key('card-block-illustration'),
+      );
+      final borderIndex = stack.children.indexWhere((child) {
+        if (child is! Positioned || child.child is! Padding) return false;
+        final padding = child.child as Padding;
+        if (padding.child is! IgnorePointer) return false;
+        final ignored = padding.child as IgnorePointer;
+        return ignored.child?.key == const Key('card-inner-border');
+      });
+      final titleIndex = stack.children.indexWhere(
+        (child) => child.key == const Key('card-block-title'),
+      );
+      expect(illustrationIndex, greaterThanOrEqualTo(0));
+      expect(borderIndex, greaterThan(illustrationIndex));
+      expect(titleIndex, greaterThan(borderIndex));
       expect(tester.takeException(), isNull);
     },
   );

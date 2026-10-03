@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../app/asset_catalog.dart';
 import '../domain/catalog/catalog.dart';
 import '../domain/catalog/definitions.dart';
+import 'card_illustration_editor_adapter.dart';
 import 'card_renderer.dart';
 import 'card_theme_models.dart';
 import 'card_theme_repository.dart';
@@ -20,12 +21,14 @@ class CardThemeEditorScreen extends StatefulWidget {
     this.repository = const SharedPreferencesCardThemeRepository(),
     this.initialCatalog,
     this.initialBundles,
+    this.illustrationAdapter,
     super.key,
   });
 
   final CardThemeRepository repository;
   final Catalog? initialCatalog;
   final List<ThemeBundle>? initialBundles;
+  final CardIllustrationEditorAdapter? illustrationAdapter;
 
   @override
   State<CardThemeEditorScreen> createState() => _CardThemeEditorScreenState();
@@ -194,8 +197,29 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
           previewCard = catalog!.cards.firstWhere(
             (card) => card.stableId == id,
           );
+          selectedBlockId = null;
         }),
       ),
+      if (widget.illustrationAdapter != null) ...[
+        const SizedBox(height: 8),
+        FilledButton.tonalIcon(
+          key: const Key('associate-illustration'),
+          onPressed: _associateIllustration,
+          icon: const Icon(Icons.add_photo_alternate_outlined),
+          label: Text(
+            _currentIllustration == null
+                ? 'Associer une illustration'
+                : 'Remplacer l’illustration',
+          ),
+        ),
+        if (_currentIllustration != null)
+          TextButton.icon(
+            key: const Key('remove-illustration'),
+            onPressed: _removeIllustration,
+            icon: const Icon(Icons.hide_image_outlined),
+            label: const Text('Supprimer l’illustration'),
+          ),
+      ],
       const SizedBox(height: 12),
       SegmentedButton<_DirectionPreview>(
         key: const Key('direction-preview-selector'),
@@ -280,6 +304,7 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
             selectedBlockId: selectedBlockId,
             onBlockSelected: (id) => setState(() => selectedBlockId = id),
             onBlockChanged: _updateBlock,
+            illustrationProvider: widget.illustrationAdapter?.previewProvider,
           ),
         ),
       ),
@@ -305,6 +330,7 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
       bundle: active,
       state: showBack ? CardVisualState.hidden : CardVisualState.normal,
       playerName: 'Joueur',
+      illustrationProvider: widget.illustrationAdapter?.previewProvider,
     ),
   );
 
@@ -368,6 +394,90 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
           _slider('Marge relative', selected.margin, 0, .1, (value) {
             _updateBlock(selected.copyWith(margin: value));
           }),
+          if (selected.type == CardBlockType.illustration) ...[
+            _slider('Position X', selected.box.x, 0, 1 - selected.box.width, (
+              value,
+            ) {
+              _updateBlock(
+                selected.copyWith(box: selected.box.copyWith(x: value)),
+              );
+            }),
+            _slider('Position Y', selected.box.y, 0, 1 - selected.box.height, (
+              value,
+            ) {
+              _updateBlock(
+                selected.copyWith(box: selected.box.copyWith(y: value)),
+              );
+            }),
+            _slider('Largeur', selected.box.width, .03, 1 - selected.box.x, (
+              value,
+            ) {
+              _updateIllustrationSize(selected, width: value);
+            }),
+            _slider('Hauteur', selected.box.height, .03, 1 - selected.box.y, (
+              value,
+            ) {
+              _updateIllustrationSize(selected, height: value);
+            }),
+            if (_currentIllustration != null) ...[
+              DropdownButtonFormField<IllustrationFit>(
+                key: const Key('illustration-fit'),
+                initialValue: _currentIllustration!.fit,
+                decoration: const InputDecoration(labelText: 'Mode de rendu'),
+                items: const [
+                  DropdownMenuItem(
+                    value: IllustrationFit.cover,
+                    child: Text('Cover'),
+                  ),
+                  DropdownMenuItem(
+                    value: IllustrationFit.contain,
+                    child: Text('Contain'),
+                  ),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    _updateIllustration(
+                      _currentIllustration!.copyWith(fit: value),
+                    );
+                  }
+                },
+              ),
+              SwitchListTile(
+                key: const Key('illustration-preserve-ratio'),
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Conserver les proportions'),
+                value: _currentIllustration!.preserveAspectRatio,
+                onChanged: (value) => _updateIllustration(
+                  _currentIllustration!.copyWith(preserveAspectRatio: value),
+                ),
+              ),
+              _slider('Point focal X', _currentIllustration!.focusX, 0, 1, (
+                value,
+              ) {
+                _updateIllustration(
+                  _currentIllustration!.copyWith(focusX: value),
+                );
+              }),
+              _slider('Point focal Y', _currentIllustration!.focusY, 0, 1, (
+                value,
+              ) {
+                _updateIllustration(
+                  _currentIllustration!.copyWith(focusY: value),
+                );
+              }),
+              _slider(
+                'Opacité (%)',
+                _currentIllustration!.opacity * 100,
+                0,
+                100,
+                (value) {
+                  _updateIllustration(
+                    _currentIllustration!.copyWith(opacity: value / 100),
+                  );
+                },
+              ),
+            ],
+          ],
         ],
         const Divider(),
         Text('Skin', style: Theme.of(context).textTheme.titleMedium),
@@ -600,6 +710,130 @@ class _CardThemeEditorScreenState extends State<CardThemeEditorScreen> {
     decoration: InputDecoration(labelText: label),
     onFieldSubmitted: (font) => changed(font.trim()),
   );
+
+  IllustrationAsset? get _currentIllustration => active?.illustrationFor(
+    previewCard?.stableId ?? '',
+    active?.pack.illustrationStyleId,
+  );
+
+  Future<void> _associateIllustration() async {
+    final adapter = widget.illustrationAdapter;
+    if (adapter == null) return;
+    try {
+      final path = await adapter.chooseAndImport(
+        bundle: active!,
+        cardId: previewCard!.stableId,
+      );
+      if (path == null || !mounted) return;
+      final previous = _currentIllustration;
+      final asset =
+          previous?.copyWith(assetPath: path) ??
+          IllustrationAsset(
+            illustrationId:
+                '${active!.pack.id}.${previewCard!.stableId}.illustration',
+            cardId: previewCard!.stableId,
+            styleId: active!.pack.illustrationStyleId ?? 'default',
+            assetPath: path,
+          );
+      if (previous != null && previous.assetPath != path) {
+        await adapter.remove(previous);
+      }
+      _updateIllustration(asset);
+      selectedBlockId = active!.layout.front
+          .where((block) => block.type == CardBlockType.illustration)
+          .firstOrNull
+          ?.id;
+      await widget.repository.save(active!);
+      if (mounted) {
+        setState(() => message = 'Illustration associée et sauvegardée.');
+      }
+    } on Object catch (error) {
+      if (mounted) setState(() => message = error.toString());
+    }
+  }
+
+  Future<void> _removeIllustration() async {
+    final asset = _currentIllustration;
+    final adapter = widget.illustrationAdapter;
+    if (asset == null || adapter == null) return;
+    try {
+      await adapter.remove(asset);
+      final illustrations = active!.illustrations
+          .where((item) => item.cardId != asset.cardId)
+          .toList();
+      _replaceActive(
+        ThemeBundle(
+          pack: active!.pack,
+          layout: active!.layout,
+          skin: active!.skin,
+          illustrations: illustrations,
+        ),
+      );
+      await widget.repository.save(active!);
+      if (mounted) {
+        setState(
+          () => message = 'Illustration supprimée. Le fallback est actif.',
+        );
+      }
+    } on Object catch (error) {
+      if (mounted) setState(() => message = error.toString());
+    }
+  }
+
+  void _updateIllustration(IllustrationAsset changed) {
+    final illustrations = <IllustrationAsset>[
+      for (final item in active!.illustrations)
+        if (item.cardId != changed.cardId) item,
+      changed,
+    ];
+    setState(() {
+      _replaceActive(
+        ThemeBundle(
+          pack: active!.pack,
+          layout: active!.layout,
+          skin: active!.skin,
+          illustrations: illustrations,
+        ),
+      );
+      _validate();
+    });
+  }
+
+  void _updateIllustrationSize(
+    CardLayoutBlock block, {
+    double? width,
+    double? height,
+  }) {
+    final preserve = _currentIllustration?.preserveAspectRatio ?? true;
+    var nextWidth = width ?? block.box.width;
+    var nextHeight = height ?? block.box.height;
+    if (preserve) {
+      final ratio = block.box.width / block.box.height;
+      if (width != null) nextHeight = nextWidth / ratio;
+      if (height != null) nextWidth = nextHeight * ratio;
+      if (nextWidth > 1 - block.box.x) {
+        nextWidth = 1 - block.box.x;
+        nextHeight = nextWidth / ratio;
+      }
+      if (nextHeight > 1 - block.box.y) {
+        nextHeight = 1 - block.box.y;
+        nextWidth = nextHeight * ratio;
+      }
+    }
+    _updateBlock(
+      block.copyWith(
+        box: block.box.copyWith(width: nextWidth, height: nextHeight),
+      ),
+    );
+  }
+
+  void _replaceActive(ThemeBundle bundle) {
+    active = bundle;
+    bundles = [
+      for (final item in bundles)
+        if (item.pack.id == bundle.pack.id) bundle else item,
+    ];
+  }
 
   bool get _canEdit =>
       active?.pack.system == false ||
