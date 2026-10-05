@@ -1137,7 +1137,7 @@ final class NetworkGameController extends ChangeNotifier {
     if (publicRecovery != null) {
       final reconciled = recoveryEngine.applyLifecycle(
         cards: _runtime,
-        cardId: publicRecovery.cardId,
+        cardId: publicRecovery.occurrenceId ?? publicRecovery.cardId,
         source: publicRecovery.source,
         completed: publicRecovery.completed,
       );

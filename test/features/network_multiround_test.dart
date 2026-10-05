@@ -879,14 +879,37 @@ void main() {
       await setup.alice.completeRecovery(completed: true);
       await _settle();
       expect(
-        setup.backend.round.recoveries['alice']!.gain,
+        setup.backend.round.recoveryHistory.single.gain,
         (option.personalValue * 1.5).ceil(),
       );
       expect(
         setup.backend.points['alice'],
         before + (option.personalValue * 1.5).ceil(),
       );
-      expect(setup.backend.round.recoveryDone, contains('alice'));
+      expect(setup.backend.round.recoveryHistory, hasLength(1));
+      expect(setup.backend.round.recoveryDone, isNot(contains('alice')));
+
+      final saved = (await setup.alice.privateStore.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      final staleJson = saved.toJson();
+      for (final raw in staleJson['cards']! as List) {
+        final card = raw! as Map<String, Object?>;
+        if (card['occurrence_id'] == option.identity) {
+          card['zone'] =
+              switch (setup.backend.round.recoveryHistory.single.source) {
+                RecoverySource.HAND => CardZone.HAND.name,
+                RecoverySource.DISCARD => CardZone.DISCARD.name,
+                RecoverySource.CATALOG => card['zone'],
+              };
+        }
+      }
+      await setup.alice.privateStore.saveGame(
+        sessionId: session.id,
+        playerId: 'alice',
+        state: NetworkPrivateGameState.fromJson(staleJson),
+      );
 
       setup.alice.dispose();
       final alice = _controller(
@@ -897,7 +920,17 @@ void main() {
         setup.alice.privateStore,
       );
       await alice.start();
-      expect(alice.round!.recoveryDonePlayerIds, contains('alice'));
+      expect(alice.round!.recoveryHistory, hasLength(1));
+      expect(
+        alice.runtime
+            .singleWhere((card) => card.occurrenceId == option.identity)
+            .zone,
+        setup.backend.round.recoveryHistory.single.source ==
+                RecoverySource.DISCARD
+            ? CardZone.EXHAUSTED
+            : CardZone.DISCARD,
+      );
+      await alice.skipRecovery();
       await setup.bob.skipRecovery();
       await _settle();
       expect(setup.backend.phase, NetworkGamePhase.finalResolved);
@@ -1219,6 +1252,7 @@ final class _RoundRecord {
   NetworkFinalResolutionDto? finalResolution;
   NetworkCorruptionDto? corruption;
   final recoveries = <String, NetworkRecoveryDto>{};
+  final recoveryHistory = <NetworkRecoveryDto>[];
   final recoveryDone = <String>{};
   final ready = <String>{};
   final ties = <String, TieDecision>{};
@@ -1266,6 +1300,7 @@ final class _Backend {
     corruption: round.corruption,
     recoveryByPlayer: round.recoveries,
     recoveryDonePlayerIds: round.recoveryDone,
+    recoveryHistory: round.recoveryHistory,
   );
 
   bool get _revealsPublic => round.phase == NetworkGamePhase.ready;
@@ -1629,10 +1664,20 @@ final class _Repository
       occurrenceId: proposal.occurrenceId,
     );
     if (response == RecoveryResponse.REFUSE) {
-      backend.round.recoveryDone.add(entry.key);
-      backend.round.phase = backend.round.recoveryDone.length == 2
-          ? NetworkGamePhase.finalResolved
-          : NetworkGamePhase.recovery;
+      backend.round.recoveryHistory.add(
+        NetworkRecoveryDto(
+          playerId: proposal.playerId,
+          cardId: proposal.cardId,
+          variantId: proposal.variantId,
+          source: proposal.source,
+          completed: false,
+          gain: 0,
+          response: response,
+          occurrenceId: proposal.occurrenceId,
+        ),
+      );
+      backend.round.recoveries.remove(entry.key);
+      backend.round.phase = NetworkGamePhase.recovery;
     } else {
       backend.round.phase = NetworkGamePhase.recoveryExecution;
     }
@@ -1646,13 +1691,11 @@ final class _Repository
     required NetworkRecoveryDto recovery,
   }) async {
     if (!_accept(command)) return backend.state(player);
-    backend.round.recoveries[recovery.playerId] = recovery;
-    backend.round.recoveryDone.add(recovery.playerId);
+    backend.round.recoveryHistory.add(recovery);
+    backend.round.recoveries.remove(recovery.playerId);
     backend.points[recovery.playerId] =
         backend.points[recovery.playerId]! + recovery.gain;
-    backend.round.phase = backend.round.recoveryDone.length == 2
-        ? NetworkGamePhase.finalResolved
-        : NetworkGamePhase.recovery;
+    backend.round.phase = NetworkGamePhase.recovery;
     _notify();
     return backend.state(player);
   }

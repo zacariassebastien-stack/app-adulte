@@ -507,4 +507,27 @@ void main() {
       expect(sql, isNot(contains('profile_learning')));
     },
   );
+
+  test('session-round binding protects SECURITY DEFINER cycle RPCs', () {
+    final sql = File(
+      'supabase/migrations/202610050001_network_session_round_binding.sql',
+    ).readAsStringSync();
+    for (final functionName in [
+      'set_network_hybrid_orientation',
+      'continue_network_deck_cycle',
+    ]) {
+      expect(sql, contains('function public.$functionName('));
+    }
+    expect(sql, contains('security definer set search_path=public'));
+    expect(sql, contains('auth.uid()'));
+    expect(
+      RegExp(
+        r'where id=p_round_id and session_id=p_session_id for update;',
+      ).allMatches(sql),
+      hasLength(2),
+    );
+    expect(sql, contains("raise exception 'ROUND_NOT_FOUND'"));
+    expect(sql, isNot(contains('profile_preferences')));
+    expect(sql, isNot(contains('personal_profile')));
+  });
 }
