@@ -1638,21 +1638,35 @@ final class NetworkGameController extends ChangeNotifier {
   void _buildDeckCycle() {
     final source = <DeckCandidateV3>[];
     for (final definition in _definitions.values) {
-      final card = _networkCard(
-        definition.stableId,
-        context: _context.copyWith(chiliActive: 5, chiliUnlocked: 5),
+      final engine = _engineCards[definition.stableId];
+      if (engine == null) continue;
+      final context = _context.copyWith(chiliActive: 5, chiliUnlocked: 5);
+      final eligible = const EligibilityEngine().evaluate(
+        card: engine,
+        context: context,
+        actor: _profile(playerId),
+        partner: _profile(opponentId),
+        hierarchy: _hierarchy,
+        requirePersonalValue: true,
       );
-      if (card == null) continue;
-      source.add(
-        DeckCandidateV3(
-          cardId: card.id,
-          variantId: card.variant.id,
-          spiceLevel: card.chiliLevel,
-          distanceExcluded: card.variant.tags.contains(
-            'v3.technique.distance_exclue',
+      for (final variant in eligible.eligibleVariants) {
+        final card = _networkCard(
+          definition.stableId,
+          variantId: variant.id,
+          context: context,
+        );
+        if (card == null) continue;
+        source.add(
+          DeckCandidateV3(
+            cardId: card.id,
+            variantId: card.variant.id,
+            spiceLevel: card.chiliLevel,
+            distanceExcluded: card.variant.tags.contains(
+              'v3.technique.distance_exclue',
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
     final build = const SessionDeckBuilderV3().build(
       eligible: source,

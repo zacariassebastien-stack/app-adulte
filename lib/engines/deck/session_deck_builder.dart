@@ -174,12 +174,14 @@ final class SessionDeckBuilderV3 {
     );
     final counts = <String, int>{};
     for (final card in sameTarget) {
-      counts[card.cardId] = (counts[card.cardId] ?? 0) + 1;
+      counts[card.contentKey] = (counts[card.contentKey] ?? 0) + 1;
     }
-    final distinct = group.where((card) => !counts.containsKey(card.cardId));
+    final distinct = group.where(
+      (card) => !counts.containsKey(card.contentKey),
+    );
     if (distinct.isNotEmpty) return distinct.first;
     for (final card in group) {
-      final next = (counts[card.cardId] ?? 0) + 1;
+      final next = (counts[card.contentKey] ?? 0) + 1;
       if (next * 2 < targetSlots) return card;
     }
     return null;

@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/catalog/definitions.dart';
+import '../../domain/catalog/enums.dart';
+import '../../domain/game/game_models.dart';
 import '../../domain/profile/adaptive_profile.dart';
 import '../../engines/profile/profile_learning_engine.dart';
 
@@ -84,6 +86,49 @@ final class MemoryNetworkProfileLearningStore
   Future<void> save(AdaptiveProfileState state) async {
     values[state.profileId] = state;
   }
+}
+
+PlayerGameProfile playerGameProfileFromLearningState(
+  AdaptiveProfileState state,
+) {
+  final grouped = <String, List<PreferenceLearningEntry>>{};
+  for (final entry in state.entries.values) {
+    if (entry.key.zoneId != null) continue;
+    grouped.putIfAbsent(entry.key.preferenceId, () => []).add(entry);
+  }
+  return PlayerGameProfile(
+    playerId: state.profileId,
+    preferences: {
+      for (final group in grouped.entries)
+        group.key: _preferenceValue(group.value),
+    },
+  );
+}
+
+PreferenceValue _preferenceValue(List<PreferenceLearningEntry> entries) {
+  final general = entries
+      .where((entry) => entry.key.role == LearningRole.general)
+      .firstOrNull;
+  if (general?.excluded ?? false) {
+    return const PreferenceValue(status: PreferenceStatus.EXCLUDED);
+  }
+  int? value(LearningRole role) {
+    final specific = entries
+        .where((entry) => entry.key.role == role)
+        .firstOrNull;
+    final source = specific ?? general;
+    if (source == null || source.excluded || source.currentPa == null)
+      return null;
+    return source.currentPa!.round().clamp(1, 20).toInt();
+  }
+
+  final generalValue = value(LearningRole.general);
+  return PreferenceValue(
+    status: PreferenceStatus.ACCEPTED,
+    general: generalValue,
+    faire: value(LearningRole.faire) ?? generalValue,
+    recevoir: value(LearningRole.recevoir) ?? generalValue,
+  );
 }
 
 LearningCardDescriptor v3LearningDescriptor(

@@ -384,7 +384,7 @@ class CardRenderer extends StatelessWidget {
     final lockedAtRest = locked || state == CardVisualState.locked;
     final expanded =
         state == CardVisualState.focused || state == CardVisualState.full;
-    final premiumExpanded = skin.panelBorderWidth > 0 && scale >= .72;
+    final premiumExpanded = skin.panelBorderWidth > 0 && expanded;
     return switch (block.type) {
       CardBlockType.title => text(
         definition.title,

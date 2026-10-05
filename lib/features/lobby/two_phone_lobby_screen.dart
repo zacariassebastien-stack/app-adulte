@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../app/asset_catalog.dart';
 import '../../domain/catalog/catalog.dart';
 import '../game/network_duel_screen.dart';
+import '../game/network_profile_learning.dart';
 import 'active_session_store.dart';
 import 'lobby_controller.dart';
 import 'lobby_repository.dart';
@@ -227,13 +228,21 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
         loadAssetCatalog(),
       ]);
       if (!mounted) return;
+      final playerId = results[0] as String;
+      final profileState =
+          await const SharedPreferencesNetworkProfileLearningStore().load(
+            playerId,
+          );
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => NetworkDuelScreen(
             session: controller.session!,
-            playerId: results[0] as String,
+            playerId: playerId,
             repository: repository.gameRepository,
             catalog: results[1] as Catalog,
+            privateProfile: profileState == null
+                ? null
+                : playerGameProfileFromLearningState(profileState),
             activeSessionStore: widget.activeSessionStore,
             historyStore: widget.historyStore,
           ),
