@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../card_themes/card_theme_models.dart';
 import '../card_themes/card_theme_registry.dart';
 import '../card_themes/card_theme_repository.dart';
-import '../domain/catalog/v3_taxonomy.dart';
+import '../domain/catalog/v4_catalog.dart';
 import '../features/game/network_profile_learning.dart';
 import '../features/lobby/lobby_repository.dart';
 import '../features/profile/initial_profile_screen.dart';
@@ -32,8 +32,10 @@ class _CoupleCardsBootstrapState extends State<CoupleCardsBootstrap> {
   LobbyRepository? _repository;
   final NetworkProfileLearningStore _profileStore =
       const SharedPreferencesNetworkProfileLearningStore();
+  final V4ProfileStore _v4ProfileStore =
+      const SharedPreferencesV4ProfileStore();
   String? _profilePlayerId;
-  V3Taxonomy? _taxonomy;
+  ProfileQuestionnaire? _questionnaire;
   bool _needsInitialProfile = false;
 
   @override
@@ -63,7 +65,7 @@ class _CoupleCardsBootstrapState extends State<CoupleCardsBootstrap> {
         final profile = await _loadProfile(playerId);
         if (profile == null) {
           _profilePlayerId = playerId;
-          _taxonomy = (await loadAssetV3Catalog()).taxonomy;
+          _questionnaire = await loadAssetProfileQuestionnaire();
           _needsInitialProfile = true;
         }
       }
@@ -104,15 +106,16 @@ class _CoupleCardsBootstrapState extends State<CoupleCardsBootstrap> {
     if (repository != null) {
       if (_needsInitialProfile) {
         final playerId = _profilePlayerId;
-        final taxonomy = _taxonomy;
-        if (playerId != null && taxonomy != null) {
+        final questionnaire = _questionnaire;
+        if (playerId != null && questionnaire != null) {
           return MaterialApp(
             title: 'Couple Cards',
             debugShowCheckedModeBanner: false,
             home: InitialProfileScreen(
               playerId: playerId,
-              taxonomy: taxonomy,
-              store: _profileStore,
+              questionnaire: questionnaire,
+              adaptiveStore: _profileStore,
+              profileStore: _v4ProfileStore,
               onCompleted: () => setState(() => _needsInitialProfile = false),
             ),
           );

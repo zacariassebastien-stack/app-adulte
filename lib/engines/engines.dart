@@ -13,3 +13,5 @@ export 'intensity/intensity_engine.dart';
 export 'lifecycle/lifecycle_engine.dart';
 export 'recovery/recovery_engine.dart';
 export 'profile/profile_learning_engine.dart';
+export 'profile/initial_questionnaire_engine.dart';
+export 'profile/v4_card_rating_engine.dart';

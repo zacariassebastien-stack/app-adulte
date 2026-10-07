@@ -1,0 +1,892 @@
+{
+  "schema_version": 1,
+  "questionnaire_version": 1,
+  "response_scale": {
+    "LOVE": 5,
+    "LIKE": 12,
+    "UNSURE": 20,
+    "EXCLUDED": null
+  },
+  "questions": [
+    {
+      "stable_id": "question.v1.01",
+      "questionnaire_version": 1,
+      "order": 1,
+      "label": "Câlins",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "mutuel",
+          "role": "MUTUEL",
+          "label": "Ensemble",
+          "writes": [
+            {
+              "tag_id": "calin",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "contact_corps",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "frotter",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.02",
+      "questionnaire_version": 1,
+      "order": 2,
+      "label": "Baisers",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "faire",
+          "role": "FAIRE",
+          "label": "Faire",
+          "writes": [
+            {
+              "tag_id": "embrasser",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "axis_id": "recevoir",
+          "role": "RECEVOIR",
+          "label": "Recevoir",
+          "writes": [
+            {
+              "tag_id": "embrasser",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.03",
+      "questionnaire_version": 1,
+      "order": 3,
+      "label": "Jeux de mains",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "faire",
+          "role": "FAIRE",
+          "label": "Faire",
+          "writes": [
+            {
+              "tag_id": "main",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "axis_id": "recevoir",
+          "role": "RECEVOIR",
+          "label": "Recevoir",
+          "writes": [
+            {
+              "tag_id": "main",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.04",
+      "questionnaire_version": 1,
+      "order": 4,
+      "label": "Jeux de bouche",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "faire",
+          "role": "FAIRE",
+          "label": "Faire",
+          "writes": [
+            {
+              "tag_id": "bouche",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "axis_id": "recevoir",
+          "role": "RECEVOIR",
+          "label": "Recevoir",
+          "writes": [
+            {
+              "tag_id": "bouche",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.05",
+      "questionnaire_version": 1,
+      "order": 5,
+      "label": "Nudité",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "moi",
+          "role": "FAIRE",
+          "label": "Moi",
+          "writes": [
+            {
+              "tag_id": "nudite",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "enlever",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "sous_vetements",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "striptease",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "tenue",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "axis_id": "partenaire",
+          "role": "RECEVOIR",
+          "label": "Mon·ma partenaire",
+          "writes": [
+            {
+              "tag_id": "nudite",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "enlever",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "sous_vetements",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "striptease",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "tenue",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.06",
+      "questionnaire_version": 1,
+      "order": 6,
+      "label": "Zones intimes",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "faire",
+          "role": "FAIRE",
+          "label": "Toucher",
+          "writes": [
+            {
+              "tag_id": "jeu_intime",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "masturbation",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "doigts",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "facesitting",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "ejaculation",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "pieds",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "axis_id": "recevoir",
+          "role": "RECEVOIR",
+          "label": "Être touché·e",
+          "writes": [
+            {
+              "tag_id": "jeu_intime",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "masturbation",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "doigts",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "facesitting",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "ejaculation",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "pieds",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.07",
+      "questionnaire_version": 1,
+      "order": 7,
+      "label": "Sexe oral",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "faire",
+          "role": "FAIRE",
+          "label": "Faire",
+          "writes": [
+            {
+              "tag_id": "oral",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "axis_id": "recevoir",
+          "role": "RECEVOIR",
+          "label": "Recevoir",
+          "writes": [
+            {
+              "tag_id": "oral",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.08",
+      "questionnaire_version": 1,
+      "order": 8,
+      "label": "Pénétration",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "faire",
+          "role": "FAIRE",
+          "label": "Faire",
+          "writes": [
+            {
+              "tag_id": "penetration_vaginale",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "vaginal",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "axis_id": "recevoir",
+          "role": "RECEVOIR",
+          "label": "Recevoir",
+          "writes": [
+            {
+              "tag_id": "penetration_vaginale",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "vaginal",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.09",
+      "questionnaire_version": 1,
+      "order": 9,
+      "label": "Pratiques anales",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "faire",
+          "role": "FAIRE",
+          "label": "Faire",
+          "writes": [
+            {
+              "tag_id": "anal",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "axis_id": "recevoir",
+          "role": "RECEVOIR",
+          "label": "Recevoir",
+          "writes": [
+            {
+              "tag_id": "anal",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.10",
+      "questionnaire_version": 1,
+      "order": 10,
+      "label": "Plaisir en solo",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "solo",
+          "role": "SOLO",
+          "label": "Moi",
+          "writes": [
+            {
+              "tag_id": "masturbation",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "axis_id": "observer",
+          "role": "OBSERVER",
+          "label": "Voir mon·ma partenaire",
+          "writes": [
+            {
+              "tag_id": "masturbation",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.11",
+      "questionnaire_version": 1,
+      "order": 11,
+      "label": "Jouets / accessoires",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "faire",
+          "role": "FAIRE",
+          "label": "Sur mon·ma partenaire",
+          "writes": [
+            {
+              "tag_id": "sextoy",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "axis_id": "recevoir",
+          "role": "RECEVOIR",
+          "label": "Sur moi",
+          "writes": [
+            {
+              "tag_id": "sextoy",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.12",
+      "questionnaire_version": 1,
+      "order": 12,
+      "label": "Jeux physiques",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "faire",
+          "role": "FAIRE",
+          "label": "Faire",
+          "writes": [
+            {
+              "tag_id": "frapper",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "tirer",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "maintien_cou",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "temperature",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "texture",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "axis_id": "recevoir",
+          "role": "RECEVOIR",
+          "label": "Recevoir",
+          "writes": [
+            {
+              "tag_id": "frapper",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "tirer",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "maintien_cou",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "temperature",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "texture",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.13",
+      "questionnaire_version": 1,
+      "order": 13,
+      "label": "Contrôle / lâcher-prise",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "faire",
+          "role": "FAIRE",
+          "label": "Prendre le contrôle",
+          "writes": [
+            {
+              "tag_id": "controle",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "ordres",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "position",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "attacher",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "immobiliser",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "privation_sensorielle",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "privation_parole",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "supplier",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "degradant",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "axis_id": "recevoir",
+          "role": "RECEVOIR",
+          "label": "Laisser le contrôle à l’autre",
+          "writes": [
+            {
+              "tag_id": "controle",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "ordres",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "position",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "attacher",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "immobiliser",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "privation_sensorielle",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "privation_parole",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "supplier",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "degradant",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.14",
+      "questionnaire_version": 1,
+      "order": 14,
+      "label": "Jeux de rôle / mise en scène",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "general",
+          "role": "GENERAL",
+          "label": "Général",
+          "writes": [
+            {
+              "tag_id": "jeu_role",
+              "zone_id": null,
+              "weight": 1.0,
+              "target_role": "MUTUEL"
+            },
+            {
+              "tag_id": "simuler",
+              "zone_id": null,
+              "weight": 1.0,
+              "target_role": "GENERAL"
+            },
+            {
+              "tag_id": "deguisement",
+              "zone_id": null,
+              "weight": 1.0,
+              "target_role": "GENERAL"
+            },
+            {
+              "tag_id": "danser",
+              "zone_id": null,
+              "weight": 1.0,
+              "target_role": "GENERAL"
+            },
+            {
+              "tag_id": "paroles_coquines",
+              "zone_id": null,
+              "weight": 1.0,
+              "target_role": "GENERAL"
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.15",
+      "questionnaire_version": 1,
+      "order": 15,
+      "label": "Se montrer / regarder",
+      "help_text": null,
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "montrer",
+          "role": "FAIRE",
+          "label": "Me montrer",
+          "writes": [
+            {
+              "tag_id": "etre_regarde",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "photo",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "video",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "photo_mutuelle",
+              "zone_id": null,
+              "weight": 1.0,
+              "merge_strategy": "MOST_RESTRICTIVE",
+              "target_role": "MUTUEL"
+            },
+            {
+              "tag_id": "video_mutuelle",
+              "zone_id": null,
+              "weight": 1.0,
+              "merge_strategy": "MOST_RESTRICTIVE",
+              "target_role": "MUTUEL"
+            }
+          ]
+        },
+        {
+          "axis_id": "regarder",
+          "role": "RECEVOIR",
+          "label": "Regarder mon·ma partenaire",
+          "writes": [
+            {
+              "tag_id": "regarder",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "photo",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "video",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "contenu_adulte",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "photo_mutuelle",
+              "zone_id": null,
+              "weight": 1.0,
+              "merge_strategy": "MOST_RESTRICTIVE",
+              "target_role": "MUTUEL"
+            },
+            {
+              "tag_id": "video_mutuelle",
+              "zone_id": null,
+              "weight": 1.0,
+              "merge_strategy": "MOST_RESTRICTIVE",
+              "target_role": "MUTUEL"
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.16",
+      "questionnaire_version": 1,
+      "order": 16,
+      "label": "Surprise / découverte",
+      "help_text": "Ne pas savoir exactement ce que mon·ma partenaire me réserve.",
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "general",
+          "role": "GENERAL",
+          "label": "Général",
+          "writes": [
+            {
+              "tag_id": "surprise_decouverte",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "nourriture",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "boisson",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "stable_id": "question.v1.17",
+      "questionnaire_version": 1,
+      "order": 17,
+      "label": "Lieux inhabituels / prise de risque",
+      "help_text": "Jouer dans un endroit inhabituel ou avec un peu de risque d’être surpris.",
+      "response_scale": "PA_5_12_20_EXCLUDED",
+      "axes": [
+        {
+          "axis_id": "general",
+          "role": "GENERAL",
+          "label": "Général",
+          "writes": [
+            {
+              "tag_id": "lieu_inhabituel",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "lieu_expose",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "douche_partagee",
+              "zone_id": null,
+              "weight": 1.0
+            },
+            {
+              "tag_id": "bain_partage",
+              "zone_id": null,
+              "weight": 1.0
+            }
+          ]
+        }
+      ],
+      "enabled": true
+    }
+  ]
+}

@@ -312,7 +312,7 @@ void main() {
     final c = await const CatalogLoader().load((path) async {
       paths.add(path);
       return jsonEncode(
-        f[path.contains('cards.v2')
+        f[path.contains('cards.v4')
             ? 'cards'
             : path.contains('profile_elements')
             ? 'profiles'

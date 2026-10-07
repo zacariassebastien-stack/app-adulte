@@ -1,0 +1,1679 @@
+ENCHAIRE — CATALOGUE DES CARTES RECONSTRUIT V4
+================================================
+
+65 cartes — numérotation continue de 001 à 065.
+Catalogue consolidé à partir de la V3.2 et du complément de décisions validées.
+Les décisions du complément priment sur les formulations antérieures.
+
+RÈGLES COMMUNES
+---------------
+CARTE / ACTION : concept principal joué.
+TAGS / PRÉFÉRENCES : préférences et paramètres associés à la carte ; leur
+présence ici ne crée pas automatiquement une question de profil.
+ZONE : paramètre/tag secondaire sans niveau propre, sauf lorsqu’elle constitue
+l’identité de la carte. Les tétons sont regroupés dans la zone poitrine.
+Une zone exclue retire uniquement les variantes qui l’utilisent, sauf si elle
+fait partie de l’identité même de la carte. Anal et vaginal restent distincts.
+
+DIRECTION : FAIRE/RECEVOIR reste une seule carte, avec un sens choisi pour
+l’occurrence. Lorsque le détail le précise : FAIRE = moi ; RECEVOIR = toi.
+MUTUEL signifie que les deux joueurs participent simultanément ; les cartes
+précisent si chacun agit sur soi-même ou sur l’autre.
+
+ÉVOLUTION : une carte évolutive possède 2 ou 3 stades. Le stade 2 est débloqué
+après réalisation du stade 1 ; le stade 3 après réalisation du stade 2.
+Le déblocage vaut quel que soit le sens FAIRE/RECEVOIR.
+Exclure un stade exclut aussi les stades suivants, sans retirer les précédents.
+Les actions par stade déclinent l’action de la carte ; le détail commun et les
+règles particulières s’appliquent à tous ses stades.
+
+ÉTAT : la carte reste active pendant les actions suivantes et son icône reste
+visible. Les modalités de fin sont indiquées dans les règles de la carte.
+Privation visuelle, privation auditive et privation de parole : chaque tour
+actif coûte 3 PA à CHAQUE joueur ; fin par validation commune sur l’icône.
+Entrave : aucun coût PA ; durée décidée entre les joueurs.
+
+CARTE À DURÉE : Maintien du cou et Tirer doucement concernent les 3 prochaines
+actions réalisées, et non les simples tours sans action. Compteur :
+3 -> 2 -> 1 -> fin. Aucun coût PA supplémentaire.
+
+TENUE : l’état vestimentaire reste principalement informatif. Si le compteur
+devient incorrect, l’interface peut demander à chacun combien de vêtements il
+possède encore pour le recalibrer. La restriction propre à Être en
+sous-vêtements reste applicable.
+
+MÉDIAS : Photo et Vidéo restent deux familles distinctes. La visio est une
+discussion vidéo EN DIRECT, fonction/paramètre du mode distance, pas une carte.
+Les petites vidéos enregistrées restent des cartes Vidéo.
+
+Les variantes restent rattachées à leur carte ; elles ne reçoivent pas de
+numéro autonome. Aucun audit séparé des tags ou questions n’est inclus.
+
+===============================================================================
+CARTES FINALES
+===============================================================================
+
+
+[001] CÂLIN
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : calin
+ÉVOLUTION : Aucune
+
+ACTION :
+Un câlin à deux.
+
+DÉTAIL :
+Tendre, serré ou prolongé : laissez durer l'étreinte comme vous en avez envie.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[002] EMBRASSER
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : embrasser
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Embrasser.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+ZONES : zones compatibles tirées par le jeu, avec possibilité de variante libre
+
+STADE 1
+ACTION :
+Un baiser.
+
+DÉTAIL :
+Brefs, tendres ou plus appuyés, avec un rythme simple et naturel.
+
+STADE 2
+ACTION :
+Des baisers plus variés.
+
+DÉTAIL :
+Faites durer davantage le contact et jouez avec le rythme. Souffler doucement sur la zone peut s'ajouter entre deux baisers.
+
+STADE 3
+ACTION :
+Des baisers plus intenses.
+
+DÉTAIL :
+Le contact peut durer davantage, avec la possibilité d'ajouter quelques coups de langue ou de lécher légèrement la zone.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[003] S'EMBRASSER
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : embrasser + lèvres + langue
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+S'embrasser.
+
+DÉTAIL :
+Les deux joueurs s’embrassent simultanément.
+
+STADE 1
+ACTION :
+S’embrasser.
+
+STADE 2
+ACTION :
+Baiser langoureux.
+
+STADE 3
+ACTION :
+Baiser passionné.
+
+RÈGLES PARTICULIÈRES :
+- Distincte de la carte Embrasser en FAIRE/RECEVOIR.
+
+
+[004] JEU DE BOUCHE
+----------------------------------------------------------------------
+TYPE : ACTION GÉNÉRALE
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : bouche + zone compatible
+ÉVOLUTION : Aucune
+
+ACTION :
+JEU DE BOUCHE.
+
+DÉTAIL :
+Utiliser la bouche sur la zone indiquée : embrasser, lécher, mordiller/mordre, souffler ou autres gestes de bouche compatibles.
+
+RÈGLES PARTICULIÈRES :
+- Zone variable. Ne remplace pas les actions sexuelles spécifiques comme Sexe oral.
+
+
+[005] JEU DE MAIN
+----------------------------------------------------------------------
+TYPE : ACTION GÉNÉRALE
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : main + zone compatible
+ÉVOLUTION : Aucune
+
+ACTION :
+JEU DE MAIN.
+
+DÉTAIL :
+Caresser, masser, effleurer, griffer légèrement ou varier entre plusieurs gestes manuels sur une zone compatible.
+
+RÈGLES PARTICULIÈRES :
+- Zone variable. Ne remplace pas Masturbation, Doigter vaginal ou Doigter anal.
+
+
+[006] RETIRER UN VÊTEMENT
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : enlever
+ÉVOLUTION : Aucune
+
+ACTION :
+Retirer un vêtement.
+
+DÉTAIL :
+Un seul vêtement, avec la liberté de choisir lequel.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[007] RETIRER DEUX VÊTEMENTS
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : enlever
+ÉVOLUTION : Aucune
+
+ACTION :
+Retirer deux vêtements.
+
+DÉTAIL :
+Deux vêtements au choix, l'un après l'autre ou dans le même mouvement.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[008] ÊTRE EN SOUS-VÊTEMENTS
+----------------------------------------------------------------------
+TYPE : ÉTAT
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : sous_vetements + ordre
+ÉVOLUTION : Aucune
+
+ACTION :
+Rester en sous-vêtements.
+
+DÉTAIL :
+FAIRE = moi ; RECEVOIR = toi.
+Une fois cet état actif, les cartes "Retirer un vêtement" et "Retirer deux vêtements" n'ont plus d'effet sur cette personne.
+
+RÈGLES PARTICULIÈRES :
+- Les cartes Retirer un vêtement et Retirer deux vêtements n’ont plus d’effet sur la personne concernée. Strip-tease et les actions permettant explicitement d’aller plus loin peuvent encore modifier sa tenue.
+- Une icône reste visible pendant que l’état est actif. L’état vestimentaire reste principalement informatif ; le compteur peut être recalibré auprès des joueurs.
+
+
+[009] NU
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : nudite
+ÉVOLUTION : Aucune
+
+ACTION :
+Nu.
+
+DÉTAIL :
+FAIRE = moi ; RECEVOIR = toi.
+La tenue passe directement à la nudité complète.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[010] STRIP-TEASE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : striptease
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Un strip-tease.
+
+DÉTAIL :
+FAIRE = moi ; RECEVOIR = toi.
+
+STADE 1
+ACTION :
+Strip-tease partiel.
+
+STADE 2
+ACTION :
+Strip-tease jusqu’aux sous-vêtements.
+
+STADE 3
+ACTION :
+Strip-tease complet.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[011] STRIP-TEASE COMPLET
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : striptease + nudite
+ÉVOLUTION : Aucune
+
+ACTION :
+STRIP-TEASE COMPLET.
+
+DÉTAIL :
+FAIRE = moi ; RECEVOIR = toi. Version directe du strip-tease complet.
+
+RÈGLES PARTICULIÈRES :
+- Ne nécessite pas de passer par les évolutions de Strip-tease.
+
+
+[012] CHOIX DE TENUE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : tenue + controle + ordre
+ÉVOLUTION : Aucune
+
+ACTION :
+Choisir une tenue.
+
+DÉTAIL :
+La tenue devient une partie du jeu : plus sage, plus légère, plus drôle ou plus provocante selon l'envie.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[013] CHANGEMENT COMPLET DE TENUE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : tenue + deguisement
+ÉVOLUTION : Aucune
+
+ACTION :
+Changer complètement de tenue.
+
+DÉTAIL :
+La tenue actuelle est remplacée par une autre : tenue légère, costume, déguisement ou autre style choisi.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[014] CORPS CONTRE CORPS
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : contact_corps
+ÉVOLUTION : Aucune
+
+ACTION :
+Corps contre corps.
+
+DÉTAIL :
+Restez proches, laissez le contact s'installer et bougez comme cela vient naturellement.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[015] FROTTEMENTS HABILLÉS
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : frotter
+ÉVOLUTION : Aucune
+
+ACTION :
+Des frottements habillés.
+
+DÉTAIL :
+La carte fonctionne aussi en sous-vêtements : une couche de vêtement reste pertinente entre les corps.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[016] IMPOSER UNE POSTURE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : controle
+ÉVOLUTION : Aucune
+
+ACTION :
+Une posture imposée.
+
+DÉTAIL :
+Une position est choisie et gardée quelques instants avant de poursuivre.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[017] REPRODUIRE UNE POSTURE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : ordres
+ÉVOLUTION : Aucune
+
+ACTION :
+Reproduire une posture.
+
+DÉTAIL :
+Une position sert de modèle : à l'autre de la reproduire le plus fidèlement possible.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[018] SIMULATION
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : simuler
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Simulation.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+STADE 1
+ACTION :
+Simuler un acte.
+
+DÉTAIL :
+N'importe quel acte peut être mimé sans aller jusqu'à sa réalisation complète.
+
+STADE 2
+ACTION :
+Simuler un acte sexuel.
+
+DÉTAIL :
+La simulation devient clairement sexuelle, avec gestes, positions et rythme plus explicites.
+
+STADE 3
+ACTION :
+Simuler un acte sexuel avec gémissements.
+
+DÉTAIL :
+Ajoutez des gémissements et, si cela s'y prête, les bruits associés à l'acte simulé pour pousser la mise en scène plus loin.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[019] MASTURBATION
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : masturbation
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Masturbation.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+ZONE : intime
+
+REPÈRE DE DIRECTION :
+FAIRE = moi ; RECEVOIR = toi.
+
+STADE 1
+ACTION :
+Masturbation.
+
+DÉTAIL :
+Commencez doucement, avec des gestes simples et réguliers.
+
+STADE 2
+ACTION :
+Masturbation plus variée.
+
+DÉTAIL :
+Variez le rythme, la pression ou la manière de stimuler.
+
+STADE 3
+ACTION :
+Masturbation plus soutenue.
+
+DÉTAIL :
+Faites durer davantage, variez les gestes et adaptez-vous aux réactions de l'autre.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[020] MASTURBATION MUTUELLE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : masturbation
+ÉVOLUTION : Aucune
+
+ZONE : intime
+
+ACTION :
+Masturbation mutuelle.
+
+DÉTAIL :
+Les deux se stimulent mutuellement au même moment.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[021] MASTURBATION SOLO
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : masturbation
+ÉVOLUTION : Aucune
+
+ZONE : intime
+
+ACTION :
+Masturbation solo.
+
+DÉTAIL :
+Chacun se masturbe soi-même en même temps.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[022] DOIGTER VAGINAL
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : doigts + vaginal
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+DOIGTER VAGINAL.
+
+DÉTAIL :
+La préférence vaginal reste distincte de l’autre préférence anatomique.
+
+STADE 1
+ACTION :
+1 doigt
+
+STADE 2
+ACTION :
+2 doigts
+
+STADE 3
+ACTION :
+À volonté
+
+RÈGLES PARTICULIÈRES :
+- La préférence vaginal doit autoriser cette carte ; son exclusion rend la carte inéligible.
+
+
+[023] DOIGTER ANAL
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : doigts + anal
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+DOIGTER ANAL.
+
+DÉTAIL :
+La préférence anal reste distincte de l’autre préférence anatomique.
+
+STADE 1
+ACTION :
+1 doigt
+
+STADE 2
+ACTION :
+2 doigts
+
+STADE 3
+ACTION :
+À volonté
+
+RÈGLES PARTICULIÈRES :
+- La préférence anal doit autoriser cette carte ; son exclusion rend la carte inéligible.
+
+
+[024] JEU INTIME
+----------------------------------------------------------------------
+TYPE : ACTION GÉNÉRALE
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : jeu_intime
+ÉVOLUTION : Aucune
+
+ZONES : zones intimes compatibles
+
+ACTION :
+Un jeu intime.
+
+DÉTAIL :
+Un mélange libre entre plusieurs gestes intimes déjà acceptés, sans imposer une technique unique.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[025] SEXE ORAL
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : oral
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Sexe oral.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+ZONES : zones intimes compatibles, y compris anal si cette préférence est autorisée
+
+STADE 1
+ACTION :
+Stimulation orale.
+
+DÉTAIL :
+Commencez doucement et trouvez un rythme confortable.
+
+STADE 2
+ACTION :
+Stimulation orale plus variée.
+
+DÉTAIL :
+Variez le rythme, la pression et la manière de stimuler.
+
+STADE 3
+ACTION :
+Stimulation orale plus soutenue.
+
+DÉTAIL :
+Faites durer davantage et combinez plusieurs façons de stimuler selon les réactions.
+
+RÈGLES PARTICULIÈRES :
+- Toute variante concernant la zone anale ajoute obligatoirement le tag anal et respecte cette préférence.
+
+
+[026] 69
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : oral
+ÉVOLUTION : Aucune
+
+ZONE : intime
+
+ACTION :
+Un 69.
+
+DÉTAIL :
+Une action simultanée où chacun donne et reçoit au même moment.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[027] PÉNÉTRATION VAGINALE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : penetration_vaginale
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Pénétration vaginale.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+ZONE : vaginale
+
+STADE 1
+ACTION :
+Pénétration vaginale.
+
+DÉTAIL :
+Commencez avec un rythme lent et une amplitude modérée.
+
+STADE 2
+ACTION :
+Pénétration vaginale plus soutenue.
+
+DÉTAIL :
+Le rythme ou l'amplitude peuvent évoluer progressivement.
+
+STADE 3
+ACTION :
+Pénétration vaginale plus intense.
+
+DÉTAIL :
+Une version plus soutenue, plus longue ou plus rythmée selon les préférences.
+
+RÈGLES PARTICULIÈRES :
+- La préférence vaginal reste distincte de la préférence anal.
+
+
+[028] SEXE ORAL ANAL
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : anal + oral
+ÉVOLUTION : Aucune
+
+ZONE : anale
+
+ACTION :
+Stimulation orale anale.
+
+DÉTAIL :
+Une stimulation orale centrée sur la zone anale.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[029] CHOISIR UNE POSITION SEXUELLE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : controle + position
+ÉVOLUTION : Aucune
+
+ACTION :
+Choisir une position sexuelle.
+
+DÉTAIL :
+La position devient le choix principal de cette occurrence, sans autre contrainte imposée.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[030] FACESITTING
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : facesitting
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Facesitting.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+ZONES : tête / bassin
+
+STADE 1
+ACTION :
+Facesitting léger.
+
+DÉTAIL :
+La position est présente mais laisse beaucoup de liberté de mouvement.
+
+STADE 2
+ACTION :
+Facesitting plus rapproché.
+
+DÉTAIL :
+La proximité augmente et la position peut durer davantage.
+
+STADE 3
+ACTION :
+Facesitting plus soutenu.
+
+DÉTAIL :
+La position devient plus marquée et plus longue.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[031] FROTTEMENT GÉNITAL
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : frotter
+ÉVOLUTION : Aucune
+
+ZONE : parties intimes
+
+ACTION :
+Des frottements intimes.
+
+DÉTAIL :
+Jouez avec le rythme, la proximité et la pression sans imposer une autre action.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[032] ORDRE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : ordres
+ÉVOLUTION : Aucune
+
+ACTION :
+Un ordre à suivre.
+
+DÉTAIL :
+Une consigne simple et claire devient le centre de cette occurrence.
+
+RÈGLES PARTICULIÈRES :
+- Disponible aussi en mode distance lorsque la consigne est réalisable dans ce contexte.
+
+
+[033] INTERDICTION DE TOUCHER
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : controle
+ÉVOLUTION : Aucune
+
+ACTION :
+Interdiction de toucher.
+
+DÉTAIL :
+Pendant un court moment, l'un doit résister à l'envie de toucher tandis que le jeu continue.
+
+RÈGLES PARTICULIÈRES :
+- Cette carte sert notamment à faire monter l’intensité chez l’autre.
+
+
+[034] ENTRAVE
+----------------------------------------------------------------------
+TYPE : ÉTAT
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : attacher + immobiliser + contrôle
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Entrave.
+
+DÉTAIL :
+Durée décidée entre les joueurs. Zones compatibles : poignets/mains, chevilles et combinaisons compatibles.
+
+STADE 1
+ACTION :
+Entrave légère.
+
+STADE 2
+ACTION :
+Attacher.
+
+STADE 3
+ACTION :
+Immobiliser.
+
+RÈGLES PARTICULIÈRES :
+- Aucun coût PA. L’icône reste affichée tant que l’état est actif, jusqu’à la fin de la durée décidée entre les joueurs.
+
+
+[035] PRIVATION VISUELLE
+----------------------------------------------------------------------
+TYPE : ÉTAT
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : privation_sensorielle + vue
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Privation visuelle.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+STADE 1
+ACTION :
+Fermer les yeux.
+
+DÉTAIL :
+Quelques instants sans regarder, pour laisser davantage de place aux autres sensations.
+
+STADE 2
+ACTION :
+Un bandeau sur les yeux.
+
+DÉTAIL :
+La vue disparaît réellement et l'anticipation prend davantage de place.
+
+STADE 3
+ACTION :
+Deviner au toucher.
+
+DÉTAIL :
+La privation visuelle s'accompagne d'un petit jeu : reconnaître ce qui se passe uniquement grâce aux sensations.
+
+RÈGLES PARTICULIÈRES :
+- L’état reste actif pendant les actions suivantes, qui se jouent normalement. Chaque tour actif coûte 3 PA à CHAQUE joueur. Icône persistante. Fin lorsque les deux joueurs sélectionnent l’icône et valident ensemble sa désactivation.
+
+
+[036] JEU DE TEMPÉRATURE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : temperature
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Jeu de température.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+ZONES : zones compatibles
+
+STADE 1
+ACTION :
+Un contraste de température léger.
+
+DÉTAIL :
+Une sensation fraîche ou chaude, brève et douce.
+
+STADE 2
+ACTION :
+Un jeu de température plus marqué.
+
+DÉTAIL :
+Alternez davantage les sensations ou prolongez légèrement le contact.
+
+STADE 3
+ACTION :
+Un contraste plus soutenu.
+
+DÉTAIL :
+Les changements deviennent plus présents et peuvent être combinés à une autre stimulation compatible.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[037] FESSÉE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : frapper
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Fessée.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+ZONE FIXE : fesses
+
+STADE 1
+ACTION :
+Quelques fessées légères.
+
+DÉTAIL :
+Un rythme modéré et une intensité légère.
+
+STADE 2
+ACTION :
+Une série de fessées plus marquées.
+
+DÉTAIL :
+Le rythme ou la force peuvent augmenter légèrement.
+
+STADE 3
+ACTION :
+Des fessées plus soutenues.
+
+DÉTAIL :
+Une version plus intense et prolongée de la même action.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[038] DANSER
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : danser
+ÉVOLUTION : Aucune
+
+ACTION :
+Une danse.
+
+DÉTAIL :
+Quelques mouvements libres, lents ou provocants, juste assez pour attirer toute l'attention.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[039] PRENDRE LA POSE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : etre_regarde + controle
+ÉVOLUTION : Aucune
+
+ACTION :
+Prendre une pose.
+
+DÉTAIL :
+Une position est choisie puis tenue quelques instants pour être pleinement observée.
+
+RÈGLES PARTICULIÈRES :
+- L’intérêt de la pose peut varier fortement selon l’état vestimentaire actuel.
+
+
+[040] DOUCHE À DEUX
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : douche_partagee
+ÉVOLUTION : Aucune
+
+ACTION :
+Une douche à deux.
+
+DÉTAIL :
+Profitez du moment pour vous rapprocher, vous savonner ou simplement prolonger le contact.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[041] BAIN À DEUX
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : bain_partage
+ÉVOLUTION : Aucune
+
+ACTION :
+Un bain à deux.
+
+DÉTAIL :
+Prenez le temps de vous installer ensemble et de laisser le moment devenir plus complice.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[042] SEXTING
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : paroles_coquines + envoyer
+ÉVOLUTION : Aucune
+
+ACTION :
+Un échange de messages coquins.
+
+DÉTAIL :
+Faites monter la tension avec quelques messages, réponses et sous-entendus.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[043] MESSAGE COQUIN
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : paroles_coquines + envoyer
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Message coquin.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+STADE 1
+ACTION :
+Un message suggestif.
+
+DÉTAIL :
+Une phrase courte, un compliment ou un sous-entendu.
+
+STADE 2
+ACTION :
+Un message plus explicite.
+
+DÉTAIL :
+Exprimez plus clairement une envie ou ce que vous aimeriez provoquer.
+
+STADE 3
+ACTION :
+Un message très direct.
+
+DÉTAIL :
+Un message assumé, précis et sans détour, écrit ou audio selon la variante.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[044] PHOTO
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : photo + envoyer
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Une photo.
+
+DÉTAIL :
+Les niveaux n’imposent pas automatiquement une tenue précise.
+
+STADE 1
+ACTION :
+Photo — Suggestive.
+
+STADE 2
+ACTION :
+Photo — Osée.
+
+STADE 3
+ACTION :
+Photo — Sans détour.
+
+RÈGLES PARTICULIÈRES :
+- Le choix de la photo peut être confié à l’autre personne, comme modificateur de cette carte.
+
+
+[045] PHOTO MUTUELLE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : photo + envoyer
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+PHOTO MUTUELLE.
+
+DÉTAIL :
+Les deux joueurs prennent/apparaissent ensemble sur la photo lorsque techniquement possible.
+
+STADE 1
+ACTION :
+Suggestive
+
+STADE 2
+ACTION :
+Osée
+
+STADE 3
+ACTION :
+Sans détour
+
+RÈGLES PARTICULIÈRES :
+- Les niveaux n’imposent pas automatiquement une tenue précise.
+
+
+[046] VIDÉO INTIME
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : video + envoyer
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Une petite vidéo enregistrée.
+
+DÉTAIL :
+Niveaux : Suggestive, Osée, Sans détour.
+
+STADE 1
+ACTION :
+Vidéo — Suggestive.
+
+STADE 2
+ACTION :
+Vidéo — Osée.
+
+STADE 3
+ACTION :
+Vidéo — Sans détour.
+
+RÈGLES PARTICULIÈRES :
+- VARIANTE — VIDÉO INTIME AVEC ZONE : le jeu indique une zone compatible à mettre particulièrement en avant. La variante ajoute la zone aux tags/paramètres et conserve le niveau d’intensité de Vidéo.
+- Une visio est une discussion vidéo EN DIRECT : elle reste une fonction/paramètre du mode distance, pas une carte. Cette carte concerne une vidéo enregistrée.
+
+
+[047] VIDÉO MUTUELLE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : video + envoyer
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+VIDÉO MUTUELLE.
+
+DÉTAIL :
+Les deux joueurs participent/apparaissent ensemble dans une petite vidéo enregistrée lorsque possible.
+
+STADE 1
+ACTION :
+Suggestive
+
+STADE 2
+ACTION :
+Osée
+
+STADE 3
+ACTION :
+Sans détour
+
+RÈGLES PARTICULIÈRES :
+- Vidéo enregistrée ; la visio en direct reste une fonction/paramètre du mode distance.
+
+
+[048] JEU DE RÔLE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : jeu_role
+ÉVOLUTION : Aucune
+
+PARAMÈTRE : scénario
+
+ACTION :
+Un jeu de rôle.
+
+DÉTAIL :
+Choisissez un scénario et entrez dans les rôles sans multiplier les cartes : le scénario devient un paramètre.
+
+RÈGLES PARTICULIÈRES :
+- Si aucun roleplay n’a été choisi au lancement, cette carte peut apparaître. Si un roleplay a déjà été défini au début de la partie, exclure cette carte du deck. Le scénario reste un paramètre.
+
+
+[049] SEXTOY
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : sextoy + tags de la variante
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+SEXTOY.
+
+DÉTAIL :
+Carte générale Sextoy. Accessoire = paramètre. Variantes : bouche, anal, vaginal, phallus.
+
+STADE 1
+ACTION :
+Soft et simple
+
+STADE 2
+ACTION :
+Intense et haletant
+
+STADE 3
+ACTION :
+Au choix
+
+RÈGLES PARTICULIÈRES :
+- Chaque variante ajoute ses tags et est filtrée par le profil ; anal et vaginal restent distincts.
+
+
+[050] MASTURBATION AVEC SEXTOY
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : masturbation + sextoy + tags de la variante
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+MASTURBATION AVEC SEXTOY.
+
+DÉTAIL :
+Chacun utilise un sextoy SUR SOI simultanément. Variantes : vaginal, anal, phallus.
+
+STADE 1
+ACTION :
+Soft et simple
+
+STADE 2
+ACTION :
+Intense et haletant
+
+STADE 3
+ACTION :
+Au choix
+
+RÈGLES PARTICULIÈRES :
+- Chaque variante ajoute ses tags et est filtrée par le profil.
+
+
+[051] MASTURBATION MUTUELLE AVEC SEXTOY
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : masturbation + sextoy + tags de la variante
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+MASTURBATION MUTUELLE AVEC SEXTOY.
+
+DÉTAIL :
+Chacun utilise un sextoy SUR L’AUTRE simultanément. Variantes : vaginal, anal, phallus.
+
+STADE 1
+ACTION :
+Soft et simple
+
+STADE 2
+ACTION :
+Intense et haletant
+
+STADE 3
+ACTION :
+Au choix
+
+RÈGLES PARTICULIÈRES :
+- Les deux joueurs peuvent avoir des variantes différentes si le moteur le permet. Chaque variante ajoute ses tags et est filtrée par le profil.
+
+
+[052] CONTRÔLE DU JOUET À DISTANCE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : sextoy + contrôle + tags de la variante
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+CONTRÔLE DU JOUET À DISTANCE.
+
+DÉTAIL :
+Le contrôle du sextoy est confié à l’autre. Variantes vaginal / anal / phallus selon compatibilité.
+
+STADE 1
+ACTION :
+Soft et simple
+
+STADE 2
+ACTION :
+Intense et haletant
+
+STADE 3
+ACTION :
+Au choix
+
+RÈGLES PARTICULIÈRES :
+- Chaque variante ajoute ses tags et est filtrée par le profil.
+
+
+[053] CONTENU ADULTE PARTAGÉ
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : contenu_adulte + regarder
+ÉVOLUTION : Aucune
+
+ACTION :
+Regarder un contenu adulte ensemble.
+
+DÉTAIL :
+Choisissez quelque chose qui vous attire tous les deux et laissez-le servir d'inspiration ou simplement d'ambiance.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[054] SENSATION D'EXPOSITION
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : lieu_expose
+ÉVOLUTION : Aucune
+
+ACTION :
+Une sensation d’exposition.
+
+DÉTAIL :
+Créer l'impression d'être plus visible ou moins isolé, tout en restant dans un cadre privé choisi.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[055] CHOIX D'ÉJACULATION
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : ejaculation
+ÉVOLUTION : Aucune
+
+ZONES : zones compatibles
+
+ACTION :
+Un choix d'éjaculation.
+
+DÉTAIL :
+Le lieu ou la manière devient un choix explicite de cette occurrence.
+
+RÈGLES PARTICULIÈRES :
+- Zone/manière choisie explicitement. Lorsque bouche est choisie, le choix d’avaler ou de cracher est couvert par cette carte, sans carte autonome supplémentaire.
+
+
+[056] PAROLES DÉGRADANTES
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : parole + degradant
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Paroles dégradantes.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+STADE 1
+ACTION :
+Des paroles provocantes.
+
+DÉTAIL :
+Quelques mots piquants ou dominants, sans aller trop loin.
+
+STADE 2
+ACTION :
+Des paroles plus dures.
+
+DÉTAIL :
+Le ton devient plus marqué et le vocabulaire plus direct.
+
+STADE 3
+ACTION :
+Des paroles franchement dégradantes.
+
+DÉTAIL :
+Un registre beaucoup plus assumé, réservé à ce qui a déjà été accepté.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[057] SUPPLIER
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : supplier + parole + contrôle
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Supplier.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+STADE 1
+ACTION :
+Demander avec insistance.
+
+DÉTAIL :
+Exprimez clairement une envie et insistez un peu.
+
+STADE 2
+ACTION :
+Supplier.
+
+DÉTAIL :
+La demande devient plus pressante et plus théâtrale.
+
+STADE 3
+ACTION :
+Supplier franchement.
+
+DÉTAIL :
+Faites durer la demande et jouez pleinement le rapport de contrôle.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[058] AILLEURS, EN PRIVÉ
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : MUTUEL
+TAGS / PRÉFÉRENCES : lieu_inhabituel
+ÉVOLUTION : Aucune
+
+ACTION :
+Changer de lieu.
+
+DÉTAIL :
+Choisissez un endroit privé inhabituel pour casser les habitudes et donner une autre ambiance au moment.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[059] JEU DE TEXTURES
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : texture
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Jeu de textures.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+ZONES : zones compatibles
+
+STADE 1
+ACTION :
+Une sensation de texture.
+
+DÉTAIL :
+Une sensation simple, légère et courte sur une zone choisie.
+
+STADE 2
+ACTION :
+Des sensations alternées.
+
+DÉTAIL :
+Alternez matière ou rythme pour créer davantage de contraste.
+
+STADE 3
+ACTION :
+Un jeu sensoriel plus riche.
+
+DÉTAIL :
+Combinez plusieurs textures et faites durer la découverte.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[060] PRIVATION AUDITIVE
+----------------------------------------------------------------------
+TYPE : ÉTAT
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : privation_sensorielle + ouie
+ÉVOLUTION : Aucune
+
+ACTION :
+Une privation auditive.
+
+DÉTAIL :
+Réduisez ou masquez les sons pour laisser davantage de place aux autres sensations.
+
+RÈGLES PARTICULIÈRES :
+- L’état reste actif pendant les actions suivantes, qui se jouent normalement. Chaque tour actif coûte 3 PA à CHAQUE joueur. Icône persistante. Fin lorsque les deux joueurs sélectionnent l’icône et valident ensemble sa désactivation.
+
+
+[061] PRIVATION DE PAROLE / SILENCE
+----------------------------------------------------------------------
+TYPE : ÉTAT
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : privation_parole + controle
+ÉVOLUTION : Aucune
+
+ACTION :
+Privation de parole / silence.
+
+DÉTAIL :
+La personne concernée ne doit ni parler, ni gémir, ni produire volontairement de bruit. Les commandes et validations nécessaires dans l’interface restent disponibles.
+
+RÈGLES PARTICULIÈRES :
+- L’état reste actif pendant les actions suivantes, qui se jouent normalement. Chaque tour actif coûte 3 PA à CHAQUE joueur. Icône persistante. Fin lorsque les deux joueurs sélectionnent l’icône et valident ensemble sa désactivation.
+
+
+[062] MAINTIEN DU COU
+----------------------------------------------------------------------
+TYPE : CARTE À DURÉE
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : maintien_cou + controle
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Maintien du cou.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+ZONE : cou
+
+STADE 1
+ACTION :
+Un maintien léger du cou.
+
+DÉTAIL :
+La main se pose et guide sans serrer.
+
+STADE 2
+ACTION :
+Un maintien plus marqué.
+
+DÉTAIL :
+Le geste devient plus présent et sert davantage à guider la position.
+
+STADE 3
+ACTION :
+Un maintien soutenu.
+
+DÉTAIL :
+La prise reste plus ferme et plus longue, sans transformer l'action en étranglement.
+
+RÈGLES PARTICULIÈRES :
+- S’applique aux 3 prochaines actions réalisées, pas aux simples tours sans action. Compteur interface : 3 -> 2 -> 1 -> fin. Aucun coût PA supplémentaire.
+- Maintenir/guider par le cou sans serrer, à tous les stades. Ne jamais transformer cette action en étranglement.
+
+
+[063] TIRER DOUCEMENT
+----------------------------------------------------------------------
+TYPE : CARTE À DURÉE
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : tirer
+ÉVOLUTION : OUI — 3 stades
+
+ACTION :
+Tirer doucement.
+
+DÉTAIL :
+Les déclinaisons et précisions par stade figurent ci-dessous.
+
+ZONES : zones compatibles, notamment cheveux
+
+STADE 1
+ACTION :
+Tirer doucement.
+
+DÉTAIL :
+Une traction légère et brève, juste assez pour être ressentie.
+
+STADE 2
+ACTION :
+Une traction plus présente.
+
+DÉTAIL :
+Le geste dure un peu plus longtemps ou revient plusieurs fois.
+
+STADE 3
+ACTION :
+Une traction plus soutenue.
+
+DÉTAIL :
+Une version plus marquée, avec davantage de contrôle sur le rythme ou la position.
+
+RÈGLES PARTICULIÈRES :
+- S’applique aux 3 prochaines actions réalisées, pas aux simples tours sans action. Compteur interface : 3 -> 2 -> 1 -> fin. Aucun coût PA supplémentaire.
+- Appliquer lorsque l’action et la zone le permettent, notamment aux cheveux.
+
+
+[064] DÉGUSTATION SENSUELLE
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : nourriture + boisson
+ÉVOLUTION : Aucune
+
+ZONES : zones compatibles
+
+ACTION :
+Une dégustation sensuelle.
+
+DÉTAIL :
+Utilisez une saveur ou une boisson comme prétexte pour ralentir, jouer et faire durer le contact.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.
+
+
+[065] FOOTJOB
+----------------------------------------------------------------------
+TYPE : ACTION
+DIRECTION : FAIRE/RECEVOIR
+TAGS / PRÉFÉRENCES : masturbation + pieds
+ÉVOLUTION : Aucune
+
+ZONE / OUTIL : pieds
+
+ACTION :
+Un footjob.
+
+DÉTAIL :
+Une forme de masturbation réalisée avec les pieds.
+
+RÈGLES PARTICULIÈRES :
+Règles communes du catalogue ; aucune règle particulière supplémentaire.

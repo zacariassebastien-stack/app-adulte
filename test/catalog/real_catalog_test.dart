@@ -12,30 +12,38 @@ void main() {
   const path = 'assets/catalog/source';
   late Catalog catalog;
   setUp(() async {
-    catalog = await const CatalogLoader().load((p) => File(p).readAsString());
-  });
-  test('production loader accepts real catalog and audit is current', () {
-    expect(catalog.cards.length, 120);
-    expect(catalog.cards.expand((c) => c.variants).length, 237);
-    expect(catalog.profileElements.length, 133);
-    expect(catalog.tags.length, 105);
-    expect(catalog.cardsDocument, document('$path/cards.v2.fr.json'));
-    expect(
-      catalog.profilesDocument,
-      document('$path/profile_elements.v1.fr.json'),
+    catalog = await const CatalogLoader().loadLegacyV3(
+      (p) => File(p).readAsString(),
     );
-    expect(catalog.tagsDocument, document('$path/tags.v1.json'));
-    final issues = const CatalogValidator().validate(catalog);
-    expect(issues, isEmpty);
-    expect(document('docs/catalog_audit.json'), {
-      'valid': true,
-      'cards': catalog.cards.length,
-      'variants': catalog.cards.expand((c) => c.variants).length,
-      'profile_elements': catalog.profileElements.length,
-      'tags': catalog.tags.length,
-      'issues': issues.map((e) => e.toJson()).toList(),
-    });
   });
+  test(
+    'explicit legacy loader preserves the archived catalog for migration',
+    () {
+      expect(catalog.cards.length, 120);
+      expect(catalog.cards.expand((c) => c.variants).length, 237);
+      expect(catalog.profileElements.length, 133);
+      expect(catalog.tags.length, 105);
+      expect(
+        catalog.cardsDocument,
+        document('assets/catalog/legacy/cards.v2.fr.json'),
+      );
+      expect(
+        catalog.profilesDocument,
+        document('$path/profile_elements.v1.fr.json'),
+      );
+      expect(catalog.tagsDocument, document('$path/tags.v1.json'));
+      final issues = const CatalogValidator().validate(catalog);
+      expect(issues, isEmpty);
+      expect(document('docs/catalog_audit.json'), {
+        'valid': true,
+        'cards': catalog.cards.length,
+        'variants': catalog.cards.expand((c) => c.variants).length,
+        'profile_elements': catalog.profileElements.length,
+        'tags': catalog.tags.length,
+        'issues': issues.map((e) => e.toJson()).toList(),
+      });
+    },
+  );
   test('first ENCHAIRE set exposes canonical editorial content', () {
     CardVariantDefinition variant(String cardId, String variantId) => catalog
         .cards

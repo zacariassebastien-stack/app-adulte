@@ -6,11 +6,118 @@ import '../../domain/catalog/definitions.dart';
 import '../../domain/catalog/enums.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/profile/adaptive_profile.dart';
+import '../../domain/profile/v4_profile.dart';
 import '../../engines/profile/profile_learning_engine.dart';
+import '../../engines/profile/v4_card_rating_engine.dart';
 
 abstract interface class NetworkProfileLearningStore {
   Future<AdaptiveProfileState?> load(String playerId);
   Future<void> save(AdaptiveProfileState state);
+}
+
+abstract interface class V4ProfileStore {
+  Future<V4Profile?> load(String playerId);
+  Future<void> save(V4Profile profile);
+}
+
+final class SharedPreferencesV4ProfileStore implements V4ProfileStore {
+  const SharedPreferencesV4ProfileStore();
+
+  @override
+  Future<V4Profile?> load(String playerId) async {
+    final preferences = await SharedPreferences.getInstance();
+    final encoded = preferences.getString('profile_preferences_v4.$playerId');
+    return encoded == null
+        ? null
+        : V4Profile.fromJson(
+            Map<String, Object?>.from(jsonDecode(encoded) as Map),
+          );
+  }
+
+  @override
+  Future<void> save(V4Profile profile) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(
+      'profile_preferences_v4.${profile.profileId}',
+      jsonEncode(profile.toJson()),
+    );
+  }
+}
+
+final class MemoryV4ProfileStore implements V4ProfileStore {
+  final Map<String, V4Profile> values = {};
+  @override
+  Future<V4Profile?> load(String playerId) async => values[playerId];
+  @override
+  Future<void> save(V4Profile profile) async {
+    values[profile.profileId] = profile;
+  }
+}
+
+abstract interface class V4CardLearningStore {
+  Future<CardSpecificLearningStore> load(String playerId);
+  Future<void> save(String playerId, CardSpecificLearningStore state);
+}
+
+final class SharedPreferencesV4CardLearningStore
+    implements V4CardLearningStore {
+  const SharedPreferencesV4CardLearningStore();
+
+  @override
+  Future<CardSpecificLearningStore> load(String playerId) async {
+    final preferences = await SharedPreferences.getInstance();
+    final encoded = preferences.getString('card_learning_v4.$playerId');
+    final state = CardSpecificLearningStore();
+    if (encoded != null) {
+      state.restore(jsonDecode(encoded) as List);
+    }
+    return state;
+  }
+
+  @override
+  Future<void> save(String playerId, CardSpecificLearningStore state) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(
+      'card_learning_v4.$playerId',
+      jsonEncode(state.toJson()),
+    );
+  }
+}
+
+final class MemoryV4CardLearningStore implements V4CardLearningStore {
+  final Map<String, List<Map<String, Object?>>> values = {};
+
+  @override
+  Future<CardSpecificLearningStore> load(String playerId) async {
+    final state = CardSpecificLearningStore();
+    state.restore(values[playerId] ?? const []);
+    return state;
+  }
+
+  @override
+  Future<void> save(String playerId, CardSpecificLearningStore state) async {
+    values[playerId] = state.toJson();
+  }
+}
+
+AdaptiveProfileState adaptiveProfileFromV4Profile(V4Profile profile) {
+  final entries = <String, PreferenceLearningEntry>{};
+  for (final preference in profile.preferences.values) {
+    final role = LearningRole.values.byName(preference.key.role.name);
+    final key = PreferenceLearningKey(
+      preferenceId: 'v3.preference.${preference.key.tagId}',
+      role: role,
+      zoneId: preference.key.zoneId,
+    );
+    entries[key.storageKey] = PreferenceLearningEntry(
+      key: key,
+      source: AdaptiveProfileSource.initialQuestionnaire,
+      currentPa: preference.pa,
+      estimatedPa: preference.pa,
+      excluded: preference.excluded,
+    );
+  }
+  return AdaptiveProfileState(profileId: profile.profileId, entries: entries);
 }
 
 enum PostGameProfileChoice { customize, trustGame, later }
@@ -106,19 +213,23 @@ PlayerGameProfile playerGameProfileFromLearningState(
 }
 
 PreferenceValue _preferenceValue(List<PreferenceLearningEntry> entries) {
-  final general = entries
-      .where((entry) => entry.key.role == LearningRole.general)
-      .firstOrNull;
+  PreferenceLearningEntry? roleEntry(LearningRole role) =>
+      entries.where((entry) => entry.key.role == role).firstOrNull;
+  final general =
+      roleEntry(LearningRole.general) ??
+      roleEntry(LearningRole.mutuel) ??
+      roleEntry(LearningRole.solo) ??
+      roleEntry(LearningRole.simultane) ??
+      roleEntry(LearningRole.observer);
   if (general?.excluded ?? false) {
     return const PreferenceValue(status: PreferenceStatus.EXCLUDED);
   }
   int? value(LearningRole role) {
-    final specific = entries
-        .where((entry) => entry.key.role == role)
-        .firstOrNull;
+    final specific = roleEntry(role);
     final source = specific ?? general;
-    if (source == null || source.excluded || source.currentPa == null)
+    if (source == null || source.excluded || source.currentPa == null) {
       return null;
+    }
     return source.currentPa!.round().clamp(1, 20).toInt();
   }
 

@@ -17,7 +17,7 @@ void main() {
   late LobbySession session;
 
   setUpAll(() async {
-    catalog = await const CatalogLoader().load(
+    catalog = await const CatalogLoader().loadLegacyV3(
       (path) => File(path).readAsString(),
     );
     session = LobbySession(
@@ -1130,8 +1130,12 @@ Future<void> _playUnequal(
     return pair.$1.personalValue != pair.$2.personalValue &&
         (avoidAliceCard == null || pair.$1.identity != avoidAliceCard) &&
         (forceAliceCard == null || pair.$1.identity == forceAliceCard) &&
-        (!requireInvertibleWinner || winner.variant.invertible) &&
-        (!requireNonInvertibleWinner || !winner.variant.invertible);
+        (!requireInvertibleWinner ||
+            (winner.variant.invertible &&
+                winner.oppositePersonalValue != null)) &&
+        (!requireNonInvertibleWinner ||
+            !winner.variant.invertible ||
+            winner.oppositePersonalValue == null);
   });
   setup.alice.selectCard(pair.$1.identity);
   setup.bob.selectCard(pair.$2.identity);

@@ -84,9 +84,28 @@ final class CatalogLoader {
     }
 
     final sources = await Future.wait([
-      readFile('cards.v2.fr.json'),
+      readFile('cards.v4.fr.json'),
       readFile('profile_elements.v1.fr.json'),
       readFile('tags.v1.json'),
+    ]);
+    return loadJson(
+      cardsJson: sources[0],
+      profilesJson: sources[1],
+      tagsJson: sources[2],
+    );
+  }
+
+  /// Explicit access for migration/audit tests only. Production code must use
+  /// [load], whose sole card source is V4.
+  Future<Catalog> loadLegacyV3(
+    CatalogTextReader read, {
+    String basePath = 'assets/catalog',
+  }) async {
+    Future<String> readFile(String path) async => read('$basePath/$path');
+    final sources = await Future.wait([
+      readFile('legacy/cards.v2.fr.json'),
+      readFile('source/profile_elements.v1.fr.json'),
+      readFile('source/tags.v1.json'),
     ]);
     return loadJson(
       cardsJson: sources[0],

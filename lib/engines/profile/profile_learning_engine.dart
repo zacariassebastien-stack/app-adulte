@@ -211,8 +211,8 @@ final class ProfileLearningEngine {
       final key = PreferenceLearningKey(preferenceId: choice.key);
       final excluded = choice.value == InitialSwipeChoice.excluded;
       final pa = switch (choice.value) {
-        InitialSwipeChoice.love => 3.0,
-        InitialSwipeChoice.like => 8.0,
+        InitialSwipeChoice.love => 5.0,
+        InitialSwipeChoice.like => 12.0,
         InitialSwipeChoice.unsure => 20.0,
         InitialSwipeChoice.excluded => null,
       };

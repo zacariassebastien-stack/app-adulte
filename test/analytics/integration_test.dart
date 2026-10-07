@@ -10,7 +10,9 @@ void main() {
   late Catalog catalog;
   final journal = <GameEvent>[];
   setUpAll(() async {
-    catalog = await const CatalogLoader().load((p) => File(p).readAsString());
+    catalog = await const CatalogLoader().loadLegacyV3(
+      (p) => File(p).readAsString(),
+    );
     final scenarios = representativeScenarios();
     final runner = SimulationRunner(
       catalog,

@@ -24,7 +24,11 @@ final class CatalogEngineAdapter {
           enabled: useV3 ? variant.v3DeckEnabled : variant.enabled,
           chiliLevel: variant.chiliLevel,
           consentRules: useV3 && (variant.v3 != null || card.v3 != null)
-              ? _v3Consent(variant.v3 ?? card.v3!)
+              ? card.stableId.startsWith('card.v4.')
+                    // V4 preferences estimate PA only. Explicit practice
+                    // consent is a separate source and is never inferred here.
+                    ? const []
+                    : _v3Consent(variant.v3 ?? card.v3!)
               : [
                   ...card.profileRequirements.map(_consent),
                   ...variant.profileRequirements.map(_consent),

@@ -233,6 +233,7 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
           await const SharedPreferencesNetworkProfileLearningStore().load(
             playerId,
           );
+      if (!mounted) return;
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => NetworkDuelScreen(

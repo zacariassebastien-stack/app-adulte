@@ -23,7 +23,7 @@ Future<V3CatalogView> loadAssetV3Catalog({AssetBundle? bundle}) async {
   final assets = bundle ?? rootBundle;
   final values = await Future.wait([
     loadAssetCatalog(bundle: assets),
-    assets.loadString('assets/catalog/source/catalog_v3_taxonomy.json'),
+    assets.loadString('assets/catalog/source/catalog_v4_taxonomy.json'),
     loadAssetRoleplayScenarios(bundle: assets),
   ]);
   return V3CatalogView(
@@ -32,3 +32,19 @@ Future<V3CatalogView> loadAssetV3Catalog({AssetBundle? bundle}) async {
     roleplayScenarios: values[2] as RoleplayScenarioLibrary,
   );
 }
+
+Future<ProfileQuestionnaire> loadAssetProfileQuestionnaire({
+  AssetBundle? bundle,
+}) async => ProfileQuestionnaire.decode(
+  await (bundle ?? rootBundle).loadString(
+    'assets/catalog/source/profile_questions.v1.fr.json',
+  ),
+);
+
+Future<V4ScoringCatalog> loadAssetV4ScoringCatalog({
+  AssetBundle? bundle,
+}) async => V4ScoringCatalog.decode(
+  await (bundle ?? rootBundle).loadString(
+    'assets/catalog/source/catalog_v4_scoring.json',
+  ),
+);

@@ -2,17 +2,24 @@ import 'dart:math' as math;
 
 enum InitialSwipeChoice { love, like, unsure, excluded }
 
-enum AdaptiveProfileSource { initialSwipe, autoLearned, manualCustomized }
+enum AdaptiveProfileSource {
+  initialSwipe,
+  initialQuestionnaire,
+  autoLearned,
+  manualCustomized,
+}
 
 extension AdaptiveProfileSourceWire on AdaptiveProfileSource {
   String get wireName => switch (this) {
     AdaptiveProfileSource.initialSwipe => 'INITIAL_SWIPE',
+    AdaptiveProfileSource.initialQuestionnaire => 'INITIAL_QUESTIONNAIRE',
     AdaptiveProfileSource.autoLearned => 'AUTO_LEARNED',
     AdaptiveProfileSource.manualCustomized => 'MANUAL_CUSTOMIZED',
   };
 
   static AdaptiveProfileSource parse(String value) => switch (value) {
     'INITIAL_SWIPE' => AdaptiveProfileSource.initialSwipe,
+    'INITIAL_QUESTIONNAIRE' => AdaptiveProfileSource.initialQuestionnaire,
     'AUTO_LEARNED' => AdaptiveProfileSource.autoLearned,
     'MANUAL_CUSTOMIZED' => AdaptiveProfileSource.manualCustomized,
     _ => throw FormatException('Unknown adaptive profile source: $value'),
@@ -34,7 +41,15 @@ enum DetailedPreferenceCategory {
   excluded,
 }
 
-enum LearningRole { general, faire, recevoir, mutuel, solo, simultane }
+enum LearningRole {
+  general,
+  faire,
+  recevoir,
+  mutuel,
+  solo,
+  observer,
+  simultane,
+}
 
 enum ProposalDecision { pending, accepted, declined }
 

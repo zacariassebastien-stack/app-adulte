@@ -23,10 +23,14 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/catalog/source/cards.v2.fr.json
+    - assets/catalog/source/cards.v4.fr.json
+    - assets/catalog/source/catalog_v4_scoring.json
+    - assets/catalog/source/profile_questions.v1.fr.json
+    - assets/catalog/source/CATALOGUE_CARTES_V4.txt
     - assets/catalog/source/profile_elements.v1.fr.json
     - assets/catalog/source/tags.v1.json
     - assets/catalog/source/catalog_v3_taxonomy.json
+    - assets/catalog/source/catalog_v4_taxonomy.json
     - assets/catalog/source/roleplay_scenarios.v1.fr.json
     - assets/card_themes/index.json
     - assets/card_themes/classic_v1/

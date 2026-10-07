@@ -97,12 +97,13 @@ EventLog. La migration v1→v2 est testée sur les quatre états de consentement
 
 ## Catalogue et références
 
-`assets/catalog/source/` contient les neuf fichiers du seed, dont trois corrigés.
-Seuls `cards.v2.fr.json`, `profile_elements.v1.fr.json` et `tags.v1.json` sont
-embarqués comme assets. V1 et les règles éditoriales restent disponibles comme
-références. La spécification intégrale est dans `docs/reference/spec_contenu_v1.md`.
-`docs/source_hashes.json` conserve les empreintes de l'archive initiale.
-`docs/catalog_hashes.json` atteste les trois fichiers actifs corrigés.
+Le deck de production charge exclusivement les 65 cartes de
+`assets/catalog/source/cards.v4.fr.json`. Le questionnaire initial et le calcul
+des priors PA sont pilotés par `profile_questions.v1.fr.json` et
+`catalog_v4_scoring.json`. Les catalogues V1/V2 ont été déplacés sous
+`assets/catalog/legacy/` et ne sont plus des assets de production. La migration
+et les limites connues sont décrites dans
+[`docs/catalog_v4_migration.md`](docs/catalog_v4_migration.md).
 
 Les corrections sont détaillées dans [le relevé éditorial](docs/catalog_repair.md). Les références abrégées de tags
 sont résolues vers les définitions existantes, sans modifier les stable_id.

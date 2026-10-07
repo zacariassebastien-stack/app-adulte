@@ -8,7 +8,7 @@ import 'package:couple_cards/engines/engines.dart';
 
 void main() {
   test('runtime adapter uses exactly the playable V3 catalogue', () async {
-    final catalog = await const CatalogLoader().load(
+    final catalog = await const CatalogLoader().loadLegacyV3(
       (path) => File(path).readAsString(),
     );
     final runtime = catalog.cards

@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/catalog/v3_taxonomy.dart';
-import '../../domain/profile/adaptive_profile.dart';
-import '../../engines/profile/profile_learning_engine.dart';
+import '../../domain/catalog/v4_catalog.dart';
+import '../../engines/profile/initial_questionnaire_engine.dart';
 import '../game/network_profile_learning.dart';
 
 class InitialProfileScreen extends StatefulWidget {
   const InitialProfileScreen({
     required this.playerId,
-    required this.taxonomy,
-    required this.store,
+    required this.questionnaire,
+    required this.adaptiveStore,
+    required this.profileStore,
     required this.onCompleted,
     super.key,
   });
 
   final String playerId;
-  final V3Taxonomy taxonomy;
-  final NetworkProfileLearningStore store;
+  final ProfileQuestionnaire questionnaire;
+  final NetworkProfileLearningStore adaptiveStore;
+  final V4ProfileStore profileStore;
   final VoidCallback onCompleted;
 
   @override
@@ -24,80 +25,129 @@ class InitialProfileScreen extends StatefulWidget {
 }
 
 class _InitialProfileScreenState extends State<InitialProfileScreen> {
-  final Map<String, InitialSwipeChoice> _choices = {};
-  late final List<V3TagDefinition> _preferences;
+  final Map<String, InitialQuestionResponse> _responses = {};
   var _index = 0;
   var _saving = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _preferences = widget.taxonomy.tags
-        .where(
-          (tag) => tag.category == V3TagCategory.PREFERENCE && tag.scoreable,
-        )
-        .toList(growable: false);
-  }
+  ProfileQuestion get _question => widget.questionnaire.questions[_index];
+  String _key(ProfileQuestionAxis axis) =>
+      QuestionAxisKey(_question.stableId, axis.axisId).storageKey;
+  bool get _complete =>
+      _question.axes.every((axis) => _responses.containsKey(_key(axis)));
 
-  Future<void> _select(InitialSwipeChoice choice) async {
-    if (_saving || _preferences.isEmpty) return;
-    _choices[_preferences[_index].stableId] = choice;
-    if (_index < _preferences.length - 1) {
+  Future<void> _continue() async {
+    if (_saving || !_complete) return;
+    if (_index < widget.questionnaire.questions.length - 1) {
       setState(() => _index++);
       return;
     }
     setState(() => _saving = true);
-    final profile = const ProfileLearningEngine().initialize(
+    final profile = const InitialQuestionnaireEngine().initialize(
       profileId: widget.playerId,
-      choices: _choices,
+      questionnaire: widget.questionnaire,
+      responses: _responses,
     );
-    await widget.store.save(profile);
+    await widget.profileStore.save(profile);
+    await widget.adaptiveStore.save(adaptiveProfileFromV4Profile(profile));
     if (mounted) widget.onCompleted();
   }
 
   @override
   Widget build(BuildContext context) {
-    final preference = _preferences[_index];
+    final question = _question;
     return Scaffold(
       appBar: AppBar(title: const Text('Créer mon profil')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(20),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
+              constraints: const BoxConstraints(maxWidth: 520),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'Tes préférences restent privées sur ce téléphone.',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 24),
                   LinearProgressIndicator(
-                    value: (_index + 1) / _preferences.length,
+                    value: (_index + 1) / widget.questionnaire.questions.length,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Text(
-                    '${_index + 1} / ${_preferences.length}',
+                    '${_index + 1} / ${widget.questionnaire.questions.length}',
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
-                  Text(
-                    _label(preference.key),
-                    key: const Key('initial-profile-preference'),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium,
+                  const SizedBox(height: 20),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            question.label,
+                            key: const Key('initial-profile-question'),
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                          if (question.helpText != null) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              question.helpText!,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                          const SizedBox(height: 18),
+                          for (final axis in question.axes) ...[
+                            Text(
+                              axis.label ?? axis.role.wireName,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                _choice(
+                                  axis,
+                                  'J’adore',
+                                  InitialQuestionResponse.love,
+                                ),
+                                _choice(
+                                  axis,
+                                  'Ça me plaît',
+                                  InitialQuestionResponse.like,
+                                ),
+                                _choice(
+                                  axis,
+                                  'Je ne sais pas',
+                                  InitialQuestionResponse.unsure,
+                                ),
+                                _choice(
+                                  axis,
+                                  'Exclu',
+                                  InitialQuestionResponse.excluded,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 18),
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 32),
-                  _choice('J’adore', InitialSwipeChoice.love),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    key: const Key('initial-profile-continue'),
+                    onPressed: _complete && !_saving ? _continue : null,
+                    child: Text(
+                      _index == widget.questionnaire.questions.length - 1
+                          ? 'Enregistrer mon profil'
+                          : 'Question suivante',
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  _choice('Ça me plaît', InitialSwipeChoice.like),
-                  const SizedBox(height: 12),
-                  _choice('Je ne sais pas', InitialSwipeChoice.unsure),
-                  const SizedBox(height: 12),
-                  _choice('Exclu', InitialSwipeChoice.excluded),
+                  const Text(
+                    'Tes préférences restent privées. Elles ne valent jamais consentement explicite.',
+                    textAlign: TextAlign.center,
+                  ),
                 ],
               ),
             ),
@@ -107,14 +157,15 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
     );
   }
 
-  Widget _choice(String label, InitialSwipeChoice choice) => FilledButton.tonal(
-    onPressed: _saving ? null : () => _select(choice),
-    child: Text(label),
+  Widget _choice(
+    ProfileQuestionAxis axis,
+    String label,
+    InitialQuestionResponse response,
+  ) => ChoiceChip(
+    label: Text(label),
+    selected: _responses[_key(axis)] == response,
+    onSelected: _saving
+        ? null
+        : (_) => setState(() => _responses[_key(axis)] = response),
   );
-
-  String _label(String key) => key
-      .toLowerCase()
-      .split('_')
-      .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
-      .join(' ');
 }

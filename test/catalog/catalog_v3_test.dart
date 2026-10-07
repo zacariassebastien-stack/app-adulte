@@ -19,7 +19,7 @@ void main() {
     roleplayScenarios = RoleplayScenarioLibrary.decode(
       File('$source/roleplay_scenarios.v1.fr.json').readAsStringSync(),
     );
-    catalog = await const CatalogLoader().load(
+    catalog = await const CatalogLoader().loadLegacyV3(
       (path) => File(path).readAsString(),
     );
   });
