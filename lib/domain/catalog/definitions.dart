@@ -237,5 +237,22 @@ final class CardVariantDefinition extends ActionDefinition {
     ).optionalInteger('stage', min: 1);
   }
 
+  V4PresenceCompatibility? get v4Presence {
+    final metadata = reader.json['v4'];
+    if (metadata == null) return null;
+    final json = metadata as JsonMap;
+    final value = json['presence'];
+    return value == null
+        ? null
+        : V4PresenceCompatibility.parse(value as String);
+  }
+
+  List<String>? get v4RequiredAccessoriesAnyOf {
+    final metadata = reader.json['v4'];
+    if (metadata == null) return null;
+    final value = (metadata as JsonMap)['required_accessories_any_of'];
+    return value == null ? null : (value as List).cast<String>();
+  }
+
   late final List<StateEffect> stateEffects;
 }

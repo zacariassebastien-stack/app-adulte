@@ -2,6 +2,7 @@ import 'dart:math';
 
 import '../../domain/game/balance_config.dart';
 import '../../domain/game/game_models.dart';
+import '../../domain/catalog/v4_catalog.dart';
 
 final class DeckCandidateV3 {
   const DeckCandidateV3({
@@ -12,6 +13,9 @@ final class DeckCandidateV3 {
     this.stage = 1,
     String? sequenceKey,
     String? occurrenceId,
+    this.presence = V4PresenceCompatibility.presentiel,
+    this.requiredAccessoriesAnyOf = const [],
+    this.poolMultiplicity = V4PoolMultiplicity.standard,
   }) : sequenceKey = sequenceKey ?? variantId,
        occurrenceId = occurrenceId ?? '$cardId::$variantId';
 
@@ -22,6 +26,9 @@ final class DeckCandidateV3 {
   final int stage;
   final String sequenceKey;
   final String occurrenceId;
+  final V4PresenceCompatibility presence;
+  final List<String> requiredAccessoriesAnyOf;
+  final V4PoolMultiplicity poolMultiplicity;
 
   String get occurrenceKey => occurrenceId;
 
@@ -35,22 +42,29 @@ final class DeckCandidateV3 {
     stage: stage,
     sequenceKey: sequenceKey,
     occurrenceId: value,
+    presence: presence,
+    requiredAccessoriesAnyOf: requiredAccessoriesAnyOf,
+    poolMultiplicity: poolMultiplicity,
   );
 }
 
 /// Persistent progression for one V4 pool rotation.
 ///
-/// Counts are based on unique variants, never on materialized occurrences.
+/// Counts are based on materialized occurrences. Temporary contextual
+/// ineligibility never changes these global-cycle counters.
 final class V4SpiceProgression {
   V4SpiceProgression({
     required Map<int, int> initialUnitsBySpice,
-    Set<String> consumedVariantIds = const {},
+    Set<String> consumedOccurrenceIds = const {},
+    @Deprecated('Use consumedOccurrenceIds') Set<String>? consumedVariantIds,
     this.unlockedLevel = 1,
   }) : initialUnitsBySpice = Map.unmodifiable({
          for (var level = 1; level <= 4; level++)
            level: initialUnitsBySpice[level] ?? 0,
        }),
-       consumedVariantIds = Set.unmodifiable(consumedVariantIds) {
+       consumedOccurrenceIds = Set.unmodifiable(
+         consumedVariantIds ?? consumedOccurrenceIds,
+       ) {
     if (unlockedLevel < 1 || unlockedLevel > 4) {
       throw ArgumentError.value(unlockedLevel, 'unlockedLevel');
     }
@@ -61,7 +75,7 @@ final class V4SpiceProgression {
     int unlockedLevel = 1,
   }) {
     final unique = <String, DeckCandidateV3>{
-      for (final candidate in candidates) candidate.variantId: candidate,
+      for (final candidate in candidates) candidate.occurrenceId: candidate,
     };
     return V4SpiceProgression(
       initialUnitsBySpice: {
@@ -75,20 +89,22 @@ final class V4SpiceProgression {
   }
 
   final Map<int, int> initialUnitsBySpice;
-  final Set<String> consumedVariantIds;
+  final Set<String> consumedOccurrenceIds;
+  @Deprecated('Use consumedOccurrenceIds')
+  Set<String> get consumedVariantIds => consumedOccurrenceIds;
   final int unlockedLevel;
 
   int initialUnits(int level) => initialUnitsBySpice[level] ?? 0;
 
   int remainingUnits(int level, Iterable<DeckCandidateV3> candidates) {
-    final variants = <String>{};
+    final occurrences = <String>{};
     for (final candidate in candidates) {
       if (candidate.spiceLevel == level &&
-          !consumedVariantIds.contains(candidate.variantId)) {
-        variants.add(candidate.variantId);
+          !consumedOccurrenceIds.contains(candidate.occurrenceId)) {
+        occurrences.add(candidate.occurrenceId);
       }
     }
-    return variants.length;
+    return occurrences.length;
   }
 
   double? remainingRatio(int level, Iterable<DeckCandidateV3> candidates) {
@@ -100,21 +116,36 @@ final class V4SpiceProgression {
   bool isPlayable(int effectiveSpice) => effectiveSpice <= unlockedLevel;
 
   V4SpiceProgression consume(
-    String variantId,
+    String occurrenceOrVariantId,
     Iterable<DeckCandidateV3> candidates,
   ) {
-    if (consumedVariantIds.contains(variantId) ||
-        !candidates.any((candidate) => candidate.variantId == variantId)) {
+    final values = candidates.toList();
+    final exact = values
+        .where((candidate) => candidate.occurrenceId == occurrenceOrVariantId)
+        .firstOrNull;
+    final legacyMatches = values
+        .where((candidate) => candidate.variantId == occurrenceOrVariantId)
+        .toList();
+    final resolved =
+        exact ??
+        legacyMatches
+            .where(
+              (candidate) =>
+                  !consumedOccurrenceIds.contains(candidate.occurrenceId),
+            )
+            .firstOrNull;
+    if (resolved == null ||
+        consumedOccurrenceIds.contains(resolved.occurrenceId)) {
       return this;
     }
-    final consumed = {...consumedVariantIds, variantId};
+    final consumed = {...consumedOccurrenceIds, resolved.occurrenceId};
     var level = unlockedLevel;
     while (level < 4 && _canUnlock(level, level + 1, candidates, consumed)) {
       level++;
     }
     return V4SpiceProgression(
       initialUnitsBySpice: initialUnitsBySpice,
-      consumedVariantIds: consumed,
+      consumedOccurrenceIds: consumed,
       unlockedLevel: level,
     );
   }
@@ -133,8 +164,8 @@ final class V4SpiceProgression {
     var nextRemaining = 0;
     final seen = <String>{};
     for (final candidate in candidates) {
-      if (!seen.add(candidate.variantId) ||
-          consumed.contains(candidate.variantId)) {
+      if (!seen.add(candidate.occurrenceId) ||
+          consumed.contains(candidate.occurrenceId)) {
         continue;
       }
       if (candidate.spiceLevel == current) currentRemaining++;
@@ -227,7 +258,7 @@ final class V4HandGenerator {
         playableSatisfied = true;
       }
       remaining.removeWhere(
-        (candidate) => candidate.variantId == choice.variantId,
+        (candidate) => candidate.occurrenceId == choice.occurrenceId,
       );
     }
     return V4HandGenerationResult(
@@ -245,7 +276,7 @@ final class V4HandGenerator {
   }) {
     final lowestBySequence = <String, int>{};
     for (final candidate in allCandidates) {
-      if (progression.consumedVariantIds.contains(candidate.variantId)) {
+      if (progression.consumedOccurrenceIds.contains(candidate.occurrenceId)) {
         continue;
       }
       lowestBySequence.update(
@@ -256,12 +287,12 @@ final class V4HandGenerator {
     }
     final unique = <String, DeckCandidateV3>{};
     for (final candidate in pool) {
-      if (progression.consumedVariantIds.contains(candidate.variantId) ||
+      if (progression.consumedOccurrenceIds.contains(candidate.occurrenceId) ||
           handCardIds.contains(candidate.cardId) ||
           lowestBySequence[candidate.sequenceKey] != candidate.stage) {
         continue;
       }
-      unique.putIfAbsent(candidate.variantId, () => candidate);
+      unique.putIfAbsent(candidate.occurrenceId, () => candidate);
     }
     return unique.values.toList();
   }

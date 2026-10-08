@@ -7,6 +7,36 @@ const int v4DurationCardTurns = 3;
 
 enum V4ZoneSelectionSource { none, players, game }
 
+enum V4PresenceCompatibility {
+  presentiel,
+  distance,
+  both;
+
+  bool supports(V4SessionPresence presence) =>
+      this == both || name == presence.name;
+
+  String get wireName => name.toUpperCase();
+
+  static V4PresenceCompatibility parse(String value) =>
+      values.byName(value.toLowerCase());
+}
+
+enum V4SessionPresence { presentiel, distance }
+
+enum V4PoolMultiplicity { standard, removableClothingOne, removableClothingTwo }
+
+enum V4ClothingBehavior {
+  none,
+  removeOne,
+  removeTwo,
+  resetThenUnderwear,
+  resetThenNude,
+  resetThenStrip,
+  resetThenStripComplete,
+  chooseOutfit,
+  changeOutfit,
+}
+
 /// Computes the V4 spice shown and checked for a concrete card occurrence.
 ///
 /// The stored variant value remains the base. A single level is added only
@@ -35,8 +65,29 @@ final class V4CardMetadata {
     : number = reader.string('number'),
       type = reader.string('type'),
       canonicalDirection = reader.string('canonical_direction'),
-      durationTurns = reader.optionalInteger('duration_turns', min: 1) {
-    reader.only({'number', 'type', 'canonical_direction', 'duration_turns'});
+      durationTurns = reader.optionalInteger('duration_turns', min: 1),
+      presence = reader.json.containsKey('presence')
+          ? V4PresenceCompatibility.parse(reader.string('presence'))
+          : V4PresenceCompatibility.presentiel,
+      requiredAccessoriesAnyOf = List.unmodifiable(
+        reader.strings('required_accessories_any_of', optional: true),
+      ),
+      poolMultiplicity = reader.json.containsKey('pool_multiplicity')
+          ? reader.enumeration('pool_multiplicity', V4PoolMultiplicity.values)
+          : V4PoolMultiplicity.standard,
+      clothingBehavior = reader.json.containsKey('clothing_behavior')
+          ? reader.enumeration('clothing_behavior', V4ClothingBehavior.values)
+          : V4ClothingBehavior.none {
+    reader.only({
+      'number',
+      'type',
+      'canonical_direction',
+      'duration_turns',
+      'presence',
+      'required_accessories_any_of',
+      'pool_multiplicity',
+      'clothing_behavior',
+    });
     if (!RegExp(r'^\d{3}$').hasMatch(number)) {
       reader.fail('number', 'V4 card number must contain three digits');
     }
@@ -58,6 +109,10 @@ final class V4CardMetadata {
   final String type;
   final String canonicalDirection;
   final int? durationTurns;
+  final V4PresenceCompatibility presence;
+  final List<String> requiredAccessoriesAnyOf;
+  final V4PoolMultiplicity poolMultiplicity;
+  final V4ClothingBehavior clothingBehavior;
 }
 
 enum InitialQuestionResponse { love, like, unsure, excluded }

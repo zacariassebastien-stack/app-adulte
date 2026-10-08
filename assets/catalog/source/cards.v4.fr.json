@@ -66,6 +66,7 @@
       ],
       "v4": {
         "number": "001",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -203,6 +204,7 @@
       ],
       "v4": {
         "number": "002",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -348,6 +350,7 @@
       ],
       "v4": {
         "number": "003",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -413,6 +416,7 @@
       ],
       "v4": {
         "number": "004",
+        "presence": "PRESENTIEL",
         "type": "ACTION GÉNÉRALE",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -478,6 +482,7 @@
       ],
       "v4": {
         "number": "005",
+        "presence": "PRESENTIEL",
         "type": "ACTION GÉNÉRALE",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -543,6 +548,9 @@
       ],
       "v4": {
         "number": "006",
+        "presence": "PRESENTIEL",
+        "pool_multiplicity": "removableClothingOne",
+        "clothing_behavior": "removeOne",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -608,6 +616,9 @@
       ],
       "v4": {
         "number": "007",
+        "presence": "PRESENTIEL",
+        "pool_multiplicity": "removableClothingTwo",
+        "clothing_behavior": "removeTwo",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -676,6 +687,8 @@
       ],
       "v4": {
         "number": "008",
+        "presence": "PRESENTIEL",
+        "clothing_behavior": "resetThenUnderwear",
         "type": "ÉTAT",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -741,6 +754,8 @@
       ],
       "v4": {
         "number": "009",
+        "presence": "PRESENTIEL",
+        "clothing_behavior": "resetThenNude",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -878,6 +893,8 @@
       ],
       "v4": {
         "number": "010",
+        "presence": "PRESENTIEL",
+        "clothing_behavior": "resetThenStrip",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -946,6 +963,8 @@
       ],
       "v4": {
         "number": "011",
+        "presence": "PRESENTIEL",
+        "clothing_behavior": "resetThenStripComplete",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -1016,6 +1035,8 @@
       ],
       "v4": {
         "number": "012",
+        "presence": "PRESENTIEL",
+        "clothing_behavior": "chooseOutfit",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -1084,6 +1105,8 @@
       ],
       "v4": {
         "number": "013",
+        "presence": "PRESENTIEL",
+        "clothing_behavior": "changeOutfit",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -1149,6 +1172,7 @@
       ],
       "v4": {
         "number": "014",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -1214,6 +1238,7 @@
       ],
       "v4": {
         "number": "015",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -1279,6 +1304,7 @@
       ],
       "v4": {
         "number": "016",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -1344,6 +1370,7 @@
       ],
       "v4": {
         "number": "017",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -1481,6 +1508,7 @@
       ],
       "v4": {
         "number": "018",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -1618,6 +1646,7 @@
       ],
       "v4": {
         "number": "019",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -1681,6 +1710,7 @@
       ],
       "v4": {
         "number": "020",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -1744,6 +1774,7 @@
       ],
       "v4": {
         "number": "021",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -1887,6 +1918,7 @@
       ],
       "v4": {
         "number": "022",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -2030,6 +2062,7 @@
       ],
       "v4": {
         "number": "023",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -2095,6 +2128,7 @@
       ],
       "v4": {
         "number": "024",
+        "presence": "PRESENTIEL",
         "type": "ACTION GÉNÉRALE",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -2346,6 +2380,7 @@
       ],
       "v4": {
         "number": "025",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -2411,6 +2446,7 @@
       ],
       "v4": {
         "number": "026",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -2548,6 +2584,7 @@
       ],
       "v4": {
         "number": "027",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -2615,6 +2652,7 @@
       ],
       "v4": {
         "number": "028",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -2683,6 +2721,7 @@
       ],
       "v4": {
         "number": "029",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -2820,6 +2859,7 @@
       ],
       "v4": {
         "number": "030",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -2885,6 +2925,7 @@
       ],
       "v4": {
         "number": "031",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -2950,6 +2991,7 @@
       ],
       "v4": {
         "number": "032",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -3015,6 +3057,7 @@
       ],
       "v4": {
         "number": "033",
+        "presence": "BOTH",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
         "duration_turns": 3
@@ -3164,6 +3207,7 @@
       ],
       "v4": {
         "number": "034",
+        "presence": "PRESENTIEL",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
         "duration_turns": 3
@@ -3308,6 +3352,7 @@
       ],
       "v4": {
         "number": "035",
+        "presence": "PRESENTIEL",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
         "duration_turns": 3
@@ -3446,6 +3491,7 @@
       ],
       "v4": {
         "number": "036",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -3589,6 +3635,7 @@
       ],
       "v4": {
         "number": "037",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -3654,6 +3701,7 @@
       ],
       "v4": {
         "number": "038",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -3722,6 +3770,7 @@
       ],
       "v4": {
         "number": "039",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -3787,6 +3836,7 @@
       ],
       "v4": {
         "number": "040",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -3852,6 +3902,7 @@
       ],
       "v4": {
         "number": "041",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -3917,6 +3968,7 @@
       ],
       "v4": {
         "number": "042",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -4060,6 +4112,7 @@
       ],
       "v4": {
         "number": "043",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -4203,6 +4256,7 @@
       ],
       "v4": {
         "number": "044",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -4345,6 +4399,7 @@
       ],
       "v4": {
         "number": "045",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -4602,6 +4657,7 @@
       ],
       "v4": {
         "number": "046",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -4744,6 +4800,7 @@
       ],
       "v4": {
         "number": "047",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -4807,6 +4864,7 @@
       ],
       "v4": {
         "number": "048",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -5292,6 +5350,12 @@
       ],
       "v4": {
         "number": "049",
+        "presence": "PRESENTIEL",
+        "required_accessories_any_of": [
+          "SEXTOY",
+          "VIBRATING_TOY",
+          "REMOTE_CONTROL_TOY"
+        ],
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -5671,6 +5735,12 @@
       ],
       "v4": {
         "number": "050",
+        "presence": "BOTH",
+        "required_accessories_any_of": [
+          "SEXTOY",
+          "VIBRATING_TOY",
+          "REMOTE_CONTROL_TOY"
+        ],
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -6050,6 +6120,12 @@
       ],
       "v4": {
         "number": "051",
+        "presence": "PRESENTIEL",
+        "required_accessories_any_of": [
+          "SEXTOY",
+          "VIBRATING_TOY",
+          "REMOTE_CONTROL_TOY"
+        ],
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -6448,6 +6524,10 @@
       ],
       "v4": {
         "number": "052",
+        "presence": "BOTH",
+        "required_accessories_any_of": [
+          "REMOTE_CONTROL_TOY"
+        ],
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -6516,6 +6596,7 @@
       ],
       "v4": {
         "number": "053",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -6581,6 +6662,7 @@
       ],
       "v4": {
         "number": "054",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -6646,6 +6728,7 @@
       ],
       "v4": {
         "number": "055",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -6789,6 +6872,7 @@
       ],
       "v4": {
         "number": "056",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -6941,6 +7025,7 @@
       ],
       "v4": {
         "number": "057",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -7004,6 +7089,7 @@
       ],
       "v4": {
         "number": "058",
+        "presence": "BOTH",
         "type": "ACTION",
         "canonical_direction": "MUTUEL"
       }
@@ -7141,6 +7227,7 @@
       ],
       "v4": {
         "number": "059",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -7208,6 +7295,7 @@
       ],
       "v4": {
         "number": "060",
+        "presence": "BOTH",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
         "duration_turns": 3
@@ -7277,6 +7365,7 @@
       ],
       "v4": {
         "number": "061",
+        "presence": "BOTH",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
         "duration_turns": 3
@@ -7424,6 +7513,7 @@
       ],
       "v4": {
         "number": "062",
+        "presence": "PRESENTIEL",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
         "duration_turns": 3
@@ -7562,6 +7652,7 @@
       ],
       "v4": {
         "number": "063",
+        "presence": "PRESENTIEL",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
         "duration_turns": 3
@@ -7664,6 +7755,7 @@
       ],
       "v4": {
         "number": "064",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }
@@ -7731,6 +7823,7 @@
       ],
       "v4": {
         "number": "065",
+        "presence": "PRESENTIEL",
         "type": "ACTION",
         "canonical_direction": "FAIRE/RECEVOIR"
       }

@@ -11,6 +11,9 @@ DeckCandidateV3 candidate(
   String? cardId,
   int stage = 1,
   String? sequenceKey,
+  V4PresenceCompatibility presence = V4PresenceCompatibility.presentiel,
+  List<String> accessories = const [],
+  V4PoolMultiplicity multiplicity = V4PoolMultiplicity.standard,
 }) => DeckCandidateV3(
   cardId: cardId ?? 'card.$variantId',
   variantId: variantId,
@@ -18,6 +21,9 @@ DeckCandidateV3 candidate(
   distanceExcluded: false,
   stage: stage,
   sequenceKey: sequenceKey,
+  presence: presence,
+  requiredAccessoriesAnyOf: accessories,
+  poolMultiplicity: multiplicity,
 );
 
 void main() {
@@ -144,7 +150,7 @@ void main() {
         targetSize: 2,
       );
       expect(result.hand.first, same(locked));
-      expect(progression.consumedVariantIds, isEmpty);
+      expect(progression.consumedOccurrenceIds, isEmpty);
     });
   });
 
@@ -190,7 +196,7 @@ void main() {
       expect(unlocked.isPlayable(3), isFalse);
       final fullyUnlocked = V4SpiceProgression(
         initialUnitsBySpice: unlocked.initialUnitsBySpice,
-        consumedVariantIds: unlocked.consumedVariantIds,
+        consumedOccurrenceIds: unlocked.consumedOccurrenceIds,
         unlockedLevel: 4,
       );
       expect(fullyUnlocked.isPlayable(4), isTrue);
@@ -235,7 +241,7 @@ void main() {
         random: Random(1),
         targetSize: 1,
       );
-      expect(progression.consumedVariantIds, isEmpty);
+      expect(progression.consumedOccurrenceIds, isEmpty);
       expect(progression.remainingUnits(1, [one]), 1);
     });
   });
@@ -286,7 +292,7 @@ void main() {
       final progression = V4SpiceProgression.fromCandidates(
         stages,
       ).consume('evo.s1', stages);
-      expect(progression.consumedVariantIds, {'evo.s1'});
+      expect(progression.consumedOccurrenceIds, {'evo::evo.s1'});
       expect(progression.remainingUnits(2, stages), 1);
       expect(progression.remainingUnits(3, stages), 1);
     });
@@ -324,6 +330,8 @@ void main() {
         cardId: 'evo',
         stage: 2,
         sequenceKey: 'evo',
+        presence: V4PresenceCompatibility.both,
+        accessories: const ['REMOTE_CONTROL_TOY'],
       );
       final state = NetworkPrivateGameState(
         roundNumber: 3,
@@ -333,16 +341,27 @@ void main() {
         distanceDeck: [deckCard],
         spiceProgression: V4SpiceProgression(
           initialUnitsBySpice: const {1: 3, 2: 4, 3: 2, 4: 1},
-          consumedVariantIds: const {'evo.s1'},
+          consumedOccurrenceIds: const {'evo::evo.s1'},
           unlockedLevel: 2,
         ),
+        availableAccessories: const {'REMOTE_CONTROL_TOY'},
+        clothesByPlayer: const {'alice': 3, 'bob': 5},
       );
       final restored = NetworkPrivateGameState.fromJson(state.toJson());
       expect(restored.spiceProgression.unlockedLevel, 2);
-      expect(restored.spiceProgression.consumedVariantIds, {'evo.s1'});
+      expect(restored.spiceProgression.consumedOccurrenceIds, {'evo::evo.s1'});
       expect(restored.spiceProgression.initialUnits(2), 4);
       expect(restored.faceToFaceDeck.single.stage, 2);
       expect(restored.faceToFaceDeck.single.sequenceKey, 'evo');
+      expect(
+        restored.faceToFaceDeck.single.presence,
+        V4PresenceCompatibility.both,
+      );
+      expect(restored.faceToFaceDeck.single.requiredAccessoriesAnyOf, [
+        'REMOTE_CONTROL_TOY',
+      ]);
+      expect(restored.availableAccessories, {'REMOTE_CONTROL_TOY'});
+      expect(restored.clothesByPlayer, {'alice': 3, 'bob': 5});
     },
   );
 }

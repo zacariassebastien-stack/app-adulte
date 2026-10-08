@@ -488,8 +488,8 @@ void main() {
         CardHistoryState.playedOrDiscarded,
       );
       expect(
-        setup.alice.spiceProgression.consumedVariantIds,
-        contains(target.variant.id),
+        setup.alice.spiceProgression.consumedOccurrenceIds,
+        contains(target.identity),
       );
       setup.dispose();
     },

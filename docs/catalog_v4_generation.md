@@ -1,6 +1,7 @@
 # Génération et progression piment V4
 
-Le générateur V4 utilise les variantes du catalogue comme unités du pool. Il
+Le générateur V4 utilise les occurrences matérialisées des variantes comme
+unités du pool. Il
 reste dans le sous-système de deck existant : les cartes en main, engagées,
 défaussées ou épuisées continuent d'utiliser le lifecycle normal du jeu.
 
@@ -54,10 +55,64 @@ répète la comparaison pour autoriser plusieurs déblocages cohérents. Un nive
 absent ne provoque aucune division par zéro : un niveau actif sans unité ne
 bloque pas le suivant, tandis qu'un niveau suivant absent n'est pas débloqué.
 
-L'unité de consommation est la variante, ou le stade, identifié par son
-`variantId`. Jouer définitivement une occurrence consomme cette variante. La
-simple distribution et le verrouillage ne la consomment pas. La consommation
-est idempotente.
+L'unité de consommation est l'occurrence, identifiée par son `occurrenceId`.
+Une variante ou un stade possède une occurrence par défaut, mais une
+métadonnée de multiplicité peut en matérialiser plusieurs. Jouer définitivement
+une occurrence ne consomme jamais ses copies. La simple distribution et le
+verrouillage ne consomment rien. La consommation est idempotente.
+
+La progression compare toujours le **pool global** : toutes les occurrences
+du cycle moins les occurrences consommées. Le **pool actif** est une projection
+temporaire de ce pool selon la présence courante, les accessoires disponibles,
+les exclusions privées et le stade séquentiel. Un changement de contexte ne
+modifie donc aucun stock de progression et ne peut pas débloquer un niveau.
+
+## Présence et mode hybride
+
+La métadonnée canonique `presence` vaut `PRESENTIEL`, `DISTANCE` ou `BOTH`.
+Une session hybride possède un état courant présentiel ou distance choisi par
+les joueurs. Le changement recalcule le pool actif : une occurrence
+temporairement incompatible en sort puis y revient lorsque le contexte redevient
+compatible. Une occurrence consommée ne revient jamais. Une carte déjà en main
+reste visible et verrouillable, mais sa jouabilité est refusée tant que sa
+présence est incompatible.
+
+Classification V4 actuelle :
+
+- `BOTH` : 018, 021, 032, 033, 038, 039, 042–048, 050, 052–054, 056–058,
+  060–061 ;
+- `PRESENTIEL` : 001–017, 019–020, 022–031, 034–037, 040–041, 049, 055,
+  051, 055, 059, 062–065 ;
+- `DISTANCE` uniquement : aucune carte actuelle.
+
+Les cartes média explicitement validées 042–047, 053 et 058 sont donc
+disponibles dans les deux états. Le roleplay reste narratif et le lieu ne
+filtre que lorsqu'une incompatibilité réelle est portée par une métadonnée.
+Aucune carte ne change automatiquement l'état de présence.
+
+## Accessoires et vêtements
+
+Une liste `required_accessories_any_of` rend une occurrence active dès qu'au
+moins une catégorie compatible est déclarée disponible pour la session. Un
+accessoire n'a pas besoin d'être déjà utilisé. Les cartes 049–051 acceptent les
+catégories sextoy, vibrant ou jouet contrôlable à distance ; 052 requiert un
+jouet contrôlable à distance.
+
+006 et 007 retirent respectivement jusqu'à un et deux vêtements du compteur
+courant. Leurs occurrences s'enchaînent donc cumulativement, sans rhabillage,
+et le compteur est borné à zéro. Les comportements 008–011 réinitialisent
+d'abord la cible avec une tenue complète, puis appliquent leur résultat :
+sous-vêtements, nudité, strip-tease ou strip-tease complet. 012 et 013 prennent
+un résultat de tenue choisi et peuvent augmenter le nombre de vêtements
+retirables. Le modèle volontairement simple conserve `HABILLE`,
+`SOUS_VETEMENTS`, `NU` et un compteur.
+
+Pour une capacité totale `T` de vêtements retirables au début du cycle, la
+matérialisation crée `min(2, T)` occurrences de 006, puis
+`ceil((T - occurrences006) / 2)` occurrences de 007. Avec deux joueurs à cinq
+vêtements, cela donne deux occurrences 006 et quatre occurrences 007, soit une
+capacité exacte de dix retraits. Cette règle garde deux unités fines pour les
+cas impairs puis couvre le reste avec le minimum d'unités de deux retraits.
 
 ## Cartes évolutives et défausse
 
@@ -75,6 +130,15 @@ vers la défausse par le lifecycle existant. La défausse n'est pas recyclée
 automatiquement. Un nouveau cycle explicite reste une décision distincte du
 jeu ; l'épuisement normal du pool est conservé.
 
-L'état persistant privé contient les stocks initiaux, les `variantId` consommés
+L'état persistant privé contient les stocks initiaux, les `occurrenceId` consommés
 et le niveau débloqué. Une reconnexion restaure donc la progression sans
-rejouer une consommation et sans exposer ces données au partenaire.
+rejouer une consommation et sans exposer ces données au partenaire. La lecture
+reste compatible avec les anciennes sauvegardes fondées sur `variantId`.
+
+## Profil et hasard
+
+Les PA privés 1–20 ne sont ni lus par la projection contextuelle ni utilisés
+comme poids. À contraintes égales, PA 1 et PA 20 ont exactement la même chance.
+Seul le veto `Exclu`, déjà appliqué par l'éligibilité de profil avant la
+matérialisation, retire le contenu. Après les filtres obligatoires, seules les
+pondérations piment 6A et le hasard interviennent.

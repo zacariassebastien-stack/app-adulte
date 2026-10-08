@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../domain/catalog/v4_catalog.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/session/session_state.dart';
 import '../../engines/draw/draw_engine.dart';
@@ -53,6 +54,8 @@ final class NetworkPrivateGameState {
     List<NetworkPlayedCardRecord> publicDiscards = const [],
     this.choiceVersion = 0,
     V4SpiceProgression? spiceProgression,
+    Set<String> availableAccessories = const {},
+    Map<String, int> clothesByPlayer = const {},
   }) : cards = List.unmodifiable(cards),
        history = Map.unmodifiable(history),
        learningRecordedRounds = Set.unmodifiable(learningRecordedRounds),
@@ -61,6 +64,8 @@ final class NetworkPrivateGameState {
        deckShortages = List.unmodifiable(deckShortages),
        recentCardIds = List.unmodifiable(recentCardIds),
        publicDiscards = List.unmodifiable(publicDiscards),
+       availableAccessories = Set.unmodifiable(availableAccessories),
+       clothesByPlayer = Map.unmodifiable(clothesByPlayer),
        spiceProgression =
            spiceProgression ??
            V4SpiceProgression(initialUnitsBySpice: const {});
@@ -81,6 +86,8 @@ final class NetworkPrivateGameState {
   final List<NetworkPlayedCardRecord> publicDiscards;
   final int choiceVersion;
   final V4SpiceProgression spiceProgression;
+  final Set<String> availableAccessories;
+  final Map<String, int> clothesByPlayer;
 
   Map<String, Object?> toJson() => {
     'round_number': roundNumber,
@@ -123,12 +130,14 @@ final class NetworkPrivateGameState {
     'recent_card_ids': recentCardIds,
     'public_discards': [for (final card in publicDiscards) card.toJson()],
     'choice_version': choiceVersion,
+    'available_accessories': availableAccessories.toList()..sort(),
+    'clothes_by_player': clothesByPlayer,
     'v4_spice_progression': {
       'initial_units_by_spice': {
         for (final entry in spiceProgression.initialUnitsBySpice.entries)
           entry.key.toString(): entry.value,
       },
-      'consumed_variant_ids': spiceProgression.consumedVariantIds.toList()
+      'consumed_occurrence_ids': spiceProgression.consumedOccurrenceIds.toList()
         ..sort(),
       'unlocked_level': spiceProgression.unlockedLevel,
     },
@@ -204,6 +213,16 @@ final class NetworkPrivateGameState {
             ),
         ],
         choiceVersion: (json['choice_version'] as int?) ?? 0,
+        availableAccessories:
+            ((json['available_accessories'] as List?) ?? const [])
+                .cast<String>()
+                .toSet(),
+        clothesByPlayer: {
+          for (final entry in Map<String, Object?>.from(
+            (json['clothes_by_player'] as Map?) ?? const {},
+          ).entries)
+            entry.key: entry.value! as int,
+        },
         spiceProgression: _progression(json['v4_spice_progression']),
       );
 
@@ -215,6 +234,9 @@ final class NetworkPrivateGameState {
     'occurrence_id': card.occurrenceId,
     'stage': card.stage,
     'sequence_key': card.sequenceKey,
+    'presence': card.presence.wireName,
+    'required_accessories_any_of': card.requiredAccessoriesAnyOf,
+    'pool_multiplicity': card.poolMultiplicity.name,
   };
 
   static V4SpiceProgression _progression(Object? value) {
@@ -230,9 +252,12 @@ final class NetworkPrivateGameState {
         for (final entry in rawCounts.entries)
           int.parse(entry.key): entry.value! as int,
       },
-      consumedVariantIds: ((json['consumed_variant_ids'] as List?) ?? const [])
-          .cast<String>()
-          .toSet(),
+      consumedOccurrenceIds:
+          ((json['consumed_occurrence_ids'] as List?) ??
+                  (json['consumed_variant_ids'] as List?) ??
+                  const [])
+              .cast<String>()
+              .toSet(),
       unlockedLevel: (json['unlocked_level'] as int?) ?? 1,
     );
   }
@@ -258,6 +283,15 @@ final class NetworkPrivateGameState {
           distanceExcluded: card['distance_excluded']! as bool,
           stage: (card['stage'] as int?) ?? 1,
           sequenceKey: card['sequence_key'] as String?,
+          presence: V4PresenceCompatibility.parse(
+            (card['presence'] as String?) ?? 'PRESENTIEL',
+          ),
+          requiredAccessoriesAnyOf:
+              ((card['required_accessories_any_of'] as List?) ?? const [])
+                  .cast<String>(),
+          poolMultiplicity: V4PoolMultiplicity.values.byName(
+            (card['pool_multiplicity'] as String?) ?? 'standard',
+          ),
           occurrenceId:
               card['occurrence_id'] as String? ??
               '$contentKey::legacy-$legacyOrdinal',
