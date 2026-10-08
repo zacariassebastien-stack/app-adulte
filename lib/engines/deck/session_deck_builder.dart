@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../../domain/game/balance_config.dart';
 import '../../domain/game/game_models.dart';
 
 final class DeckCandidateV3 {
@@ -8,13 +9,18 @@ final class DeckCandidateV3 {
     required this.variantId,
     required this.spiceLevel,
     required this.distanceExcluded,
+    this.stage = 1,
+    String? sequenceKey,
     String? occurrenceId,
-  }) : occurrenceId = occurrenceId ?? '$cardId::$variantId';
+  }) : sequenceKey = sequenceKey ?? variantId,
+       occurrenceId = occurrenceId ?? '$cardId::$variantId';
 
   final String cardId;
   final String variantId;
   final int spiceLevel;
   final bool distanceExcluded;
+  final int stage;
+  final String sequenceKey;
   final String occurrenceId;
 
   String get occurrenceKey => occurrenceId;
@@ -26,8 +32,277 @@ final class DeckCandidateV3 {
     variantId: variantId,
     spiceLevel: spiceLevel,
     distanceExcluded: distanceExcluded,
+    stage: stage,
+    sequenceKey: sequenceKey,
     occurrenceId: value,
   );
+}
+
+/// Persistent progression for one V4 pool rotation.
+///
+/// Counts are based on unique variants, never on materialized occurrences.
+final class V4SpiceProgression {
+  V4SpiceProgression({
+    required Map<int, int> initialUnitsBySpice,
+    Set<String> consumedVariantIds = const {},
+    this.unlockedLevel = 1,
+  }) : initialUnitsBySpice = Map.unmodifiable({
+         for (var level = 1; level <= 4; level++)
+           level: initialUnitsBySpice[level] ?? 0,
+       }),
+       consumedVariantIds = Set.unmodifiable(consumedVariantIds) {
+    if (unlockedLevel < 1 || unlockedLevel > 4) {
+      throw ArgumentError.value(unlockedLevel, 'unlockedLevel');
+    }
+  }
+
+  factory V4SpiceProgression.fromCandidates(
+    Iterable<DeckCandidateV3> candidates, {
+    int unlockedLevel = 1,
+  }) {
+    final unique = <String, DeckCandidateV3>{
+      for (final candidate in candidates) candidate.variantId: candidate,
+    };
+    return V4SpiceProgression(
+      initialUnitsBySpice: {
+        for (var level = 1; level <= 4; level++)
+          level: unique.values
+              .where((candidate) => candidate.spiceLevel == level)
+              .length,
+      },
+      unlockedLevel: unlockedLevel,
+    );
+  }
+
+  final Map<int, int> initialUnitsBySpice;
+  final Set<String> consumedVariantIds;
+  final int unlockedLevel;
+
+  int initialUnits(int level) => initialUnitsBySpice[level] ?? 0;
+
+  int remainingUnits(int level, Iterable<DeckCandidateV3> candidates) {
+    final variants = <String>{};
+    for (final candidate in candidates) {
+      if (candidate.spiceLevel == level &&
+          !consumedVariantIds.contains(candidate.variantId)) {
+        variants.add(candidate.variantId);
+      }
+    }
+    return variants.length;
+  }
+
+  double? remainingRatio(int level, Iterable<DeckCandidateV3> candidates) {
+    final initial = initialUnits(level);
+    if (initial == 0) return null;
+    return remainingUnits(level, candidates) / initial;
+  }
+
+  bool isPlayable(int effectiveSpice) => effectiveSpice <= unlockedLevel;
+
+  V4SpiceProgression consume(
+    String variantId,
+    Iterable<DeckCandidateV3> candidates,
+  ) {
+    if (consumedVariantIds.contains(variantId) ||
+        !candidates.any((candidate) => candidate.variantId == variantId)) {
+      return this;
+    }
+    final consumed = {...consumedVariantIds, variantId};
+    var level = unlockedLevel;
+    while (level < 4 && _canUnlock(level, level + 1, candidates, consumed)) {
+      level++;
+    }
+    return V4SpiceProgression(
+      initialUnitsBySpice: initialUnitsBySpice,
+      consumedVariantIds: consumed,
+      unlockedLevel: level,
+    );
+  }
+
+  bool _canUnlock(
+    int current,
+    int next,
+    Iterable<DeckCandidateV3> candidates,
+    Set<String> consumed,
+  ) {
+    final currentInitial = initialUnits(current);
+    final nextInitial = initialUnits(next);
+    if (nextInitial == 0) return false;
+    if (currentInitial == 0) return true;
+    var currentRemaining = 0;
+    var nextRemaining = 0;
+    final seen = <String>{};
+    for (final candidate in candidates) {
+      if (!seen.add(candidate.variantId) ||
+          consumed.contains(candidate.variantId)) {
+        continue;
+      }
+      if (candidate.spiceLevel == current) currentRemaining++;
+      if (candidate.spiceLevel == next) nextRemaining++;
+    }
+    // Exact fraction comparison avoids rounding percentages.
+    return currentRemaining * nextInitial < nextRemaining * currentInitial;
+  }
+}
+
+final class V4HandGenerationResult {
+  V4HandGenerationResult({
+    required List<DeckCandidateV3> hand,
+    required List<DeckCandidateV3> drawn,
+    required List<DeckCandidateV3> remainingPool,
+  }) : hand = List.unmodifiable(hand),
+       drawn = List.unmodifiable(drawn),
+       remainingPool = List.unmodifiable(remainingPool);
+
+  final List<DeckCandidateV3> hand;
+  final List<DeckCandidateV3> drawn;
+  final List<DeckCandidateV3> remainingPool;
+}
+
+/// V4 generation policy layered on the existing session deck candidates.
+/// Distribution deliberately does not inspect the unlocked spice level.
+final class V4HandGenerator {
+  const V4HandGenerator({this.config = const BalanceConfig()});
+
+  final BalanceConfig config;
+
+  Set<int> guaranteedSpices(PlayerStyle style) => switch (style) {
+    PlayerStyle.SOFT => const {1, 2},
+    PlayerStyle.EPICE => const {2, 3},
+    PlayerStyle.INTENABLE => const {3, 4},
+  };
+
+  V4HandGenerationResult refill({
+    required Iterable<DeckCandidateV3> currentHand,
+    required Iterable<DeckCandidateV3> pool,
+    required Iterable<DeckCandidateV3> allCandidates,
+    required V4SpiceProgression progression,
+    required PlayerStyle style,
+    required Random random,
+    HybridDeckOrientation? orientation,
+    int? targetSize,
+  }) {
+    final target = targetSize ?? config.handSize;
+    final hand = currentHand.toList();
+    final remaining = pool.toList();
+    final drawn = <DeckCandidateV3>[];
+    final guarantee = guaranteedSpices(style);
+    var guaranteeSatisfied = hand.any(
+      (candidate) => guarantee.contains(candidate.spiceLevel),
+    );
+    var playableSatisfied = hand.any(
+      (candidate) => progression.isPlayable(candidate.spiceLevel),
+    );
+
+    while (hand.length < target) {
+      final available = _available(
+        pool: remaining,
+        allCandidates: allCandidates,
+        progression: progression,
+        handCardIds: hand.map((candidate) => candidate.cardId).toSet(),
+      );
+      if (available.isEmpty) break;
+      final guaranteed = guaranteeSatisfied
+          ? const <DeckCandidateV3>[]
+          : available
+                .where((candidate) => guarantee.contains(candidate.spiceLevel))
+                .toList();
+      final playable = playableSatisfied
+          ? const <DeckCandidateV3>[]
+          : available
+                .where(
+                  (candidate) => progression.isPlayable(candidate.spiceLevel),
+                )
+                .toList();
+      final preferred = guaranteed.isNotEmpty
+          ? guaranteed
+          : playable.isNotEmpty
+          ? playable
+          : available;
+      final choice = _weightedChoice(preferred, style, random, orientation);
+      hand.add(choice);
+      drawn.add(choice);
+      if (guarantee.contains(choice.spiceLevel)) guaranteeSatisfied = true;
+      if (progression.isPlayable(choice.spiceLevel)) {
+        playableSatisfied = true;
+      }
+      remaining.removeWhere(
+        (candidate) => candidate.variantId == choice.variantId,
+      );
+    }
+    return V4HandGenerationResult(
+      hand: hand,
+      drawn: drawn,
+      remainingPool: remaining,
+    );
+  }
+
+  List<DeckCandidateV3> _available({
+    required List<DeckCandidateV3> pool,
+    required Iterable<DeckCandidateV3> allCandidates,
+    required V4SpiceProgression progression,
+    required Set<String> handCardIds,
+  }) {
+    final lowestBySequence = <String, int>{};
+    for (final candidate in allCandidates) {
+      if (progression.consumedVariantIds.contains(candidate.variantId)) {
+        continue;
+      }
+      lowestBySequence.update(
+        candidate.sequenceKey,
+        (stage) => min(stage, candidate.stage),
+        ifAbsent: () => candidate.stage,
+      );
+    }
+    final unique = <String, DeckCandidateV3>{};
+    for (final candidate in pool) {
+      if (progression.consumedVariantIds.contains(candidate.variantId) ||
+          handCardIds.contains(candidate.cardId) ||
+          lowestBySequence[candidate.sequenceKey] != candidate.stage) {
+        continue;
+      }
+      unique.putIfAbsent(candidate.variantId, () => candidate);
+    }
+    return unique.values.toList();
+  }
+
+  DeckCandidateV3 _weightedChoice(
+    List<DeckCandidateV3> candidates,
+    PlayerStyle style,
+    Random random,
+    HybridDeckOrientation? orientation,
+  ) {
+    final weights = config.styleDistributions[style]!;
+    final physicalCount = candidates
+        .where((candidate) => candidate.distanceExcluded)
+        .length;
+    final remoteCount = candidates.length - physicalCount;
+    double weight(DeckCandidateV3 candidate) {
+      final spice = weights[candidate.spiceLevel] ?? 0;
+      if (orientation == null || physicalCount == 0 || remoteCount == 0) {
+        return spice;
+      }
+      final physicalShare = orientation == HybridDeckOrientation.faceToFace
+          ? .70
+          : .30;
+      final groupWeight = candidate.distanceExcluded
+          ? physicalShare / physicalCount
+          : (1 - physicalShare) / remoteCount;
+      return spice * groupWeight;
+    }
+
+    final total = candidates.fold<double>(
+      0,
+      (sum, candidate) => sum + weight(candidate),
+    );
+    if (total <= 0) return candidates[random.nextInt(candidates.length)];
+    var cursor = random.nextDouble() * total;
+    for (final candidate in candidates) {
+      cursor -= weight(candidate);
+      if (cursor < 0) return candidate;
+    }
+    return candidates.last;
+  }
 }
 
 final class DeckSubstitution {

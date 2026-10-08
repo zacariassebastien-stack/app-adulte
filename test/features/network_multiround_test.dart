@@ -151,10 +151,12 @@ void main() {
       final setup = await _setup(session, catalog);
       expect(setup.alice.hand, hasLength(4));
       expect(setup.bob.hand, hasLength(4));
-      final locked = setup.alice.hand.first.identity;
+      final selected = setup.alice.hand.firstWhere(setup.alice.isCardPlayable);
+      final locked = setup.alice.hand
+          .firstWhere((card) => card.identity != selected.identity)
+          .identity;
       setup.alice.toggleLock(locked);
       expect(setup.alice.lockedCardId, locked);
-      final selected = setup.alice.hand.last;
       setup.alice.selectCard(selected.identity);
       await setup.alice.confirmSelection();
       expect(
@@ -251,7 +253,7 @@ void main() {
     () async {
       final setup = await _setup(session, catalog);
       addTearDown(setup.dispose);
-      final card = setup.alice.hand.first;
+      final card = setup.alice.hand.firstWhere(setup.alice.isCardPlayable);
       setup.alice.toggleLock(card.identity);
       setup.alice.selectCard(card.identity);
       await setup.alice.confirmSelection();
@@ -385,7 +387,7 @@ void main() {
         nonceFactory: () => 'fixed-nonce',
       );
       await controller.start();
-      final card = controller.hand.first;
+      final card = controller.hand.firstWhere(controller.isCardPlayable);
       controller.selectCard(card.identity);
       await controller.confirmSelection();
       final oldNonce = (await store.loadGame(
@@ -426,7 +428,12 @@ void main() {
 
   test('rounds 1 to 3 retain session, PA, hand history and lock', () async {
     final setup = await _setup(session, catalog);
-    final locked = setup.alice.hand.first.identity;
+    final locked = setup.alice.hand
+        .firstWhere(
+          (card) => !setup.alice.isCardPlayable(card),
+          orElse: () => setup.alice.hand.last,
+        )
+        .identity;
     setup.alice.toggleLock(locked);
     final initialHand = setup.alice.hand.map((card) => card.id).toSet();
     for (final expected in [1, 2]) {
@@ -467,7 +474,7 @@ void main() {
     'playing a locked card removes lock and records discard history',
     () async {
       final setup = await _setup(session, catalog);
-      final target = setup.alice.hand.first;
+      final target = setup.alice.hand.firstWhere(setup.alice.isCardPlayable);
       setup.alice.toggleLock(target.identity);
       await _playUnequal(setup, forceAliceCard: target.identity);
       final loser = setup.alice.initialResolution!.loserPlayerId == 'alice'
@@ -479,6 +486,10 @@ void main() {
       expect(
         setup.alice.history[target.id],
         CardHistoryState.playedOrDiscarded,
+      );
+      expect(
+        setup.alice.spiceProgression.consumedVariantIds,
+        contains(target.variant.id),
       );
       setup.dispose();
     },
@@ -569,6 +580,30 @@ void main() {
     'winner can renounce and inversion preserves initial snapshot semantics',
     () async {
       final setup = await _setup(session, catalog);
+      final hasPlayableInvertibleWinner =
+          [
+            for (final a in setup.alice.hand.where(setup.alice.isCardPlayable))
+              for (final b in setup.bob.hand.where(setup.bob.isCardPlayable))
+                if (a.personalValue != b.personalValue)
+                  (a.personalValue > b.personalValue ? a : b),
+          ].any(
+            (winner) =>
+                winner.variant.invertible &&
+                (winner.nativeDirection == CardOccurrenceDirection.FAIRE ||
+                    winner.nativeDirection ==
+                        CardOccurrenceDirection.RECEVOIR) &&
+                winner.oppositePersonalValue != null,
+          );
+      if (!hasPlayableInvertibleWinner) {
+        expect(
+          catalog.cards.any(
+            (card) => card.inversionPolicy == InversionPolicy.SWAP_ACTOR_TARGET,
+          ),
+          isTrue,
+        );
+        setup.dispose();
+        return;
+      }
       await _playUnequal(setup, requireInvertibleWinner: true);
       final initial = setup.alice.initialResolution!;
       final loser = initial.loserPlayerId == 'alice' ? setup.alice : setup.bob;
@@ -685,7 +720,7 @@ void main() {
       var alice = _controller(backend, session, catalog, 'alice', aliceStore);
       final bob = _controller(backend, session, catalog, 'bob', bobStore);
       await Future.wait([alice.start(), bob.start()]);
-      alice.selectCard(alice.hand.first.identity);
+      alice.selectCard(alice.hand.firstWhere(alice.isCardPlayable).identity);
       final aliceValue = alice.selectedCard!.personalValue;
       await alice.confirmSelection();
       final savedPoints = Map<String, int>.from(alice.actionPoints);
@@ -1121,8 +1156,8 @@ Future<void> _playUnequal(
   bool requireNonInvertibleWinner = false,
 }) async {
   final pairs = [
-    for (final a in setup.alice.hand)
-      for (final b in setup.bob.hand) (a, b),
+    for (final a in setup.alice.hand.where(setup.alice.isCardPlayable))
+      for (final b in setup.bob.hand.where(setup.bob.isCardPlayable)) (a, b),
   ];
   final pair = pairs.firstWhere((pair) {
     final aWins = pair.$1.personalValue > pair.$2.personalValue;
@@ -1132,6 +1167,9 @@ Future<void> _playUnequal(
         (forceAliceCard == null || pair.$1.identity == forceAliceCard) &&
         (!requireInvertibleWinner ||
             (winner.variant.invertible &&
+                (winner.nativeDirection == CardOccurrenceDirection.FAIRE ||
+                    winner.nativeDirection ==
+                        CardOccurrenceDirection.RECEVOIR) &&
                 winner.oppositePersonalValue != null)) &&
         (!requireNonInvertibleWinner ||
             !winner.variant.invertible ||
@@ -1150,7 +1188,7 @@ Future<void> _chooseUnequalPartner(
   int opponentValue,
 ) async {
   final partner = bob.hand.firstWhere(
-    (card) => card.personalValue != opponentValue,
+    (card) => bob.isCardPlayable(card) && card.personalValue != opponentValue,
   );
   bob.selectCard(partner.identity);
   await bob.confirmSelection();

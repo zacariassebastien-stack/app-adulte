@@ -78,8 +78,8 @@ final class NetworkGameController extends ChangeNotifier {
     _context = EngineSessionContext(
       mode: SessionMode.face_to_face,
       proximity: ProximityState.TOGETHER,
-      chiliActive: 2,
-      chiliUnlocked: 2,
+      chiliActive: 1,
+      chiliUnlocked: 1,
       physicalStateByPlayer: {for (final id in playerIds) id: 'available'},
       clothesByPlayer: {for (final id in playerIds) id: 5},
     );
@@ -130,6 +130,10 @@ final class NetworkGameController extends ChangeNotifier {
   Set<int> _learningRecordedRounds = {};
   List<DeckCandidateV3> _faceToFaceDeck = [];
   List<DeckCandidateV3> _distanceDeck = [];
+  List<DeckCandidateV3> _allDeckCandidates = [];
+  V4SpiceProgression _spiceProgression = V4SpiceProgression(
+    initialUnitsBySpice: const {},
+  );
   int _deckCycle = 1;
   int _choiceVersion = 0;
   bool _infiniteMode = false;
@@ -174,6 +178,7 @@ final class NetworkGameController extends ChangeNotifier {
   HybridDeckOrientation get orientation =>
       round?.hybridOrientation ?? HybridDeckOrientation.faceToFace;
   int get activeSpice => _context.chiliActive;
+  V4SpiceProgression get spiceProgression => _spiceProgression;
   bool get decksEmpty => _faceToFaceDeck.isEmpty && _distanceDeck.isEmpty;
   bool get deckExhausted =>
       decksEmpty && !_runtime.any((card) => card.zone == CardZone.HAND);
@@ -391,11 +396,16 @@ final class NetworkGameController extends ChangeNotifier {
 
   void selectCard(String occurrenceId) {
     if (viewState != NetworkGameViewState.choosing) return;
-    selectedCard = hand
+    final candidate = hand
         .where((card) => card.identity == occurrenceId)
         .firstOrNull;
+    if (candidate == null || !isCardPlayable(candidate)) return;
+    selectedCard = candidate;
     notifyListeners();
   }
+
+  bool isCardPlayable(NetworkDuelCard card) =>
+      _spiceProgression.isPlayable(card.chiliLevel);
 
   Future<void> confirmSelection() async {
     final current = round;
@@ -1057,6 +1067,7 @@ final class NetworkGameController extends ChangeNotifier {
         .map((card) => card.cardId)
         .toList();
     if (played.isEmpty) return;
+    _consumeEngagedVariants();
     _runtime = lifecycleEngine.closeRound(_runtime);
     for (final id in played) {
       _history[id] = CardHistoryState.playedOrDiscarded;
@@ -1143,6 +1154,12 @@ final class NetworkGameController extends ChangeNotifier {
       );
       changed = changed || !_sameRuntime(_runtime, reconciled);
       _runtime = reconciled;
+      if (!_spiceProgression.consumedVariantIds.contains(
+        publicRecovery.variantId,
+      )) {
+        _consumeVariant(publicRecovery.variantId);
+        changed = true;
+      }
     }
     if (changed) await _persist();
   }
@@ -1308,8 +1325,6 @@ final class NetworkGameController extends ChangeNotifier {
       _activeReveal = saved.activeReveal;
       _nextRoundPrepared = saved.nextRoundPrepared;
       _learningRecordedRounds = Set.of(saved.learningRecordedRounds);
-      _faceToFaceDeck = List.of(saved.faceToFaceDeck);
-      _distanceDeck = List.of(saved.distanceDeck);
       _deckCycle = saved.deckCycle;
       _infiniteMode = saved.infiniteMode;
       _deckStyle = saved.deckStyle;
@@ -1317,6 +1332,16 @@ final class NetworkGameController extends ChangeNotifier {
       _recentCardIds = List.of(saved.recentCardIds);
       _publicDiscards = List.of(saved.publicDiscards);
       _choiceVersion = saved.choiceVersion;
+      _allDeckCandidates = _catalogCandidates();
+      _faceToFaceDeck = _normalizeSavedDeck(saved.faceToFaceDeck);
+      _distanceDeck = _normalizeSavedDeck(saved.distanceDeck);
+      _spiceProgression =
+          saved.spiceProgression.initialUnitsBySpice.values.every(
+            (count) => count == 0,
+          )
+          ? _legacyProgression(saved)
+          : saved.spiceProgression;
+      _syncSpiceContext();
       if (_faceToFaceDeck.isEmpty &&
           _distanceDeck.isEmpty &&
           saved.cards.isEmpty) {
@@ -1344,6 +1369,7 @@ final class NetworkGameController extends ChangeNotifier {
         .where((card) => card.zone == CardZone.ENGAGED)
         .map((card) => card.cardId)
         .toList();
+    _consumeEngagedVariants();
     _runtime = lifecycleEngine.closeRound(_runtime);
     for (final id in played) {
       _history[id] = CardHistoryState.playedOrDiscarded;
@@ -1599,17 +1625,26 @@ final class NetworkGameController extends ChangeNotifier {
       _deckCycle++;
       _buildDeckCycle();
     }
-    final deck = SessionDeckRuntime(
-      faceToFace: _faceToFaceDeck,
-      distance: _distanceDeck,
+    final activePool = orientation == HybridDeckOrientation.faceToFace
+        ? _faceToFaceDeck
+        : _distanceDeck;
+    final currentHand = <DeckCandidateV3>[];
+    for (final card in _runtime.where((card) => card.zone == CardZone.HAND)) {
+      final candidate = _allDeckCandidates
+          .where((candidate) => candidate.variantId == card.variantId)
+          .firstOrNull;
+      if (candidate != null) currentHand.add(candidate);
+    }
+    final generated = const V4HandGenerator().refill(
+      currentHand: currentHand,
+      pool: activePool,
+      allCandidates: _allDeckCandidates,
+      progression: _spiceProgression,
+      style: _deckStyle,
       random: Random(_stableHash('$playerId/$targetRound/$_deckCycle')),
+      orientation: orientation,
     );
-    while (needed > 0) {
-      final drawn = deck.draw(
-        orientation,
-        avoidCardIds: _recentCardIds.toSet(),
-      );
-      if (drawn == null) break;
+    for (final drawn in generated.drawn) {
       final alreadyActive = _runtime.any(
         (card) => card.occurrenceId == drawn.occurrenceId,
       );
@@ -1630,17 +1665,37 @@ final class NetworkGameController extends ChangeNotifier {
       _history[drawn.cardId] = CardHistoryState.seenUnplayed;
       needed--;
     }
-    _faceToFaceDeck = List.of(deck.faceToFace);
-    _distanceDeck = List.of(deck.distance);
+    final drawnIds = generated.drawn.map((card) => card.variantId).toSet();
+    _faceToFaceDeck = [
+      for (final card in _faceToFaceDeck)
+        if (!drawnIds.contains(card.variantId)) card,
+    ];
+    _distanceDeck = [
+      for (final card in _distanceDeck)
+        if (!drawnIds.contains(card.variantId)) card,
+    ];
     if (needed < const BalanceConfig().handSize) _recentCardIds = [];
   }
 
   void _buildDeckCycle() {
+    final source = _catalogCandidates();
+    _allDeckCandidates = List.of(source);
+    _spiceProgression = V4SpiceProgression.fromCandidates(
+      source,
+      unlockedLevel: _spiceProgression.unlockedLevel,
+    );
+    _syncSpiceContext();
+    _faceToFaceDeck = List.of(source);
+    _distanceDeck = List.of(source);
+    _deckShortages = [];
+  }
+
+  List<DeckCandidateV3> _catalogCandidates() {
     final source = <DeckCandidateV3>[];
     for (final definition in _definitions.values) {
       final engine = _engineCards[definition.stableId];
       if (engine == null) continue;
-      final context = _context.copyWith(chiliActive: 5, chiliUnlocked: 5);
+      final context = _context.copyWith(chiliActive: 4, chiliUnlocked: 4);
       final eligible = const EligibilityEngine().evaluate(
         card: engine,
         context: context,
@@ -1650,33 +1705,92 @@ final class NetworkGameController extends ChangeNotifier {
         requirePersonalValue: true,
       );
       for (final variant in eligible.eligibleVariants) {
+        final editorialVariant = definition.variants
+            .where((item) => item.stableId == variant.id)
+            .firstOrNull;
+        if (editorialVariant == null) continue;
         final card = _networkCard(
           definition.stableId,
           variantId: variant.id,
           context: context,
         );
         if (card == null) continue;
-        source.add(
-          DeckCandidateV3(
-            cardId: card.id,
-            variantId: card.variant.id,
-            spiceLevel: card.chiliLevel,
-            distanceExcluded: card.variant.tags.contains(
-              'v3.technique.distance_exclue',
-            ),
+        final candidate = DeckCandidateV3(
+          cardId: card.id,
+          variantId: card.variant.id,
+          spiceLevel: card.chiliLevel,
+          distanceExcluded: card.variant.tags.contains(
+            'v3.technique.distance_exclue',
+          ),
+          stage: editorialVariant.v4Stage ?? 1,
+          sequenceKey: _sequenceKey(
+            editorialVariant.stableId,
+            editorialVariant.v4Stage,
           ),
         );
+        if (_directionFor(candidate) != null) source.add(candidate);
       }
     }
-    final build = const SessionDeckBuilderV3().build(
-      eligible: source,
-      targetBySpice: _targetBySpice(source.length, _deckStyle),
-      style: _deckStyle,
+    return source;
+  }
+
+  List<DeckCandidateV3> _normalizeSavedDeck(Iterable<DeckCandidateV3> saved) {
+    final canonical = {
+      for (final candidate in _allDeckCandidates)
+        candidate.variantId: candidate,
+    };
+    final seen = <String>{};
+    return [
+      for (final old in saved)
+        if (canonical[old.variantId] case final candidate?)
+          if (seen.add(candidate.variantId))
+            candidate.withOccurrence(old.occurrenceId),
+    ];
+  }
+
+  V4SpiceProgression _legacyProgression(NetworkPrivateGameState saved) {
+    var progression = V4SpiceProgression.fromCandidates(_allDeckCandidates);
+    final consumed = <String>{
+      for (final card in saved.cards)
+        if ((card.zone == CardZone.DISCARD ||
+                card.zone == CardZone.EXHAUSTED) &&
+            card.variantId != null)
+          card.variantId!,
+      for (final card in saved.publicDiscards) card.variantId,
+    };
+    for (final variantId in consumed) {
+      progression = progression.consume(variantId, _allDeckCandidates);
+    }
+    return progression;
+  }
+
+  static String _sequenceKey(String variantId, int? stage) => stage == null
+      ? variantId
+      : variantId.replaceFirst(RegExp(r'\.s\d+$'), '');
+
+  void _consumeEngagedVariants() {
+    for (final card in _runtime.where(
+      (card) => card.zone == CardZone.ENGAGED && card.variantId != null,
+    )) {
+      _consumeVariant(card.variantId!);
+    }
+  }
+
+  void _consumeVariant(String variantId) {
+    _spiceProgression = _spiceProgression.consume(
+      variantId,
+      _allDeckCandidates,
     );
-    final decks = HybridSessionDecks(source: build.cards);
-    _faceToFaceDeck = List.of(decks.faceToFace);
-    _distanceDeck = List.of(decks.distance);
-    _deckShortages = List.of(build.shortages);
+    _faceToFaceDeck.removeWhere((card) => card.variantId == variantId);
+    _distanceDeck.removeWhere((card) => card.variantId == variantId);
+    _syncSpiceContext();
+  }
+
+  void _syncSpiceContext() {
+    _context = _context.copyWith(
+      chiliActive: _spiceProgression.unlockedLevel,
+      chiliUnlocked: _spiceProgression.unlockedLevel,
+    );
   }
 
   NetworkDuelCard? _networkCard(
@@ -2010,6 +2124,7 @@ final class NetworkGameController extends ChangeNotifier {
       recentCardIds: _recentCardIds,
       publicDiscards: _publicDiscards,
       choiceVersion: _choiceVersion,
+      spiceProgression: _spiceProgression,
     ),
   );
 
@@ -2048,28 +2163,6 @@ final class NetworkGameController extends ChangeNotifier {
       ..._recentCardIds,
       ...cardIds,
     ].reversed.toSet().take(4).toList().reversed.toList();
-  }
-
-  static Map<int, int> _targetBySpice(int size, PlayerStyle style) {
-    if (size <= 0) return const {};
-    final weights = const BalanceConfig().styleDistributions[style]!;
-    final total = weights.values.fold<double>(0, (sum, value) => sum + value);
-    final targets = <int, int>{};
-    var assigned = 0;
-    for (var level = 1; level <= 5; level++) {
-      final count = (size * weights[level]! / total).floor();
-      targets[level] = count;
-      assigned += count;
-    }
-    var level = style == PlayerStyle.SOFT ? 1 : 5;
-    while (assigned < size) {
-      targets[level] = (targets[level] ?? 0) + 1;
-      assigned++;
-      level = style == PlayerStyle.SOFT
-          ? (level == 5 ? 1 : level + 1)
-          : (level == 1 ? 5 : level - 1);
-    }
-    return targets;
   }
 
   NetworkCommandDto _command(

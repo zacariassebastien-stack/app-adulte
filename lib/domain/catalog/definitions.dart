@@ -227,5 +227,15 @@ final class CardVariantDefinition extends ActionDefinition {
   V3EditorialData? get v3 => reader.json['v3'] == null
       ? null
       : V3EditorialData.fromJson(reader.json['v3']! as JsonMap);
+  int? get v4Stage {
+    final metadata = reader.json['v4'];
+    if (metadata == null) return null;
+    return JsonReader(
+      metadata as JsonMap,
+      'V4VariantMetadata',
+      ownerId: stableId,
+    ).optionalInteger('stage', min: 1);
+  }
+
   late final List<StateEffect> stateEffects;
 }

@@ -234,6 +234,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     return CardHandItem(
       id: card.identity,
       locked: controller.lockedCardId == card.identity,
+      available: controller.isCardPlayable(card),
       definition: CardRenderDefinition(
         cardId: card.id,
         variantId: card.variant.id,

@@ -52,6 +52,7 @@ final class NetworkPrivateGameState {
     List<String> recentCardIds = const [],
     List<NetworkPlayedCardRecord> publicDiscards = const [],
     this.choiceVersion = 0,
+    V4SpiceProgression? spiceProgression,
   }) : cards = List.unmodifiable(cards),
        history = Map.unmodifiable(history),
        learningRecordedRounds = Set.unmodifiable(learningRecordedRounds),
@@ -59,7 +60,10 @@ final class NetworkPrivateGameState {
        distanceDeck = List.unmodifiable(distanceDeck),
        deckShortages = List.unmodifiable(deckShortages),
        recentCardIds = List.unmodifiable(recentCardIds),
-       publicDiscards = List.unmodifiable(publicDiscards);
+       publicDiscards = List.unmodifiable(publicDiscards),
+       spiceProgression =
+           spiceProgression ??
+           V4SpiceProgression(initialUnitsBySpice: const {});
 
   final int roundNumber;
   final List<CardRuntimeState> cards;
@@ -76,6 +80,7 @@ final class NetworkPrivateGameState {
   final List<String> recentCardIds;
   final List<NetworkPlayedCardRecord> publicDiscards;
   final int choiceVersion;
+  final V4SpiceProgression spiceProgression;
 
   Map<String, Object?> toJson() => {
     'round_number': roundNumber,
@@ -118,6 +123,15 @@ final class NetworkPrivateGameState {
     'recent_card_ids': recentCardIds,
     'public_discards': [for (final card in publicDiscards) card.toJson()],
     'choice_version': choiceVersion,
+    'v4_spice_progression': {
+      'initial_units_by_spice': {
+        for (final entry in spiceProgression.initialUnitsBySpice.entries)
+          entry.key.toString(): entry.value,
+      },
+      'consumed_variant_ids': spiceProgression.consumedVariantIds.toList()
+        ..sort(),
+      'unlocked_level': spiceProgression.unlockedLevel,
+    },
   };
 
   factory NetworkPrivateGameState.fromJson(Map<String, Object?> json) =>
@@ -190,6 +204,7 @@ final class NetworkPrivateGameState {
             ),
         ],
         choiceVersion: (json['choice_version'] as int?) ?? 0,
+        spiceProgression: _progression(json['v4_spice_progression']),
       );
 
   static Map<String, Object?> _deckJson(DeckCandidateV3 card) => {
@@ -198,7 +213,29 @@ final class NetworkPrivateGameState {
     'spice_level': card.spiceLevel,
     'distance_excluded': card.distanceExcluded,
     'occurrence_id': card.occurrenceId,
+    'stage': card.stage,
+    'sequence_key': card.sequenceKey,
   };
+
+  static V4SpiceProgression _progression(Object? value) {
+    if (value == null) {
+      return V4SpiceProgression(initialUnitsBySpice: const {});
+    }
+    final json = Map<String, Object?>.from(value as Map);
+    final rawCounts = Map<String, Object?>.from(
+      (json['initial_units_by_spice'] as Map?) ?? const {},
+    );
+    return V4SpiceProgression(
+      initialUnitsBySpice: {
+        for (final entry in rawCounts.entries)
+          int.parse(entry.key): entry.value! as int,
+      },
+      consumedVariantIds: ((json['consumed_variant_ids'] as List?) ?? const [])
+          .cast<String>()
+          .toSet(),
+      unlockedLevel: (json['unlocked_level'] as int?) ?? 1,
+    );
+  }
 
   static List<DeckCandidateV3> _deckList(Object? value) {
     final result = <DeckCandidateV3>[];
@@ -219,6 +256,8 @@ final class NetworkPrivateGameState {
           variantId: variantId,
           spiceLevel: card['spice_level']! as int,
           distanceExcluded: card['distance_excluded']! as bool,
+          stage: (card['stage'] as int?) ?? 1,
+          sequenceKey: card['sequence_key'] as String?,
           occurrenceId:
               card['occurrence_id'] as String? ??
               '$contentKey::legacy-$legacyOrdinal',
