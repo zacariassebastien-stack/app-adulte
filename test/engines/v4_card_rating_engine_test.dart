@@ -58,7 +58,25 @@ void main() {
     expect(result.reasonId, 'secondary');
   });
 
-  test('unknown, unknown consent and technical unavailable stay distinct', () {
+  test('excluded primary preference remains an eligibility veto', () {
+    final profile = V4Profile(
+      profileId: 'p',
+      preferences: {
+        'principal|faire': _value('principal', null, excluded: true),
+        'secondary|faire': _value('secondary', 12),
+      },
+    );
+    final result = engine.initialize(
+      profile: profile,
+      variant: variant,
+      effectiveRole: ProfilePreferenceRole.faire,
+    );
+
+    expect(result.kind, V4RatingResultKind.excluded);
+    expect(result.reasonId, 'principal');
+  });
+
+  test('unknown and technical unavailable stay distinct', () {
     final unknown = engine.initialize(
       profile: V4Profile(profileId: 'p', preferences: const {}),
       variant: variant,
@@ -67,14 +85,6 @@ void main() {
     expect(unknown.kind, V4RatingResultKind.unknown);
 
     final profile = _profile(principal: 5, secondary: 12);
-    final consent = engine.initialize(
-      profile: profile,
-      variant: variant,
-      effectiveRole: ProfilePreferenceRole.faire,
-      requiresExplicitConsent: true,
-    );
-    expect(consent.kind, V4RatingResultKind.unknownConsent);
-
     final unavailable = engine.initialize(
       profile: profile,
       variant: variant,
@@ -87,6 +97,70 @@ void main() {
   test('positive PA never creates consent', () {
     final profile = _profile(principal: 5, secondary: 12);
     expect(profile.consents, isEmpty);
+  });
+
+  test('missing or legacy UNKNOWN consent never blocks scoring', () {
+    final base = _profile(principal: 5, secondary: 12);
+    const legacy = PracticeConsent(
+      profileId: 'p',
+      practiceTagId: 'principal',
+      role: ProfilePreferenceRole.faire,
+      status: PracticeConsentStatus.unknown,
+      source: PracticeConsentSource.manualExplicit,
+    );
+    final withLegacy = V4Profile(
+      profileId: 'p',
+      preferences: base.preferences,
+      consents: {legacy.storageKey: legacy},
+    );
+
+    expect(
+      engine
+          .initialize(
+            profile: base,
+            variant: variant,
+            effectiveRole: ProfilePreferenceRole.faire,
+          )
+          .kind,
+      V4RatingResultKind.rated,
+    );
+    expect(
+      engine
+          .initialize(
+            profile: withLegacy,
+            variant: variant,
+            effectiveRole: ProfilePreferenceRole.faire,
+          )
+          .kind,
+      V4RatingResultKind.rated,
+    );
+  });
+
+  test('legacy EXCLUDED consent is preserved but is not a profile veto', () {
+    final base = _profile(principal: 5, secondary: 12);
+    const legacy = PracticeConsent(
+      profileId: 'p',
+      practiceTagId: 'principal',
+      role: ProfilePreferenceRole.faire,
+      status: PracticeConsentStatus.excluded,
+      source: PracticeConsentSource.manualExplicit,
+    );
+    final profile = V4Profile(
+      profileId: 'p',
+      preferences: base.preferences,
+      consents: {legacy.storageKey: legacy},
+    );
+
+    final result = engine.initialize(
+      profile: profile,
+      variant: variant,
+      effectiveRole: ProfilePreferenceRole.faire,
+    );
+    expect(result.kind, V4RatingResultKind.rated);
+    expect(
+      profile.consents.values.single.status,
+      PracticeConsentStatus.excluded,
+    );
   });
 
   test(
@@ -159,6 +233,26 @@ void main() {
     expect(value.ignoredCount, 1);
     expect(value.acceptanceCount, 0);
     expect(value.resistanceCount, 0);
+  });
+
+  test('STOP does not create a profile exclusion', () {
+    final profile = _profile(principal: 5, secondary: 12);
+    final before = profile.toJson();
+    final store = CardSpecificLearningStore();
+    const key = CardRatingKey(
+      profileId: 'p',
+      cardId: 'card.v4.002',
+      variantId: 'variant.v4.002.s1',
+      role: ProfilePreferenceRole.faire,
+    );
+    store.record(
+      key: key,
+      initialScore: 5,
+      signal: V4CardLearningSignal.stopped,
+    );
+
+    expect(profile.toJson(), before);
+    expect(profile.preferences.values.any((value) => value.excluded), isFalse);
   });
 
   test('mutual resolution keeps every player and role contribution', () {

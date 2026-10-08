@@ -145,7 +145,7 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'Tes préférences restent privées. Elles ne valent jamais consentement explicite.',
+                    'Tes préférences restent privées. Tu peux toujours refuser une action ou utiliser STOP.',
                     textAlign: TextAlign.center,
                   ),
                 ],

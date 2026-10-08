@@ -78,10 +78,16 @@ final class ProfilePreference {
       );
 }
 
+/// Legacy persisted status. It is never consulted for card eligibility.
 enum PracticeConsentStatus { unknown, allowed, excluded }
 
+/// Legacy persisted source. It is never consulted for card eligibility.
 enum PracticeConsentSource { manualExplicit, sessionExplicit }
 
+/// Compatibility model for already persisted data.
+///
+/// New gameplay decisions use [ProfilePreference.excluded] as their only
+/// persistent profile veto. This model must never gate card eligibility.
 final class PracticeConsent {
   const PracticeConsent({
     required this.profileId,
@@ -136,6 +142,7 @@ final class V4Profile {
   ProfilePreference? preference(ProfilePreferenceKey key) =>
       preferences[key.storageKey];
 
+  /// Reads legacy data for migration/export only, never for eligibility.
   PracticeConsent? consent({
     required String practiceTagId,
     required ProfilePreferenceRole role,

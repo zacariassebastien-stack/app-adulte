@@ -25,8 +25,8 @@ final class CatalogEngineAdapter {
           chiliLevel: variant.chiliLevel,
           consentRules: useV3 && (variant.v3 != null || card.v3 != null)
               ? card.stableId.startsWith('card.v4.')
-                    // V4 preferences estimate PA only. Explicit practice
-                    // consent is a separate source and is never inferred here.
+                    // V4 eligibility uses profile exclusions as its only
+                    // persistent veto. Legacy PracticeConsent data never gates.
                     ? const []
                     : _v3Consent(variant.v3 ?? card.v3!)
               : [

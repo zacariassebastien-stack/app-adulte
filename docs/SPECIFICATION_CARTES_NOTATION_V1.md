@@ -135,7 +135,7 @@ ProfilePreference:
   excluded: boolean
   source: INITIAL_QUESTIONNAIRE|AUTO_LEARNED|MANUAL_CUSTOMIZED
 
-PracticeConsent:
+PracticeConsent: # LEGACY, conservé uniquement pour relire les données existantes
   profile_id: string
   practice_tag_id: string
   role: GENERAL|FAIRE|RECEVOIR|MUTUEL|SOLO|OBSERVER|SIMULTANE
@@ -162,9 +162,12 @@ Contraintes :
 - une variante contient tous les tags nécessaires à son évaluation ;
 - les tags principaux et secondaires sont explicitement séparés ;
 - aucune direction ni zone n'est déduite d'un titre ;
-- les exigences matérielles ou techniques sont distinctes du consentement ;
-- une préférence positive ne crée jamais `PracticeConsent.status=ALLOWED` ;
-- `ProfilePreference.excluded=true` et `PracticeConsent.status=EXCLUDED` sont tous deux des veto ;
+- les exigences matérielles ou techniques restent distinctes des préférences ;
+- `PracticeConsent` n'intervient plus dans l'éligibilité et reste uniquement
+  sérialisé pour compatibilité avec les données existantes ;
+- `ProfilePreference.excluded=true` est l'unique veto permanent du profil ;
+- toute pratique non exclue peut être proposée si les autres règles de jeu le permettent ;
+- le joueur peut toujours refuser ou utiliser STOP sans créer automatiquement une exclusion ;
 - une nouvelle carte peut être initialisée sans nouvelle question si ses tags sont déjà couverts.
 
 ## 5. Questionnaire initial — définition validée et mapping technique
@@ -195,7 +198,7 @@ Les identifiants ci-dessus sont les identifiants canoniques exacts de la couche 
 
 Pour Q15, le prior composé d'un profil est calculé séparément pour `photo_mutuelle` et `video_mutuelle` à partir de ses deux réponses : `EXCLU` si l'un des deux axes est `EXCLU`, sinon la valeur la plus prudente `max(PA_me_montrer, PA_regarder)`. Cette agrégation ne vaut pas consentement média. En partie, les deux profils doivent en outre passer la résolution `MUTUEL` du § 8.2.
 
-**Règle de sécurité normative :** les écritures élargies ci-dessus sont des estimations initiales et rien de plus. Une réponse positive ne crée jamais `PracticeConsent.status=ALLOWED`. Une exclusion détaillée, un veto de zone, un consentement explicite absent ou exclu, et une impossibilité technique restent prioritaires. La personnalisation explicite d'un tag précis remplace son prior général sans réécrire les autres tags issus de la même question.
+**Règle de sécurité normative :** les écritures élargies ci-dessus sont des estimations initiales et rien de plus. Une réponse positive ne crée aucun objet de consentement. Une exclusion détaillée, un veto de zone et une impossibilité technique restent prioritaires. Une pratique non exclue peut être proposée, mais le joueur peut toujours la refuser ou utiliser STOP. La personnalisation explicite d'un tag précis remplace son prior général sans réécrire les autres tags issus de la même question. Les exclusions temporaires de session seront définies ultérieurement.
 
 Les liens sont déclarés exhaustivement dans les données du questionnaire : aucune ressemblance de nom et aucun héritage implicite parent → enfant ne sont permis. Le même PA peut donc initialiser plusieurs tags, mais le moteur peut ensuite apprendre et personnaliser chacun de ces tags et chaque carte indépendamment.
 
@@ -571,10 +574,6 @@ aucune question n'est créée automatiquement à partir d'un tag technique
 function initializeCardRating(profile, card, variant, effectiveRole):
     applicable = resolveApplicablePreferenceTags(variant, effectiveRole)
 
-    consent = resolveExplicitConsent(profile, card, variant, effectiveRole)
-    if consent contains EXCLUDED:
-        return Excluded(consent.practiceTagId)
-
     resolved = []
     for tag in applicable.primary + applicable.secondary:
         # Résolution : rôle exact, sinon GENERAL explicitement autorisé.
@@ -588,12 +587,6 @@ function initializeCardRating(profile, card, variant, effectiveRole):
     missing = [item.tag for item in resolved if item.preference is missing]
     if missing is not empty:
         return Unknown("préférences non renseignées", missingTagIds=missing.ids)
-
-    # Une préférence positive ne vaut jamais autorisation.
-    # Une pratique sensible qui exige un consentement explicite reste non jouable
-    # tant que ce consentement n'est pas ALLOWED pour la session/le profil.
-    if card.requires_explicit_consent and consent is not ALLOWED:
-        return UnknownConsent(card.stable_id, variant.stable_id)
 
     raw = 0
     for item in resolved.primary:
@@ -610,9 +603,9 @@ function initializeCardRating(profile, card, variant, effectiveRole):
 
 `Unknown` n'est pas équivalent à `Exclu`. Le comportement produit lorsqu'une préférence requise est absente n'a pas été spécifié. Le choix sûr est de ne pas rendre automatiquement la carte éligible tant que la règle produit n'est pas validée.
 
-Après soumission complète des 17 questions V1, `Unknown("préférences non renseignées")` ne doit se produire pour aucune des 65 cartes V4 ni pour une de leurs variantes/stades scoreables. Il reste nécessaire pour un ancien profil non migré, une future carte/tag, une donnée corrompue ou une personnalisation incomplète. `UnknownConsent` et `Unavailable` restent des résultats distincts et attendus même lorsque le score de préférence est calculable.
+Après soumission complète des 17 questions V1, `Unknown("préférences non renseignées")` ne doit se produire pour aucune des 65 cartes V4 ni pour une de leurs variantes/stades scoreables. Il reste nécessaire pour un ancien profil non migré, une future carte/tag, une donnée corrompue ou une personnalisation incomplète. `Unavailable` reste un résultat distinct lorsque les contraintes techniques, matérielles ou contextuelles échouent. `UnknownConsent` est retiré du flux actif.
 
-L'ordre est normatif : rechercher tous les veto connus avant de retourner `Unknown`. Ainsi, un tag manquant ne masque jamais une exclusion présente sur un autre tag. Les exigences techniques sont évaluées séparément et peuvent produire `Unavailable`, jamais une valeur PA. Le score peut être calculé pour prévisualisation lorsque le consentement est `UNKNOWN`, mais la carte ne peut pas être mise en jeu pour autant.
+L'ordre est normatif : rechercher tous les veto de profil connus avant de retourner `Unknown`. Ainsi, un tag manquant ne masque jamais une exclusion présente sur un autre tag. Les exigences techniques sont évaluées séparément et peuvent produire `Unavailable`, jamais une valeur PA. L'absence d'un ancien `PracticeConsent` ou son statut legacy ne bloque jamais la carte.
 
 ## 11. Tests d'acceptation minimaux
 
@@ -641,7 +634,7 @@ L'ordre est normatif : rechercher tous les veto connus avant de retourner `Unkno
 23. La variante vaginale de 049 utilise `sextoy` issu de Q11 et `vaginal` issu de Q08; une exclusion sur l'un ou l'autre est un veto.
 24. Pour 064, la variante nourriture ne demande pas `boisson`, et réciproquement.
 25. Pour 021, une exclusion `masturbation/SOLO` ou `masturbation/OBSERVER` de l'un des joueurs rend l'occurrence inéligible.
-26. Un consentement `UNKNOWN` n'est jamais transformé en `ALLOWED` par un PA à 5 ou 12.
+26. L'absence de `PracticeConsent`, ou un ancien statut `UNKNOWN`, ne bloque pas une carte dont les préférences sont renseignées et non exclues.
 27. Un tag manquant et un autre tag exclu retournent `Excluded`, pas `Unknown`.
 28. Chaque ligne/stade/variante du § 8.2 est chargée; tout tag non classé `P`, `S` ou `NP` fait échouer l'import.
 29. Les 65 numéros 001–065 existent exactement une fois dans l'index et chacun possède au moins une ligne d'audit au § 8.2.
@@ -657,14 +650,13 @@ L'ordre est normatif : rechercher tous les veto connus avant de retourner `Unkno
 Les points suivants restent ouverts, sans empêcher le calcul initial des 65 cartes :
 
 1. identifiants techniques stables des variantes et stades ; les cartes peuvent recevoir `card_001` à `card_065`, mais le catalogue ne fournit pas les identifiants des sous-éléments ;
-2. frontière produit exacte de `requires_explicit_consent` : la séparation préférence/consentement est normative, mais la liste des cartes qui exigent une autorisation explicite avant mise en jeu n'est pas fournie ;
-3. normalisation éventuelle des scores entre cartes ayant des nombres de tags différents ;
-4. politique UX lorsqu'un tag requis est absent sur un ancien profil ou une future extension ; le moteur retourne normativement `Unknown`, mais affichage, filtrage ou demande de précision restent à décider ;
-5. seuil/méthode exacte de remplacement ou de mélange entre prior et note propre de carte ;
-6. migration des profils existants initialisés avec l'ancienne échelle `3/8/20` ;
-7. coexistence éventuelle d'une note propre à la carte et de l'apprentissage des préférences par tag ;
-8. politique de partage ou de confidentialité réseau de la note propre à la carte ;
-9. découpage éditorial officiel de la carte 064 en variantes nourriture/boisson. Le scoring les traite comme alternatives afin d'éviter d'exiger les deux, mais leurs `stable_id` restent à fournir.
+2. normalisation éventuelle des scores entre cartes ayant des nombres de tags différents ;
+3. politique UX lorsqu'un tag requis est absent sur un ancien profil ou une future extension ; le moteur retourne normativement `Unknown`, mais affichage, filtrage ou demande de précision restent à décider ;
+4. seuil/méthode exacte de remplacement ou de mélange entre prior et note propre de carte ;
+5. migration des profils existants initialisés avec l'ancienne échelle `3/8/20` ;
+6. coexistence éventuelle d'une note propre à la carte et de l'apprentissage des préférences par tag ;
+7. politique de partage ou de confidentialité réseau de la note propre à la carte ;
+8. découpage éditorial officiel de la carte 064 en variantes nourriture/boisson. Le scoring les traite comme alternatives afin d'éviter d'exiger les deux, mais leurs `stable_id` restent à fournir.
 
 Codex doit implémenter ces points derrière des interfaces/configurations, ou interrompre l'import avec un diagnostic clair, jusqu'à réception d'une décision ou d'une donnée canonique.
 
@@ -697,6 +689,6 @@ Vérification finale obligatoire :
 - cartes `PARTIEL` : **0** ;
 - cartes `MANQUANT` : **0** ;
 - nouvelles questions nécessaires : **0** ; le questionnaire reste à **17/25** ;
-- exceptions de calcul : uniquement `Exclu`/veto, consentement explicite requis mais non accordé, contrainte technique rendant la variante indisponible, profil ancien/incomplet ou données invalides.
+- exceptions de calcul : uniquement `Exclu`/veto, contrainte technique rendant la variante indisponible, profil ancien/incomplet ou données invalides.
 
-La spécification est donc **prête pour Codex**. L'implémentation doit charger les mappings explicites du § 5, la classification du § 8.2, conserver strictement `ProfilePreference` et `PracticeConsent` séparés, puis utiliser les tags comme prior initial avant l'apprentissage propre à la carte du § 7. Les décisions produit encore ouvertes au § 12 ne remettent pas en cause la couverture de notation.
+La spécification est donc **prête pour Codex**. L'implémentation doit charger les mappings explicites du § 5, la classification du § 8.2, utiliser `ProfilePreference.excluded` comme unique veto permanent du profil, puis utiliser les tags comme prior initial avant l'apprentissage propre à la carte du § 7. Les anciennes données `PracticeConsent` restent uniquement lisibles pour compatibilité et n'interviennent jamais dans l'éligibilité. Les décisions produit encore ouvertes au § 12 ne remettent pas en cause la couverture de notation.

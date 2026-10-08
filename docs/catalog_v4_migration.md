@@ -26,9 +26,10 @@ spécification ne fournit pas de correspondance sûre.
 
 Les nouveaux profils utilisent le questionnaire version 1 et l'échelle
 5/12/20/Exclu. Les profils existants stockés avec 3/8/20 ne sont pas réécrits :
-la politique de migration n'est pas spécifiée. Les préférences V4 sont stockées
-séparément des consentements explicites. Un PA positif ne produit jamais un
-consentement `ALLOWED`.
+la politique de migration n'est pas spécifiée. Les anciennes données
+`PracticeConsent` restent lisibles et sérialisables, mais sont désormais legacy
+et n'interviennent plus dans l'éligibilité. `ProfilePreference.excluded` est
+l'unique veto permanent du profil. STOP ou un refus ne crée aucune exclusion.
 
 ## Apprentissage propre aux cartes
 

@@ -206,12 +206,18 @@ void main() {
   );
 
   test('preference initialization never creates PracticeConsent', () {
-    final profile = const InitialQuestionnaireEngine().initialize(
-      profileId: 'p',
-      questionnaire: questionnaire,
-      responses: _responses(questionnaire, InitialQuestionResponse.love),
-    );
-    expect(profile.consents, isEmpty);
+    for (final response in const [
+      InitialQuestionResponse.love,
+      InitialQuestionResponse.like,
+      InitialQuestionResponse.unsure,
+    ]) {
+      final profile = const InitialQuestionnaireEngine().initialize(
+        profileId: 'p',
+        questionnaire: questionnaire,
+        responses: _responses(questionnaire, response),
+      );
+      expect(profile.consents, isEmpty, reason: response.name);
+    }
   });
 
   test('preferences and explicit consents round-trip independently', () {

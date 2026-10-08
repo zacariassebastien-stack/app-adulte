@@ -1,13 +1,7 @@
 import '../../domain/catalog/v4_catalog.dart';
 import '../../domain/profile/v4_profile.dart';
 
-enum V4RatingResultKind {
-  rated,
-  excluded,
-  unknown,
-  unknownConsent,
-  unavailable,
-}
+enum V4RatingResultKind { rated, excluded, unknown, unavailable }
 
 final class V4RatingResult {
   V4RatingResult._({
@@ -28,11 +22,6 @@ final class V4RatingResult {
       V4RatingResult._(kind: V4RatingResultKind.excluded, reasonId: tagId);
   factory V4RatingResult.unknown(List<String> tagIds) =>
       V4RatingResult._(kind: V4RatingResultKind.unknown, missingTagIds: tagIds);
-  factory V4RatingResult.unknownConsent(String practiceTagId) =>
-      V4RatingResult._(
-        kind: V4RatingResultKind.unknownConsent,
-        reasonId: practiceTagId,
-      );
   factory V4RatingResult.unavailable(String requirementId) => V4RatingResult._(
     kind: V4RatingResultKind.unavailable,
     reasonId: requirementId,
@@ -62,7 +51,6 @@ final class V4MutualRatingResult {
   V4RatingResultKind get kind {
     for (final candidate in const [
       V4RatingResultKind.excluded,
-      V4RatingResultKind.unknownConsent,
       V4RatingResultKind.unknown,
       V4RatingResultKind.unavailable,
     ]) {
@@ -85,8 +73,6 @@ final class V4CardRatingEngine {
     required ProfilePreferenceRole effectiveRole,
     bool technicalAvailable = true,
     String technicalRequirementId = 'technical_requirement',
-    bool requiresExplicitConsent = false,
-    String? practiceTagId,
   }) {
     final tags = [
       ...variant.primaryPreferenceTags,
@@ -99,10 +85,6 @@ final class V4CardRatingEngine {
       final value = _resolve(profile, tag, effectiveRole);
       resolved[tag] = value;
       if (value?.excluded ?? false) return V4RatingResult.excluded(tag);
-      final consent = profile.consent(practiceTagId: tag, role: effectiveRole);
-      if (consent?.status == PracticeConsentStatus.excluded) {
-        return V4RatingResult.excluded(tag);
-      }
     }
 
     final missing = [
@@ -113,14 +95,6 @@ final class V4CardRatingEngine {
     if (!technicalAvailable) {
       return V4RatingResult.unavailable(technicalRequirementId);
     }
-    if (requiresExplicitConsent) {
-      final id = practiceTagId ?? variant.primaryPreferenceTags.first;
-      final consent = profile.consent(practiceTagId: id, role: effectiveRole);
-      if (consent?.status != PracticeConsentStatus.allowed) {
-        return V4RatingResult.unknownConsent(id);
-      }
-    }
-
     var raw = 0.0;
     for (final tag in variant.primaryPreferenceTags) {
       raw += resolved[tag]!.pa!;
@@ -149,7 +123,6 @@ final class V4CardRatingEngine {
     required List<V4RatingContribution> contributions,
     required V4VariantRatingDefinition variant,
     bool technicalAvailable = true,
-    bool requiresExplicitConsent = false,
   }) => V4MutualRatingResult(
     contributions: [
       for (final contribution in contributions)
@@ -158,7 +131,6 @@ final class V4CardRatingEngine {
           variant: variant,
           effectiveRole: contribution.role,
           technicalAvailable: technicalAvailable,
-          requiresExplicitConsent: requiresExplicitConsent,
         ),
     ],
   );
