@@ -17,7 +17,7 @@ void main() {
   late LobbySession session;
 
   setUpAll(() async {
-    catalog = await const CatalogLoader().loadLegacyV3(
+    catalog = await const CatalogLoader().load(
       (path) => File(path).readAsString(),
     );
     session = LobbySession(
@@ -33,7 +33,8 @@ void main() {
   });
 
   test('network DTO round-trips without private hand, lock or profile', () {
-    final state = _Backend().state('alice');
+    final backend = _Backend()..cycleExhausted = true;
+    final state = backend.state('alice');
     final encoded = jsonEncode(state.toJson());
     expect(
       NetworkGameRoundStateDto.fromJson(state.toJson()).toJson(),
@@ -50,6 +51,33 @@ void main() {
       expect(encoded, isNot(contains(secret)));
     }
     expect(state.actionPoints, {'alice': 100, 'bob': 100});
+    expect(state.cycleExhausted, isTrue);
+  });
+
+  test('the first zero occurrence signal ends the common cycle', () async {
+    final backend = _Backend();
+    backend.round.phase = NetworkGamePhase.finalResolved;
+    final alice = backend.repository('alice');
+    final bob = backend.repository('bob');
+    await alice.readyNextRound(
+      command: _command('zero-alice', 'alice', 'READY_NEXT', backend.round.id),
+      noPlayableOccurrences: true,
+    );
+    expect(backend.state('alice').cycleExhausted, isTrue);
+    expect(backend.state('bob').cycleExhausted, isTrue);
+    await expectLater(
+      bob.readyNextRound(
+        command: _command('next-bob', 'bob', 'READY_NEXT', backend.round.id),
+      ),
+      throwsA(
+        isA<NetworkRoundException>().having(
+          (error) => error.code,
+          'code',
+          'ROUND_CYCLE_EXHAUSTED',
+        ),
+      ),
+    );
+    expect(backend.currentRound, 1);
   });
 
   test('private state round-trips hand, lock, history and active secret', () {
@@ -70,11 +98,47 @@ void main() {
       ],
       history: const {'card.hug': CardHistoryState.seenUnplayed},
       activeReveal: reveal,
+      sessionMode: V4SessionMode.hybrid,
+      presence: V4SessionPresence.distance,
+      resolvedParameters: const {
+        'card.hug': V4ResolvedParameters(
+          zoneSelectionSource: V4ZoneSelectionSource.game,
+          sexualOrIntimateZone: true,
+          zoneId: 'zone.intimate',
+          accessoryId: 'temp-1',
+        ),
+      },
+      persistentEffects: const [
+        V4PersistentEffect(
+          cardId: 'card.v4.033',
+          targetPlayerId: 'bob',
+          remainingActions: 2,
+        ),
+      ],
+      clothesByPlayer: const {'alice': 3, 'bob': 4},
+      accessoryPool: V4SessionAccessoryPool(
+        profileAccessories: const [],
+        temporaryAccessories: [
+          V4Accessory(
+            id: 'temp-1',
+            name: 'Temporaire',
+            ownerPlayerId: 'alice',
+            tags: const {V4AccessoryTag.vibrant},
+            temporary: true,
+          ),
+        ],
+      ),
     );
     final decoded = NetworkPrivateGameState.fromJson(state.toJson());
     expect(decoded.cards.single.locked, isTrue);
     expect(decoded.history['card.hug'], CardHistoryState.seenUnplayed);
     expect(decoded.activeReveal!.nonce, 'private-nonce');
+    expect(decoded.sessionMode, V4SessionMode.hybrid);
+    expect(decoded.presence, V4SessionPresence.distance);
+    expect(decoded.resolvedParameters['card.hug']!.accessoryId, 'temp-1');
+    expect(decoded.persistentEffects.single.remainingActions, 2);
+    expect(decoded.clothesByPlayer['alice'], 3);
+    expect(decoded.accessoryPool.available.single.id, 'temp-1');
     expect(
       jsonEncode(_Backend().state('bob').toJson()),
       isNot(contains('private-nonce')),
@@ -163,7 +227,7 @@ void main() {
         setup.alice.runtime
             .singleWhere((card) => card.occurrenceId == selected.identity)
             .zone,
-        CardZone.ENGAGED,
+        CardZone.RESERVED,
       );
       expect(setup.alice.lockedCardId, locked);
       expect(
@@ -443,12 +507,12 @@ void main() {
       await loser.acceptInitialResult();
       await _settle();
       final beforeReady = Map<String, int>.from(setup.alice.actionPoints);
-      await setup.alice.readyForNextRound();
-      await setup.alice.readyForNextRound();
+      await setup.alice.completeAction();
+      await _settle();
       expect(setup.alice.roundNumber, expected);
       expect(setup.alice.viewState, NetworkGameViewState.waitingNext);
-      expect(setup.bob.viewState, NetworkGameViewState.finalResult);
-      await setup.bob.readyForNextRound();
+      expect(setup.bob.viewState, NetworkGameViewState.waitingNext);
+      await setup.alice.completeAction();
       await _settle();
       expect(setup.alice.roundNumber, expected + 1);
       expect(setup.bob.roundNumber, expected + 1);
@@ -481,7 +545,9 @@ void main() {
           ? setup.alice
           : setup.bob;
       await loser.acceptInitialResult();
-      await setup.alice.readyForNextRound();
+      await setup.alice.completeAction();
+      await _settle();
+      await setup.alice.completeAction();
       expect(setup.alice.lockedCardId, isNot(target.identity));
       expect(
         setup.alice.history[target.id],
@@ -642,7 +708,7 @@ void main() {
     if (!hasNonInvertibleWinningPair) {
       expect(
         catalog.cards
-            .map((card) => const CatalogEngineAdapter.v3().card(card))
+            .map((card) => const CatalogEngineAdapter.v4().card(card))
             .expand((card) => card.variants)
             .any((variant) => variant.invertible == false),
         isTrue,
@@ -758,14 +824,14 @@ void main() {
       alice.dispose();
       alice = _controller(backend, session, catalog, 'alice', aliceStore);
       await alice.start();
-      expect(alice.viewState, NetworkGameViewState.finalResult);
-      await alice.readyForNextRound();
+      expect(alice.viewState, NetworkGameViewState.actionInProgress);
+      await alice.completeAction();
       alice.dispose();
       alice = _controller(backend, session, catalog, 'alice', aliceStore);
       await alice.start();
       expect(alice.viewState, NetworkGameViewState.waitingNext);
       expect(backend.initialApplications, 1);
-      await bob.readyForNextRound();
+      await alice.completeAction();
       await _settle();
       alice.dispose();
       alice = _controller(backend, session, catalog, 'alice', aliceStore);
@@ -1096,6 +1162,22 @@ void main() {
       expect(cancellation, contains("set status='closed'"));
       expect(cancellation, contains("phase='SESSION_CLOSED'"));
       expect(cancellation, isNot(contains('private_hand')));
+      final completion = File(
+        'supabase/migrations/202610080001_v4_action_completion.sql',
+      ).readAsStringSync();
+      expect(completion, contains("phase = 'CLOSED'"));
+      expect(completion, contains("kind <> 'READY_NEXT'"));
+      expect(completion, contains('cycle_exhausted'));
+      expect(completion, contains('p_no_playable_occurrences'));
+      expect(completion, contains('publish_v4_action_projection'));
+      expect(completion, contains('v4_action_projection'));
+      expect(completion, contains('v4_clothing_resynced'));
+      expect(completion, contains('ROUND_CLOTHING_RESYNC_REQUIRED'));
+      expect(completion, contains('v4_session_setup_json'));
+      expect(completion, contains("raise exception 'ROUND_CYCLE_EXHAUSTED'"));
+      expect(completion, contains("v_round.phase <> 'WAITING_NEXT'"));
+      expect(completion, isNot(contains('count(*) from jsonb_object_keys')));
+      expect(completion, contains('pg_advisory_xact_lock'));
     },
   );
 }
@@ -1177,10 +1259,32 @@ Future<void> _playUnequal(
   });
   setup.alice.selectCard(pair.$1.identity);
   setup.bob.selectCard(pair.$2.identity);
+  expect(setup.alice.selectedCard, isNotNull);
+  expect(
+    setup.bob.selectedCard,
+    isNotNull,
+    reason:
+        'bob view=${setup.bob.viewState}, round=${setup.bob.roundNumber}, '
+        'phase=${setup.bob.round?.phase}',
+  );
   await setup.alice.confirmSelection();
+  expect(
+    setup.bob.selectedCard,
+    isNotNull,
+    reason: 'Bob selection was cleared after Alice committed',
+  );
   await setup.bob.confirmSelection();
   await _settle();
-  expect(setup.alice.initialResolution, isNotNull);
+  expect(
+    setup.alice.initialResolution,
+    isNotNull,
+    reason:
+        'alice=${setup.alice.errorMessage}, bob=${setup.bob.errorMessage}, '
+        'phase=${setup.backend.phase}, '
+        'views=${setup.alice.viewState}/${setup.bob.viewState}, '
+        'selected=${setup.alice.selectedCard?.identity}/'
+        '${setup.bob.selectedCard?.identity}',
+  );
 }
 
 Future<void> _chooseUnequalPartner(
@@ -1199,8 +1303,9 @@ Future<void> _reachSecondResolved(_Setup setup) async {
   final firstLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
   await firstLoser.acceptInitialResult();
   await _settle();
-  await setup.alice.readyForNextRound();
-  await setup.bob.readyForNextRound();
+  await setup.alice.completeAction();
+  await _settle();
+  await setup.alice.completeAction();
   await _settle();
   await _playUnequal(setup);
   final secondLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
@@ -1310,6 +1415,7 @@ final class _Backend {
   int initialApplications = 0;
   int counterApplications = 0;
   int defenseApplications = 0;
+  bool cycleExhausted = false;
 
   _RoundRecord get round => rounds[currentRound]!;
   NetworkGamePhase get phase => round.phase;
@@ -1328,6 +1434,7 @@ final class _Backend {
     actionPoints: points,
     readyNextPlayerIds: round.ready,
     tieDecisions: round.ties,
+    cycleExhausted: cycleExhausted,
     ownReveal: round.reveals[player],
     opponentReveal: _revealsPublic
         ? round.reveals.entries
@@ -1758,14 +1865,21 @@ final class _Repository
   @override
   Future<NetworkGameRoundStateDto> readyNextRound({
     required NetworkCommandDto command,
+    bool noPlayableOccurrences = false,
+    int? clothingCount,
   }) async {
     if (!_accept(command)) return backend.state(player);
     if (backend.phase != NetworkGamePhase.finalResolved &&
         backend.phase != NetworkGamePhase.waitingNext) {
       throw const NetworkRoundException('ROUND_INVALID_PHASE');
     }
+    final closesBoundary = backend.round.phase == NetworkGamePhase.waitingNext;
+    if (closesBoundary && backend.cycleExhausted) {
+      throw const NetworkRoundException('ROUND_CYCLE_EXHAUSTED');
+    }
+    backend.cycleExhausted = backend.cycleExhausted || noPlayableOccurrences;
     backend.round.ready.add(player);
-    if (backend.round.ready.length == 1) {
+    if (!closesBoundary) {
       backend.round.phase = NetworkGamePhase.waitingNext;
     } else {
       backend.round.phase = NetworkGamePhase.closed;

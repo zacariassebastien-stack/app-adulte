@@ -5,14 +5,18 @@ import '../../domain/catalog/catalog.dart';
 import '../../domain/catalog/enums.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/profile/adaptive_profile.dart';
+import '../../domain/profile/v4_profile.dart';
+import '../../domain/catalog/v4_catalog.dart';
 import '../../engines/auction/auction_engine.dart';
 import '../../engines/corruption/corruption_engine.dart';
 import '../../engines/deck/session_deck_builder.dart';
 import '../../engines/recovery/recovery_engine.dart';
+import '../../engines/runtime/v4_runtime_engine.dart';
 import '../../sync/rounds/network_game.dart';
 import '../lobby/lobby_models.dart';
 import '../lobby/active_session_store.dart';
 import '../lobby/game_history.dart';
+import '../profile/v4_accessory_profile_screen.dart';
 import 'game_preferences.dart';
 import 'network_duel_secret_store.dart';
 import 'network_duel_controller.dart' show NetworkDuelCard;
@@ -35,6 +39,12 @@ class NetworkDuelScreen extends StatefulWidget {
     this.historyStore = const SharedPreferencesGameHistoryStore(),
     this.preferences,
     this.privateProfile,
+    this.v4Profile,
+    this.scoringCatalog,
+    this.sessionMode = V4SessionMode.presentiel,
+    this.initialClothingCounts = const {},
+    this.profileAccessories = const [],
+    this.profileStore = const SharedPreferencesV4ProfileStore(),
     super.key,
   });
 
@@ -47,6 +57,12 @@ class NetworkDuelScreen extends StatefulWidget {
   final GameHistoryStore historyStore;
   final GamePreferencesController? preferences;
   final PlayerGameProfile? privateProfile;
+  final V4Profile? v4Profile;
+  final V4ScoringCatalog? scoringCatalog;
+  final V4SessionMode sessionMode;
+  final Map<String, int> initialClothingCounts;
+  final List<V4Accessory> profileAccessories;
+  final V4ProfileStore profileStore;
 
   @override
   State<NetworkDuelScreen> createState() => _NetworkDuelScreenState();
@@ -79,6 +95,11 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       privateStore: widget.secretStore,
       catalog: widget.catalog,
       privateProfile: widget.privateProfile,
+      v4Profile: widget.v4Profile,
+      scoringCatalog: widget.scoringCatalog,
+      sessionMode: widget.sessionMode,
+      initialClothingCounts: widget.initialClothingCounts,
+      profileAccessories: widget.profileAccessories,
     )..addListener(_refresh);
     controller.start();
   }
@@ -126,7 +147,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               : _handStage,
           onSettings: _openSettings,
           animationsEnabled: preferences.value.animations,
-          onOrientationChanged: calm ? controller.switchOrientation : null,
+          onOrientationChanged:
+              controller.viewState == NetworkGameViewState.waitingNext
+              ? controller.switchOrientation
+              : null,
           discardVisible: calm && _handStage != CardHandStage.open,
           onDiscard: _openDiscard,
           child: Padding(
@@ -171,7 +195,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     NetworkGameViewState.counterDecision => _counterDecision(),
     NetworkGameViewState.finalDefenseDecision => _finalDefense(),
     NetworkGameViewState.tieDecision => _tieDecision(),
-    NetworkGameViewState.finalResult => _finalResult(),
+    NetworkGameViewState.actionInProgress => _actionInProgress(),
     NetworkGameViewState.corruptionDecision => _corruptionDecision(),
     NetworkGameViewState.corruptionResponse => _corruptionResponse(),
     NetworkGameViewState.corruptionExecution => _corruptionExecution(),
@@ -557,27 +581,41 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     ],
   );
 
-  Widget _finalResult() {
+  Widget _actionInProgress() {
     final result = controller.finalResolution!;
+    final projection = controller.actionProjection;
     final title = result.mutualAbandon
         ? 'Round abandonné mutuellement'
         : result.retainedPlayerId == controller.playerId
         ? 'Ton action est retenue'
         : 'Action du partenaire retenue';
     return ListView(
-      key: const Key('network-final-result'),
+      key: const Key('network-action-in-progress'),
       padding: const EdgeInsets.all(16),
       children: [
         Text(title, style: Theme.of(context).textTheme.headlineSmall),
         if (!result.mutualAbandon) ...[
           const SizedBox(height: 12),
-          if (result.compromise.isNotEmpty) ...[
-            for (final card in result.compromise)
+          if (projection != null && projection.cards.isNotEmpty) ...[
+            for (final card in projection.cards)
               ListTile(
                 title: Text(_title(card.cardId)),
                 subtitle: Text(
-                  '${card.effectiveDirection.name} · ${card.origin.name}',
+                  [
+                    card.direction.name,
+                    'cible : ${card.targetPlayerIds.join(', ')}',
+                    if (card.zoneId != null) 'zone : ${card.zoneId}',
+                    if (card.accessoryId != null)
+                      'accessoire : ${controller.accessoryName(card.accessoryId) ?? card.accessoryId}',
+                    '🌶️ ${card.effectiveSpice}',
+                  ].join(' · '),
                 ),
+              ),
+          ] else if (result.compromise.isNotEmpty) ...[
+            for (final card in result.compromise)
+              ListTile(
+                title: Text(_title(card.cardId)),
+                subtitle: Text(card.effectiveDirection.name),
               ),
           ] else if (result.cardId != null) ...[
             Text('Carte : ${_title(result.cardId!)}'),
@@ -585,77 +623,151 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             if (result.inverted) const Text('Rôles physiques inversés'),
           ],
         ],
+        if (controller.persistentEffects.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Text('Effets actifs', style: Theme.of(context).textTheme.titleMedium),
+          for (final effect in controller.persistentEffects)
+            Text(
+              '${_title(effect.cardId)} · ${effect.remainingActions} action(s) restante(s)',
+            ),
+        ],
         const SizedBox(height: 20),
-        if (controller.deckExhausted) ...[
-          Text(
-            'Cycle de cartes terminé',
-            style: Theme.of(context).textTheme.titleMedium,
+        FilledButton(
+          key: const Key('complete-network-action'),
+          onPressed: controller.actionCompletionSubmitted
+              ? null
+              : _completeAction,
+          child: Text(
+            controller.actionCompletionSubmitted &&
+                    controller.waitingForClothingResync
+                ? 'En attente de ton partenaire…'
+                : 'Terminé',
           ),
-          if (controller.deckShortages.isNotEmpty) _deckAdjustmentMessage(),
-          if (controller.postGameProfileChoice == null) ...[
-            const Text('Pour la suite de ton profil privé :'),
-            TextButton(
-              onPressed: () => controller.choosePostGameProfile(
-                PostGameProfileChoice.customize,
-              ),
-              child: const Text('Personnaliser mon profil'),
-            ),
-            TextButton(
-              onPressed: () => controller.choosePostGameProfile(
-                PostGameProfileChoice.trustGame,
-              ),
-              child: const Text('Faire confiance au jeu'),
-            ),
-            TextButton(
-              onPressed: () =>
-                  controller.choosePostGameProfile(PostGameProfileChoice.later),
-              child: const Text('Ne rien faire pour l’instant'),
-            ),
-          ],
-          if (controller.isCycleController) ...[
-            FilledButton(
-              key: const Key('continue-spicier'),
-              onPressed: () => controller.continueDeck(
-                controller.deckStyle == PlayerStyle.INTENABLE
-                    ? DeckExhaustionChoice.continueIntenable
-                    : DeckExhaustionChoice.continueSpicier,
-              ),
-              child: Text(
-                controller.deckStyle == PlayerStyle.SOFT
-                    ? 'Continuer en Épicé'
-                    : 'Continuer en Intenable',
-              ),
-            ),
-            OutlinedButton(
-              key: const Key('enable-infinite'),
-              onPressed: () =>
-                  controller.continueDeck(DeckExhaustionChoice.infinite),
-              child: const Text('Mode Infini'),
-            ),
-            OutlinedButton(
-              key: const Key('new-customized-game'),
-              onPressed: () => controller.continueDeck(
-                DeckExhaustionChoice.newCustomizedGame,
-              ),
-              child: const Text('Nouvelle partie'),
-            ),
-            TextButton(
-              key: const Key('finish-game'),
-              onPressed: () =>
-                  controller.continueDeck(DeckExhaustionChoice.finish),
-              child: const Text('Terminer'),
-            ),
-          ] else
-            _waitingCard('Ton partenaire choisit la suite de la partie…'),
-        ] else
-          FilledButton(
-            key: const Key('ready-next-round'),
-            onPressed: controller.readyForNextRound,
-            child: const Text('Tour suivant'),
-          ),
+        ),
       ],
     );
   }
+
+  Future<void> _completeAction() async {
+    if (controller.ownClothingResyncRequired) {
+      final input = TextEditingController(
+        text: '${controller.clothingCounts[controller.playerId] ?? 0}',
+      );
+      final count = await showDialog<int>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Vêtements'),
+          content: TextField(
+            key: const Key('clothing-resync-count'),
+            controller: input,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Combien de vêtements portes-tu actuellement ?',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final value = int.tryParse(input.text);
+                if (value != null && value >= 0) Navigator.pop(context, value);
+              },
+              child: const Text('Valider'),
+            ),
+          ],
+        ),
+      );
+      input.dispose();
+      if (count == null) return;
+      await controller.updateOwnClothingCount(count);
+    }
+    await controller.completeAction();
+  }
+
+  Widget _waitingNext() => Center(
+    key: const Key('network-round-boundary'),
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Action terminée'),
+          const SizedBox(height: 12),
+          if (controller.deckExhausted)
+            ..._cycleEndControls()
+          else if (controller.isCycleController)
+            FilledButton(
+              key: const Key('start-next-network-round'),
+              onPressed: controller.completeAction,
+              child: const Text('Continuer'),
+            )
+          else
+            const Text('En attente du prochain tour…'),
+        ],
+      ),
+    ),
+  );
+
+  List<Widget> _cycleEndControls() => [
+    Text(
+      'Cycle de cartes terminé',
+      style: Theme.of(context).textTheme.titleMedium,
+    ),
+    if (controller.deckShortages.isNotEmpty) _deckAdjustmentMessage(),
+    if (controller.postGameProfileChoice == null) ...[
+      const Text('Souhaitez-vous ajuster vos préférences après cette partie ?'),
+      TextButton(
+        onPressed: _openProfileCustomization,
+        child: const Text('Personnaliser mon profil'),
+      ),
+      TextButton(
+        onPressed: () =>
+            controller.choosePostGameProfile(PostGameProfileChoice.trustGame),
+        child: const Text('Faire confiance au jeu'),
+      ),
+      TextButton(
+        onPressed: () =>
+            controller.choosePostGameProfile(PostGameProfileChoice.later),
+        child: const Text('Ne rien faire pour l’instant'),
+      ),
+    ],
+    if (controller.isCycleController) ...[
+      FilledButton(
+        key: const Key('continue-spicier'),
+        onPressed: () => controller.continueDeck(
+          controller.deckStyle == PlayerStyle.INTENABLE
+              ? DeckExhaustionChoice.continueIntenable
+              : DeckExhaustionChoice.continueSpicier,
+        ),
+        child: Text(
+          controller.deckStyle == PlayerStyle.SOFT
+              ? 'Continuer en Épicé'
+              : 'Continuer en Intenable',
+        ),
+      ),
+      OutlinedButton(
+        key: const Key('enable-infinite'),
+        onPressed: () => controller.continueDeck(DeckExhaustionChoice.infinite),
+        child: const Text('Mode Infini'),
+      ),
+      OutlinedButton(
+        key: const Key('new-customized-game'),
+        onPressed: () =>
+            controller.continueDeck(DeckExhaustionChoice.newCustomizedGame),
+        child: const Text('Nouvelle partie'),
+      ),
+      TextButton(
+        key: const Key('finish-game'),
+        onPressed: () => controller.continueDeck(DeckExhaustionChoice.finish),
+        child: const Text('Terminer'),
+      ),
+    ] else
+      _waitingCard('Ton partenaire choisit la suite de la partie…'),
+  ];
 
   Widget _corruptionDecision() => ListView(
     key: const Key('network-corruption-decision'),
@@ -841,11 +953,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     );
   }
 
-  Widget _waitingNext() => _centerMessage(
-    'Prêt pour le prochain tour — En attente de ton partenaire…',
-    key: const Key('waiting-next-round'),
-  );
-
   Widget _initialResult(NetworkInitialResolutionDto initial) => Card(
     child: Padding(
       padding: const EdgeInsets.all(16),
@@ -987,6 +1094,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             if (controller.postGameProfileChoice ==
                 PostGameProfileChoice.customize) ...[
               const Divider(),
+              ListTile(
+                key: const Key('customize-v4-accessories'),
+                leading: const Icon(Icons.extension),
+                title: const Text('Gérer mes accessoires'),
+                onTap: _openAccessoryProfile,
+              ),
               const Text('Préférences rencontrées'),
               if (entries.isEmpty)
                 const Text(
@@ -1018,6 +1131,36 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       },
     ),
   );
+
+  Future<void> _openProfileCustomization() async {
+    await controller.choosePostGameProfile(PostGameProfileChoice.customize);
+    await _openAccessoryProfile();
+  }
+
+  Future<void> _openAccessoryProfile() async {
+    final profile =
+        await widget.profileStore.load(widget.playerId) ?? widget.v4Profile;
+    if (profile == null || !mounted) return;
+    final temporary = [
+      for (final item in controller.sessionAccessories)
+        if (item.temporary && item.ownerPlayerId == widget.playerId)
+          V4ProfileAccessory(
+            id: item.id,
+            name: item.name,
+            ownerProfileId: widget.playerId,
+            tags: {for (final tag in item.tags) tag.name.toUpperCase()},
+          ),
+    ];
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => V4AccessoryProfileScreen(
+          profile: profile,
+          store: widget.profileStore,
+          temporaryAccessories: temporary,
+        ),
+      ),
+    );
+  }
 
   Future<void> _quitGame() async {
     try {

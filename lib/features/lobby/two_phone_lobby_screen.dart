@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 
 import '../../app/asset_catalog.dart';
 import '../../domain/catalog/catalog.dart';
+import '../../domain/catalog/v4_catalog.dart';
+import '../../sync/rounds/network_game.dart';
 import '../game/network_duel_screen.dart';
 import '../game/network_profile_learning.dart';
+import 'v4_session_setup_screen.dart';
 import 'active_session_store.dart';
 import 'lobby_controller.dart';
 import 'lobby_repository.dart';
@@ -226,6 +229,7 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
       final results = await Future.wait<Object>([
         repository.currentPlayerId(),
         loadAssetCatalog(),
+        loadAssetV4ScoringCatalog(),
       ]);
       if (!mounted) return;
       final playerId = results[0] as String;
@@ -233,14 +237,38 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
           await const SharedPreferencesNetworkProfileLearningStore().load(
             playerId,
           );
+      final v4Profile = await const SharedPreferencesV4ProfileStore().load(
+        playerId,
+      );
       if (!mounted) return;
+      final gameRepository = repository.gameRepository;
+      if (gameRepository is! NetworkSessionSetupRepository) {
+        throw StateError('V4 session setup is unavailable');
+      }
+      final setupRepository = gameRepository as NetworkSessionSetupRepository;
+      final setup = await Navigator.of(context).push<V4SessionSetupDto>(
+        MaterialPageRoute(
+          builder: (_) => V4SessionSetupScreen(
+            session: controller.session!,
+            playerId: playerId,
+            repository: setupRepository,
+            profile: v4Profile,
+          ),
+        ),
+      );
+      if (!mounted || setup == null || !setup.complete) return;
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => NetworkDuelScreen(
             session: controller.session!,
             playerId: playerId,
-            repository: repository.gameRepository,
+            repository: gameRepository,
             catalog: results[1] as Catalog,
+            scoringCatalog: results[2] as V4ScoringCatalog,
+            v4Profile: v4Profile,
+            sessionMode: setup.mode!,
+            initialClothingCounts: setup.clothingCounts,
+            profileAccessories: setup.accessories,
             privateProfile: profileState == null
                 ? null
                 : playerGameProfileFromLearningState(profileState),

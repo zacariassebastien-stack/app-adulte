@@ -7,6 +7,7 @@ import '../../domain/game/game_models.dart';
 import '../../domain/session/session_state.dart';
 import '../../engines/draw/draw_engine.dart';
 import '../../engines/deck/session_deck_builder.dart';
+import '../../engines/runtime/v4_runtime_engine.dart';
 import '../../sync/commit_reveal/commit_reveal.dart';
 
 final class NetworkPlayedCardRecord {
@@ -56,6 +57,11 @@ final class NetworkPrivateGameState {
     V4SpiceProgression? spiceProgression,
     Set<String> availableAccessories = const {},
     Map<String, int> clothesByPlayer = const {},
+    this.sessionMode = V4SessionMode.presentiel,
+    this.presence = V4SessionPresence.presentiel,
+    Map<String, V4ResolvedParameters> resolvedParameters = const {},
+    List<V4PersistentEffect> persistentEffects = const [],
+    V4SessionAccessoryPool? accessoryPool,
   }) : cards = List.unmodifiable(cards),
        history = Map.unmodifiable(history),
        learningRecordedRounds = Set.unmodifiable(learningRecordedRounds),
@@ -66,6 +72,11 @@ final class NetworkPrivateGameState {
        publicDiscards = List.unmodifiable(publicDiscards),
        availableAccessories = Set.unmodifiable(availableAccessories),
        clothesByPlayer = Map.unmodifiable(clothesByPlayer),
+       resolvedParameters = Map.unmodifiable(resolvedParameters),
+       persistentEffects = List.unmodifiable(persistentEffects),
+       accessoryPool =
+           accessoryPool ??
+           V4SessionAccessoryPool(profileAccessories: const []),
        spiceProgression =
            spiceProgression ??
            V4SpiceProgression(initialUnitsBySpice: const {});
@@ -88,6 +99,11 @@ final class NetworkPrivateGameState {
   final V4SpiceProgression spiceProgression;
   final Set<String> availableAccessories;
   final Map<String, int> clothesByPlayer;
+  final V4SessionMode sessionMode;
+  final V4SessionPresence presence;
+  final Map<String, V4ResolvedParameters> resolvedParameters;
+  final List<V4PersistentEffect> persistentEffects;
+  final V4SessionAccessoryPool accessoryPool;
 
   Map<String, Object?> toJson() => {
     'round_number': roundNumber,
@@ -132,6 +148,16 @@ final class NetworkPrivateGameState {
     'choice_version': choiceVersion,
     'available_accessories': availableAccessories.toList()..sort(),
     'clothes_by_player': clothesByPlayer,
+    'session_mode': sessionMode.name,
+    'presence': presence.name,
+    'resolved_parameters': {
+      for (final entry in resolvedParameters.entries)
+        entry.key: entry.value.toJson(),
+    },
+    'persistent_effects': [
+      for (final effect in persistentEffects) effect.toJson(),
+    ],
+    'accessory_pool': accessoryPool.toJson(),
     'v4_spice_progression': {
       'initial_units_by_spice': {
         for (final entry in spiceProgression.initialUnitsBySpice.entries)
@@ -223,6 +249,29 @@ final class NetworkPrivateGameState {
           ).entries)
             entry.key: entry.value! as int,
         },
+        sessionMode: V4SessionMode.values.byName(
+          (json['session_mode'] as String?) ?? 'presentiel',
+        ),
+        presence: V4SessionPresence.values.byName(
+          (json['presence'] as String?) ?? 'presentiel',
+        ),
+        resolvedParameters: {
+          for (final entry in Map<String, Object?>.from(
+            (json['resolved_parameters'] as Map?) ?? const {},
+          ).entries)
+            entry.key: V4ResolvedParameters.fromJson(
+              Map<String, Object?>.from(entry.value! as Map),
+            ),
+        },
+        persistentEffects: [
+          for (final raw in (json['persistent_effects'] as List?) ?? const [])
+            V4PersistentEffect.fromJson(Map<String, Object?>.from(raw! as Map)),
+        ],
+        accessoryPool: json['accessory_pool'] == null
+            ? null
+            : V4SessionAccessoryPool.fromJson(
+                Map<String, Object?>.from(json['accessory_pool']! as Map),
+              ),
         spiceProgression: _progression(json['v4_spice_progression']),
       );
 

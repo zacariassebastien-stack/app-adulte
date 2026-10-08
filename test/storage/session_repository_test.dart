@@ -46,21 +46,27 @@ void main() {
               ),
               PersistedCardState(
                 playerId: 'alice',
+                cardId: 'card.reserved',
+                zone: CardZone.RESERVED,
+                ordinal: 2,
+              ),
+              PersistedCardState(
+                playerId: 'alice',
                 cardId: 'card.engaged',
                 zone: CardZone.ENGAGED,
-                ordinal: 2,
+                ordinal: 3,
               ),
               PersistedCardState(
                 playerId: 'alice',
                 cardId: 'card.discard',
                 zone: CardZone.DISCARD,
-                ordinal: 3,
+                ordinal: 4,
               ),
               PersistedCardState(
                 playerId: 'alice',
                 cardId: 'card.exhausted',
                 zone: CardZone.EXHAUSTED,
-                ordinal: 4,
+                ordinal: 5,
               ),
             ],
         rounds: [
@@ -143,7 +149,7 @@ void main() {
       throwsA(anything),
     );
     final saved = (await sessions.load('session.1'))!;
-    expect(saved.cards.length, 5);
+    expect(saved.cards.length, 6);
     expect(saved.cards.first.cardId, 'card.pool');
   });
 

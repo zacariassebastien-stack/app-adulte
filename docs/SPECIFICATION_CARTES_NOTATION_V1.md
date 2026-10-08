@@ -374,8 +374,8 @@ générale et ne dépend d'aucune carte particulière.
 
 Une carte à durée reste active pendant que les autres actions continuent à se
 jouer. Toutes les cartes à durée V4 durent exactement **3 tours**. La durée est
-stockée dans `v4.duration_turns`; le domaine impose la constante canonique
-`v4DurationCardTurns = 3`. La liste actuelle est : Interdiction de toucher
+stockée dans `v4.duration_actions`; le domaine impose la constante canonique
+`v4DurationCardActions = 3`. La liste actuelle est : Interdiction de toucher
 (033), Entrave (034), Privation visuelle (035), Privation auditive (060),
 Privation de parole / silence (061), Maintien du cou (062) et Tirer doucement
 (063). Un simple objet de type ÉTAT n'est pas automatiquement une carte à

@@ -3,6 +3,7 @@ import '../../engines/corruption/corruption_engine.dart';
 import '../../engines/deck/session_deck_builder.dart';
 import '../../engines/lifecycle/lifecycle_engine.dart';
 import '../../engines/recovery/recovery_engine.dart';
+import '../../engines/runtime/v4_runtime_engine.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/session/session_state.dart';
 import '../commit_reveal/commit_reveal.dart';
@@ -39,6 +40,189 @@ enum NetworkCompromiseOrigin { INITIAL_DUEL, AUCTION, RECOVERY }
 
 enum NetworkCardDirection { GENERAL, FAIRE, RECEVOIR, MUTUEL, SOLO, SIMULTANE }
 
+final class NetworkResolvedActionCardDto {
+  NetworkResolvedActionCardDto({
+    required this.occurrenceId,
+    required this.cardId,
+    required this.variantId,
+    required this.direction,
+    required List<String> targetPlayerIds,
+    required this.effectiveSpice,
+    this.zoneId,
+    this.accessoryId,
+    Map<String, Object?> parameters = const {},
+    List<V4PersistentEffect> effects = const [],
+  }) : targetPlayerIds = List.unmodifiable(targetPlayerIds),
+       parameters = Map.unmodifiable(parameters),
+       effects = List.unmodifiable(effects);
+
+  final String occurrenceId;
+  final String cardId;
+  final String variantId;
+  final NetworkCardDirection direction;
+  final List<String> targetPlayerIds;
+  final int effectiveSpice;
+  final String? zoneId;
+  final String? accessoryId;
+  final Map<String, Object?> parameters;
+  final List<V4PersistentEffect> effects;
+
+  Map<String, Object?> toJson() => {
+    'occurrence_id': occurrenceId,
+    'card_id': cardId,
+    'variant_id': variantId,
+    'direction': direction.name,
+    'target_player_ids': targetPlayerIds,
+    'effective_spice': effectiveSpice,
+    'zone_id': zoneId,
+    'accessory_id': accessoryId,
+    'parameters': parameters,
+    'effects': [for (final effect in effects) effect.toJson()],
+  };
+
+  factory NetworkResolvedActionCardDto.fromJson(Map<String, Object?> json) =>
+      NetworkResolvedActionCardDto(
+        occurrenceId: json['occurrence_id']! as String,
+        cardId: json['card_id']! as String,
+        variantId: json['variant_id']! as String,
+        direction: NetworkCardDirection.values.byName(
+          json['direction']! as String,
+        ),
+        targetPlayerIds: ((json['target_player_ids'] as List?) ?? const [])
+            .cast<String>(),
+        effectiveSpice: json['effective_spice']! as int,
+        zoneId: json['zone_id'] as String?,
+        accessoryId: json['accessory_id'] as String?,
+        parameters: Map<String, Object?>.from(
+          (json['parameters'] as Map?) ?? const {},
+        ),
+        effects: [
+          for (final raw in (json['effects'] as List?) ?? const [])
+            V4PersistentEffect.fromJson(Map<String, Object?>.from(raw! as Map)),
+        ],
+      );
+}
+
+final class NetworkResolvedActionProjectionDto {
+  NetworkResolvedActionProjectionDto({
+    required List<NetworkResolvedActionCardDto> cards,
+    required Set<String> requiredClothingPlayerIds,
+  }) : cards = List.unmodifiable(cards),
+       requiredClothingPlayerIds = Set.unmodifiable(requiredClothingPlayerIds);
+
+  final List<NetworkResolvedActionCardDto> cards;
+  final Set<String> requiredClothingPlayerIds;
+
+  Map<String, Object?> toJson() => {
+    'cards': [for (final card in cards) card.toJson()],
+    'required_clothing_player_ids': requiredClothingPlayerIds.toList()..sort(),
+  };
+
+  factory NetworkResolvedActionProjectionDto.fromJson(
+    Map<String, Object?> json,
+  ) => NetworkResolvedActionProjectionDto(
+    cards: [
+      for (final raw in (json['cards'] as List?) ?? const [])
+        NetworkResolvedActionCardDto.fromJson(
+          Map<String, Object?>.from(raw! as Map),
+        ),
+    ],
+    requiredClothingPlayerIds:
+        ((json['required_clothing_player_ids'] as List?) ?? const [])
+            .cast<String>()
+            .toSet(),
+  );
+}
+
+final class NetworkActionCompletionGate {
+  const NetworkActionCompletionGate();
+
+  bool canClose({
+    required NetworkResolvedActionProjectionDto? projection,
+    required Set<String> resyncedPlayerIds,
+  }) =>
+      projection == null ||
+      projection.requiredClothingPlayerIds.every(resyncedPlayerIds.contains);
+
+  bool requiresPlayer({
+    required NetworkResolvedActionProjectionDto? projection,
+    required Set<String> resyncedPlayerIds,
+    required String playerId,
+  }) =>
+      projection?.requiredClothingPlayerIds.contains(playerId) == true &&
+      !resyncedPlayerIds.contains(playerId);
+}
+
+final class V4PlayerSessionSetupDto {
+  V4PlayerSessionSetupDto({
+    required this.playerId,
+    required this.clothingCount,
+    required List<V4Accessory> accessories,
+  }) : accessories = List.unmodifiable(accessories);
+
+  final String playerId;
+  final int clothingCount;
+  final List<V4Accessory> accessories;
+
+  Map<String, Object?> toJson() => {
+    'player_id': playerId,
+    'clothing_count': clothingCount,
+    'accessories': [for (final accessory in accessories) accessory.toJson()],
+  };
+
+  factory V4PlayerSessionSetupDto.fromJson(Map<String, Object?> json) =>
+      V4PlayerSessionSetupDto(
+        playerId: json['player_id']! as String,
+        clothingCount: json['clothing_count']! as int,
+        accessories: [
+          for (final raw in (json['accessories'] as List?) ?? const [])
+            V4Accessory.fromJson(Map<String, Object?>.from(raw! as Map)),
+        ],
+      );
+}
+
+final class V4SessionSetupDto {
+  V4SessionSetupDto({
+    required this.mode,
+    required List<V4PlayerSessionSetupDto> players,
+  }) : players = List.unmodifiable(players);
+
+  final V4SessionMode? mode;
+  final List<V4PlayerSessionSetupDto> players;
+  bool get complete => mode != null && players.length == 2;
+  Map<String, int> get clothingCounts => {
+    for (final player in players) player.playerId: player.clothingCount,
+  };
+  List<V4Accessory> get accessories => [
+    for (final player in players) ...player.accessories,
+  ];
+
+  factory V4SessionSetupDto.fromJson(Map<String, Object?> json) =>
+      V4SessionSetupDto(
+        mode: json['mode'] == null
+            ? null
+            : V4SessionMode.values.byName(json['mode']! as String),
+        players: [
+          for (final raw in (json['players'] as List?) ?? const [])
+            V4PlayerSessionSetupDto.fromJson(
+              Map<String, Object?>.from(raw! as Map),
+            ),
+        ],
+      );
+}
+
+abstract interface class NetworkSessionSetupRepository {
+  Future<V4SessionSetupDto> submitV4SessionSetup({
+    required String sessionId,
+    required String playerId,
+    required int clothingCount,
+    required List<V4Accessory> accessories,
+    V4SessionMode? mode,
+  });
+  Future<V4SessionSetupDto> getV4SessionSetup(String sessionId);
+  Stream<V4SessionSetupDto> watchV4SessionSetup(String sessionId);
+}
+
 NetworkCardDirection invertNetworkDirection(NetworkCardDirection direction) =>
     switch (direction) {
       NetworkCardDirection.FAIRE => NetworkCardDirection.RECEVOIR,
@@ -57,6 +241,8 @@ final class NetworkCompromiseCardDto {
     required this.origin,
     required this.snapshotValue,
     this.logicalOrder,
+    this.resolvedParameters,
+    this.effectiveSpice,
   });
 
   final String occurrenceId;
@@ -68,10 +254,14 @@ final class NetworkCompromiseCardDto {
   final NetworkCompromiseOrigin origin;
   final int snapshotValue;
   final int? logicalOrder;
+  final V4ResolvedParameters? resolvedParameters;
+  final int? effectiveSpice;
 
   NetworkCompromiseCardDto copyWith({
     NetworkCardDirection? effectiveDirection,
     int? logicalOrder,
+    V4ResolvedParameters? resolvedParameters,
+    int? effectiveSpice,
   }) => NetworkCompromiseCardDto(
     occurrenceId: occurrenceId,
     cardId: cardId,
@@ -82,6 +272,8 @@ final class NetworkCompromiseCardDto {
     origin: origin,
     snapshotValue: snapshotValue,
     logicalOrder: logicalOrder ?? this.logicalOrder,
+    resolvedParameters: resolvedParameters ?? this.resolvedParameters,
+    effectiveSpice: effectiveSpice ?? this.effectiveSpice,
   );
 
   Map<String, Object?> toJson() => {
@@ -94,6 +286,8 @@ final class NetworkCompromiseCardDto {
     'origin': origin.name,
     'snapshot_value': snapshotValue,
     'logical_order': logicalOrder,
+    'resolved_parameters': resolvedParameters?.toJson(),
+    'effective_spice': effectiveSpice,
   };
 
   factory NetworkCompromiseCardDto.fromJson(Map<String, Object?> json) =>
@@ -113,6 +307,12 @@ final class NetworkCompromiseCardDto {
         ),
         snapshotValue: json['snapshot_value']! as int,
         logicalOrder: json['logical_order'] as int?,
+        resolvedParameters: json['resolved_parameters'] == null
+            ? null
+            : V4ResolvedParameters.fromJson(
+                Map<String, Object?>.from(json['resolved_parameters']! as Map),
+              ),
+        effectiveSpice: json['effective_spice'] as int?,
       );
 }
 
@@ -435,6 +635,10 @@ final class NetworkGameRoundStateDto {
     this.deckCycle = 1,
     this.infiniteMode = false,
     this.deckStyle = PlayerStyle.SOFT,
+    this.cycleExhausted = false,
+    this.actionProjection,
+    Map<String, int>? clothingCounts,
+    Set<String>? clothingResyncedPlayerIds,
     Map<String, int>? deckAdjustment,
     this.ownReveal,
     this.opponentReveal,
@@ -452,6 +656,10 @@ final class NetworkGameRoundStateDto {
        readyNextPlayerIds = Set.unmodifiable(readyNextPlayerIds),
        tieDecisions = Map.unmodifiable(tieDecisions),
        deckAdjustment = Map.unmodifiable(deckAdjustment ?? const {}),
+       clothingCounts = Map.unmodifiable(clothingCounts ?? const {}),
+       clothingResyncedPlayerIds = Set.unmodifiable(
+         clothingResyncedPlayerIds ?? const {},
+       ),
        recoveryByPlayer = Map.unmodifiable(recoveryByPlayer ?? const {}),
        recoveryDonePlayerIds = Set.unmodifiable(
          recoveryDonePlayerIds ?? const {},
@@ -472,6 +680,10 @@ final class NetworkGameRoundStateDto {
   final int deckCycle;
   final bool infiniteMode;
   final PlayerStyle deckStyle;
+  final bool cycleExhausted;
+  final NetworkResolvedActionProjectionDto? actionProjection;
+  final Map<String, int> clothingCounts;
+  final Set<String> clothingResyncedPlayerIds;
   final Map<String, int> deckAdjustment;
   final ChoiceRevealDto? ownReveal;
   final ChoiceRevealDto? opponentReveal;
@@ -508,6 +720,10 @@ final class NetworkGameRoundStateDto {
     'deck_cycle': deckCycle,
     'infinite_mode': infiniteMode,
     'deck_style': deckStyle.name,
+    'cycle_exhausted': cycleExhausted,
+    'action_projection': actionProjection?.toJson(),
+    'clothing_counts': clothingCounts,
+    'clothing_resynced': {for (final id in clothingResyncedPlayerIds) id: true},
     'deck_adjustment': deckAdjustment,
     'own_reveal': ownReveal?.toJson(),
     'opponent_reveal': opponentReveal?.toJson(),
@@ -547,6 +763,9 @@ final class NetworkGameRoundStateDto {
     final recoveryDone = Map<String, Object?>.from(
       (json['recovery_done'] as Map?) ?? const {},
     );
+    final clothingResynced = Map<String, Object?>.from(
+      (json['clothing_resynced'] as Map?) ?? const {},
+    );
     return NetworkGameRoundStateDto(
       roundId: json['round_id']! as String,
       sessionId: json['session_id']! as String,
@@ -572,6 +791,18 @@ final class NetworkGameRoundStateDto {
       deckStyle: PlayerStyle.values.byName(
         (json['deck_style'] as String?) ?? PlayerStyle.SOFT.name,
       ),
+      cycleExhausted: (json['cycle_exhausted'] as bool?) ?? false,
+      actionProjection: optional(
+        'action_projection',
+        NetworkResolvedActionProjectionDto.fromJson,
+      ),
+      clothingCounts: Map<String, int>.from(
+        (json['clothing_counts'] as Map?) ?? const {},
+      ),
+      clothingResyncedPlayerIds: {
+        for (final entry in clothingResynced.entries)
+          if (entry.value == true) entry.key,
+      },
       deckAdjustment: Map<String, int>.from(
         (json['deck_adjustment'] as Map?) ?? const {},
       ),
@@ -688,11 +919,20 @@ abstract interface class NetworkGameRepository {
 
   Future<NetworkGameRoundStateDto> readyNextRound({
     required NetworkCommandDto command,
+    bool noPlayableOccurrences = false,
+    int? clothingCount,
   });
 
   Stream<NetworkGameRoundStateDto> watchRound({
     required String sessionId,
     required String roundId,
+  });
+}
+
+abstract interface class NetworkV4ActionRepository {
+  Future<NetworkGameRoundStateDto> publishV4ActionProjection({
+    required NetworkCommandDto command,
+    required NetworkResolvedActionProjectionDto projection,
   });
 }
 

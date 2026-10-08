@@ -4,6 +4,7 @@ enum ProfilePreferenceRole {
   recevoir,
   mutuel,
   solo,
+  soi,
   observer,
   simultane;
 
@@ -84,6 +85,76 @@ enum PracticeConsentStatus { unknown, allowed, excluded }
 /// Legacy persisted source. It is never consulted for card eligibility.
 enum PracticeConsentSource { manualExplicit, sessionExplicit }
 
+const v4AccessoryTags = {
+  'ANAL',
+  'VAGINAL',
+  'BUCCAL',
+  'PHALLUS',
+  'EXTERNE',
+  'VIBRANT',
+};
+
+final class V4ProfileAccessory {
+  V4ProfileAccessory({
+    required this.id,
+    required this.name,
+    required this.ownerProfileId,
+    required Set<String> tags,
+    this.active = true,
+    Map<ProfilePreferenceRole, double?> preferences = const {},
+  }) : tags = Set.unmodifiable(tags),
+       preferences = Map.unmodifiable({
+         for (final role in const [
+           ProfilePreferenceRole.faire,
+           ProfilePreferenceRole.recevoir,
+           ProfilePreferenceRole.soi,
+         ])
+           role: preferences.containsKey(role) ? preferences[role] : 18.0,
+       }) {
+    if (id.isEmpty ||
+        name.trim().isEmpty ||
+        !v4AccessoryTags.containsAll(tags)) {
+      throw ArgumentError('Invalid V4 profile accessory');
+    }
+  }
+
+  final String id;
+  final String name;
+  final String ownerProfileId;
+  final Set<String> tags;
+  final bool active;
+  final Map<ProfilePreferenceRole, double?> preferences;
+
+  Map<String, Object?> toJson() => {
+    'id': id,
+    'name': name,
+    'owner_profile_id': ownerProfileId,
+    'tags': tags.toList()..sort(),
+    'active': active,
+    'preferences': {
+      for (final entry in preferences.entries) entry.key.wireName: entry.value,
+    },
+  };
+
+  factory V4ProfileAccessory.fromJson(Map<String, Object?> json) {
+    final rawPreferences = Map<String, Object?>.from(
+      (json['preferences'] as Map?) ?? const {},
+    );
+    return V4ProfileAccessory(
+      id: json['id']! as String,
+      name: json['name']! as String,
+      ownerProfileId: json['owner_profile_id']! as String,
+      tags: ((json['tags'] as List?) ?? const []).cast<String>().toSet(),
+      active: (json['active'] as bool?) ?? true,
+      preferences: {
+        for (final entry in rawPreferences.entries)
+          ProfilePreferenceRole.parse(entry.key): (entry.value as num?)
+              ?.toDouble(),
+      },
+    );
+  }
+}
+
 /// Compatibility model for already persisted data.
 ///
 /// New gameplay decisions use [ProfilePreference.excluded] as their only
@@ -132,12 +203,31 @@ final class V4Profile {
     required this.profileId,
     required Map<String, ProfilePreference> preferences,
     Map<String, PracticeConsent> consents = const {},
+    List<V4ProfileAccessory> accessories = const [],
   }) : preferences = Map.unmodifiable(preferences),
-       consents = Map.unmodifiable(consents);
+       consents = Map.unmodifiable(consents),
+       accessories = List.unmodifiable(accessories);
 
   final String profileId;
   final Map<String, ProfilePreference> preferences;
   final Map<String, PracticeConsent> consents;
+  final List<V4ProfileAccessory> accessories;
+
+  Map<ProfilePreferenceRole, double?> accessoryPreferencesForExactTags(
+    Set<String> tags,
+  ) =>
+      accessories
+          .where(
+            (item) =>
+                item.tags.length == tags.length && item.tags.containsAll(tags),
+          )
+          .map((item) => item.preferences)
+          .firstOrNull ??
+      const {
+        ProfilePreferenceRole.faire: 18,
+        ProfilePreferenceRole.recevoir: 18,
+        ProfilePreferenceRole.soi: 18,
+      };
 
   ProfilePreference? preference(ProfilePreferenceKey key) =>
       preferences[key.storageKey];
@@ -154,6 +244,7 @@ final class V4Profile {
     'profile_id': profileId,
     'preferences': [for (final value in preferences.values) value.toJson()],
     'consents': [for (final value in consents.values) value.toJson()],
+    'accessories': [for (final value in accessories) value.toJson()],
   };
 
   factory V4Profile.fromJson(Map<String, Object?> json) {
@@ -171,6 +262,17 @@ final class V4Profile {
         for (final value in preferences) value.key.storageKey: value,
       },
       consents: {for (final value in consents) value.storageKey: value},
+      accessories: [
+        for (final value in (json['accessories'] as List? ?? const []))
+          V4ProfileAccessory.fromJson(Map<String, Object?>.from(value as Map)),
+      ],
     );
   }
+
+  V4Profile copyWith({List<V4ProfileAccessory>? accessories}) => V4Profile(
+    profileId: profileId,
+    preferences: preferences,
+    consents: consents,
+    accessories: accessories ?? this.accessories,
+  );
 }

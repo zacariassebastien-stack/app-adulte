@@ -95,18 +95,21 @@ final class V4CardRatingEngine {
     if (!technicalAvailable) {
       return V4RatingResult.unavailable(technicalRequirementId);
     }
-    var raw = 0.0;
-    for (final tag in variant.primaryPreferenceTags) {
-      raw += resolved[tag]!.pa!;
-    }
-    for (final tag in variant.secondaryPreferenceTags) {
-      raw += resolved[tag]!.pa! * 0.5;
-    }
-    return V4RatingResult.rated(
-      raw,
-      variant.primaryPreferenceTags.length +
-          variant.secondaryPreferenceTags.length * 0.5,
-    );
+    final values = [for (final tag in tags) resolved[tag]!.pa!];
+    final raw = _combine(values);
+    return V4RatingResult.rated(raw, values.length.toDouble());
+  }
+
+  /// V4 combines every required personal component without letting a low PA
+  /// hide a difficult component: half the highest PA and half the mean of the
+  /// remaining values. Dart's [double.round] is the stable integer policy.
+  double _combine(List<double> values) {
+    if (values.length == 1) return values.single;
+    final sorted = [...values]..sort();
+    final highest = sorted.removeLast();
+    final othersAverage =
+        sorted.reduce((left, right) => left + right) / sorted.length;
+    return (highest * .5 + othersAverage * .5).roundToDouble();
   }
 
   ProfilePreference? _resolve(

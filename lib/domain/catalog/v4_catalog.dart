@@ -3,7 +3,7 @@ import 'dart:convert';
 import '../../core/json.dart';
 import '../profile/v4_profile.dart';
 
-const int v4DurationCardTurns = 3;
+const int v4DurationCardActions = 3;
 
 enum V4ZoneSelectionSource { none, players, game }
 
@@ -65,7 +65,7 @@ final class V4CardMetadata {
     : number = reader.string('number'),
       type = reader.string('type'),
       canonicalDirection = reader.string('canonical_direction'),
-      durationTurns = reader.optionalInteger('duration_turns', min: 1),
+      durationActions = reader.optionalInteger('duration_actions', min: 1),
       presence = reader.json.containsKey('presence')
           ? V4PresenceCompatibility.parse(reader.string('presence'))
           : V4PresenceCompatibility.presentiel,
@@ -82,7 +82,7 @@ final class V4CardMetadata {
       'number',
       'type',
       'canonical_direction',
-      'duration_turns',
+      'duration_actions',
       'presence',
       'required_accessories_any_of',
       'pool_multiplicity',
@@ -91,16 +91,16 @@ final class V4CardMetadata {
     if (!RegExp(r'^\d{3}$').hasMatch(number)) {
       reader.fail('number', 'V4 card number must contain three digits');
     }
-    if (durationTurns != null && durationTurns != v4DurationCardTurns) {
+    if (durationActions != null && durationActions != v4DurationCardActions) {
       reader.fail(
-        'duration_turns',
-        'V4 duration cards must last exactly 3 turns',
+        'duration_actions',
+        'V4 duration cards must last exactly 3 actions',
       );
     }
-    if ((type == 'CARTE À DURÉE') != (durationTurns != null)) {
+    if ((type == 'CARTE À DURÉE') != (durationActions != null)) {
       reader.fail(
-        'duration_turns',
-        'CARTE À DURÉE metadata requires the canonical three-turn duration',
+        'duration_actions',
+        'CARTE À DURÉE metadata requires the canonical three-action duration',
       );
     }
   }
@@ -108,7 +108,7 @@ final class V4CardMetadata {
   final String number;
   final String type;
   final String canonicalDirection;
-  final int? durationTurns;
+  final int? durationActions;
   final V4PresenceCompatibility presence;
   final List<String> requiredAccessoriesAnyOf;
   final V4PoolMultiplicity poolMultiplicity;

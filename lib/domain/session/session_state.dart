@@ -3,7 +3,7 @@ import '../round/combat_value_snapshot.dart';
 
 // Wire names are persisted. Renaming one requires a storage migration.
 // ignore_for_file: constant_identifier_names
-enum CardZone { POOL, HAND, ENGAGED, DISCARD, EXHAUSTED }
+enum CardZone { POOL, HAND, RESERVED, ENGAGED, DISCARD, EXHAUSTED }
 
 enum RoundPersistenceStatus { ACTIVE, INTERRUPTED, COMPLETED }
 

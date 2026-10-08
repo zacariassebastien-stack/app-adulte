@@ -90,12 +90,12 @@ void main() {
     expect(levels(63), [1, 2, 3]);
   });
 
-  test('only the seven declared cards last exactly three turns', () async {
+  test('only the seven declared cards last exactly three actions', () async {
     final catalog = await const CatalogLoader().load(
       (path) => File(path).readAsString(),
     );
     final durationCards = catalog.cards.where(
-      (card) => card.v4?.durationTurns != null,
+      (card) => card.v4?.durationActions != null,
     );
 
     expect(durationCards.map((card) => card.order), [
@@ -111,7 +111,7 @@ void main() {
       durationCards.every(
         (card) =>
             card.v4?.type == 'CARTE À DURÉE' &&
-            card.v4?.durationTurns == v4DurationCardTurns,
+            card.v4?.durationActions == v4DurationCardActions,
       ),
       isTrue,
     );

@@ -13,19 +13,19 @@ void main() {
     nonPreferenceData: const ['cost', 'zone'],
   );
 
-  test('principal 5 and secondary 12 produce raw 11 and weight 1.5', () {
+  test('two components 5 and 12 use the V4 mean formula', () {
     final result = engine.initialize(
       profile: _profile(principal: 5, secondary: 12),
       variant: variant,
       effectiveRole: ProfilePreferenceRole.faire,
     );
     expect(result.kind, V4RatingResultKind.rated);
-    expect(result.rawScore, 11);
-    expect(result.totalWeight, 1.5);
+    expect(result.rawScore, 9);
+    expect(result.totalWeight, 2);
     expect(result.source, 'TAG_PRIOR');
   });
 
-  test('two primary tags at 5 and 12 produce raw 17', () {
+  test('two primary tags at 5 and 12 still use their mean', () {
     final result = engine.initialize(
       profile: _profile(principal: 5, secondary: 12),
       variant: V4VariantRatingDefinition(
@@ -38,7 +38,7 @@ void main() {
       ),
       effectiveRole: ProfilePreferenceRole.faire,
     );
-    expect(result.rawScore, 17);
+    expect(result.rawScore, 9);
     expect(result.totalWeight, 2);
   });
 
@@ -348,7 +348,7 @@ void main() {
       variant: variant,
       effectiveRole: ProfilePreferenceRole.faire,
     );
-    expect(changedPrior.rawScore, 30);
+    expect(changedPrior.rawScore, 20);
     expect(store.read(key)?.currentEstimate, 7);
     expect(store.read(key)?.source, 'CARD_ESTIMATE');
   });

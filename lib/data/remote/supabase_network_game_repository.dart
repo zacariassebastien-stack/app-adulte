@@ -7,6 +7,7 @@ import '../../engines/auction/auction_engine.dart';
 import '../../engines/corruption/corruption_engine.dart';
 import '../../engines/deck/session_deck_builder.dart';
 import '../../engines/recovery/recovery_engine.dart';
+import '../../engines/runtime/v4_runtime_engine.dart';
 import '../../sync/sync.dart';
 
 final class SupabaseNetworkGameRepository
@@ -14,6 +15,8 @@ final class SupabaseNetworkGameRepository
         NetworkGameRepository,
         NetworkNegotiationRepository,
         NetworkSessionFlowRepository,
+        NetworkSessionSetupRepository,
+        NetworkV4ActionRepository,
         NetworkCommitCancellationRepository,
         NetworkSessionClosureRepository {
   SupabaseNetworkGameRepository({required this.client});
@@ -33,6 +36,72 @@ final class SupabaseNetworkGameRepository
   Future<NetworkGameRoundStateDto> openCurrentRound({
     required NetworkCommandDto command,
   }) => _rpc('open_network_game_round', command);
+
+  @override
+  Future<V4SessionSetupDto> submitV4SessionSetup({
+    required String sessionId,
+    required String playerId,
+    required int clothingCount,
+    required List<V4Accessory> accessories,
+    V4SessionMode? mode,
+  }) async {
+    final identity = await _identity();
+    if (identity != playerId) {
+      throw const NetworkRoundException('ROUND_IDENTITY_MISMATCH');
+    }
+    try {
+      return _setupMap(
+        await client.rpc<Object?>(
+          'submit_v4_session_setup',
+          params: {
+            'p_session_id': sessionId,
+            'p_clothing_count': clothingCount,
+            'p_accessories': [for (final item in accessories) item.toJson()],
+            'p_mode': mode?.name,
+          },
+        ),
+      );
+    } on PostgrestException catch (error) {
+      throw NetworkRoundException(
+        _knownCode('${error.message} ${error.details ?? ''}'),
+      );
+    }
+  }
+
+  @override
+  Future<V4SessionSetupDto> getV4SessionSetup(String sessionId) async {
+    await _identity();
+    return _setupMap(
+      await client.rpc<Object?>(
+        'get_v4_session_setup',
+        params: {'p_session_id': sessionId},
+      ),
+    );
+  }
+
+  @override
+  Stream<V4SessionSetupDto> watchV4SessionSetup(String sessionId) async* {
+    yield await getV4SessionSetup(sessionId);
+    await for (final _
+        in client
+            .from('session_players')
+            .stream(primaryKey: ['session_id', 'user_id'])
+            .eq('session_id', sessionId)) {
+      yield await getV4SessionSetup(sessionId);
+    }
+  }
+
+  V4SessionSetupDto _setupMap(Object? value) {
+    if (value is Map<String, dynamic>) {
+      return V4SessionSetupDto.fromJson(value.cast<String, Object?>());
+    }
+    if (value is List && value.length == 1 && value.first is Map) {
+      return V4SessionSetupDto.fromJson(
+        Map<String, Object?>.from(value.first! as Map),
+      );
+    }
+    throw const FormatException('Invalid V4 session setup response');
+  }
 
   @override
   Future<NetworkGameRoundStateDto> getCurrentRound({
@@ -304,7 +373,26 @@ final class SupabaseNetworkGameRepository
   @override
   Future<NetworkGameRoundStateDto> readyNextRound({
     required NetworkCommandDto command,
-  }) => _rpc('ready_network_next_round', command);
+    bool noPlayableOccurrences = false,
+    int? clothingCount,
+  }) => _rpc(
+    'ready_network_next_round',
+    command,
+    extra: {
+      'p_no_playable_occurrences': noPlayableOccurrences,
+      'p_clothing_count': clothingCount,
+    },
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> publishV4ActionProjection({
+    required NetworkCommandDto command,
+    required NetworkResolvedActionProjectionDto projection,
+  }) => _rpc(
+    'publish_v4_action_projection',
+    command,
+    extra: {'p_projection': projection.toJson()},
+  );
 
   @override
   Stream<NetworkGameRoundStateDto> watchRound({

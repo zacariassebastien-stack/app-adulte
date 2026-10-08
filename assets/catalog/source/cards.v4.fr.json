@@ -3060,7 +3060,7 @@
         "presence": "BOTH",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
-        "duration_turns": 3
+        "duration_actions": 3
       }
     },
     {
@@ -3210,7 +3210,7 @@
         "presence": "PRESENTIEL",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
-        "duration_turns": 3
+        "duration_actions": 3
       }
     },
     {
@@ -3355,7 +3355,7 @@
         "presence": "PRESENTIEL",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
-        "duration_turns": 3
+        "duration_actions": 3
       }
     },
     {
@@ -7298,7 +7298,7 @@
         "presence": "BOTH",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
-        "duration_turns": 3
+        "duration_actions": 3
       }
     },
     {
@@ -7368,7 +7368,7 @@
         "presence": "BOTH",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
-        "duration_turns": 3
+        "duration_actions": 3
       }
     },
     {
@@ -7516,7 +7516,7 @@
         "presence": "PRESENTIEL",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
-        "duration_turns": 3
+        "duration_actions": 3
       }
     },
     {
@@ -7655,7 +7655,7 @@
         "presence": "PRESENTIEL",
         "type": "CARTE À DURÉE",
         "canonical_direction": "FAIRE/RECEVOIR",
-        "duration_turns": 3
+        "duration_actions": 3
       }
     },
     {

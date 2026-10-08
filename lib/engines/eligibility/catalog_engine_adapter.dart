@@ -7,6 +7,7 @@ import '../../domain/game/game_models.dart';
 final class CatalogEngineAdapter {
   const CatalogEngineAdapter() : useV3 = false;
   const CatalogEngineAdapter.v3() : useV3 = true;
+  const CatalogEngineAdapter.v4() : useV3 = true;
 
   final bool useV3;
 

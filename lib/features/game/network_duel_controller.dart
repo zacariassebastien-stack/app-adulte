@@ -30,6 +30,7 @@ final class NetworkDuelCard {
     this.occurrenceId,
     this.nativeDirection = CardOccurrenceDirection.GENERAL,
     this.effectiveDirection = CardOccurrenceDirection.GENERAL,
+    this.resolvedChiliLevel,
   });
 
   final CardDefinition definition;
@@ -40,11 +41,12 @@ final class NetworkDuelCard {
   final String? occurrenceId;
   final CardOccurrenceDirection nativeDirection;
   final CardOccurrenceDirection effectiveDirection;
+  final int? resolvedChiliLevel;
 
   String get id => engine.id;
   String get identity => occurrenceId ?? id;
   String get title => definition.title ?? definition.titleKey ?? id;
-  int get chiliLevel => variant.chiliLevel;
+  int get chiliLevel => resolvedChiliLevel ?? variant.chiliLevel;
   int get personalValue => switch (role) {
     ProfileRole.GENERAL => preference.generalValue!,
     ProfileRole.FAIRE => preference.faireValue!,
