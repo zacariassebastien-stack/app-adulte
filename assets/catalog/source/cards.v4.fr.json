@@ -2914,9 +2914,9 @@
         {
           "stable_id": "variant.v4.032.base",
           "content_version": 1,
-          "title": "Un ordre à suivre.",
-          "action_text": "Un ordre à suivre.",
-          "details_text": "Une consigne simple et claire devient le centre de cette occurrence.",
+          "title": "Formuler un ordre.",
+          "action_text": "Formuler un ordre.",
+          "details_text": "L'ordre doit être réellement formulé et joué dans l'esprit de la carte. La personne ciblée reste libre de l'exécuter ou non.",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -3015,8 +3015,9 @@
       ],
       "v4": {
         "number": "033",
-        "type": "ACTION",
-        "canonical_direction": "FAIRE/RECEVOIR"
+        "type": "CARTE À DURÉE",
+        "canonical_direction": "FAIRE/RECEVOIR",
+        "duration_turns": 3
       }
     },
     {
@@ -3163,8 +3164,9 @@
       ],
       "v4": {
         "number": "034",
-        "type": "ÉTAT",
-        "canonical_direction": "FAIRE/RECEVOIR"
+        "type": "CARTE À DURÉE",
+        "canonical_direction": "FAIRE/RECEVOIR",
+        "duration_turns": 3
       }
     },
     {
@@ -3306,8 +3308,9 @@
       ],
       "v4": {
         "number": "035",
-        "type": "ÉTAT",
-        "canonical_direction": "FAIRE/RECEVOIR"
+        "type": "CARTE À DURÉE",
+        "canonical_direction": "FAIRE/RECEVOIR",
+        "duration_turns": 3
       }
     },
     {
@@ -3365,7 +3368,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -3401,7 +3404,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -3410,7 +3413,7 @@
           "title": "Un contraste plus soutenu.",
           "action_text": "Un contraste plus soutenu.",
           "details_text": "Les changements deviennent plus présents et peuvent être combinés à une autre stimulation compatible.",
-          "chili_level": 3,
+          "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -3437,7 +3440,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -3475,7 +3478,7 @@
           "title": "Quelques fessées légères.",
           "action_text": "Quelques fessées légères.",
           "details_text": "Un rythme modéré et une intensité légère.",
-          "chili_level": 1,
+          "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -3504,7 +3507,7 @@
             "non_preference_data": [
               "fesses"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -3542,7 +3545,7 @@
             "non_preference_data": [
               "fesses"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -3580,7 +3583,7 @@
             "non_preference_data": [
               "fesses"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -4118,7 +4121,7 @@
             "non_preference_data": [
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4156,7 +4159,7 @@
             "non_preference_data": [
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4165,7 +4168,7 @@
           "title": "Photo — Sans détour.",
           "action_text": "Photo — Sans détour.",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -4194,7 +4197,7 @@
             "non_preference_data": [
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -4260,7 +4263,7 @@
               "photo",
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4269,7 +4272,7 @@
           "title": "Osée",
           "action_text": "Osée",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -4298,7 +4301,7 @@
               "photo",
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4307,7 +4310,7 @@
           "title": "Sans détour",
           "action_text": "Sans détour",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -4336,7 +4339,7 @@
               "photo",
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -4403,7 +4406,7 @@
             "non_preference_data": [
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4441,7 +4444,7 @@
             "non_preference_data": [
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4450,7 +4453,7 @@
           "title": "Vidéo — Sans détour.",
           "action_text": "Vidéo — Sans détour.",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -4479,7 +4482,7 @@
             "non_preference_data": [
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4517,7 +4520,7 @@
             "non_preference_data": [
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4555,7 +4558,7 @@
             "non_preference_data": [
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4564,7 +4567,7 @@
           "title": "Vidéo — Sans détour.",
           "action_text": "Vidéo — Sans détour.",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -4593,7 +4596,7 @@
             "non_preference_data": [
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -4659,7 +4662,7 @@
               "video",
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4668,7 +4671,7 @@
           "title": "Osée",
           "action_text": "Osée",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -4697,7 +4700,7 @@
               "video",
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4706,7 +4709,7 @@
           "title": "Sans détour",
           "action_text": "Sans détour",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -4735,7 +4738,7 @@
               "video",
               "envoyer"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -4772,7 +4775,7 @@
           "title": "Un jeu de rôle.",
           "action_text": "Un jeu de rôle.",
           "details_text": "Choisissez un scénario et entrez dans les rôles sans multiplier les cartes : le scénario devient un paramètre.",
-          "chili_level": 1,
+          "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -4798,7 +4801,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -4836,7 +4839,7 @@
           "title": "Soft et simple",
           "action_text": "Soft et simple",
           "details_text": null,
-          "chili_level": 1,
+          "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -4865,7 +4868,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4874,7 +4877,7 @@
           "title": "Intense et haletant",
           "action_text": "Intense et haletant",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -4903,7 +4906,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4912,7 +4915,7 @@
           "title": "Au choix",
           "action_text": "Au choix",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -4941,7 +4944,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4950,7 +4953,7 @@
           "title": "Soft et simple",
           "action_text": "Soft et simple",
           "details_text": null,
-          "chili_level": 1,
+          "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -4979,7 +4982,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -4988,7 +4991,7 @@
           "title": "Intense et haletant",
           "action_text": "Intense et haletant",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5017,7 +5020,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5026,7 +5029,7 @@
           "title": "Au choix",
           "action_text": "Au choix",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5055,7 +5058,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5064,7 +5067,7 @@
           "title": "Soft et simple",
           "action_text": "Soft et simple",
           "details_text": null,
-          "chili_level": 1,
+          "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5093,7 +5096,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5102,7 +5105,7 @@
           "title": "Intense et haletant",
           "action_text": "Intense et haletant",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5131,7 +5134,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5140,7 +5143,7 @@
           "title": "Au choix",
           "action_text": "Au choix",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5169,7 +5172,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5178,7 +5181,7 @@
           "title": "Soft et simple",
           "action_text": "Soft et simple",
           "details_text": null,
-          "chili_level": 1,
+          "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5207,7 +5210,7 @@
             "non_preference_data": [
               "phallus"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5216,7 +5219,7 @@
           "title": "Intense et haletant",
           "action_text": "Intense et haletant",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5245,7 +5248,7 @@
             "non_preference_data": [
               "phallus"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5254,7 +5257,7 @@
           "title": "Au choix",
           "action_text": "Au choix",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5283,7 +5286,7 @@
             "non_preference_data": [
               "phallus"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -5320,7 +5323,7 @@
           "title": "Soft et simple",
           "action_text": "Soft et simple",
           "details_text": null,
-          "chili_level": 1,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5350,7 +5353,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5359,7 +5362,7 @@
           "title": "Intense et haletant",
           "action_text": "Intense et haletant",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5389,7 +5392,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5398,7 +5401,7 @@
           "title": "Au choix",
           "action_text": "Au choix",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5428,7 +5431,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5437,7 +5440,7 @@
           "title": "Soft et simple",
           "action_text": "Soft et simple",
           "details_text": null,
-          "chili_level": 1,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5467,7 +5470,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5476,7 +5479,7 @@
           "title": "Intense et haletant",
           "action_text": "Intense et haletant",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5506,7 +5509,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5515,7 +5518,7 @@
           "title": "Au choix",
           "action_text": "Au choix",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5545,7 +5548,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5554,7 +5557,7 @@
           "title": "Soft et simple",
           "action_text": "Soft et simple",
           "details_text": null,
-          "chili_level": 1,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5584,7 +5587,7 @@
             "non_preference_data": [
               "phallus"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5593,7 +5596,7 @@
           "title": "Intense et haletant",
           "action_text": "Intense et haletant",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5623,7 +5626,7 @@
             "non_preference_data": [
               "phallus"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5632,7 +5635,7 @@
           "title": "Au choix",
           "action_text": "Au choix",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5662,7 +5665,7 @@
             "non_preference_data": [
               "phallus"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -5699,7 +5702,7 @@
           "title": "Soft et simple",
           "action_text": "Soft et simple",
           "details_text": null,
-          "chili_level": 1,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5729,7 +5732,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5738,7 +5741,7 @@
           "title": "Intense et haletant",
           "action_text": "Intense et haletant",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5768,7 +5771,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5777,7 +5780,7 @@
           "title": "Au choix",
           "action_text": "Au choix",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5807,7 +5810,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5816,7 +5819,7 @@
           "title": "Soft et simple",
           "action_text": "Soft et simple",
           "details_text": null,
-          "chili_level": 1,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5846,7 +5849,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5855,7 +5858,7 @@
           "title": "Intense et haletant",
           "action_text": "Intense et haletant",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5885,7 +5888,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5894,7 +5897,7 @@
           "title": "Au choix",
           "action_text": "Au choix",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5924,7 +5927,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5933,7 +5936,7 @@
           "title": "Soft et simple",
           "action_text": "Soft et simple",
           "details_text": null,
-          "chili_level": 1,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -5963,7 +5966,7 @@
             "non_preference_data": [
               "phallus"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -5972,7 +5975,7 @@
           "title": "Intense et haletant",
           "action_text": "Intense et haletant",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6002,7 +6005,7 @@
             "non_preference_data": [
               "phallus"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -6011,7 +6014,7 @@
           "title": "Au choix",
           "action_text": "Au choix",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6041,7 +6044,7 @@
             "non_preference_data": [
               "phallus"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -6079,7 +6082,7 @@
           "title": "Soft et simple",
           "action_text": "Soft et simple",
           "details_text": null,
-          "chili_level": 1,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6111,7 +6114,7 @@
               "controle"
             ],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -6120,7 +6123,7 @@
           "title": "Intense et haletant",
           "action_text": "Intense et haletant",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6152,7 +6155,7 @@
               "controle"
             ],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -6161,7 +6164,7 @@
           "title": "Au choix",
           "action_text": "Au choix",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6193,7 +6196,7 @@
               "controle"
             ],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -6202,7 +6205,7 @@
           "title": "Soft et simple",
           "action_text": "Soft et simple",
           "details_text": null,
-          "chili_level": 1,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6234,7 +6237,7 @@
               "controle"
             ],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -6243,7 +6246,7 @@
           "title": "Intense et haletant",
           "action_text": "Intense et haletant",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6275,7 +6278,7 @@
               "controle"
             ],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -6284,7 +6287,7 @@
           "title": "Au choix",
           "action_text": "Au choix",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6316,7 +6319,7 @@
               "controle"
             ],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -6325,7 +6328,7 @@
           "title": "Soft et simple",
           "action_text": "Soft et simple",
           "details_text": null,
-          "chili_level": 1,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6357,7 +6360,7 @@
             "non_preference_data": [
               "phallus"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -6366,7 +6369,7 @@
           "title": "Intense et haletant",
           "action_text": "Intense et haletant",
           "details_text": null,
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6398,7 +6401,7 @@
             "non_preference_data": [
               "phallus"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -6407,7 +6410,7 @@
           "title": "Au choix",
           "action_text": "Au choix",
           "details_text": null,
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6439,7 +6442,7 @@
             "non_preference_data": [
               "phallus"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -6544,7 +6547,7 @@
           "title": "Une sensation d’exposition.",
           "action_text": "Une sensation d’exposition.",
           "details_text": "Créer l'impression d'être plus visible ou moins isolé, tout en restant dans un cadre privé choisi.",
-          "chili_level": 1,
+          "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6572,7 +6575,7 @@
             "non_preference_data": [
               "MUTUEL"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -6610,7 +6613,7 @@
           "title": "Un choix d'éjaculation.",
           "action_text": "Un choix d'éjaculation.",
           "details_text": "Le lieu ou la manière devient un choix explicite de cette occurrence.",
-          "chili_level": 1,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6637,7 +6640,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -6675,7 +6678,7 @@
           "title": "Des paroles provocantes.",
           "action_text": "Des paroles provocantes.",
           "details_text": "Quelques mots piquants ou dominants, sans aller trop loin.",
-          "chili_level": 1,
+          "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6704,7 +6707,7 @@
             "non_preference_data": [
               "parole"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -6713,7 +6716,7 @@
           "title": "Des paroles plus dures.",
           "action_text": "Des paroles plus dures.",
           "details_text": "Le ton devient plus marqué et le vocabulaire plus direct.",
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6742,7 +6745,7 @@
             "non_preference_data": [
               "parole"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -6751,7 +6754,7 @@
           "title": "Des paroles franchement dégradantes.",
           "action_text": "Des paroles franchement dégradantes.",
           "details_text": "Un registre beaucoup plus assumé, réservé à ce qui a déjà été accepté.",
-          "chili_level": 3,
+          "chili_level": 4,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -6780,7 +6783,7 @@
             "non_preference_data": [
               "parole"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -6817,7 +6820,7 @@
           "content_version": 1,
           "title": "Demander avec insistance.",
           "action_text": "Demander avec insistance.",
-          "details_text": "Exprimez clairement une envie et insistez un peu.",
+          "details_text": "Formulez clairement une demande et insistez un peu. La personne ciblée reste libre de l'accorder ou non.",
           "chili_level": 1,
           "additional_tags": [],
           "profile_requirements": [],
@@ -6850,7 +6853,7 @@
             "non_preference_data": [
               "parole"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -6858,7 +6861,7 @@
           "content_version": 1,
           "title": "Supplier.",
           "action_text": "Supplier.",
-          "details_text": "La demande devient plus pressante et plus théâtrale.",
+          "details_text": "La demande devient plus pressante et plus théâtrale. La personne ciblée reste libre de l'accorder ou non.",
           "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
@@ -6891,7 +6894,7 @@
             "non_preference_data": [
               "parole"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -6899,7 +6902,7 @@
           "content_version": 1,
           "title": "Supplier franchement.",
           "action_text": "Supplier franchement.",
-          "details_text": "Faites durer la demande et jouez pleinement le rapport de contrôle.",
+          "details_text": "Faites durer la supplication et jouez pleinement le rapport de contrôle. La personne ciblée reste libre de l'accorder ou non.",
           "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
@@ -6932,7 +6935,7 @@
             "non_preference_data": [
               "parole"
             ],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
@@ -7205,8 +7208,9 @@
       ],
       "v4": {
         "number": "060",
-        "type": "ÉTAT",
-        "canonical_direction": "FAIRE/RECEVOIR"
+        "type": "CARTE À DURÉE",
+        "canonical_direction": "FAIRE/RECEVOIR",
+        "duration_turns": 3
       }
     },
     {
@@ -7237,7 +7241,7 @@
           "title": "Privation de parole / silence.",
           "action_text": "Privation de parole / silence.",
           "details_text": "La personne concernée ne doit ni parler, ni gémir, ni produire volontairement de bruit. Les commandes et validations nécessaires dans l’interface restent disponibles.",
-          "chili_level": 1,
+          "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -7267,14 +7271,15 @@
               "controle"
             ],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
       "v4": {
         "number": "061",
-        "type": "ÉTAT",
-        "canonical_direction": "FAIRE/RECEVOIR"
+        "type": "CARTE À DURÉE",
+        "canonical_direction": "FAIRE/RECEVOIR",
+        "duration_turns": 3
       }
     },
     {
@@ -7305,7 +7310,7 @@
           "title": "Un maintien léger du cou.",
           "action_text": "Un maintien léger du cou.",
           "details_text": "La main se pose et guide sans serrer.",
-          "chili_level": 1,
+          "chili_level": 2,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -7335,7 +7340,7 @@
               "controle"
             ],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -7344,7 +7349,7 @@
           "title": "Un maintien plus marqué.",
           "action_text": "Un maintien plus marqué.",
           "details_text": "Le geste devient plus présent et sert davantage à guider la position.",
-          "chili_level": 2,
+          "chili_level": 3,
           "additional_tags": [],
           "profile_requirements": [],
           "technical_requirements": [],
@@ -7374,7 +7379,7 @@
               "controle"
             ],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -7413,14 +7418,15 @@
               "controle"
             ],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
       "v4": {
         "number": "062",
         "type": "CARTE À DURÉE",
-        "canonical_direction": "FAIRE/RECEVOIR"
+        "canonical_direction": "FAIRE/RECEVOIR",
+        "duration_turns": 3
       }
     },
     {
@@ -7478,7 +7484,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -7514,7 +7520,7 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         },
         {
@@ -7550,14 +7556,15 @@
             ],
             "secondary_preference_tags": [],
             "non_preference_data": [],
-            "spice_unspecified": true
+            "spice_unspecified": false
           }
         }
       ],
       "v4": {
         "number": "063",
         "type": "CARTE À DURÉE",
-        "canonical_direction": "FAIRE/RECEVOIR"
+        "canonical_direction": "FAIRE/RECEVOIR",
+        "duration_turns": 3
       }
     },
     {

@@ -3,6 +3,63 @@ import 'dart:convert';
 import '../../core/json.dart';
 import '../profile/v4_profile.dart';
 
+const int v4DurationCardTurns = 3;
+
+enum V4ZoneSelectionSource { none, players, game }
+
+/// Computes the V4 spice shown and checked for a concrete card occurrence.
+///
+/// The stored variant value remains the base. A single level is added only
+/// when the game explicitly imposes a sexual/intimate zone. A zone freely
+/// chosen by the players never changes spice.
+int v4EffectiveChiliLevel({
+  required int baseChiliLevel,
+  required V4ZoneSelectionSource zoneSelectionSource,
+  required bool sexualOrIntimateZone,
+}) {
+  if (baseChiliLevel < 1 || baseChiliLevel > 4) {
+    throw RangeError.range(baseChiliLevel, 1, 4, 'baseChiliLevel');
+  }
+  final modifier =
+      zoneSelectionSource == V4ZoneSelectionSource.game && sexualOrIntimateZone
+      ? 1
+      : 0;
+  return (baseChiliLevel + modifier).clamp(1, 4);
+}
+
+final class V4CardMetadata {
+  V4CardMetadata.fromJson(JsonMap json)
+    : this._(JsonReader(json, 'V4CardMetadata'));
+
+  V4CardMetadata._(JsonReader reader)
+    : number = reader.string('number'),
+      type = reader.string('type'),
+      canonicalDirection = reader.string('canonical_direction'),
+      durationTurns = reader.optionalInteger('duration_turns', min: 1) {
+    reader.only({'number', 'type', 'canonical_direction', 'duration_turns'});
+    if (!RegExp(r'^\d{3}$').hasMatch(number)) {
+      reader.fail('number', 'V4 card number must contain three digits');
+    }
+    if (durationTurns != null && durationTurns != v4DurationCardTurns) {
+      reader.fail(
+        'duration_turns',
+        'V4 duration cards must last exactly 3 turns',
+      );
+    }
+    if ((type == 'CARTE À DURÉE') != (durationTurns != null)) {
+      reader.fail(
+        'duration_turns',
+        'CARTE À DURÉE metadata requires the canonical three-turn duration',
+      );
+    }
+  }
+
+  final String number;
+  final String type;
+  final String canonicalDirection;
+  final int? durationTurns;
+}
+
 enum InitialQuestionResponse { love, like, unsure, excluded }
 
 extension InitialQuestionResponseValue on InitialQuestionResponse {

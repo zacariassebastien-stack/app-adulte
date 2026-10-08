@@ -791,27 +791,29 @@ TAGS / PRÉFÉRENCES : ordres
 ÉVOLUTION : Aucune
 
 ACTION :
-Un ordre à suivre.
+Formuler un ordre.
 
 DÉTAIL :
-Une consigne simple et claire devient le centre de cette occurrence.
+L'ordre doit être réellement formulé et joué dans l'esprit de la carte. La personne ciblée reste libre de l'exécuter ou non.
 
 RÈGLES PARTICULIÈRES :
+- L'action éventuellement demandée n'est pas automatiquement exécutée.
 - Disponible aussi en mode distance lorsque la consigne est réalisable dans ce contexte.
 
 
 [033] INTERDICTION DE TOUCHER
 ----------------------------------------------------------------------
-TYPE : ACTION
+TYPE : CARTE À DURÉE
 DIRECTION : FAIRE/RECEVOIR
 TAGS / PRÉFÉRENCES : controle
+DURÉE : 3 tours
 ÉVOLUTION : Aucune
 
 ACTION :
 Interdiction de toucher.
 
 DÉTAIL :
-Pendant un court moment, l'un doit résister à l'envie de toucher tandis que le jeu continue.
+Pendant 3 tours, l'un doit résister à l'envie de toucher tandis que le jeu continue.
 
 RÈGLES PARTICULIÈRES :
 - Cette carte sert notamment à faire monter l’intensité chez l’autre.
@@ -819,16 +821,17 @@ RÈGLES PARTICULIÈRES :
 
 [034] ENTRAVE
 ----------------------------------------------------------------------
-TYPE : ÉTAT
+TYPE : CARTE À DURÉE
 DIRECTION : FAIRE/RECEVOIR
 TAGS / PRÉFÉRENCES : attacher + immobiliser + contrôle
+DURÉE : 3 tours
 ÉVOLUTION : OUI — 3 stades
 
 ACTION :
 Entrave.
 
 DÉTAIL :
-Durée décidée entre les joueurs. Zones compatibles : poignets/mains, chevilles et combinaisons compatibles.
+Durée fixe de 3 tours. Zones compatibles : poignets/mains, chevilles et combinaisons compatibles.
 
 STADE 1
 ACTION :
@@ -843,14 +846,15 @@ ACTION :
 Immobiliser.
 
 RÈGLES PARTICULIÈRES :
-- Aucun coût PA. L’icône reste affichée tant que l’état est actif, jusqu’à la fin de la durée décidée entre les joueurs.
+- Aucun coût PA. L’icône reste affichée pendant les 3 tours actifs, puis l’état prend fin.
 
 
 [035] PRIVATION VISUELLE
 ----------------------------------------------------------------------
-TYPE : ÉTAT
+TYPE : CARTE À DURÉE
 DIRECTION : FAIRE/RECEVOIR
 TAGS / PRÉFÉRENCES : privation_sensorielle + vue
+DURÉE : 3 tours
 ÉVOLUTION : OUI — 3 stades
 
 ACTION :
@@ -881,7 +885,7 @@ DÉTAIL :
 La privation visuelle s'accompagne d'un petit jeu : reconnaître ce qui se passe uniquement grâce aux sensations.
 
 RÈGLES PARTICULIÈRES :
-- L’état reste actif pendant les actions suivantes, qui se jouent normalement. Chaque tour actif coûte 3 PA à CHAQUE joueur. Icône persistante. Fin lorsque les deux joueurs sélectionnent l’icône et valident ensemble sa désactivation.
+- L’état reste actif pendant exactement 3 tours, tandis que les autres actions se jouent normalement. Chaque tour actif coûte 3 PA à CHAQUE joueur. Icône persistante jusqu’à la fin du troisième tour.
 
 
 [036] JEU DE TEMPÉRATURE
@@ -1448,24 +1452,24 @@ ACTION :
 Demander avec insistance.
 
 DÉTAIL :
-Exprimez clairement une envie et insistez un peu.
+Formulez clairement une demande et insistez un peu. La personne ciblée reste libre de l'accorder ou non.
 
 STADE 2
 ACTION :
 Supplier.
 
 DÉTAIL :
-La demande devient plus pressante et plus théâtrale.
+La demande devient plus pressante et plus théâtrale. La personne ciblée reste libre de l'accorder ou non.
 
 STADE 3
 ACTION :
 Supplier franchement.
 
 DÉTAIL :
-Faites durer la demande et jouez pleinement le rapport de contrôle.
+Faites durer la supplication et jouez pleinement le rapport de contrôle. La personne ciblée reste libre de l'accorder ou non.
 
 RÈGLES PARTICULIÈRES :
-Règles communes du catalogue ; aucune règle particulière supplémentaire.
+- La supplication est l'action imposée par la carte. Ce qui est demandé n'est pas automatiquement accordé ou exécuté.
 
 
 [058] AILLEURS, EN PRIVÉ
@@ -1527,9 +1531,10 @@ Règles communes du catalogue ; aucune règle particulière supplémentaire.
 
 [060] PRIVATION AUDITIVE
 ----------------------------------------------------------------------
-TYPE : ÉTAT
+TYPE : CARTE À DURÉE
 DIRECTION : FAIRE/RECEVOIR
 TAGS / PRÉFÉRENCES : privation_sensorielle + ouie
+DURÉE : 3 tours
 ÉVOLUTION : Aucune
 
 ACTION :
@@ -1539,14 +1544,15 @@ DÉTAIL :
 Réduisez ou masquez les sons pour laisser davantage de place aux autres sensations.
 
 RÈGLES PARTICULIÈRES :
-- L’état reste actif pendant les actions suivantes, qui se jouent normalement. Chaque tour actif coûte 3 PA à CHAQUE joueur. Icône persistante. Fin lorsque les deux joueurs sélectionnent l’icône et valident ensemble sa désactivation.
+- L’état reste actif pendant exactement 3 tours, tandis que les autres actions se jouent normalement. Chaque tour actif coûte 3 PA à CHAQUE joueur. Icône persistante jusqu’à la fin du troisième tour.
 
 
 [061] PRIVATION DE PAROLE / SILENCE
 ----------------------------------------------------------------------
-TYPE : ÉTAT
+TYPE : CARTE À DURÉE
 DIRECTION : FAIRE/RECEVOIR
 TAGS / PRÉFÉRENCES : privation_parole + controle
+DURÉE : 3 tours
 ÉVOLUTION : Aucune
 
 ACTION :
@@ -1556,7 +1562,7 @@ DÉTAIL :
 La personne concernée ne doit ni parler, ni gémir, ni produire volontairement de bruit. Les commandes et validations nécessaires dans l’interface restent disponibles.
 
 RÈGLES PARTICULIÈRES :
-- L’état reste actif pendant les actions suivantes, qui se jouent normalement. Chaque tour actif coûte 3 PA à CHAQUE joueur. Icône persistante. Fin lorsque les deux joueurs sélectionnent l’icône et valident ensemble sa désactivation.
+- L’état reste actif pendant exactement 3 tours, tandis que les autres actions se jouent normalement. Chaque tour actif coûte 3 PA à CHAQUE joueur. Icône persistante jusqu’à la fin du troisième tour.
 
 
 [062] MAINTIEN DU COU
@@ -1564,6 +1570,7 @@ RÈGLES PARTICULIÈRES :
 TYPE : CARTE À DURÉE
 DIRECTION : FAIRE/RECEVOIR
 TAGS / PRÉFÉRENCES : maintien_cou + controle
+DURÉE : 3 tours
 ÉVOLUTION : OUI — 3 stades
 
 ACTION :
@@ -1596,7 +1603,7 @@ DÉTAIL :
 La prise reste plus ferme et plus longue, sans transformer l'action en étranglement.
 
 RÈGLES PARTICULIÈRES :
-- S’applique aux 3 prochaines actions réalisées, pas aux simples tours sans action. Compteur interface : 3 -> 2 -> 1 -> fin. Aucun coût PA supplémentaire.
+- S’applique pendant exactement 3 tours tandis que les autres actions se jouent normalement. Compteur interface : 3 -> 2 -> 1 -> fin. Aucun coût PA supplémentaire.
 - Maintenir/guider par le cou sans serrer, à tous les stades. Ne jamais transformer cette action en étranglement.
 
 
@@ -1605,6 +1612,7 @@ RÈGLES PARTICULIÈRES :
 TYPE : CARTE À DURÉE
 DIRECTION : FAIRE/RECEVOIR
 TAGS / PRÉFÉRENCES : tirer
+DURÉE : 3 tours
 ÉVOLUTION : OUI — 3 stades
 
 ACTION :
@@ -1637,7 +1645,7 @@ DÉTAIL :
 Une version plus marquée, avec davantage de contrôle sur le rythme ou la position.
 
 RÈGLES PARTICULIÈRES :
-- S’applique aux 3 prochaines actions réalisées, pas aux simples tours sans action. Compteur interface : 3 -> 2 -> 1 -> fin. Aucun coût PA supplémentaire.
+- S’applique pendant exactement 3 tours tandis que les autres actions se jouent normalement. Compteur interface : 3 -> 2 -> 1 -> fin. Aucun coût PA supplémentaire.
 - Appliquer lorsque l’action et la zone le permettent, notamment aux cheveux.
 
 

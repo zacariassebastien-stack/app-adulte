@@ -36,6 +36,165 @@ void main() {
     expect(scoring.cards.expand((item) => item.variants), hasLength(155));
   });
 
+  test('catalogue and scoring audit preserve every V4 stable ID', () async {
+    final catalog = await const CatalogLoader().load(
+      (path) => File(path).readAsString(),
+    );
+    final scoring = V4ScoringCatalog.decode(
+      File('assets/catalog/source/catalog_v4_scoring.json').readAsStringSync(),
+    );
+
+    expect(
+      catalog.cards.map((card) => card.stableId).toSet(),
+      scoring.cards.map((card) => card.cardId).toSet(),
+    );
+    expect(
+      catalog.cards
+          .expand((card) => card.variants)
+          .map((item) => item.stableId)
+          .toSet(),
+      scoring.cards
+          .expand((card) => card.variants)
+          .map((item) => item.variantId)
+          .toSet(),
+    );
+  });
+
+  test('validated V4 spice levels are exact', () async {
+    final catalog = await const CatalogLoader().load(
+      (path) => File(path).readAsString(),
+    );
+    List<int> levels(int order) => catalog.cards
+        .singleWhere((card) => card.order == order)
+        .variants
+        .map((variant) => variant.chiliLevel)
+        .toList();
+
+    expect(levels(36), [1, 2, 2]);
+    expect(levels(37), [2, 2, 3]);
+    expect(levels(44), [1, 2, 4]);
+    expect(levels(45), [1, 3, 4]);
+    expect(levels(46), [1, 2, 4, 1, 2, 4]);
+    expect(levels(47), [1, 3, 4]);
+    expect(levels(48), [2]);
+    expect(levels(49), [2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4]);
+    for (final order in [50, 51, 52]) {
+      expect(levels(order), [3, 3, 4, 3, 3, 4, 3, 3, 4]);
+    }
+    expect(levels(54), [2]);
+    expect(levels(55), [4]);
+    expect(levels(56), [2, 3, 4]);
+    expect(levels(57), [1, 2, 3]);
+    expect(levels(61), [2]);
+    expect(levels(62), [2, 3, 3]);
+    expect(levels(63), [1, 2, 3]);
+  });
+
+  test('only the seven declared cards last exactly three turns', () async {
+    final catalog = await const CatalogLoader().load(
+      (path) => File(path).readAsString(),
+    );
+    final durationCards = catalog.cards.where(
+      (card) => card.v4?.durationTurns != null,
+    );
+
+    expect(durationCards.map((card) => card.order), [
+      33,
+      34,
+      35,
+      60,
+      61,
+      62,
+      63,
+    ]);
+    expect(
+      durationCards.every(
+        (card) =>
+            card.v4?.type == 'CARTE À DURÉE' &&
+            card.v4?.durationTurns == v4DurationCardTurns,
+      ),
+      isTrue,
+    );
+    expect(
+      catalog.cards
+          .where((card) => card.v4?.type == 'CARTE À DURÉE')
+          .map((card) => card.order),
+      [33, 34, 35, 60, 61, 62, 63],
+    );
+  });
+
+  test(
+    'effective spice adds one only for a game-imposed intimate zone',
+    () async {
+      final catalog = await const CatalogLoader().load(
+        (path) => File(path).readAsString(),
+      );
+      final mouthPlay = catalog.cards
+          .singleWhere((card) => card.order == 4)
+          .variants
+          .single;
+      expect(
+        mouthPlay.effectiveChiliLevel(
+          zoneSelectionSource: V4ZoneSelectionSource.game,
+          sexualOrIntimateZone: true,
+        ),
+        2,
+      );
+      expect(
+        v4EffectiveChiliLevel(
+          baseChiliLevel: 2,
+          zoneSelectionSource: V4ZoneSelectionSource.game,
+          sexualOrIntimateZone: false,
+        ),
+        2,
+      );
+      expect(
+        v4EffectiveChiliLevel(
+          baseChiliLevel: 2,
+          zoneSelectionSource: V4ZoneSelectionSource.players,
+          sexualOrIntimateZone: true,
+        ),
+        2,
+      );
+      expect(
+        v4EffectiveChiliLevel(
+          baseChiliLevel: 4,
+          zoneSelectionSource: V4ZoneSelectionSource.game,
+          sexualOrIntimateZone: true,
+        ),
+        4,
+      );
+    },
+  );
+
+  test(
+    'order and pleading remain requests without an execution gate',
+    () async {
+      final catalog = await const CatalogLoader().load(
+        (path) => File(path).readAsString(),
+      );
+      final order = catalog.cards.singleWhere((card) => card.order == 32);
+      final pleading = catalog.cards.singleWhere((card) => card.order == 57);
+
+      expect(order.variants.single.detailsText, contains('reste libre'));
+      expect(
+        pleading.variants.every(
+          (variant) => variant.detailsText?.contains('reste libre') ?? false,
+        ),
+        isTrue,
+      );
+      expect(order.profileRequirements, isEmpty);
+      expect(pleading.profileRequirements, isEmpty);
+      expect(order.variants.single.profileRequirements, isEmpty);
+      expect(
+        pleading.variants.every(
+          (variant) => variant.profileRequirements.isEmpty,
+        ),
+        isTrue,
+      );
+    },
+  );
+
   test('legacy catalogues are archived outside the production asset path', () {
     expect(
       File('assets/catalog/source/cards.v1.fr.json').existsSync(),

@@ -3,6 +3,7 @@ import 'enums.dart';
 import 'parameter.dart';
 import 'requirements.dart';
 import 'v3_rules.dart';
+import 'v4_catalog.dart';
 
 abstract base class ContentDefinition extends JsonModel {
   ContentDefinition(super.reader) {
@@ -132,6 +133,7 @@ final class CardDefinition extends ActionDefinition {
     v3ReplacementVariantId;
     v3ReplacementSessionField;
     v3;
+    v4;
     variants = reader.objects(
       'variants',
       CardVariantDefinition.read,
@@ -170,6 +172,9 @@ final class CardDefinition extends ActionDefinition {
   V3EditorialData? get v3 => reader.json['v3'] == null
       ? null
       : V3EditorialData.fromJson(reader.json['v3']! as JsonMap);
+  V4CardMetadata? get v4 => reader.json['v4'] == null
+      ? null
+      : V4CardMetadata.fromJson(reader.json['v4']! as JsonMap);
   late final List<CardVariantDefinition> variants;
 }
 
@@ -197,6 +202,14 @@ final class CardVariantDefinition extends ActionDefinition {
   String? get cardId => reader.optionalString('card_id');
   String? get instructionKey => reader.optionalString('instruction_key');
   int get chiliLevel => reader.integer('chili_level', min: 1, max: 5);
+  int effectiveChiliLevel({
+    required V4ZoneSelectionSource zoneSelectionSource,
+    required bool sexualOrIntimateZone,
+  }) => v4EffectiveChiliLevel(
+    baseChiliLevel: chiliLevel,
+    zoneSelectionSource: zoneSelectionSource,
+    sexualOrIntimateZone: sexualOrIntimateZone,
+  );
   List<String> get additionalTags => reader.strings('additional_tags');
   List<String> get removedTags =>
       reader.strings('removed_tags', optional: true);

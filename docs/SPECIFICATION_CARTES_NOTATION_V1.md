@@ -346,12 +346,46 @@ Le contenu intégral du catalogue V4 a été fourni le 7 octobre 2026. Il contie
 | Photo | niveaux Suggestive → Osée → Sans détour |
 | Vidéo | niveaux Suggestive → Osée → Sans détour |
 | Photo mutuelle / Vidéo mutuelle | préférences distinctes ; ne pas déduire d'un simple consentement à envoyer |
-| Privation visuelle | état persistant, coût de 3 PA à chaque joueur par tour |
-| Privation auditive | état persistant, coût de 3 PA à chaque joueur par tour |
-| Privation de parole | état persistant, coût de 3 PA à chaque joueur par tour |
-| Entrave | état sans coût ; durée convenue entre joueurs |
+| Privation visuelle | carte à durée de 3 tours, coût de 3 PA à chaque joueur par tour |
+| Privation auditive | carte à durée de 3 tours, coût de 3 PA à chaque joueur par tour |
+| Privation de parole | carte à durée de 3 tours, coût de 3 PA à chaque joueur par tour |
+| Entrave | carte à durée de 3 tours, sans coût |
 | Maintien du cou | compteur 3 → 2 → 1 ; préférence distincte ; formulation non technique et sûre |
 | Tirer doucement | compteur 3 → 2 → 1 |
+
+### 8.0 Piment effectif et cartes à durée
+
+Le niveau stocké sur chaque variante est son **piment de base**. Les niveaux
+validés suivent cette lecture : 1 reste doux, 2 introduit une intensité
+sensuelle nette, 3 correspond à une mise en scène ou une intensité soutenue,
+et 4 couvre une pratique sexuelle explicite ou un engagement élevé. Le
+catalogue V4 de cette version plafonne le piment effectif à 4.
+
+Pour une carte qui utilise un paramètre de zone :
+
+```text
+piment_effectif = min(4, piment_de_base + modificateur_zone)
+```
+
+`modificateur_zone` vaut `+1` uniquement lorsque le jeu sélectionne ou impose
+explicitement une zone sexuelle ou intime. Il vaut `0` pour une zone non
+sexuelle et lorsque les joueurs choisissent librement la zone. Cette règle est
+générale et ne dépend d'aucune carte particulière.
+
+Une carte à durée reste active pendant que les autres actions continuent à se
+jouer. Toutes les cartes à durée V4 durent exactement **3 tours**. La durée est
+stockée dans `v4.duration_turns`; le domaine impose la constante canonique
+`v4DurationCardTurns = 3`. La liste actuelle est : Interdiction de toucher
+(033), Entrave (034), Privation visuelle (035), Privation auditive (060),
+Privation de parole / silence (061), Maintien du cou (062) et Tirer doucement
+(063). Un simple objet de type ÉTAT n'est pas automatiquement une carte à
+durée.
+
+Ordre (032) impose de formuler et jouer réellement la dynamique d'ordre. La
+personne ciblée reste libre d'exécuter ou non l'action demandée. Supplier (057)
+impose de formuler et jouer la supplication ; ce qui est demandé reste librement
+accordé ou refusé. Aucun de ces deux fonctionnements ne crée un consent gate et
+leur piment décrit la dynamique elle-même.
 
 ### 8.1 Index complet des 65 cartes V4
 
@@ -391,9 +425,9 @@ Le détail intégral des actions, variantes, stades, zones, paramètres, états 
 | 030 | FACESITTING | ACTION | FAIRE/RECEVOIR | facesitting | OUI — 3 stades |
 | 031 | FROTTEMENT GÉNITAL | ACTION | MUTUEL | frotter | Aucune |
 | 032 | ORDRE | ACTION | FAIRE/RECEVOIR | ordres | Aucune |
-| 033 | INTERDICTION DE TOUCHER | ACTION | FAIRE/RECEVOIR | controle | Aucune |
-| 034 | ENTRAVE | ÉTAT | FAIRE/RECEVOIR | attacher + immobiliser + contrôle | OUI — 3 stades |
-| 035 | PRIVATION VISUELLE | ÉTAT | FAIRE/RECEVOIR | privation_sensorielle + vue | OUI — 3 stades |
+| 033 | INTERDICTION DE TOUCHER | CARTE À DURÉE | FAIRE/RECEVOIR | controle | Aucune |
+| 034 | ENTRAVE | CARTE À DURÉE | FAIRE/RECEVOIR | attacher + immobiliser + contrôle | OUI — 3 stades |
+| 035 | PRIVATION VISUELLE | CARTE À DURÉE | FAIRE/RECEVOIR | privation_sensorielle + vue | OUI — 3 stades |
 | 036 | JEU DE TEMPÉRATURE | ACTION | FAIRE/RECEVOIR | temperature | OUI — 3 stades |
 | 037 | FESSÉE | ACTION | FAIRE/RECEVOIR | frapper | OUI — 3 stades |
 | 038 | DANSER | ACTION | FAIRE/RECEVOIR | danser | Aucune |
@@ -418,8 +452,8 @@ Le détail intégral des actions, variantes, stades, zones, paramètres, états 
 | 057 | SUPPLIER | ACTION | FAIRE/RECEVOIR | supplier + parole + contrôle | OUI — 3 stades |
 | 058 | AILLEURS, EN PRIVÉ | ACTION | MUTUEL | lieu_inhabituel | Aucune |
 | 059 | JEU DE TEXTURES | ACTION | FAIRE/RECEVOIR | texture | OUI — 3 stades |
-| 060 | PRIVATION AUDITIVE | ÉTAT | FAIRE/RECEVOIR | privation_sensorielle + ouie | Aucune |
-| 061 | PRIVATION DE PAROLE / SILENCE | ÉTAT | FAIRE/RECEVOIR | privation_parole + controle | Aucune |
+| 060 | PRIVATION AUDITIVE | CARTE À DURÉE | FAIRE/RECEVOIR | privation_sensorielle + ouie | Aucune |
+| 061 | PRIVATION DE PAROLE / SILENCE | CARTE À DURÉE | FAIRE/RECEVOIR | privation_parole + controle | Aucune |
 | 062 | MAINTIEN DU COU | CARTE À DURÉE | FAIRE/RECEVOIR | maintien_cou + controle | OUI — 3 stades |
 | 063 | TIRER DOUCEMENT | CARTE À DURÉE | FAIRE/RECEVOIR | tirer | OUI — 3 stades |
 | 064 | DÉGUSTATION SENSUELLE | ACTION | FAIRE/RECEVOIR | nourriture + boisson | Aucune |
