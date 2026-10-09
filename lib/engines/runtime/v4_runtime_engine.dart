@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../../domain/catalog/v4_catalog.dart';
+import '../../domain/game/game_models.dart';
 import '../deck/session_deck_builder.dart';
 
 enum V4SessionMode { presentiel, distance, hybrid }
@@ -232,16 +233,46 @@ final class V4ResolvedParameters {
       );
 }
 
+final class V4CatalogParameterResolver {
+  const V4CatalogParameterResolver();
+
+  V4ResolvedParameters resolve({
+    required V4ScoringCatalog catalog,
+    required String cardId,
+    required String variantId,
+    required V4ResolvedParameters current,
+  }) {
+    final card = catalog.cards
+        .where((item) => item.cardId == cardId)
+        .firstOrNull;
+    final variant = card?.variants
+        .where((item) => item.variantId == variantId)
+        .firstOrNull;
+    if (variant?.scope.trim().toLowerCase() !=
+        'chaque zone intime compatible') {
+      return current;
+    }
+    return V4ResolvedParameters(
+      zoneSelectionSource: V4ZoneSelectionSource.game,
+      sexualOrIntimateZone: true,
+      zoneId: current.zoneId ?? 'zone.intime',
+      accessoryId: current.accessoryId,
+    );
+  }
+}
+
 final class V4PlayableOccurrence {
   const V4PlayableOccurrence({
     required this.candidate,
     required this.parameters,
     required this.playable,
+    this.locked = false,
   });
 
   final DeckCandidateV3 candidate;
   final V4ResolvedParameters parameters;
   final bool playable;
+  final bool locked;
 }
 
 /// Replaces one locked hand entry only when this is required to avoid a
@@ -259,7 +290,15 @@ final class V4PlayableHandGuard {
     if (candidates.isEmpty) return List.unmodifiable(hand);
     final replacement = candidates[random.nextInt(candidates.length)];
     if (hand.isEmpty) return [replacement];
-    return List.unmodifiable([replacement, ...hand.skip(1)]);
+    var replaceIndex = hand.indexWhere((item) => item.locked && !item.playable);
+    if (replaceIndex < 0) {
+      replaceIndex = hand.indexWhere((item) => !item.playable);
+    }
+    if (replaceIndex < 0) return List.unmodifiable(hand);
+    return List.unmodifiable([
+      for (final (index, item) in hand.indexed)
+        if (index == replaceIndex) replacement else item,
+    ]);
   }
 }
 
@@ -324,6 +363,19 @@ final class V4PersistentEffect {
 final class V4PersistentEffectEngine {
   const V4PersistentEffectEngine();
 
+  List<V4PersistentEffect> createForAction({
+    required String cardId,
+    required Iterable<String> targetPlayerIds,
+    required int durationActions,
+  }) => List.unmodifiable([
+    for (final targetPlayerId in targetPlayerIds)
+      V4PersistentEffect(
+        cardId: cardId,
+        targetPlayerId: targetPlayerId,
+        remainingActions: durationActions,
+      ),
+  ]);
+
   List<V4PersistentEffect> closeAction({
     required Iterable<V4PersistentEffect> activeBeforeAction,
     V4PersistentEffect? producedEffect,
@@ -346,7 +398,92 @@ final class V4PersistentEffectEngine {
   }
 }
 
+final class V4ActionTargetResolver {
+  const V4ActionTargetResolver();
+
+  List<String> resolve({
+    required String ownerPlayerId,
+    required Iterable<String> playerIds,
+    required CardOccurrenceDirection direction,
+  }) {
+    final players = playerIds.toList(growable: false);
+    final partnerId = players.firstWhere(
+      (id) => id != ownerPlayerId,
+      orElse: () => ownerPlayerId,
+    );
+    return List.unmodifiable(switch (direction) {
+      CardOccurrenceDirection.FAIRE => [partnerId],
+      CardOccurrenceDirection.RECEVOIR ||
+      CardOccurrenceDirection.SOLO => [ownerPlayerId],
+      CardOccurrenceDirection.MUTUEL ||
+      CardOccurrenceDirection.SIMULTANE ||
+      CardOccurrenceDirection.GENERAL => players,
+    });
+  }
+}
+
 enum V4AccessoryTag { anal, vaginal, buccal, phallus, externe, vibrant }
+
+final class V4AccessoryRequirements {
+  V4AccessoryRequirements._({
+    required this.requiredTags,
+    required this.requiresAccessory,
+    required this.requiresRemoteControl,
+    required this.supported,
+  });
+
+  factory V4AccessoryRequirements.fromTokens(Iterable<String> tokens) {
+    final tags = <V4AccessoryTag>{};
+    var requiresAccessory = false;
+    var requiresRemoteControl = false;
+    var supported = true;
+    for (final raw in tokens) {
+      switch (raw.toUpperCase()) {
+        case 'SEXTOY':
+          requiresAccessory = true;
+        case 'VIBRANT' || 'VIBRATING_TOY':
+          requiresAccessory = true;
+          tags.add(V4AccessoryTag.vibrant);
+        case 'REMOTE_CONTROL_TOY':
+          requiresAccessory = true;
+          requiresRemoteControl = true;
+        case 'ANAL':
+          requiresAccessory = true;
+          tags.add(V4AccessoryTag.anal);
+        case 'VAGINAL':
+          requiresAccessory = true;
+          tags.add(V4AccessoryTag.vaginal);
+        case 'BUCCAL':
+          requiresAccessory = true;
+          tags.add(V4AccessoryTag.buccal);
+        case 'PHALLUS':
+          requiresAccessory = true;
+          tags.add(V4AccessoryTag.phallus);
+        case 'EXTERNE':
+          requiresAccessory = true;
+          tags.add(V4AccessoryTag.externe);
+        default:
+          supported = false;
+      }
+    }
+    return V4AccessoryRequirements._(
+      requiredTags: Set.unmodifiable(tags),
+      requiresAccessory: requiresAccessory,
+      requiresRemoteControl: requiresRemoteControl,
+      supported: supported,
+    );
+  }
+
+  final Set<V4AccessoryTag> requiredTags;
+  final bool requiresAccessory;
+  final bool requiresRemoteControl;
+  final bool supported;
+
+  bool accepts(V4Accessory accessory) =>
+      supported &&
+      (!requiresAccessory || accessory.supports(requiredTags)) &&
+      (!requiresRemoteControl || accessory.remoteControllable);
+}
 
 final class V4Accessory {
   V4Accessory({

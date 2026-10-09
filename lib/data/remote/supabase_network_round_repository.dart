@@ -93,9 +93,9 @@ final class SupabaseNetworkRoundRepository implements NetworkRoundRepository {
     yield await getRoundState(sessionId: sessionId, roundId: roundId);
     await for (final _
         in client
-            .from('network_rounds')
-            .stream(primaryKey: ['id'])
-            .eq('id', roundId)) {
+            .from('network_round_public_events')
+            .stream(primaryKey: ['round_id'])
+            .eq('round_id', roundId)) {
       yield await getRoundState(sessionId: sessionId, roundId: roundId);
     }
   }

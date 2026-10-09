@@ -14,11 +14,15 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   late Catalog catalog;
+  late V4ScoringCatalog scoringCatalog;
   late LobbySession session;
 
   setUpAll(() async {
     catalog = await const CatalogLoader().load(
       (path) => File(path).readAsString(),
+    );
+    scoringCatalog = V4ScoringCatalog.decode(
+      File('assets/catalog/source/catalog_v4_scoring.json').readAsStringSync(),
     );
     session = LobbySession(
       id: 'session-multi',
@@ -54,6 +58,153 @@ void main() {
     expect(state.cycleExhausted, isTrue);
   });
 
+  test('public round DTO removes opponent values and compromise snapshots', () {
+    final opponentReveal = ChoiceRevealDto(
+      sessionRound: 'session-multi.round-1',
+      playerId: 'alice',
+      choice: ChoicePayload(
+        cardId: 'card.v4.024',
+        variantId: 'variant.v4.024.base',
+        parameters: const {'personal_value': 17, 'opposite_personal_value': 6},
+      ),
+      nonce: 'opponent-secret',
+    );
+    final state = NetworkGameRoundStateDto(
+      roundId: 'round-1',
+      sessionId: 'session-multi',
+      sessionRound: 'session-multi.round-1',
+      roundNumber: 1,
+      phase: NetworkGamePhase.finalResolved,
+      playerId: 'bob',
+      commits: const {},
+      actionPoints: const {'alice': 100, 'bob': 100},
+      readyNextPlayerIds: const {},
+      tieDecisions: const {},
+      opponentReveal: opponentReveal,
+      initialResolution: NetworkInitialResolutionDto(
+        tied: false,
+        winnerPlayerId: 'alice',
+        loserPlayerId: 'bob',
+        gap: 9,
+        gapCost: 9,
+        highValue: 17,
+        actionPoints: const {'alice': 100, 'bob': 100},
+      ),
+      negotiation: NetworkNegotiationDto(
+        proposal: NetworkNegotiationOfferDto(
+          inversionRequested: false,
+          directPa: 3,
+          cards: const [
+            NetworkCompromiseCardDto(
+              occurrenceId: 'alice-auction-occurrence',
+              cardId: 'card.v4.025',
+              variantId: 'variant.v4.025.base',
+              ownerPlayerId: 'alice',
+              nativeDirection: NetworkCardDirection.FAIRE,
+              effectiveDirection: NetworkCardDirection.FAIRE,
+              origin: NetworkCompromiseOrigin.AUCTION,
+              snapshotValue: 14,
+            ),
+          ],
+        ),
+      ),
+      finalResolution: const NetworkFinalResolutionDto(
+        retainedPlayerId: 'alice',
+        compromise: [
+          NetworkCompromiseCardDto(
+            occurrenceId: 'alice-occurrence',
+            cardId: 'card.v4.024',
+            variantId: 'variant.v4.024.base',
+            ownerPlayerId: 'alice',
+            nativeDirection: NetworkCardDirection.FAIRE,
+            effectiveDirection: NetworkCardDirection.FAIRE,
+            origin: NetworkCompromiseOrigin.INITIAL_DUEL,
+            snapshotValue: 17,
+          ),
+        ],
+      ),
+    );
+
+    final publicJson = state.toJson();
+    expect(publicJson['opponent_reveal'], isNull);
+    expect(
+      publicJson['initial_resolution'],
+      isNot(containsPair('high_value', anything)),
+    );
+    expect(
+      publicJson['initial_resolution'],
+      isNot(containsPair('gap', anything)),
+    );
+    final compromise =
+        ((publicJson['final_resolution']! as Map)['compromise']! as List).single
+            as Map;
+    expect(compromise, isNot(contains('snapshot_value')));
+    final auctionCard =
+        ((((publicJson['negotiation']! as Map)['proposal']! as Map)['cards']!
+                    as List)
+                .single)
+            as Map;
+    expect(auctionCard, isNot(contains('snapshot_value')));
+    final encoded = jsonEncode(publicJson);
+    expect(encoded, isNot(contains('personal_value')));
+    expect(encoded, isNot(contains('opposite_personal_value')));
+    expect(encoded, isNot(contains('snapshot_value')));
+    final injected = Map<String, Object?>.from(publicJson)
+      ..['opponent_reveal'] = opponentReveal.toJson();
+    expect(NetworkGameRoundStateDto.fromJson(injected).opponentReveal, isNull);
+  });
+
+  test('Realtime observes only revision-only public round events', () {
+    final migration = File(
+      'supabase/migrations/202610080001_v4_action_completion.sql',
+    ).readAsStringSync();
+    final gameRepository = File(
+      'lib/data/remote/supabase_network_game_repository.dart',
+    ).readAsStringSync();
+    final roundRepository = File(
+      'lib/data/remote/supabase_network_round_repository.dart',
+    ).readAsStringSync();
+
+    expect(migration, contains('network_round_public_events'));
+    final eventTable = RegExp(
+      r'create table if not exists public\.network_round_public_events \((.*?)\);',
+      dotAll: true,
+    ).firstMatch(migration)!.group(1)!;
+    expect(eventTable, contains('round_id'));
+    expect(eventTable, contains('session_id'));
+    expect(eventTable, contains('revision'));
+    expect(eventTable, isNot(contains('initial_resolution')));
+    expect(eventTable, isNot(contains('negotiation')));
+    expect(eventTable, isNot(contains('final_resolution')));
+    expect(eventTable, isNot(contains('snapshot_value')));
+    expect(
+      migration,
+      contains(
+        'revoke select on public.network_rounds from anon, authenticated',
+      ),
+    );
+    expect(
+      migration,
+      contains('drop policy if exists "members observe round changes"'),
+    );
+    expect(
+      migration,
+      contains(
+        'alter publication supabase_realtime drop table public.network_rounds',
+      ),
+    );
+    expect(
+      migration,
+      contains(
+        'alter publication supabase_realtime add table public.network_round_public_events',
+      ),
+    );
+    expect(gameRepository, contains("from('network_round_public_events')"));
+    expect(roundRepository, contains("from('network_round_public_events')"));
+    expect(gameRepository, isNot(contains("from('network_rounds')")));
+    expect(roundRepository, isNot(contains("from('network_rounds')")));
+  });
+
   test('the first zero occurrence signal ends the common cycle', () async {
     final backend = _Backend();
     backend.round.phase = NetworkGamePhase.finalResolved;
@@ -65,9 +216,14 @@ void main() {
     );
     expect(backend.state('alice').cycleExhausted, isTrue);
     expect(backend.state('bob').cycleExhausted, isTrue);
+    final waiting = await bob.readyNextRound(
+      command: _command('next-bob', 'bob', 'READY_NEXT', backend.round.id),
+    );
+    expect(waiting.phase, NetworkGamePhase.waitingNext);
+    expect(waiting.cycleExhausted, isTrue);
     await expectLater(
-      bob.readyNextRound(
-        command: _command('next-bob', 'bob', 'READY_NEXT', backend.round.id),
+      alice.readyNextRound(
+        command: _command('close-alice', 'alice', 'READY_NEXT', backend.round.id),
       ),
       throwsA(
         isA<NetworkRoundException>().having(
@@ -210,6 +366,45 @@ void main() {
   );
 
   test(
+    'READY resolves server-side without exposing the opponent reveal',
+    () async {
+      final backend = _Backend()..redactOpponentReveal = true;
+      backend.round
+        ..phase = NetworkGamePhase.ready
+        ..reveals['alice'] = ChoiceRevealDto(
+          sessionRound: 'session-multi.round-1',
+          playerId: 'alice',
+          choice: _choice('alice', 14),
+          nonce: 'nonce-alice',
+        )
+        ..reveals['bob'] = ChoiceRevealDto(
+          sessionRound: 'session-multi.round-1',
+          playerId: 'bob',
+          choice: _choice('bob', 8),
+          nonce: 'nonce-bob',
+        );
+      final controller = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: _PrivateResolutionRepository(backend, 'alice'),
+        privateStore: MemoryNetworkDuelSecretStore(),
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog,
+      );
+      addTearDown(controller.dispose);
+
+      expect(backend.state('alice').opponentReveal, isNull);
+      await controller.start();
+      await _settle();
+
+      expect(backend.round.initial!.winnerPlayerId, 'alice');
+      expect(backend.round.initial!.gap, 6);
+      expect(controller.round!.opponentReveal, isNull);
+      expect(controller.initialResolution!.winnerPlayerId, 'alice');
+    },
+  );
+
+  test(
     'controllers keep four private cards and engage without exposing hand',
     () async {
       final setup = await _setup(session, catalog);
@@ -239,7 +434,10 @@ void main() {
   );
 
   test('private directional consent constrains occurrence direction', () async {
-    PlayerGameProfile profile({required bool allowRecevoir}) {
+    PlayerGameProfile profile({
+      required bool allowFaire,
+      required bool allowRecevoir,
+    }) {
       final preferenceIds = catalog.cards
           .expand((card) => card.variants)
           .expand((variant) => variant.v3?.tags ?? const <String>[])
@@ -252,6 +450,7 @@ void main() {
             id: PreferenceValue(
               status: PreferenceStatus.ACCEPTED,
               general: 10,
+              faire: allowFaire ? 6 : null,
               recevoir: allowRecevoir ? 8 : null,
             ),
         },
@@ -266,7 +465,7 @@ void main() {
       privateStore: MemoryNetworkDuelSecretStore(),
       learningStore: MemoryNetworkProfileLearningStore(),
       catalog: catalog,
-      privateProfile: profile(allowRecevoir: true),
+      privateProfile: profile(allowFaire: false, allowRecevoir: true),
     );
     addTearDown(receiving.dispose);
     await receiving.start();
@@ -295,21 +494,581 @@ void main() {
       privateStore: MemoryNetworkDuelSecretStore(),
       learningStore: MemoryNetworkProfileLearningStore(),
       catalog: catalog,
-      privateProfile: profile(allowRecevoir: false),
+      privateProfile: profile(allowFaire: true, allowRecevoir: false),
     );
     addTearDown(excluded.dispose);
     await excluded.start();
     expect(
       excluded.runtime.map((card) => card.nativeDirection),
-      isNot(
-        contains(
-          anyOf(
-            CardOccurrenceDirection.FAIRE,
-            CardOccurrenceDirection.RECEVOIR,
+      contains(CardOccurrenceDirection.FAIRE),
+    );
+    expect(
+      excluded.runtime.map((card) => card.nativeDirection),
+      isNot(contains(CardOccurrenceDirection.RECEVOIR)),
+    );
+  });
+
+  test(
+    'V4 exclusion keeps the opposite reversible direction eligible',
+    () async {
+      final directionalCatalog = _catalogWithCards(catalog, {'card.v4.002'});
+
+      V4Profile profile({required ProfilePreferenceRole excludedRole}) {
+        final preferences = <String, ProfilePreference>{};
+        for (final role in const [
+          ProfilePreferenceRole.faire,
+          ProfilePreferenceRole.recevoir,
+        ]) {
+          final key = ProfilePreferenceKey(tagId: 'embrasser', role: role);
+          preferences[key.storageKey] = ProfilePreference(
+            profileId: 'alice',
+            key: key,
+            pa: role == excludedRole ? null : 8,
+            excluded: role == excludedRole,
+            source: ProfilePreferenceSource.initialQuestionnaire,
+          );
+        }
+        return V4Profile(profileId: 'alice', preferences: preferences);
+      }
+
+      Future<CardOccurrenceDirection> drawnDirection(
+        ProfilePreferenceRole excludedRole,
+      ) async {
+        final backend = _Backend();
+        final controller = NetworkGameController(
+          session: session,
+          playerId: 'alice',
+          repository: backend.repository('alice'),
+          privateStore: MemoryNetworkDuelSecretStore(),
+          learningStore: MemoryNetworkProfileLearningStore(),
+          catalog: directionalCatalog,
+          v4Profile: profile(excludedRole: excludedRole),
+          scoringCatalog: scoringCatalog,
+        );
+        addTearDown(controller.dispose);
+        await controller.start();
+        return controller.runtime.single.nativeDirection;
+      }
+
+      expect(
+        await drawnDirection(ProfilePreferenceRole.recevoir),
+        CardOccurrenceDirection.FAIRE,
+      );
+      expect(
+        await drawnDirection(ProfilePreferenceRole.faire),
+        CardOccurrenceDirection.RECEVOIR,
+      );
+    },
+  );
+
+  test(
+    'resolved V4 spice updates the network hand and guard prevents soft-lock',
+    () async {
+      final eligibleCards = catalog.cards
+          .where(
+            (card) => card.variants.any(
+              (variant) =>
+                  variant.chiliLevel == 1 &&
+                  (variant.v4Stage == null || variant.v4Stage == 1) &&
+                  (variant.v4RequiredAccessoriesAnyOf ??
+                          card.v4?.requiredAccessoriesAnyOf ??
+                          const <String>[])
+                      .isEmpty &&
+                  (variant.v4Presence ??
+                          card.v4?.presence ??
+                          V4PresenceCompatibility.presentiel)
+                      .supports(V4SessionPresence.presentiel),
+            ),
+          )
+          .take(6)
+          .map((card) => card.stableId)
+          .toSet();
+      final focusedCatalog = _catalogWithCards(catalog, eligibleCards);
+      final controller = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: _Backend().repository('alice'),
+        privateStore: MemoryNetworkDuelSecretStore(),
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: focusedCatalog,
+      );
+      addTearDown(controller.dispose);
+      await controller.start();
+      final original = controller.hand.map((card) => card.identity).toList();
+      expect(original, hasLength(4));
+
+      for (final occurrenceId in original) {
+        expect(
+          await controller.resolveOccurrenceParameters(
+            occurrenceId,
+            zoneSelectionSource: V4ZoneSelectionSource.game,
+            sexualOrIntimateZone: true,
+            zoneId: 'zone.intime',
+          ),
+          isTrue,
+        );
+      }
+
+      expect(controller.hand.where(controller.isCardPlayable), isNotEmpty);
+      expect(
+        original.where(
+          (id) => controller.hand.any((card) => card.identity == id),
+        ),
+        hasLength(3),
+      );
+      expect(
+        controller.hand
+            .where((card) => original.contains(card.identity))
+            .map((card) => card.chiliLevel),
+        everyElement(2),
+      );
+    },
+  );
+
+  test(
+    'production commit resolves effective spice and applies the hand guard',
+    () async {
+      final eligibleCards = catalog.cards
+          .where(
+            (card) => card.variants.any(
+              (variant) =>
+                  variant.chiliLevel == 1 &&
+                  (variant.v4Stage == null || variant.v4Stage == 1) &&
+                  (variant.v4RequiredAccessoriesAnyOf ??
+                          card.v4?.requiredAccessoriesAnyOf ??
+                          const <String>[])
+                      .isEmpty &&
+                  (variant.v4Presence ??
+                          card.v4?.presence ??
+                          V4PresenceCompatibility.presentiel)
+                      .supports(V4SessionPresence.presentiel),
+            ),
+          )
+          .take(6)
+          .map((card) => card.stableId)
+          .toSet();
+      final focusedCatalog = _catalogWithCards(catalog, eligibleCards);
+      final backend = _Backend();
+      var resolutionCalls = 0;
+      final controller = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: backend.repository('alice'),
+        privateStore: MemoryNetworkDuelSecretStore(),
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: focusedCatalog,
+        occurrenceParameterResolver: (card, current) {
+          resolutionCalls++;
+          return const V4ResolvedParameters(
+            zoneSelectionSource: V4ZoneSelectionSource.game,
+            sexualOrIntimateZone: true,
+            zoneId: 'zone.intime',
+          );
+        },
+      );
+      addTearDown(controller.dispose);
+      await controller.start();
+      final selectedId = controller.hand.first.identity;
+      controller.selectCard(selectedId);
+
+      await controller.confirmSelection();
+
+      expect(resolutionCalls, 1);
+      expect(backend.round.commits, isEmpty);
+      expect(controller.viewState, NetworkGameViewState.choosing);
+      expect(controller.selectedCard, isNull);
+      expect(controller.hand.where(controller.isCardPlayable), isNotEmpty);
+      expect(
+        controller.hand
+            .where((card) => card.identity == selectedId)
+            .map((card) => card.chiliLevel),
+        everyElement(2),
+      );
+    },
+  );
+
+  test('production catalog resolver imposes the canonical intimate zone', () {
+    const current = V4ResolvedParameters(accessoryId: 'accessory-1');
+    final resolved = const V4CatalogParameterResolver().resolve(
+      catalog: scoringCatalog,
+      cardId: 'card.v4.024',
+      variantId: 'variant.v4.024.base',
+      current: current,
+    );
+
+    expect(resolved.zoneSelectionSource, V4ZoneSelectionSource.game);
+    expect(resolved.sexualOrIntimateZone, isTrue);
+    expect(resolved.zoneId, 'zone.intime');
+    expect(resolved.accessoryId, 'accessory-1');
+    expect(resolved.effectiveSpice(3), 4);
+  });
+
+  test(
+    'partner accessory uses local exact-tag PA and unknown tags default to 18',
+    () async {
+      final directionalCatalog = _catalogWithCards(catalog, {'card.v4.002'});
+
+      V4Profile profileWithAccessory(V4ProfileAccessory accessory) {
+        final faireKey = ProfilePreferenceKey(
+          tagId: 'embrasser',
+          role: ProfilePreferenceRole.faire,
+        );
+        final recevoirKey = ProfilePreferenceKey(
+          tagId: 'embrasser',
+          role: ProfilePreferenceRole.recevoir,
+        );
+        return V4Profile(
+          profileId: 'alice',
+          preferences: {
+            faireKey.storageKey: ProfilePreference(
+              profileId: 'alice',
+              key: faireKey,
+              pa: 6,
+              excluded: false,
+              source: ProfilePreferenceSource.initialQuestionnaire,
+            ),
+            recevoirKey.storageKey: ProfilePreference(
+              profileId: 'alice',
+              key: recevoirKey,
+              pa: null,
+              excluded: true,
+              source: ProfilePreferenceSource.initialQuestionnaire,
+            ),
+          },
+          accessories: [accessory],
+        );
+      }
+
+      Future<int?> resolvedValue(V4ProfileAccessory preferenceSource) async {
+        final controller = NetworkGameController(
+          session: session,
+          playerId: 'alice',
+          repository: _Backend().repository('alice'),
+          privateStore: MemoryNetworkDuelSecretStore(),
+          learningStore: MemoryNetworkProfileLearningStore(),
+          catalog: directionalCatalog,
+          v4Profile: profileWithAccessory(preferenceSource),
+          scoringCatalog: scoringCatalog,
+          profileAccessories: [
+            V4Accessory(
+              id: 'bob-accessory',
+              name: 'Accessoire de Bob',
+              ownerPlayerId: 'bob',
+              tags: const {V4AccessoryTag.anal, V4AccessoryTag.vibrant},
+            ),
+          ],
+        );
+        addTearDown(controller.dispose);
+        await controller.start();
+        expect(controller.sessionAccessories.single.ownerPlayerId, 'bob');
+        final occurrenceId = controller.hand.single.identity;
+        final resolved = await controller.resolveOccurrenceParameters(
+          occurrenceId,
+          requiredAccessoryTags: const {
+            V4AccessoryTag.anal,
+            V4AccessoryTag.vibrant,
+          },
+        );
+        return resolved ? controller.hand.single.personalValue : null;
+      }
+
+      expect(
+        await resolvedValue(
+          V4ProfileAccessory(
+            id: 'alice-exact-preference',
+            name: 'Préférence exacte',
+            ownerProfileId: 'alice',
+            tags: const {'ANAL', 'VIBRANT'},
+            preferences: const {ProfilePreferenceRole.faire: 4},
           ),
         ),
+        5,
+      );
+      expect(
+        await resolvedValue(
+          V4ProfileAccessory(
+            id: 'alice-other-preference',
+            name: 'Préférence non correspondante',
+            ownerProfileId: 'alice',
+            tags: const {'ANAL'},
+            preferences: const {ProfilePreferenceRole.faire: 4},
+          ),
+        ),
+        12,
+      );
+      expect(
+        await resolvedValue(
+          V4ProfileAccessory(
+            id: 'alice-excluded-preference',
+            name: 'Préférence exclue',
+            ownerProfileId: 'alice',
+            tags: const {'ANAL', 'VIBRANT'},
+            preferences: const {ProfilePreferenceRole.faire: null},
+          ),
+        ),
+        isNull,
+      );
+    },
+  );
+
+  test('hybrid boundary blocks an empty current context', () async {
+    final presentCards = _cardIdsForPresence(
+      catalog,
+      V4PresenceCompatibility.presentiel,
+    ).take(4).toSet();
+    final focusedCatalog = _catalogWithCards(catalog, presentCards);
+    final store = MemoryNetworkDuelSecretStore();
+    await store.saveGame(
+      sessionId: session.id,
+      playerId: 'alice',
+      state: NetworkPrivateGameState(
+        roundNumber: 1,
+        cards: _handStates(focusedCatalog),
+        history: const {},
+        sessionMode: V4SessionMode.hybrid,
+        presence: V4SessionPresence.distance,
       ),
     );
+    final backend = _Backend()
+      ..hybridOrientation = HybridDeckOrientation.distance
+      ..round.phase = NetworkGamePhase.waitingNext;
+    final controller = NetworkGameController(
+      session: session,
+      playerId: 'alice',
+      repository: backend.repository('alice'),
+      privateStore: store,
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: focusedCatalog,
+      sessionMode: V4SessionMode.hybrid,
+    );
+    addTearDown(controller.dispose);
+    await controller.start();
+
+    expect(controller.mustSwitchHybridContext, isTrue);
+    expect(controller.canStartNextRound, isFalse);
+    await controller.completeAction();
+    expect(backend.currentRound, 1);
+    expect(backend.round.phase, NetworkGamePhase.waitingNext);
+  });
+
+  test(
+    'server session mode wins over stale private state on reconnect',
+    () async {
+      final store = MemoryNetworkDuelSecretStore();
+      await store.saveGame(
+        sessionId: session.id,
+        playerId: 'alice',
+        state: NetworkPrivateGameState(
+          roundNumber: 1,
+          cards: const [],
+          history: const {},
+          sessionMode: V4SessionMode.hybrid,
+          presence: V4SessionPresence.distance,
+        ),
+      );
+      final backend = _Backend();
+      final controller = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: backend.repository('alice'),
+        privateStore: store,
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog,
+        sessionMode: V4SessionMode.presentiel,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.start();
+
+      expect(controller.sessionMode, V4SessionMode.presentiel);
+      expect(controller.presence, V4SessionPresence.presentiel);
+    },
+  );
+
+  test('hybrid switch returns incompatible hand cards and redraws', () async {
+    final presentCards = _cardIdsForPresence(
+      catalog,
+      V4PresenceCompatibility.presentiel,
+    ).take(4).toSet();
+    final bothCards = _cardIdsForPresence(
+      catalog,
+      V4PresenceCompatibility.both,
+    ).take(6).toSet();
+    final focusedCatalog = _catalogWithCards(catalog, {
+      ...presentCards,
+      ...bothCards,
+    });
+    final initialHand = _handStates(_catalogWithCards(catalog, presentCards));
+    final initialIds = initialHand.map((card) => card.occurrenceId).toSet();
+    final store = MemoryNetworkDuelSecretStore();
+    await store.saveGame(
+      sessionId: session.id,
+      playerId: 'alice',
+      state: NetworkPrivateGameState(
+        roundNumber: 1,
+        cards: initialHand,
+        history: const {},
+        sessionMode: V4SessionMode.hybrid,
+        presence: V4SessionPresence.presentiel,
+      ),
+    );
+    final backend = _Backend()..round.phase = NetworkGamePhase.waitingNext;
+    final controller = NetworkGameController(
+      session: session,
+      playerId: 'alice',
+      repository: backend.repository('alice'),
+      privateStore: store,
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: focusedCatalog,
+      sessionMode: V4SessionMode.hybrid,
+    );
+    addTearDown(controller.dispose);
+    await controller.start();
+    await controller.switchOrientation(HybridDeckOrientation.distance);
+    await _settle();
+
+    expect(controller.presence, V4SessionPresence.distance);
+    expect(
+      controller.runtime
+          .where((card) => card.zone == CardZone.HAND)
+          .map((card) => card.occurrenceId),
+      everyElement(isNot(isIn(initialIds))),
+    );
+    expect(controller.hand, hasLength(4));
+    for (final card in controller.hand) {
+      final definition = focusedCatalog.cards.singleWhere(
+        (item) => item.stableId == card.id,
+      );
+      final variant = definition.variants.singleWhere(
+        (item) => item.stableId == card.variant.id,
+      );
+      final presence =
+          variant.v4Presence ??
+          definition.v4?.presence ??
+          V4PresenceCompatibility.presentiel;
+      expect(presence.supports(V4SessionPresence.distance), isTrue);
+    }
+  });
+
+  test('hybrid switch refills an underfull compatible hand to four', () async {
+    final bothCards = _cardIdsForPresence(
+      catalog,
+      V4PresenceCompatibility.both,
+    ).take(6).toSet();
+    final focusedCatalog = _catalogWithCards(catalog, bothCards);
+    final savedHand = _handStates(focusedCatalog).take(2).toList();
+    final savedIds = savedHand.map((card) => card.occurrenceId).toSet();
+    final store = MemoryNetworkDuelSecretStore();
+    await store.saveGame(
+      sessionId: session.id,
+      playerId: 'alice',
+      state: NetworkPrivateGameState(
+        roundNumber: 1,
+        cards: savedHand,
+        history: const {},
+        sessionMode: V4SessionMode.hybrid,
+        presence: V4SessionPresence.presentiel,
+      ),
+    );
+    final backend = _Backend()..round.phase = NetworkGamePhase.waitingNext;
+    final controller = NetworkGameController(
+      session: session,
+      playerId: 'alice',
+      repository: backend.repository('alice'),
+      privateStore: store,
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: focusedCatalog,
+      sessionMode: V4SessionMode.hybrid,
+    );
+    addTearDown(controller.dispose);
+    await controller.start();
+
+    await controller.switchOrientation(HybridDeckOrientation.distance);
+    await _settle();
+
+    expect(controller.hand, hasLength(4));
+    expect(controller.hand.map((card) => card.identity), containsAll(savedIds));
+  });
+
+  test('both hybrid players report availability before waiting-next', () async {
+    final presentCards = _cardIdsForPresence(
+      catalog,
+      V4PresenceCompatibility.presentiel,
+    ).take(4).toSet();
+    final bothCards = _cardIdsForPresence(
+      catalog,
+      V4PresenceCompatibility.both,
+    ).take(4).toSet();
+    final bobCatalog = _catalogWithCards(catalog, presentCards);
+    final aliceCatalog = _catalogWithCards(catalog, bothCards);
+    final backend = _Backend()
+      ..hybridOrientation = HybridDeckOrientation.distance
+      ..round.phase = NetworkGamePhase.finalResolved;
+    final store = MemoryNetworkDuelSecretStore();
+    await store.saveGame(
+      sessionId: session.id,
+      playerId: 'bob',
+      state: NetworkPrivateGameState(
+        roundNumber: 1,
+        cards: _handStates(bobCatalog),
+        history: const {},
+        sessionMode: V4SessionMode.hybrid,
+        presence: V4SessionPresence.distance,
+      ),
+    );
+    final bob = NetworkGameController(
+      session: session,
+      playerId: 'bob',
+      repository: backend.repository('bob'),
+      privateStore: store,
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: bobCatalog,
+      sessionMode: V4SessionMode.hybrid,
+    );
+    final alice = NetworkGameController(
+      session: session,
+      playerId: 'alice',
+      repository: backend.repository('alice'),
+      privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: aliceCatalog,
+      sessionMode: V4SessionMode.hybrid,
+    );
+    addTearDown(bob.dispose);
+    addTearDown(alice.dispose);
+    await bob.start();
+    await alice.start();
+
+    await alice.completeAction();
+    await _settle();
+
+    expect(backend.round.phase, NetworkGamePhase.finalResolved);
+    expect(backend.round.ready, {'alice'});
+    expect(backend.cycleExhausted, isFalse);
+
+    await bob.completeAction();
+    await _settle();
+
+    expect(backend.round.phase, NetworkGamePhase.waitingNext);
+    expect(backend.round.ready, {'alice', 'bob'});
+    expect(backend.cycleExhausted, isTrue);
+    expect(alice.mustSwitchHybridContext, isTrue);
+    expect(alice.canStartNextRound, isFalse);
+    await alice.switchOrientation(HybridDeckOrientation.faceToFace);
+    await _settle();
+    expect(backend.cycleExhausted, isFalse);
+    expect(alice.hand, hasLength(4));
+    expect(bob.hand, hasLength(4));
+  });
+
+  test('network boundary SQL waits for both player reports', () {
+    final sql = File(
+      'supabase/migrations/202610080001_v4_action_completion.sql',
+    ).readAsStringSync();
+
+    expect(sql, contains('participant.session_id = p_session_id'));
+    expect(sql, contains('not (v_ready ? participant.user_id::text)'));
+    expect(sql, contains("then 'WAITING_NEXT'"));
   });
 
   test(
@@ -510,9 +1269,13 @@ void main() {
       await setup.alice.completeAction();
       await _settle();
       expect(setup.alice.roundNumber, expected);
+      expect(setup.alice.viewState, NetworkGameViewState.actionInProgress);
+      expect(setup.bob.viewState, NetworkGameViewState.actionInProgress);
+      await setup.bob.completeAction();
+      await _settle();
       expect(setup.alice.viewState, NetworkGameViewState.waitingNext);
       expect(setup.bob.viewState, NetworkGameViewState.waitingNext);
-      await setup.alice.completeAction();
+      await _cycleController(setup).completeAction();
       await _settle();
       expect(setup.alice.roundNumber, expected + 1);
       expect(setup.bob.roundNumber, expected + 1);
@@ -547,7 +1310,11 @@ void main() {
       await loser.acceptInitialResult();
       await setup.alice.completeAction();
       await _settle();
-      await setup.alice.completeAction();
+      expect(setup.alice.history[target.id], CardHistoryState.seenUnplayed);
+      await setup.bob.completeAction();
+      await _settle();
+      await _cycleController(setup).completeAction();
+      await _settle();
       expect(setup.alice.lockedCardId, isNot(target.identity));
       expect(
         setup.alice.history[target.id],
@@ -615,6 +1382,66 @@ void main() {
     expect(setup.backend.defenseApplications, 1);
     setup.dispose();
   });
+
+  test(
+    'FINAL_RESOLVED learning survives duplicate events reconnect and Terminé once',
+    () async {
+      final backend = _Backend();
+      final aliceSecrets = MemoryNetworkDuelSecretStore();
+      final aliceLearning = MemoryNetworkProfileLearningStore();
+      var alice = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: backend.repository('alice'),
+        privateStore: aliceSecrets,
+        learningStore: aliceLearning,
+        catalog: catalog,
+      );
+      final bob = NetworkGameController(
+        session: session,
+        playerId: 'bob',
+        repository: backend.repository('bob'),
+        privateStore: MemoryNetworkDuelSecretStore(),
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog,
+      );
+      await Future.wait([alice.start(), bob.start()]);
+      final setup = _Setup(backend, alice, bob);
+      await _playUnequal(setup);
+      final loser = alice.isInitialLoser ? alice : bob;
+      await loser.acceptInitialResult();
+      await _settle();
+
+      expect(backend.phase, NetworkGamePhase.finalResolved);
+      expect(aliceLearning.appliedEventIds['alice'], hasLength(1));
+      final learnedOnce = jsonEncode(aliceLearning.values['alice']!.toJson());
+
+      backend.notifyTwice();
+      await _settle();
+      expect(jsonEncode(aliceLearning.values['alice']!.toJson()), learnedOnce);
+
+      alice.dispose();
+      alice = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: backend.repository('alice'),
+        privateStore: aliceSecrets,
+        learningStore: aliceLearning,
+        catalog: catalog,
+      );
+      await alice.start();
+      await _settle();
+      expect(aliceLearning.appliedEventIds['alice'], hasLength(1));
+      expect(jsonEncode(aliceLearning.values['alice']!.toJson()), learnedOnce);
+
+      await alice.completeAction();
+      await _settle();
+      expect(aliceLearning.appliedEventIds['alice'], hasLength(1));
+      expect(jsonEncode(aliceLearning.values['alice']!.toJson()), learnedOnce);
+      alice.dispose();
+      bob.dispose();
+    },
+  );
 
   test('equal, insufficient, excessive and third bids are rejected', () async {
     final setup = await _setup(session, catalog);
@@ -826,6 +1653,8 @@ void main() {
       await alice.start();
       expect(alice.viewState, NetworkGameViewState.actionInProgress);
       await alice.completeAction();
+      await bob.completeAction();
+      await _settle();
       alice.dispose();
       alice = _controller(backend, session, catalog, 'alice', aliceStore);
       await alice.start();
@@ -841,6 +1670,181 @@ void main() {
       expect(alice.hand, hasLength(const BalanceConfig().handSize));
       alice.dispose();
       bob.dispose();
+    },
+  );
+
+  test(
+    'reconnect after READY rebuilds the action from persisted V4 parameters',
+    () async {
+      final backend = _Backend();
+      const parameters = V4ResolvedParameters(
+        zoneSelectionSource: V4ZoneSelectionSource.game,
+        sexualOrIntimateZone: true,
+        zoneId: 'zone.intime',
+        accessoryId: 'accessory.persisted',
+      );
+      backend.round
+        ..phase = NetworkGamePhase.finalResolved
+        ..finalResolution = NetworkFinalResolutionDto.fromJson(
+          NetworkFinalResolutionDto(
+            retainedPlayerId: 'bob',
+            initialWinnerPlayerId: 'bob',
+            finalWinnerPlayerId: 'bob',
+            cardId: 'card.v4.024',
+            variantId: 'variant.v4.024.base',
+            compromise: const [
+              NetworkCompromiseCardDto(
+                occurrenceId: 'bob-occurrence',
+                cardId: 'card.v4.024',
+                variantId: 'variant.v4.024.base',
+                ownerPlayerId: 'bob',
+                nativeDirection: NetworkCardDirection.FAIRE,
+                effectiveDirection: NetworkCardDirection.FAIRE,
+                origin: NetworkCompromiseOrigin.INITIAL_DUEL,
+                snapshotValue: 8,
+                resolvedParameters: parameters,
+                effectiveSpice: 4,
+              ),
+            ],
+          ).toJson(),
+        );
+
+      final controller = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: _V4ProjectionRepository(backend, 'alice'),
+        privateStore: MemoryNetworkDuelSecretStore(),
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog,
+      );
+      addTearDown(controller.dispose);
+      await controller.start();
+      await _settle();
+
+      final projected = backend.round.actionProjection!.cards.single;
+      expect(projected.variantId, 'variant.v4.024.base');
+      expect(projected.direction, NetworkCardDirection.FAIRE);
+      expect(projected.targetPlayerIds, ['alice']);
+      expect(projected.zoneId, 'zone.intime');
+      expect(projected.accessoryId, 'accessory.persisted');
+      expect(projected.effectiveSpice, 4);
+      expect(projected.parameters, parameters.toJson());
+      expect(backend.round.reveals, isEmpty);
+      expect(controller.viewState, NetworkGameViewState.actionInProgress);
+    },
+  );
+
+  test(
+    'reconnect repairs missing V4 parameters from the validated reveal',
+    () async {
+      final backend = _Backend();
+      const parameters = V4ResolvedParameters(
+        zoneSelectionSource: V4ZoneSelectionSource.game,
+        sexualOrIntimateZone: true,
+        zoneId: 'zone.intime',
+        accessoryId: 'accessory.repaired',
+      );
+      backend.round
+        ..phase = NetworkGamePhase.finalResolved
+        ..reveals['bob'] = ChoiceRevealDto(
+          sessionRound: 'session-multi.round-1',
+          playerId: 'bob',
+          choice: ChoicePayload(
+            cardId: 'card.v4.024',
+            variantId: 'variant.v4.024.base',
+            parameters: const {
+              'occurrence_id': 'bob-occurrence',
+              'role': 'FAIRE',
+              'native_direction': 'FAIRE',
+              'effective_direction': 'FAIRE',
+              'resolved_parameters': {
+                'zone_selection_source': 'game',
+                'sexual_or_intimate_zone': true,
+                'zone_id': 'zone.intime',
+                'accessory_id': 'accessory.repaired',
+              },
+              'effective_spice': 4,
+            },
+          ),
+          nonce: 'server-private-nonce',
+        )
+        ..finalResolution = const NetworkFinalResolutionDto(
+          retainedPlayerId: 'bob',
+          compromise: [
+            NetworkCompromiseCardDto(
+              occurrenceId: 'bob-occurrence',
+              cardId: 'card.v4.024',
+              variantId: 'variant.v4.024.base',
+              ownerPlayerId: 'bob',
+              nativeDirection: NetworkCardDirection.FAIRE,
+              effectiveDirection: NetworkCardDirection.FAIRE,
+              origin: NetworkCompromiseOrigin.INITIAL_DUEL,
+              snapshotValue: 8,
+            ),
+          ],
+        );
+      final controller = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: _V4ProjectionRepository(backend, 'alice'),
+        privateStore: MemoryNetworkDuelSecretStore(),
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.start();
+      await _settle();
+
+      final repaired = backend.round.finalResolution!.compromise.single;
+      expect(repaired.resolvedParameters, isNotNull);
+      expect(repaired.resolvedParameters!.toJson(), parameters.toJson());
+      expect(repaired.effectiveSpice, 4);
+      expect(backend.state('alice').opponentReveal, isNull);
+      expect(
+        backend.round.actionProjection!.cards.single.zoneId,
+        'zone.intime',
+      );
+      expect(controller.viewState, NetworkGameViewState.actionInProgress);
+    },
+  );
+
+  test(
+    'final action explicitly fails when persisted data is irreparable',
+    () async {
+      final backend = _Backend();
+      backend.round
+        ..phase = NetworkGamePhase.finalResolved
+        ..finalResolution = const NetworkFinalResolutionDto(
+          retainedPlayerId: 'bob',
+          compromise: [
+            NetworkCompromiseCardDto(
+              occurrenceId: 'unknown-occurrence',
+              cardId: 'card.v4.024',
+              variantId: 'variant.v4.024.base',
+              ownerPlayerId: 'bob',
+              nativeDirection: NetworkCardDirection.FAIRE,
+              effectiveDirection: NetworkCardDirection.FAIRE,
+              origin: NetworkCompromiseOrigin.INITIAL_DUEL,
+              snapshotValue: 8,
+            ),
+          ],
+        );
+      final controller = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: _V4ProjectionRepository(backend, 'alice'),
+        privateStore: MemoryNetworkDuelSecretStore(),
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.start();
+      await _settle();
+
+      expect(controller.errorMessage, 'ROUND_ACTION_PARAMETERS_MISSING');
+      expect(backend.round.actionProjection, isNull);
     },
   );
 
@@ -1035,26 +2039,11 @@ void main() {
       await setup.bob.skipRecovery();
       await _settle();
       expect(setup.backend.phase, NetworkGamePhase.finalResolved);
-      await setup.backend
-          .repository('alice')
-          .readyNextRound(
-            command: _command(
-              'recovery-ready-alice',
-              'alice',
-              'READY_NEXT',
-              setup.backend.round.id,
-            ),
-          );
-      await setup.backend
-          .repository('bob')
-          .readyNextRound(
-            command: _command(
-              'recovery-ready-bob',
-              'bob',
-              'READY_NEXT',
-              setup.backend.round.id,
-            ),
-          );
+      await alice.completeAction();
+      await setup.bob.completeAction();
+      await _settle();
+      expect(setup.backend.phase, NetworkGamePhase.waitingNext);
+      await alice.completeAction();
       await _settle();
       expect(setup.backend.currentRound, 2);
       alice.dispose();
@@ -1174,8 +2163,50 @@ void main() {
       expect(completion, contains('v4_clothing_resynced'));
       expect(completion, contains('ROUND_CLOTHING_RESYNC_REQUIRED'));
       expect(completion, contains('v4_session_setup_json'));
+      expect(
+        completion,
+        contains('if p_clothing_count is null or p_clothing_count < 0'),
+      );
+      expect(
+        completion,
+        contains('if p_clothing_count is not null and p_clothing_count < 0'),
+      );
+      expect(
+        completion,
+        contains('if p_clothing_count is null or p_clothing_count < 0 then'),
+      );
+      expect(completion, isNot(contains('p_clothing_count <= 0')));
+      expect(completion, contains("'opponent_reveal',null"));
+      expect(completion, contains('resolve_network_initial_private'));
+      expect(completion, contains('v4_public_compromise_cards'));
+      expect(completion, contains("item.value - 'snapshot_value'"));
+      expect(
+        completion,
+        contains("r.initial_resolution-'gap'-'gap_cost'-'high_value'"),
+      );
       expect(completion, contains("raise exception 'ROUND_CYCLE_EXHAUSTED'"));
       expect(completion, contains("v_round.phase <> 'WAITING_NEXT'"));
+      expect(completion, contains('persist_v4_resolved_action_parameters'));
+      expect(completion, contains('repair_v4_action_parameters'));
+      expect(completion, contains('v4_verified_final_resolution'));
+      expect(
+        completion,
+        contains("choice_payload#>>'{parameters,occurrence_id}'"),
+      );
+      expect(completion, contains("'{parameters,resolved_parameters}'"));
+      expect(completion, contains("'{parameters,effective_spice}'"));
+      expect(
+        completion,
+        contains("raise exception 'ROUND_ACTION_PARAMETERS_MISSING'"),
+      );
+      expect(
+        completion,
+        contains("raise exception 'ROUND_ACTION_PARAMETERS_MISMATCH'"),
+      );
+      expect(
+        completion,
+        contains("raise exception 'ROUND_ACTION_PROJECTION_MISMATCH'"),
+      );
       expect(completion, isNot(contains('count(*) from jsonb_object_keys')));
       expect(completion, contains('pg_advisory_xact_lock'));
     },
@@ -1192,6 +2223,62 @@ final class _Setup {
     bob.dispose();
   }
 }
+
+Catalog _catalogWithCards(Catalog source, Set<String> cardIds) {
+  final cards = Map<String, Object?>.from(source.cardsDocument);
+  cards['cards'] = [
+    for (final raw in source.cardsDocument['cards']! as List)
+      if (cardIds.contains((raw as Map)['stable_id'])) raw,
+  ];
+  return Catalog(
+    cardsDocument: cards,
+    profilesDocument: Map<String, Object?>.from(source.profilesDocument),
+    tagsDocument: Map<String, Object?>.from(source.tagsDocument),
+  );
+}
+
+Iterable<String> _cardIdsForPresence(
+  Catalog catalog,
+  V4PresenceCompatibility expected,
+) sync* {
+  for (final card in catalog.cards) {
+    final variant = card.variants
+        .where(
+          (item) =>
+              item.chiliLevel == 1 &&
+              (item.v4Stage == null || item.v4Stage == 1) &&
+              (item.v4RequiredAccessoriesAnyOf ??
+                      card.v4?.requiredAccessoriesAnyOf ??
+                      const <String>[])
+                  .isEmpty,
+        )
+        .firstOrNull;
+    if (variant == null) continue;
+    final presence =
+        variant.v4Presence ??
+        card.v4?.presence ??
+        V4PresenceCompatibility.presentiel;
+    if (presence == expected) yield card.stableId;
+  }
+}
+
+List<CardRuntimeState> _handStates(Catalog catalog) => [
+  for (final card in catalog.cards)
+    if (card.variants
+            .where(
+              (item) =>
+                  item.chiliLevel == 1 &&
+                  (item.v4Stage == null || item.v4Stage == 1),
+            )
+            .firstOrNull
+        case final variant?)
+      CardRuntimeState(
+        cardId: card.stableId,
+        occurrenceId: '${card.stableId}::${variant.stableId}::occ-1',
+        variantId: variant.stableId,
+        zone: CardZone.HAND,
+      ),
+];
 
 Future<_Setup> _setup(LobbySession session, Catalog catalog) async {
   final backend = _Backend();
@@ -1303,15 +2390,24 @@ Future<void> _reachSecondResolved(_Setup setup) async {
   final firstLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
   await firstLoser.acceptInitialResult();
   await _settle();
-  await setup.alice.completeAction();
-  await _settle();
-  await setup.alice.completeAction();
+  await _completeResolvedAction(setup);
+  await _cycleController(setup).completeAction();
   await _settle();
   await _playUnequal(setup);
   final secondLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
   await secondLoser.acceptInitialResult();
   await _settle();
 }
+
+Future<void> _completeResolvedAction(_Setup setup) async {
+  await setup.alice.completeAction();
+  await _settle();
+  await setup.bob.completeAction();
+  await _settle();
+}
+
+NetworkGameController _cycleController(_Setup setup) =>
+    setup.alice.isCycleController ? setup.alice : setup.bob;
 
 Future<void> _primeTie(_Backend backend) async {
   final alice = backend.repository('alice');
@@ -1397,6 +2493,7 @@ final class _RoundRecord {
   NetworkAuctionBidDto? counter;
   NetworkAuctionBidDto? defense;
   NetworkFinalResolutionDto? finalResolution;
+  NetworkResolvedActionProjectionDto? actionProjection;
   NetworkCorruptionDto? corruption;
   final recoveries = <String, NetworkRecoveryDto>{};
   final recoveryHistory = <NetworkRecoveryDto>[];
@@ -1416,6 +2513,8 @@ final class _Backend {
   int counterApplications = 0;
   int defenseApplications = 0;
   bool cycleExhausted = false;
+  bool redactOpponentReveal = false;
+  HybridDeckOrientation hybridOrientation = HybridDeckOrientation.faceToFace;
 
   _RoundRecord get round => rounds[currentRound]!;
   NetworkGamePhase get phase => round.phase;
@@ -1434,9 +2533,11 @@ final class _Backend {
     actionPoints: points,
     readyNextPlayerIds: round.ready,
     tieDecisions: round.ties,
+    hybridOrientation: hybridOrientation,
     cycleExhausted: cycleExhausted,
+    actionProjection: round.actionProjection,
     ownReveal: round.reveals[player],
-    opponentReveal: _revealsPublic
+    opponentReveal: _revealsPublic && !redactOpponentReveal
         ? round.reveals.entries
               .where((entry) => entry.key != player)
               .map((entry) => entry.value)
@@ -1461,9 +2562,10 @@ final class _Backend {
   }
 }
 
-final class _Repository
+class _Repository
     implements
         NetworkGameRepository,
+        NetworkSessionFlowRepository,
         NetworkCommitCancellationRepository,
         NetworkSessionClosureRepository {
   _Repository(this.backend, this.player);
@@ -1485,6 +2587,26 @@ final class _Repository
   @override
   Future<NetworkGameRoundStateDto> getCurrentRound({
     required String sessionId,
+  }) async => backend.state(player);
+
+  @override
+  Future<NetworkGameRoundStateDto> setHybridOrientation({
+    required NetworkCommandDto command,
+    required HybridDeckOrientation orientation,
+  }) async {
+    if (_accept(command)) {
+      backend.hybridOrientation = orientation;
+      backend.cycleExhausted = false;
+      _notify();
+    }
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> continueDeckCycle({
+    required NetworkCommandDto command,
+    required DeckExhaustionChoice choice,
+    Map<int, int> deckAdjustment = const {},
   }) async => backend.state(player);
 
   @override
@@ -1880,7 +3002,9 @@ final class _Repository
     backend.cycleExhausted = backend.cycleExhausted || noPlayableOccurrences;
     backend.round.ready.add(player);
     if (!closesBoundary) {
-      backend.round.phase = NetworkGamePhase.waitingNext;
+      if (backend.round.ready.length == 2) {
+        backend.round.phase = NetworkGamePhase.waitingNext;
+      }
     } else {
       backend.round.phase = NetworkGamePhase.closed;
       backend.currentRound++;
@@ -1902,5 +3026,107 @@ final class _Repository
     await for (final _ in backend.changes.stream) {
       yield backend.state(player);
     }
+  }
+}
+
+final class _V4ProjectionRepository extends _Repository
+    implements NetworkV4ActionRepository {
+  _V4ProjectionRepository(super.backend, super.player);
+
+  @override
+  Future<NetworkGameRoundStateDto> repairV4ActionParameters({
+    required NetworkCommandDto command,
+  }) async {
+    if (backend.commands.contains(command.commandId)) {
+      return backend.state(player);
+    }
+    final resolution = backend.round.finalResolution!;
+    final json = resolution.toJson();
+    final repairedCards = <Map<String, Object?>>[];
+    for (final raw in json['compromise']! as List) {
+      final card = Map<String, Object?>.from(raw! as Map);
+      if (card['resolved_parameters'] == null ||
+          card['effective_spice'] == null) {
+        final reveal = backend.round.reveals.values
+            .where(
+              (item) =>
+                  item.choice.parameters['occurrence_id'] ==
+                  card['occurrence_id'],
+            )
+            .firstOrNull;
+        final parameters = reveal?.choice.parameters['resolved_parameters'];
+        final spice = reveal?.choice.parameters['effective_spice'];
+        if (parameters is! Map || spice is! int) {
+          throw const NetworkRoundException('ROUND_ACTION_PARAMETERS_MISSING');
+        }
+        card['resolved_parameters'] = Map<String, Object?>.from(parameters);
+        card['effective_spice'] = spice;
+      }
+      repairedCards.add(card);
+    }
+    json['compromise'] = repairedCards;
+    backend.round.finalResolution = NetworkFinalResolutionDto.fromJson(json);
+    backend.commands.add(command.commandId);
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> publishV4ActionProjection({
+    required NetworkCommandDto command,
+    required NetworkResolvedActionProjectionDto projection,
+  }) async {
+    if (_accept(command)) {
+      backend.round.actionProjection = projection;
+      _notify();
+    }
+    return backend.state(player);
+  }
+}
+
+final class _PrivateResolutionRepository extends _Repository
+    implements NetworkPrivateInitialResolutionRepository {
+  _PrivateResolutionRepository(super.backend, super.player);
+
+  @override
+  Future<NetworkGameRoundStateDto> resolveInitialPrivately({
+    required NetworkCommandDto command,
+  }) async {
+    if (!_accept(command)) return backend.state(player);
+    final reveals = backend.round.reveals.values.toList()
+      ..sort((a, b) => a.playerId.compareTo(b.playerId));
+    if (reveals.length != 2) {
+      throw const NetworkRoundException('ROUND_READY_INCOMPLETE');
+    }
+    final first = reveals[0];
+    final second = reveals[1];
+    final firstValue = first.choice.parameters['personal_value']! as int;
+    final secondValue = second.choice.parameters['personal_value']! as int;
+    final tied = firstValue == secondValue;
+    final winner = tied
+        ? null
+        : firstValue > secondValue
+        ? first.playerId
+        : second.playerId;
+    final loser = winner == null
+        ? null
+        : reveals.singleWhere((item) => item.playerId != winner).playerId;
+    final gap = (firstValue - secondValue).abs();
+    backend.round.initial = NetworkInitialResolutionDto(
+      tied: tied,
+      winnerPlayerId: winner,
+      loserPlayerId: loser,
+      gap: gap,
+      gapCost: gap,
+      highValue: firstValue > secondValue ? firstValue : secondValue,
+      actionPoints: backend.points,
+      inversionAllowed: false,
+    );
+    backend.round.phase = tied
+        ? NetworkGamePhase.tieDecision
+        : NetworkGamePhase.counterDecision;
+    backend.initialApplications++;
+    _notify();
+    return backend.state(player);
   }
 }

@@ -2,6 +2,7 @@ import 'package:couple_cards/domain/profile/adaptive_profile.dart';
 import 'package:couple_cards/engines/profile/profile_learning_engine.dart';
 import 'package:couple_cards/features/game/network_profile_learning.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   LearningCardDescriptor card(String id, List<String> tags) =>
@@ -156,4 +157,60 @@ void main() {
     expect(entry.playedCount, 1);
     expect(entry.ignoredCount, 1);
   });
+
+  test(
+    'resolved round event is persisted exactly once across concurrency and reload',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      const eventId = 'v4-learning:round-42:alice:final-resolved';
+      final first = NetworkProfileLearningCoordinator(
+        playerId: 'alice',
+        store: const SharedPreferencesNetworkProfileLearningStore(),
+      );
+      final concurrent = NetworkProfileLearningCoordinator(
+        playerId: 'alice',
+        store: const SharedPreferencesNetworkProfileLearningStore(),
+      );
+      final massage = card('massage', [
+        'v3.preference.masser',
+        'v3.direction.faire',
+      ]);
+
+      Future<bool> record(NetworkProfileLearningCoordinator coordinator) =>
+          coordinator.recordResolvedRoundOnce(
+            eventId: eventId,
+            handCards: [massage],
+            played: {massage.identity},
+            locked: const {},
+            acceptedBatches: [
+              [
+                ResolvedLearningCard(
+                  card: massage,
+                  participation: ResolvedParticipation.directed,
+                  performerPlayerId: 'alice',
+                  receiverPlayerId: 'bob',
+                ),
+              ],
+            ],
+            resistanceEvents: const [],
+          );
+
+      final concurrentResults = await Future.wait([
+        record(first),
+        record(concurrent),
+      ]);
+      expect(concurrentResults.where((applied) => applied), hasLength(1));
+
+      final reloaded = NetworkProfileLearningCoordinator(
+        playerId: 'alice',
+        store: const SharedPreferencesNetworkProfileLearningStore(),
+      );
+      expect(await record(reloaded), isFalse);
+      final state = await reloaded.state();
+      final entry = state.entries.values.single;
+      expect(entry.exposureCount, 1);
+      expect(entry.playedCount, 1);
+      expect(entry.acceptanceCount, 1);
+    },
+  );
 }

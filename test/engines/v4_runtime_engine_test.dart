@@ -150,14 +150,18 @@ void main() {
   });
 
   test('anti-soft-lock replaces without consuming the returned card', () {
-    final locked = _playable('locked', false);
+    final first = _playable('first', false);
+    final locked = _playable('locked', false, locked: true);
     final possible = _playable('possible', true);
     final result = const V4PlayableHandGuard().ensurePlayable(
-      hand: [locked],
+      hand: [first, locked],
       availablePool: [possible],
       random: Random(1),
     );
-    expect(result.single.candidate.occurrenceId, 'possible');
+    expect(result.map((item) => item.candidate.occurrenceId), [
+      'first',
+      'possible',
+    ]);
     expect(locked.candidate.occurrenceId, 'locked');
   });
 
@@ -179,6 +183,33 @@ void main() {
 
   group('persistent effects', () {
     const engine = V4PersistentEffectEngine();
+
+    test('RECEVOIR targets owner and FAIRE targets partner', () {
+      const resolver = V4ActionTargetResolver();
+      final receiveTargets = resolver.resolve(
+        ownerPlayerId: 'alice',
+        playerIds: const ['alice', 'bob'],
+        direction: CardOccurrenceDirection.RECEVOIR,
+      );
+      final receiveEffects = engine.createForAction(
+        cardId: '033',
+        targetPlayerIds: receiveTargets,
+        durationActions: 3,
+      );
+      expect(receiveEffects.single.targetPlayerId, 'alice');
+
+      final doTargets = resolver.resolve(
+        ownerPlayerId: 'alice',
+        playerIds: const ['alice', 'bob'],
+        direction: CardOccurrenceDirection.FAIRE,
+      );
+      final doEffects = engine.createForAction(
+        cardId: '033',
+        targetPlayerIds: doTargets,
+        durationActions: 3,
+      );
+      expect(doEffects.single.targetPlayerId, 'bob');
+    });
 
     test('activation action is not counted and three next actions expire', () {
       var effects = engine.closeAction(
@@ -296,6 +327,25 @@ void main() {
       );
     });
 
+    test('runtime requirement tokens require one matching accessory', () {
+      final requirements = V4AccessoryRequirements.fromTokens(const [
+        'ANAL',
+        'VIBRANT',
+      ]);
+      expect(
+        requirements.accepts(
+          V4Accessory(
+            id: 'anal',
+            name: 'Anal',
+            ownerPlayerId: 'p1',
+            tags: const {V4AccessoryTag.anal},
+          ),
+        ),
+        isFalse,
+      );
+      expect(requirements.accepts(profileAccessory), isTrue);
+    });
+
     test('temporary disable does not mutate profile and round-trips', () {
       final pool = V4SessionAccessoryPool(
         profileAccessories: [profileAccessory],
@@ -338,15 +388,19 @@ void main() {
   });
 }
 
-V4PlayableOccurrence _playable(String id, bool playable) =>
-    V4PlayableOccurrence(
-      candidate: DeckCandidateV3(
-        cardId: 'card.$id',
-        variantId: 'variant.$id',
-        spiceLevel: 1,
-        distanceExcluded: false,
-        occurrenceId: id,
-      ),
-      parameters: const V4ResolvedParameters(),
-      playable: playable,
-    );
+V4PlayableOccurrence _playable(
+  String id,
+  bool playable, {
+  bool locked = false,
+}) => V4PlayableOccurrence(
+  candidate: DeckCandidateV3(
+    cardId: 'card.$id',
+    variantId: 'variant.$id',
+    spiceLevel: 1,
+    distanceExcluded: false,
+    occurrenceId: id,
+  ),
+  parameters: const V4ResolvedParameters(),
+  playable: playable,
+  locked: locked,
+);

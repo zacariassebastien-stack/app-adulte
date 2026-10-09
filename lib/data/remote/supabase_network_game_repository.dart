@@ -16,6 +16,7 @@ final class SupabaseNetworkGameRepository
         NetworkNegotiationRepository,
         NetworkSessionFlowRepository,
         NetworkSessionSetupRepository,
+        NetworkPrivateInitialResolutionRepository,
         NetworkV4ActionRepository,
         NetworkCommitCancellationRepository,
         NetworkSessionClosureRepository {
@@ -154,6 +155,11 @@ final class SupabaseNetworkGameRepository
   }) => _rpc('close_network_game_session', command);
 
   @override
+  Future<NetworkGameRoundStateDto> resolveInitialPrivately({
+    required NetworkCommandDto command,
+  }) => _rpc('resolve_network_initial_private', command);
+
+  @override
   Future<NetworkGameRoundStateDto> submitInitialResolution({
     required NetworkCommandDto command,
     required NetworkInitialResolutionDto resolution,
@@ -170,7 +176,7 @@ final class SupabaseNetworkGameRepository
   }) => _rpc(
     'submit_network_negotiation_proposal',
     command,
-    extra: {'p_offer': offer.toJson()},
+    extra: {'p_offer': offer.toJson(includePrivateSnapshots: true)},
   );
 
   @override
@@ -190,7 +196,7 @@ final class SupabaseNetworkGameRepository
   }) => _rpc(
     'adapt_network_negotiation',
     command,
-    extra: {'p_offer': offer.toJson()},
+    extra: {'p_offer': offer.toJson(includePrivateSnapshots: true)},
   );
 
   @override
@@ -385,6 +391,11 @@ final class SupabaseNetworkGameRepository
   );
 
   @override
+  Future<NetworkGameRoundStateDto> repairV4ActionParameters({
+    required NetworkCommandDto command,
+  }) => _rpc('repair_v4_action_parameters', command);
+
+  @override
   Future<NetworkGameRoundStateDto> publishV4ActionProjection({
     required NetworkCommandDto command,
     required NetworkResolvedActionProjectionDto projection,
@@ -403,8 +414,8 @@ final class SupabaseNetworkGameRepository
     yield await getCurrentRound(sessionId: sessionId);
     await for (final _
         in client
-            .from('network_rounds')
-            .stream(primaryKey: ['id'])
+            .from('network_round_public_events')
+            .stream(primaryKey: ['round_id'])
             // A new round has a new ID. Watching the session also observes its
             // insertion, so clients waiting on the closed round can advance.
             .eq('session_id', sessionId)) {

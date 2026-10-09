@@ -276,7 +276,7 @@ final class NetworkCompromiseCardDto {
     effectiveSpice: effectiveSpice ?? this.effectiveSpice,
   );
 
-  Map<String, Object?> toJson() => {
+  Map<String, Object?> toJson({bool includeSnapshotValue = false}) => {
     'occurrence_id': occurrenceId,
     'card_id': cardId,
     'variant_id': variantId,
@@ -284,7 +284,7 @@ final class NetworkCompromiseCardDto {
     'native_direction': nativeDirection.name,
     'effective_direction': effectiveDirection.name,
     'origin': origin.name,
-    'snapshot_value': snapshotValue,
+    if (includeSnapshotValue) 'snapshot_value': snapshotValue,
     'logical_order': logicalOrder,
     'resolved_parameters': resolvedParameters?.toJson(),
     'effective_spice': effectiveSpice,
@@ -305,7 +305,7 @@ final class NetworkCompromiseCardDto {
         origin: NetworkCompromiseOrigin.values.byName(
           json['origin']! as String,
         ),
-        snapshotValue: json['snapshot_value']! as int,
+        snapshotValue: (json['snapshot_value'] as int?) ?? 0,
         logicalOrder: json['logical_order'] as int?,
         resolvedParameters: json['resolved_parameters'] == null
             ? null
@@ -329,10 +329,13 @@ final class NetworkNegotiationOfferDto {
   int get totalValue =>
       directPa + cards.fold(0, (sum, card) => sum + card.snapshotValue);
 
-  Map<String, Object?> toJson() => {
+  Map<String, Object?> toJson({bool includePrivateSnapshots = false}) => {
     'inversion_requested': inversionRequested,
     'direct_pa': directPa,
-    'cards': [for (final card in cards) card.toJson()],
+    'cards': [
+      for (final card in cards)
+        card.toJson(includeSnapshotValue: includePrivateSnapshots),
+    ],
   };
 
   factory NetworkNegotiationOfferDto.fromJson(Map<String, Object?> json) =>
@@ -520,13 +523,13 @@ final class NetworkInitialResolutionDto {
   final Map<String, int> actionPoints;
   final bool inversionAllowed;
 
-  Map<String, Object?> toJson() => {
+  Map<String, Object?> toJson({bool includePrivateMetrics = true}) => {
     'tied': tied,
     'winner_player_id': winnerPlayerId,
     'loser_player_id': loserPlayerId,
-    'gap': gap,
-    'gap_cost': gapCost,
-    'high_value': highValue,
+    if (includePrivateMetrics) 'gap': gap,
+    if (includePrivateMetrics) 'gap_cost': gapCost,
+    if (includePrivateMetrics) 'high_value': highValue,
     'action_points': actionPoints,
     'inversion_allowed': inversionAllowed,
   };
@@ -536,8 +539,8 @@ final class NetworkInitialResolutionDto {
         tied: json['tied']! as bool,
         winnerPlayerId: json['winner_player_id'] as String?,
         loserPlayerId: json['loser_player_id'] as String?,
-        gap: json['gap']! as int,
-        gapCost: json['gap_cost']! as int,
+        gap: (json['gap'] as int?) ?? 0,
+        gapCost: (json['gap_cost'] as int?) ?? 0,
         highValue: (json['high_value'] as int?) ?? 0,
         actionPoints: Map<String, int>.from(json['action_points']! as Map),
         inversionAllowed: json['inversion_allowed']! as bool,
@@ -726,8 +729,10 @@ final class NetworkGameRoundStateDto {
     'clothing_resynced': {for (final id in clothingResyncedPlayerIds) id: true},
     'deck_adjustment': deckAdjustment,
     'own_reveal': ownReveal?.toJson(),
-    'opponent_reveal': opponentReveal?.toJson(),
-    'initial_resolution': initialResolution?.toJson(),
+    'opponent_reveal': null,
+    'initial_resolution': initialResolution?.toJson(
+      includePrivateMetrics: false,
+    ),
     'counter_bid': counterBid?.toJson(),
     'final_defense': finalDefense?.toJson(),
     'negotiation': negotiation?.toJson(),
@@ -807,7 +812,9 @@ final class NetworkGameRoundStateDto {
         (json['deck_adjustment'] as Map?) ?? const {},
       ),
       ownReveal: reveal('own_reveal'),
-      opponentReveal: reveal('opponent_reveal'),
+      // An opponent reveal is server-private. Older payloads are deliberately
+      // ignored so a stale backend cannot hydrate private preference values.
+      opponentReveal: null,
       initialResolution: optional(
         'initial_resolution',
         NetworkInitialResolutionDto.fromJson,
@@ -930,9 +937,19 @@ abstract interface class NetworkGameRepository {
 }
 
 abstract interface class NetworkV4ActionRepository {
+  Future<NetworkGameRoundStateDto> repairV4ActionParameters({
+    required NetworkCommandDto command,
+  });
+
   Future<NetworkGameRoundStateDto> publishV4ActionProjection({
     required NetworkCommandDto command,
     required NetworkResolvedActionProjectionDto projection,
+  });
+}
+
+abstract interface class NetworkPrivateInitialResolutionRepository {
+  Future<NetworkGameRoundStateDto> resolveInitialPrivately({
+    required NetworkCommandDto command,
   });
 }
 

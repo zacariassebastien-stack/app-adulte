@@ -100,8 +100,23 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       sessionMode: widget.sessionMode,
       initialClothingCounts: widget.initialClothingCounts,
       profileAccessories: widget.profileAccessories,
+      occurrenceParameterResolver: _resolveOccurrenceParameters,
     )..addListener(_refresh);
     controller.start();
+  }
+
+  V4ResolvedParameters _resolveOccurrenceParameters(
+    NetworkDuelCard card,
+    V4ResolvedParameters current,
+  ) {
+    final scoringCatalog = widget.scoringCatalog;
+    if (scoringCatalog == null) return current;
+    return const V4CatalogParameterResolver().resolve(
+      catalog: scoringCatalog,
+      cardId: card.id,
+      variantId: card.variant.id,
+      current: current,
+    );
   }
 
   void _refresh() {
@@ -404,12 +419,17 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               onChanged: (value) => setState(() => _acceptInversion = value),
               title: const Text('Accepter l’inversion'),
             ),
-          if (proposal.totalValue > 0)
+          if (proposal.directPa > 0 || proposal.cards.isNotEmpty)
             SwitchListTile(
               key: const Key('accept-negotiation-auction'),
               value: _acceptAuction,
               onChanged: (value) => setState(() => _acceptAuction = value),
-              title: Text('Accepter l’enchère (${proposal.totalValue})'),
+              title: Text(
+                proposal.cards.isEmpty
+                    ? 'Accepter l’enchère (${proposal.directPa} PA)'
+                    : 'Accepter l’enchère (${proposal.cards.length} carte(s)'
+                          '${proposal.directPa > 0 ? ' + ${proposal.directPa} PA' : ''})',
+              ),
             ),
           FilledButton(
             key: const Key('respond-negotiation'),
@@ -699,6 +719,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           const SizedBox(height: 12),
           if (controller.deckExhausted)
             ..._cycleEndControls()
+          else if (controller.mustSwitchHybridContext)
+            const Text(
+              'Change le contexte hybride pour continuer : aucune carte '
+              'n’est jouable dans le contexte actuel.',
+              textAlign: TextAlign.center,
+            )
           else if (controller.isCycleController)
             FilledButton(
               key: const Key('start-next-network-round'),
@@ -967,7 +993,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             style: Theme.of(context).textTheme.titleLarge,
             textAlign: TextAlign.center,
           ),
-          Text('Écart : ${initial.gap} · Coût PA : ${initial.gapCost}'),
         ],
       ),
     ),
