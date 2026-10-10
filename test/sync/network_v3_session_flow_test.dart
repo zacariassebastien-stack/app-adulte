@@ -80,47 +80,32 @@ void main() {
     },
   );
 
-  test(
-    'bounded ABA applies one final debit and cancels initial gap on B win',
-    () {
-      const engine = NegotiationEngineV3();
-      var state = NegotiationState(
-        initialWinnerId: 'a',
-        initialLoserId: 'b',
-        initialHighValue: 12,
-        initialGapCost: 5,
-        actionPoints: const {'a': 100, 'b': 100},
-      );
-      state = engine.propose(
-        state,
-        NegotiationOffer(
-          inversionRequested: true,
-          personalPa: 3,
-          cardIds: const ['b:1', 'b:2'],
-          cardValues: const {'b:1': 6, 'b:2': 7},
-        ),
-      );
-      state = engine.respond(
-        state,
-        const NegotiationResponse(acceptInversion: true, acceptAuction: true),
-      );
-      state = engine.adapt(
-        state,
-        NegotiationOffer(
-          inversionRequested: true,
-          personalPa: 3,
-          cardIds: const ['b:1', 'b:2'],
-          cardValues: const {'b:1': 6, 'b:2': 7},
-        ),
-      );
-      state = engine.validate(state, accepted: true);
-      expect(state.finalWinnerId, 'b');
-      expect(state.actionPoints['a'], 100);
-      expect(state.actionPoints['b'], 85);
-    },
-  );
+  test('accepted complete proposal resolves once with every proposed card', () {
+    const engine = NegotiationEngineV3();
+    var state = NegotiationState(
+      initialWinnerId: 'a',
+      initialLoserId: 'b',
+      initialHighValue: 12,
+      initialGapCost: 5,
+      actionPoints: const {'a': 100, 'b': 100},
+    );
+    state = engine.propose(
+      state,
+      NegotiationOffer(
+        inversionRequested: true,
+        personalPa: 3,
+        cardIds: const ['b:1', 'b:2'],
+        cardValues: const {'b:1': 6, 'b:2': 7},
+      ),
+    );
+    state = engine.decide(state, accepted: true);
+    expect(state.finalWinnerId, 'b');
+    expect(state.finalOffer!.cardIds, ['b:1', 'b:2']);
+    expect(state.actionPoints['a'], 100);
+    expect(state.actionPoints['b'], 85);
+  });
 
-  test('refused component cannot survive adaptation and refusal keeps A', () {
+  test('refusing the complete proposal keeps the initial result', () {
     const engine = NegotiationEngineV3();
     var state = NegotiationState(
       initialWinnerId: 'a',
@@ -133,19 +118,7 @@ void main() {
       state,
       NegotiationOffer(inversionRequested: true, personalPa: 4),
     );
-    state = engine.respond(
-      state,
-      const NegotiationResponse(acceptInversion: false, acceptAuction: true),
-    );
-    expect(
-      () => engine.adapt(
-        state,
-        NegotiationOffer(inversionRequested: true, personalPa: 4),
-      ),
-      throwsStateError,
-    );
-    state = engine.adapt(state, NegotiationOffer(personalPa: 4));
-    state = engine.validate(state, accepted: false);
+    state = engine.decide(state, accepted: false);
     expect(state.finalWinnerId, 'a');
     expect(state.actionPoints, {'a': 95, 'b': 100});
   });
@@ -469,6 +442,7 @@ void main() {
             cards: [card(occurrence: 'bob:1', owner: 'bob')],
           ),
           response: const NetworkNegotiationResponseDto(
+            accepted: true,
             acceptInversion: true,
             acceptAuction: true,
           ),
@@ -492,6 +466,31 @@ void main() {
       expect(encoded, isNot(contains('preferences')));
       expect(encoded, isNot(contains('profile_learning')));
     }
+  });
+
+  test('accepted inverted compromise keeps loser card and added cards', () {
+    final sql = File(
+      'supabase/migrations/202610100001_simplify_network_negotiation.sql',
+    ).readAsStringSync();
+    expect(sql, contains("v_round.phase<>'NEGOTIATION_RESPONSE'"));
+    expect(sql, contains("'NEGOTIATION_RESPONSE',p_response"));
+    expect(sql, contains("phase='FINAL_RESOLVED'"));
+    expect(sql, contains('v_choice_owner := v_final;'));
+    expect(
+      sql,
+      isNot(
+        contains(
+          'v_choice_owner := case when v_inverted then v_winner else v_final end;',
+        ),
+      ),
+    );
+    expect(sql, contains("when 'FAIRE' then case when v_inverted"));
+    expect(sql, contains("when 'RECEVOIR' then case when v_inverted"));
+    expect(sql, contains("if v_accepted then"));
+    expect(sql, contains("v_cards := v_cards ||"));
+    expect(sql, contains("'NEGOTIATION_RESPONSE',"));
+    expect(sql, isNot(contains("phase='NEGOTIATION_ADAPTATION'")));
+    expect(sql, isNot(contains("phase='NEGOTIATION_VALIDATION'")));
   });
 
   test(

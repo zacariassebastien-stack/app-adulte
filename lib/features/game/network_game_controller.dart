@@ -795,30 +795,21 @@ final class NetworkGameController extends ChangeNotifier {
     );
   }
 
-  Future<void> respondNegotiation({
-    required bool acceptInversion,
-    required bool acceptAuction,
-  }) async {
+  Future<void> respondNegotiation({required bool accepted}) async {
     if (viewState != NetworkGameViewState.negotiationResponse ||
         !isInitialWinner) {
       return;
     }
-    final response = NetworkNegotiationResponseDto(
-      acceptInversion: acceptInversion,
-      acceptAuction: acceptAuction,
-    );
     final proposal = negotiation?.proposal;
     if (proposal == null) throw StateError('No proposal to answer');
-    if (acceptInversion && !proposal.inversionRequested) {
-      throw ArgumentError('Cannot accept an inversion that was not proposed');
-    }
-    if (acceptAuction && proposal.directPa == 0 && proposal.cards.isEmpty) {
-      throw ArgumentError('Cannot accept an empty auction');
-    }
+    negotiationEngine.decide(
+      _negotiationState(NegotiationPhase.response),
+      accepted: accepted,
+    );
     await _networkAction(
       (repository as NetworkNegotiationRepository).respondNegotiation(
         command: _command('NEGOTIATION_RESPONSE'),
-        response: response,
+        response: NetworkNegotiationResponseDto(accepted: accepted),
       ),
     );
   }

@@ -186,7 +186,7 @@ final class SupabaseNetworkGameRepository
   }) => _rpc(
     'respond_network_negotiation',
     command,
-    extra: {'p_response': response.toJson()},
+    extra: {'p_response': response.toCommandJson()},
   );
 
   @override

@@ -73,8 +73,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   final auctionForm = NetworkAuctionFormController();
   final Set<String> _negotiationCards = {};
   bool _requestInversion = false;
-  bool _acceptInversion = false;
-  bool _acceptAuction = false;
   String? actionError;
   CardHandStage _handStage = CardHandStage.resting;
   late final GamePreferencesController preferences;
@@ -127,8 +125,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         actionError = null;
         _negotiationCards.clear();
         _requestInversion = false;
-        _acceptInversion = false;
-        _acceptAuction = false;
       }
     });
   }
@@ -409,35 +405,21 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           _waitingCard('Ton partenaire répond à ta proposition…')
         else ...[
           Text(
-            'Répondre au compromis',
+            'Proposition de compromis',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
-          if (proposal.inversionRequested)
-            SwitchListTile(
-              key: const Key('accept-negotiation-inversion'),
-              value: _acceptInversion,
-              onChanged: (value) => setState(() => _acceptInversion = value),
-              title: const Text('Accepter l’inversion'),
-            ),
-          if (proposal.directPa > 0 || proposal.cards.isNotEmpty)
-            SwitchListTile(
-              key: const Key('accept-negotiation-auction'),
-              value: _acceptAuction,
-              onChanged: (value) => setState(() => _acceptAuction = value),
-              title: Text(
-                proposal.cards.isEmpty
-                    ? 'Accepter l’enchère (${proposal.directPa} PA)'
-                    : 'Accepter l’enchère (${proposal.cards.length} carte(s)'
-                          '${proposal.directPa > 0 ? ' + ${proposal.directPa} PA' : ''})',
-              ),
-            ),
+          const SizedBox(height: 8),
+          NetworkNegotiationOfferSummary(offer: proposal, titleForCard: _title),
+          const SizedBox(height: 12),
           FilledButton(
-            key: const Key('respond-negotiation'),
-            onPressed: () => controller.respondNegotiation(
-              acceptInversion: _acceptInversion,
-              acceptAuction: _acceptAuction,
-            ),
-            child: const Text('Envoyer ma réponse'),
+            key: const Key('accept-negotiation'),
+            onPressed: () => controller.respondNegotiation(accepted: true),
+            child: const Text('Accepter le compromis'),
+          ),
+          OutlinedButton(
+            key: const Key('keep-initial-result'),
+            onPressed: () => controller.respondNegotiation(accepted: false),
+            child: const Text('Conserver le résultat initial'),
           ),
         ],
       ],
@@ -1311,4 +1293,53 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   String _chilies(int level) => List.filled(level, '🌶️').join();
+}
+
+class NetworkNegotiationOfferSummary extends StatelessWidget {
+  const NetworkNegotiationOfferSummary({
+    required this.offer,
+    required this.titleForCard,
+    super.key,
+  });
+
+  final NetworkNegotiationOfferDto offer;
+  final String Function(String cardId) titleForCard;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    key: const Key('negotiation-offer-summary'),
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      if (offer.inversionRequested)
+        const Text('• Inversion de la carte initiale'),
+      if (offer.directPa > 0) Text('• ${offer.directPa} PA personnels'),
+      if (offer.cards.isNotEmpty) ...[
+        const SizedBox(height: 8),
+        const Text('Cartes ajoutées'),
+        for (final card in offer.cards)
+          ListTile(
+            key: Key('proposed-card-${card.occurrenceId}'),
+            contentPadding: EdgeInsets.zero,
+            title: Text(titleForCard(card.cardId)),
+            subtitle: Text(
+              [
+                _directionLabel(card.effectiveDirection),
+                if (card.effectiveSpice case final spice?)
+                  List.filled(spice, '🌶️').join(),
+              ].join(' · '),
+            ),
+          ),
+      ],
+    ],
+  );
+
+  static String _directionLabel(NetworkCardDirection direction) =>
+      switch (direction) {
+        NetworkCardDirection.FAIRE => 'Faire',
+        NetworkCardDirection.RECEVOIR => 'Recevoir',
+        NetworkCardDirection.MUTUEL => 'Mutuel',
+        NetworkCardDirection.SOLO => 'Solo',
+        NetworkCardDirection.SIMULTANE => 'Simultané',
+        NetworkCardDirection.GENERAL => 'Général',
+      };
 }

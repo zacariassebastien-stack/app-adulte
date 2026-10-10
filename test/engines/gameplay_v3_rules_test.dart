@@ -97,7 +97,7 @@ void main() {
       actionPoints: {'A': 100, 'B': loserPa},
     );
 
-    test('B proposes, A answers, B adapts and A validates', () {
+    test('B proposes once and A accepts the complete compromise once', () {
       const engine = NegotiationEngineV3();
       var state = engine.propose(
         initial(),
@@ -108,23 +108,11 @@ void main() {
           cardValues: const {'card.bid': 4},
         ),
       );
-      state = engine.respond(
-        state,
-        const NegotiationResponse(acceptInversion: true, acceptAuction: true),
-      );
-      state = engine.adapt(
-        state,
-        NegotiationOffer(
-          inversionRequested: true,
-          personalPa: 3,
-          cardIds: const ['card.bid'],
-          cardValues: const {'card.bid': 4},
-        ),
-      );
-      state = engine.validate(state, accepted: true);
+      state = engine.decide(state, accepted: true);
       expect(state.phase, NegotiationPhase.resolved);
       expect(state.finalWinnerId, 'B');
       expect(state.inversionApplied, isTrue);
+      expect(state.finalOffer!.cardIds, ['card.bid']);
       expect(state.actionPoints, {'A': 100, 'B': 85});
     });
 
@@ -147,18 +135,19 @@ void main() {
       expect(state.proposal!.totalPa, 6);
     });
 
-    test('unchanged result charges exact gap only after validation', () {
-      const engine = NegotiationEngineV3();
-      var state = engine.propose(initial(), NegotiationOffer());
-      state = engine.respond(
-        state,
-        const NegotiationResponse(acceptInversion: false, acceptAuction: false),
-      );
-      state = engine.adapt(state, NegotiationOffer());
-      state = engine.validate(state, accepted: true);
-      expect(state.finalWinnerId, 'A');
-      expect(state.actionPoints, {'A': 95, 'B': 100});
-    });
+    test(
+      'A keeps the initial result in one decision and pays the exact gap',
+      () {
+        const engine = NegotiationEngineV3();
+        var state = engine.propose(
+          initial(),
+          NegotiationOffer(personalPa: 4, cardIds: const ['card.bid']),
+        );
+        state = engine.decide(state, accepted: false);
+        expect(state.finalWinnerId, 'A');
+        expect(state.actionPoints, {'A': 95, 'B': 100});
+      },
+    );
   });
 
   group('session deck V3', () {

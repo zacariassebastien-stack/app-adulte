@@ -353,19 +353,29 @@ final class NetworkNegotiationOfferDto {
 
 final class NetworkNegotiationResponseDto {
   const NetworkNegotiationResponseDto({
-    required this.acceptInversion,
-    required this.acceptAuction,
+    required this.accepted,
+    this.acceptInversion = false,
+    this.acceptAuction = false,
   });
+  final bool accepted;
+  // Kept for deserializing negotiations persisted with the former bounded
+  // adaptation flow.
   final bool acceptInversion;
   final bool acceptAuction;
   Map<String, Object?> toJson() => {
-    'accept_inversion': acceptInversion,
-    'accept_auction': acceptAuction,
+    'accepted': accepted,
+    if (acceptInversion) 'accept_inversion': true,
+    if (acceptAuction) 'accept_auction': true,
   };
+  Map<String, Object?> toCommandJson() => {'accepted': accepted};
   factory NetworkNegotiationResponseDto.fromJson(Map<String, Object?> json) =>
       NetworkNegotiationResponseDto(
-        acceptInversion: json['accept_inversion']! as bool,
-        acceptAuction: json['accept_auction']! as bool,
+        accepted:
+            json['accepted'] as bool? ??
+            ((json['accept_inversion'] as bool? ?? false) ||
+                (json['accept_auction'] as bool? ?? false)),
+        acceptInversion: json['accept_inversion'] as bool? ?? false,
+        acceptAuction: json['accept_auction'] as bool? ?? false,
       );
 }
 
