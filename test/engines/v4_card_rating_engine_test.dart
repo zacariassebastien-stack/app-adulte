@@ -1,5 +1,6 @@
 import 'package:couple_cards/domain/domain.dart';
 import 'package:couple_cards/engines/profile/v4_card_rating_engine.dart';
+import 'package:couple_cards/engines/runtime/v4_runtime_engine.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -40,6 +41,19 @@ void main() {
     );
     expect(result.rawScore, 9);
     expect(result.totalWeight, 2);
+  });
+
+  test('three components are combined atomically instead of in two stages', () {
+    final result = engine.initialize(
+      profile: _profile(principal: 20, secondary: 10),
+      variant: variant,
+      effectiveRole: ProfilePreferenceRole.faire,
+    );
+    const calculator = V4PaCalculator();
+
+    expect(result.componentValues, [20, 10]);
+    expect(calculator.combine([...result.componentValues, 1]), 13);
+    expect(calculator.combine([result.rawScore!, 1]), 8);
   });
 
   test('excluded secondary wins over a missing primary', () {

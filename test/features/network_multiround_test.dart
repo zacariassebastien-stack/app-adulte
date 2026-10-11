@@ -971,6 +971,49 @@ void main() {
     },
   );
 
+  test(
+    'mutual card combines FAIRE and RECEVOIR components only once',
+    () async {
+      final focusedCatalog = _catalogWithCards(catalog, {'card.v4.053'});
+      final preferences = <String, ProfilePreference>{};
+      void add(String tag, ProfilePreferenceRole role, double pa) {
+        final key = ProfilePreferenceKey(tagId: tag, role: role);
+        preferences[key.storageKey] = ProfilePreference(
+          profileId: 'alice',
+          key: key,
+          pa: pa,
+          excluded: false,
+          source: ProfilePreferenceSource.initialQuestionnaire,
+        );
+      }
+
+      add('contenu_adulte', ProfilePreferenceRole.faire, 20);
+      add('regarder', ProfilePreferenceRole.faire, 10);
+      add('contenu_adulte', ProfilePreferenceRole.recevoir, 1);
+      add('regarder', ProfilePreferenceRole.recevoir, 1);
+
+      final controller = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: _Backend().repository('alice'),
+        privateStore: MemoryNetworkDuelSecretStore(),
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: focusedCatalog,
+        v4Profile: V4Profile(profileId: 'alice', preferences: preferences),
+        scoringCatalog: scoringCatalog,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.start();
+
+      expect(
+        controller.hand.single.effectiveDirection,
+        CardOccurrenceDirection.MUTUEL,
+      );
+      expect(controller.hand.single.personalValue, 12);
+    },
+  );
+
   test('hybrid boundary blocks an empty current context', () async {
     final presentCards = _cardIdsForPresence(
       catalog,

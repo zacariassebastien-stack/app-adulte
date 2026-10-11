@@ -2871,7 +2871,7 @@ final class NetworkGameController extends ChangeNotifier {
         return (value: null, excluded: true);
       }
       if (result.kind == V4RatingResultKind.rated) {
-        values.add(result.rawScore!);
+        values.addAll(result.componentValues);
         if (direction == CardOccurrenceDirection.SOLO) break;
       }
     }

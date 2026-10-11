@@ -10,14 +10,20 @@ final class V4RatingResult {
     this.totalWeight = 0,
     this.reasonId,
     List<String> missingTagIds = const [],
-  }) : missingTagIds = List.unmodifiable(missingTagIds);
+    List<double> componentValues = const [],
+  }) : missingTagIds = List.unmodifiable(missingTagIds),
+       componentValues = List.unmodifiable(componentValues);
 
-  factory V4RatingResult.rated(double rawScore, double totalWeight) =>
-      V4RatingResult._(
-        kind: V4RatingResultKind.rated,
-        rawScore: rawScore,
-        totalWeight: totalWeight,
-      );
+  factory V4RatingResult.rated(
+    double rawScore,
+    double totalWeight, {
+    required List<double> componentValues,
+  }) => V4RatingResult._(
+    kind: V4RatingResultKind.rated,
+    rawScore: rawScore,
+    totalWeight: totalWeight,
+    componentValues: componentValues,
+  );
   factory V4RatingResult.excluded(String tagId) =>
       V4RatingResult._(kind: V4RatingResultKind.excluded, reasonId: tagId);
   factory V4RatingResult.unknown(List<String> tagIds) =>
@@ -32,6 +38,7 @@ final class V4RatingResult {
   final double totalWeight;
   final String? reasonId;
   final List<String> missingTagIds;
+  final List<double> componentValues;
   String? get source => kind == V4RatingResultKind.rated ? 'TAG_PRIOR' : null;
 }
 
@@ -97,7 +104,11 @@ final class V4CardRatingEngine {
     }
     final values = [for (final tag in tags) resolved[tag]!.pa!];
     final raw = _combine(values);
-    return V4RatingResult.rated(raw, values.length.toDouble());
+    return V4RatingResult.rated(
+      raw,
+      values.length.toDouble(),
+      componentValues: values,
+    );
   }
 
   /// V4 combines every required personal component without letting a low PA
