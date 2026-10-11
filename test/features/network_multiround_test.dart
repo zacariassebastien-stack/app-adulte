@@ -37,7 +37,9 @@ void main() {
   });
 
   test('network DTO round-trips without private hand, lock or profile', () {
-    final backend = _Backend()..cycleExhausted = true;
+    final backend = _Backend()
+      ..cycleExhausted = true
+      ..v4UnlockedSpice = 3;
     final state = backend.state('alice');
     final encoded = jsonEncode(state.toJson());
     expect(
@@ -56,6 +58,159 @@ void main() {
     }
     expect(state.actionPoints, {'alice': 100, 'bob': 100});
     expect(state.cycleExhausted, isTrue);
+    expect(state.v4UnlockedSpice, 3);
+  });
+
+  test(
+    'canonical spice is shared and overrides absent or divergent local cache',
+    () async {
+      final backend = _Backend()..v4UnlockedSpice = 3;
+      final aliceStore = MemoryNetworkDuelSecretStore();
+      await aliceStore.saveGame(
+        sessionId: session.id,
+        playerId: 'alice',
+        state: NetworkPrivateGameState(
+          roundNumber: 1,
+          cards: const [],
+          history: const {},
+          spiceProgression: V4SpiceProgression(
+            initialUnitsBySpice: const {1: 1, 2: 1, 3: 1, 4: 1},
+            unlockedLevel: 4,
+          ),
+        ),
+      );
+      final alice = _controller(backend, session, catalog, 'alice', aliceStore);
+      final bob = _controller(
+        backend,
+        session,
+        catalog,
+        'bob',
+        MemoryNetworkDuelSecretStore(),
+      );
+
+      await Future.wait([alice.start(), bob.start()]);
+
+      expect(alice.spiceProgression.unlockedLevel, 4);
+      expect(alice.activeSpice, 3);
+      expect(bob.activeSpice, 3);
+      expect(alice.round!.v4UnlockedSpice, 3);
+      expect(bob.round!.v4UnlockedSpice, 3);
+      alice.dispose();
+      bob.dispose();
+    },
+  );
+
+  test(
+    'canonical spice publication is monotone, bounded and idempotent',
+    () async {
+      final backend = _Backend();
+      backend.round
+        ..phase = NetworkGamePhase.waitingNext
+        ..ready.addAll(const {'alice', 'bob'});
+      final alice = backend.repository('alice') as NetworkSessionFlowRepository;
+      final bob = backend.repository('bob') as NetworkSessionFlowRepository;
+      final command = _command(
+        'spice-2',
+        'alice',
+        'PUBLISH_V4_SPICE',
+        'round-1',
+      );
+
+      await alice.publishUnlockedSpice(command: command, unlockedSpice: 2);
+      await alice.publishUnlockedSpice(command: command, unlockedSpice: 2);
+      expect(backend.v4UnlockedSpice, 2);
+      await expectLater(
+        alice.publishUnlockedSpice(
+          command: _command('spice-4', 'alice', 'PUBLISH_V4_SPICE', 'round-1'),
+          unlockedSpice: 4,
+        ),
+        throwsA(isA<NetworkRoundException>()),
+      );
+      await expectLater(
+        bob.publishUnlockedSpice(
+          command: _command('spice-3', 'bob', 'PUBLISH_V4_SPICE', 'round-1'),
+          unlockedSpice: 3,
+        ),
+        throwsA(isA<NetworkRoundException>()),
+      );
+      expect(backend.v4UnlockedSpice, 2);
+    },
+  );
+
+  test('auction accepts only eligible discard occurrences', () async {
+    final lowEntries = [
+      for (final card in catalog.cards)
+        for (final variant in card.variants)
+          if (variant.chiliLevel == 1 &&
+              (variant.v4Stage == null || variant.v4Stage == 1))
+            (card, variant),
+    ];
+    final highEntry = [
+      for (final card in catalog.cards)
+        for (final variant in card.variants)
+          if (variant.chiliLevel > 1 &&
+              (variant.v4Stage == null || variant.v4Stage == 1))
+            (card, variant),
+    ].first;
+    final store = MemoryNetworkDuelSecretStore();
+    CardRuntimeState state(
+      (CardDefinition, CardVariantDefinition) entry,
+      CardZone zone,
+    ) => CardRuntimeState(
+      cardId: entry.$1.stableId,
+      occurrenceId: '${entry.$1.stableId}::${entry.$2.stableId}::occ-1',
+      variantId: entry.$2.stableId,
+      zone: zone,
+    );
+    await store.saveGame(
+      sessionId: session.id,
+      playerId: 'alice',
+      state: NetworkPrivateGameState(
+        roundNumber: 1,
+        cards: [
+          state(lowEntries.first, CardZone.HAND),
+          state(lowEntries[1], CardZone.DISCARD),
+          state(highEntry, CardZone.DISCARD),
+        ],
+        history: const {},
+      ),
+    );
+    final backend = _Backend();
+    final controller = _controller(backend, session, catalog, 'alice', store);
+    await controller.start();
+
+    expect(controller.auctionCards, hasLength(2));
+    expect(
+      controller.auctionCards.map((card) => card.identity),
+      isNot(contains(state(lowEntries.first, CardZone.HAND).occurrenceId)),
+    );
+    final compatible = controller.auctionCards.singleWhere(
+      controller.isAuctionCardPlayable,
+    );
+    final tooSpicy = controller.auctionCards.singleWhere(
+      (card) => !controller.isAuctionCardPlayable(card),
+    );
+    expect(compatible.variant.chiliLevel, 1);
+    expect(tooSpicy.variant.chiliLevel, greaterThan(controller.activeSpice));
+
+    final sql = File(
+      'supabase/migrations/202610100002_network_corruption_replacement.sql',
+    ).readAsStringSync();
+    expect(
+      sql,
+      contains(
+        'A compromise/corruption argument must be a server-verifiable discard',
+      ),
+    );
+    expect(sql, contains("previous.final_resolution->'compromise'"));
+    expect(sql, contains("action->>'status'='COMPLETED'"));
+    expect(sql, contains("recovery->>'completed'"));
+    expect(
+      RegExp(r"raise exception 'ROUND_CORRUPTION_FORBIDDEN'").allMatches(sql),
+      isNotEmpty,
+    );
+
+    controller.dispose();
   });
 
   test('public round DTO removes opponent values and compromise snapshots', () {
@@ -223,7 +378,12 @@ void main() {
     expect(waiting.cycleExhausted, isTrue);
     await expectLater(
       alice.readyNextRound(
-        command: _command('close-alice', 'alice', 'READY_NEXT', backend.round.id),
+        command: _command(
+          'close-alice',
+          'alice',
+          'READY_NEXT',
+          backend.round.id,
+        ),
       ),
       throwsA(
         isA<NetworkRoundException>().having(
@@ -1273,12 +1433,10 @@ void main() {
       expect(setup.bob.viewState, NetworkGameViewState.actionInProgress);
       await setup.bob.completeAction();
       await _settle();
-      expect(setup.alice.viewState, NetworkGameViewState.waitingNext);
-      expect(setup.bob.viewState, NetworkGameViewState.waitingNext);
-      await _cycleController(setup).completeAction();
-      await _settle();
       expect(setup.alice.roundNumber, expected + 1);
       expect(setup.bob.roundNumber, expected + 1);
+      expect(setup.alice.viewState, NetworkGameViewState.choosing);
+      expect(setup.bob.viewState, NetworkGameViewState.choosing);
       expect(setup.alice.actionPoints, setup.bob.actionPoints);
       expect(setup.alice.actionPoints, beforeReady);
       expect(setup.alice.hand, hasLength(const BalanceConfig().handSize));
@@ -1658,13 +1816,7 @@ void main() {
       alice.dispose();
       alice = _controller(backend, session, catalog, 'alice', aliceStore);
       await alice.start();
-      expect(alice.viewState, NetworkGameViewState.waitingNext);
       expect(backend.initialApplications, 1);
-      await alice.completeAction();
-      await _settle();
-      alice.dispose();
-      alice = _controller(backend, session, catalog, 'alice', aliceStore);
-      await alice.start();
       expect(alice.roundNumber, 2);
       expect(alice.viewState, NetworkGameViewState.choosing);
       expect(alice.hand, hasLength(const BalanceConfig().handSize));
@@ -1864,10 +2016,9 @@ void main() {
       );
       expect(before.zone, CardZone.DISCARD);
 
-      await actor.proposeCorruption(
+      await actor.proposeCorruption({
         card.identity,
-        CorruptionObjective.OWN_INITIAL_ACTION,
-      );
+      }, CorruptionObjective.OWN_INITIAL_ACTION);
       await _settle();
       expect(partner.viewState, NetworkGameViewState.corruptionResponse);
       expect(partner.corruption!.actions.map((item) => item.cardId), [card.id]);
@@ -1886,7 +2037,8 @@ void main() {
       await partner.respondToCorruption(accepted: false);
       await partner.respondToCorruption(accepted: false);
       await _settle();
-      expect(setup.backend.phase, NetworkGamePhase.recovery);
+      expect(setup.backend.phase, NetworkGamePhase.finalResolved);
+      expect(actor.viewState, NetworkGameViewState.actionInProgress);
       expect(
         actor.runtime
             .singleWhere((item) => item.occurrenceId == card.identity)
@@ -1898,7 +2050,7 @@ void main() {
   );
 
   test(
-    'accepted corruption exhausts only the completed proposed discard once',
+    'accepted corruption uses normal completion and consumes its batch once',
     () async {
       final setup = await _setup(session, catalog);
       await _reachSecondResolved(setup);
@@ -1911,19 +2063,36 @@ void main() {
       final unrelated = actor.runtime
           .where((item) => item.zone == CardZone.HAND)
           .first;
-
-      await actor.proposeCorruption(
+      await actor.proposeCorruption({
         offered.identity,
-        CorruptionObjective.OWN_INITIAL_ACTION,
-      );
+      }, CorruptionObjective.OWN_INITIAL_ACTION);
       await _settle();
+      final pointsBeforeCorruption = Map<String, int>.of(setup.backend.points);
       await partner.respondToCorruption(accepted: true);
       await _settle();
-      expect(actor.viewState, NetworkGameViewState.corruptionExecution);
-      await actor.completeCorruption(completed: true);
-      await actor.completeCorruption(completed: true);
+      expect(actor.viewState, NetworkGameViewState.actionInProgress);
+      expect(partner.viewState, NetworkGameViewState.actionInProgress);
+      expect(setup.backend.points, pointsBeforeCorruption);
+      expect(
+        setup.backend.round.corruption!.actions.single.status,
+        ActionExecutionStatus.PROPOSED,
+      );
+
+      await actor.completeAction();
+      await _settle();
+      expect(setup.backend.phase, NetworkGamePhase.finalResolved);
+      expect(
+        setup.backend.round.corruption!.actions.single.status,
+        ActionExecutionStatus.PROPOSED,
+      );
+      await partner.completeAction();
       await _settle();
 
+      expect(setup.backend.currentRound, 3);
+      expect(setup.backend.phase, NetworkGamePhase.commit);
+      expect(setup.alice.viewState, NetworkGameViewState.choosing);
+      expect(setup.bob.viewState, NetworkGameViewState.choosing);
+      expect(setup.backend.points, pointsBeforeCorruption);
       expect(
         actor.runtime
             .singleWhere((item) => item.occurrenceId == offered.identity)
@@ -1931,12 +2100,34 @@ void main() {
         CardZone.EXHAUSTED,
       );
       expect(
+        actor.spiceProgression.consumedOccurrenceIds.where(
+          (identity) => identity == offered.identity,
+        ),
+        hasLength(1),
+      );
+      final learnedAfterCompletion = jsonEncode(
+        (await actor.profileState()).toJson(),
+      );
+      await partner.completeAction();
+      await _settle();
+      expect(setup.backend.currentRound, 3);
+      expect(setup.backend.points, pointsBeforeCorruption);
+      expect(
+        actor.spiceProgression.consumedOccurrenceIds.where(
+          (identity) => identity == offered.identity,
+        ),
+        hasLength(1),
+      );
+      expect(
+        jsonEncode((await actor.profileState()).toJson()),
+        learnedAfterCompletion,
+      );
+      expect(
         actor.runtime
             .singleWhere((item) => item.occurrenceId == unrelated.occurrenceId)
             .zone,
         CardZone.HAND,
       );
-      expect(setup.backend.phase, NetworkGamePhase.recovery);
       setup.dispose();
     },
   );
@@ -2042,10 +2233,8 @@ void main() {
       await alice.completeAction();
       await setup.bob.completeAction();
       await _settle();
-      expect(setup.backend.phase, NetworkGamePhase.waitingNext);
-      await alice.completeAction();
-      await _settle();
       expect(setup.backend.currentRound, 2);
+      expect(setup.backend.phase, NetworkGamePhase.commit);
       alice.dispose();
       setup.bob.dispose();
     },
@@ -2514,6 +2703,7 @@ final class _Backend {
   int defenseApplications = 0;
   bool cycleExhausted = false;
   bool redactOpponentReveal = false;
+  int v4UnlockedSpice = 1;
   HybridDeckOrientation hybridOrientation = HybridDeckOrientation.faceToFace;
 
   _RoundRecord get round => rounds[currentRound]!;
@@ -2534,6 +2724,7 @@ final class _Backend {
     readyNextPlayerIds: round.ready,
     tieDecisions: round.ties,
     hybridOrientation: hybridOrientation,
+    v4UnlockedSpice: v4UnlockedSpice,
     cycleExhausted: cycleExhausted,
     actionProjection: round.actionProjection,
     ownReveal: round.reveals[player],
@@ -2608,6 +2799,28 @@ class _Repository
     required DeckExhaustionChoice choice,
     Map<int, int> deckAdjustment = const {},
   }) async => backend.state(player);
+
+  @override
+  Future<NetworkGameRoundStateDto> publishUnlockedSpice({
+    required NetworkCommandDto command,
+    required int unlockedSpice,
+  }) async {
+    if (backend.commands.contains(command.commandId)) {
+      return backend.state(player);
+    }
+    if (backend.phase != NetworkGamePhase.waitingNext ||
+        player != 'alice' ||
+        backend.round.ready.length != 2 ||
+        unlockedSpice < 1 ||
+        unlockedSpice > 4 ||
+        unlockedSpice != backend.v4UnlockedSpice + 1) {
+      throw const NetworkRoundException('ROUND_INVALID_SPICE_PROGRESSION');
+    }
+    backend.commands.add(command.commandId);
+    backend.v4UnlockedSpice = unlockedSpice;
+    _notify();
+    return backend.state(player);
+  }
 
   @override
   Future<NetworkGameRoundStateDto> submitCommit({
@@ -2795,6 +3008,8 @@ class _Repository
     final choice = backend.round.reveals[choicePlayer]!.choice;
     return NetworkFinalResolutionDto(
       retainedPlayerId: retained,
+      initialWinnerPlayerId: backend.round.initial?.winnerPlayerId,
+      finalWinnerPlayerId: retained,
       cardId: choice.cardId,
       variantId: choice.variantId,
       inverted: inverted,
@@ -2862,9 +3077,33 @@ class _Repository
       actions: offer.actions,
       accepted: accepted,
     );
-    backend.round.phase = accepted
-        ? NetworkGamePhase.corruptionExecution
-        : NetworkGamePhase.recovery;
+    if (accepted) {
+      backend.round.finalResolution = NetworkFinalResolutionDto(
+        retainedPlayerId: backend.round.finalResolution?.retainedPlayerId,
+        initialWinnerPlayerId:
+            backend.round.finalResolution?.initialWinnerPlayerId,
+        finalWinnerPlayerId: backend.round.finalResolution?.finalWinnerPlayerId,
+        cardId: offer.actions.first.cardId,
+        variantId: offer.actions.first.variantId,
+        compromise: [
+          for (final action in offer.actions)
+            NetworkCompromiseCardDto(
+              occurrenceId: action.identity,
+              cardId: action.cardId,
+              variantId: action.variantId ?? '',
+              ownerPlayerId: offer.offeredBy,
+              nativeDirection: NetworkCardDirection.GENERAL,
+              effectiveDirection: NetworkCardDirection.GENERAL,
+              origin: NetworkCompromiseOrigin.CORRUPTION,
+              snapshotValue: 0,
+              effectiveSpice: action.effectiveSpice,
+            ),
+        ],
+      );
+      backend.round.phase = NetworkGamePhase.finalResolved;
+    } else {
+      backend.round.phase = NetworkGamePhase.finalResolved;
+    }
     _notify();
     return backend.state(player);
   }
@@ -2892,7 +3131,7 @@ class _Repository
     required NetworkCommandDto command,
   }) async {
     if (!_accept(command)) return backend.state(player);
-    backend.round.phase = NetworkGamePhase.recovery;
+    backend.round.phase = NetworkGamePhase.finalResolved;
     _notify();
     return backend.state(player);
   }
@@ -3003,6 +3242,18 @@ class _Repository
     backend.round.ready.add(player);
     if (!closesBoundary) {
       if (backend.round.ready.length == 2) {
+        final corruption = backend.round.corruption;
+        if (corruption?.accepted == true) {
+          backend.round.corruption = NetworkCorruptionDto(
+            offeredBy: corruption!.offeredBy,
+            objective: corruption.objective,
+            accepted: true,
+            actions: [
+              for (final action in corruption.actions)
+                action.copyWith(status: ActionExecutionStatus.COMPLETED),
+            ],
+          );
+        }
         backend.round.phase = NetworkGamePhase.waitingNext;
       }
     } else {

@@ -124,7 +124,7 @@ void main() {
     final offer = CorruptionOffer(
       offeredBy: 'a',
       objective: CorruptionObjective.OWN_INITIAL_ACTION,
-      actions: const [],
+      actions: const [ActionPromise(cardId: 'c', source: CardZone.DISCARD)],
     );
     expect(const CorruptionEngine().power(offer), 0);
   });

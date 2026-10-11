@@ -247,6 +247,16 @@ final class SupabaseNetworkGameRepository
   );
 
   @override
+  Future<NetworkGameRoundStateDto> publishUnlockedSpice({
+    required NetworkCommandDto command,
+    required int unlockedSpice,
+  }) => _rpc(
+    'publish_network_v4_unlocked_spice',
+    command,
+    extra: {'p_unlocked_spice': unlockedSpice},
+  );
+
+  @override
   Future<NetworkGameRoundStateDto> submitCounterDecision({
     required NetworkCommandDto command,
     required CounterDecision decision,
@@ -328,6 +338,9 @@ final class SupabaseNetworkGameRepository
         for (final action in actions)
           {
             'card_id': action.cardId,
+            'occurrence_id': action.identity,
+            'variant_id': action.variantId,
+            'effective_spice': action.effectiveSpice,
             'source': action.source.name,
             'status': action.status.name,
             'visibility': action.visibility.name,

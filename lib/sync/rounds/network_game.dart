@@ -36,7 +36,7 @@ enum NetworkGamePhase {
   sessionClosed,
 }
 
-enum NetworkCompromiseOrigin { INITIAL_DUEL, AUCTION, RECOVERY }
+enum NetworkCompromiseOrigin { INITIAL_DUEL, AUCTION, CORRUPTION, RECOVERY }
 
 enum NetworkCardDirection { GENERAL, FAIRE, RECEVOIR, MUTUEL, SOLO, SIMULTANE }
 
@@ -433,6 +433,8 @@ final class NetworkCorruptionDto {
         {
           'card_id': action.cardId,
           'occurrence_id': action.occurrenceId,
+          'variant_id': action.variantId,
+          'effective_spice': action.effectiveSpice,
           'source': action.source.name,
           'status': action.status.name,
           'visibility': action.visibility.name,
@@ -453,6 +455,8 @@ final class NetworkCorruptionDto {
               ActionPromise(
                 cardId: action['card_id']! as String,
                 occurrenceId: action['occurrence_id'] as String?,
+                variantId: action['variant_id'] as String?,
+                effectiveSpice: action['effective_spice'] as int?,
                 source: CardZone.values.byName(action['source']! as String),
                 status: ActionExecutionStatus.values.byName(
                   action['status']! as String,
@@ -646,6 +650,7 @@ final class NetworkGameRoundStateDto {
     required Map<String, TieDecision> tieDecisions,
     this.hybridOrientation = HybridDeckOrientation.faceToFace,
     this.deckCycle = 1,
+    this.v4UnlockedSpice = 1,
     this.infiniteMode = false,
     this.deckStyle = PlayerStyle.SOFT,
     this.cycleExhausted = false,
@@ -691,6 +696,7 @@ final class NetworkGameRoundStateDto {
   final Map<String, TieDecision> tieDecisions;
   final HybridDeckOrientation hybridOrientation;
   final int deckCycle;
+  final int v4UnlockedSpice;
   final bool infiniteMode;
   final PlayerStyle deckStyle;
   final bool cycleExhausted;
@@ -731,6 +737,7 @@ final class NetworkGameRoundStateDto {
         ? 'FACE_TO_FACE'
         : 'DISTANCE',
     'deck_cycle': deckCycle,
+    'v4_unlocked_spice': v4UnlockedSpice,
     'infinite_mode': infiniteMode,
     'deck_style': deckStyle.name,
     'cycle_exhausted': cycleExhausted,
@@ -802,6 +809,7 @@ final class NetworkGameRoundStateDto {
           ? HybridDeckOrientation.distance
           : HybridDeckOrientation.faceToFace,
       deckCycle: (json['deck_cycle'] as int?) ?? 1,
+      v4UnlockedSpice: (json['v4_unlocked_spice'] as int?) ?? 1,
       infiniteMode: (json['infinite_mode'] as bool?) ?? false,
       deckStyle: PlayerStyle.values.byName(
         (json['deck_style'] as String?) ?? PlayerStyle.SOFT.name,
@@ -994,6 +1002,10 @@ abstract interface class NetworkSessionFlowRepository {
     required NetworkCommandDto command,
     required DeckExhaustionChoice choice,
     Map<int, int> deckAdjustment = const {},
+  });
+  Future<NetworkGameRoundStateDto> publishUnlockedSpice({
+    required NetworkCommandDto command,
+    required int unlockedSpice,
   });
 }
 

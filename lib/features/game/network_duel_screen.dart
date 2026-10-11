@@ -68,10 +68,14 @@ class NetworkDuelScreen extends StatefulWidget {
   State<NetworkDuelScreen> createState() => _NetworkDuelScreenState();
 }
 
+enum _PostDuelChoice { compromise, corruption }
+
 class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   late final NetworkGameController controller;
   final auctionForm = NetworkAuctionFormController();
   final Set<String> _negotiationCards = {};
+  final Set<String> _corruptionCards = {};
+  _PostDuelChoice? _postDuelChoice;
   bool _requestInversion = false;
   String? actionError;
   CardHandStage _handStage = CardHandStage.resting;
@@ -124,6 +128,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       if (changedRound) {
         actionError = null;
         _negotiationCards.clear();
+        _corruptionCards.clear();
+        _postDuelChoice = null;
         _requestInversion = false;
       }
     });
@@ -209,7 +215,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     NetworkGameViewState.actionInProgress => _actionInProgress(),
     NetworkGameViewState.corruptionDecision => _corruptionDecision(),
     NetworkGameViewState.corruptionResponse => _corruptionResponse(),
-    NetworkGameViewState.corruptionExecution => _corruptionExecution(),
+    NetworkGameViewState.corruptionExecution => _actionInProgress(),
     NetworkGameViewState.recovery => _recovery(),
     NetworkGameViewState.recoveryResponse => _recoveryResponse(),
     NetworkGameViewState.recoveryExecution => _recoveryExecution(),
@@ -338,13 +344,17 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     required VoidCallback onSubmit,
     bool allowInversion = true,
     bool allowAuction = true,
+    bool? canEdit,
+    bool requireNonEmpty = false,
+    Widget? leading,
   }) => ListView(
     key: Key(title),
     padding: const EdgeInsets.all(16),
     children: [
       _initialResult(controller.initialResolution!),
       const SizedBox(height: 12),
-      if (!controller.isInitialLoser)
+      ?leading,
+      if (!(canEdit ?? controller.isInitialLoser))
         _waitingCard(waiting)
       else ...[
         Text(title, style: Theme.of(context).textTheme.headlineSmall),
@@ -359,6 +369,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           TextField(
             key: const Key('negotiation-direct-pa'),
             controller: auctionForm.counterAmount,
+            onChanged: (_) => setState(() {}),
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               labelText: 'PA personnels (facultatif)',
@@ -371,22 +382,28 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             CheckboxListTile(
               key: Key('negotiation-card-${card.identity}'),
               value: _negotiationCards.contains(card.identity),
-              onChanged: (selected) => setState(() {
-                if (selected == true) {
-                  _negotiationCards.add(card.identity);
-                } else {
-                  _negotiationCards.remove(card.identity);
-                }
-              }),
+              onChanged: controller.isAuctionCardPlayable(card)
+                  ? (selected) => setState(() {
+                      if (selected == true) {
+                        _negotiationCards.add(card.identity);
+                      } else {
+                        _negotiationCards.remove(card.identity);
+                      }
+                    })
+                  : null,
               title: Text(card.title),
               subtitle: Text(
-                '${card.role.name} · ${_chilies(card.chiliLevel)}',
+                controller.isAuctionCardPlayable(card)
+                    ? '${card.role.name} · ${_chilies(card.chiliLevel)}'
+                    : 'Indisponible au niveau 🌶️ actuel',
               ),
             ),
         ],
         FilledButton(
           key: const Key('submit-negotiation'),
-          onPressed: onSubmit,
+          onPressed: requireNonEmpty && !_hasNegotiationProposal
+              ? null
+              : onSubmit,
           child: Text(buttonLabel),
         ),
       ],
@@ -401,7 +418,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         _initialResult(controller.initialResolution!),
-        if (!controller.isInitialWinner)
+        if (!controller.isNegotiationResponder)
           _waitingCard('Ton partenaire répond à ta proposition…')
         else ...[
           Text(
@@ -707,14 +724,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               'n’est jouable dans le contexte actuel.',
               textAlign: TextAlign.center,
             )
-          else if (controller.isCycleController)
-            FilledButton(
-              key: const Key('start-next-network-round'),
-              onPressed: controller.completeAction,
-              child: const Text('Continuer'),
-            )
           else
-            const Text('En attente du prochain tour…'),
+            const Text('Préparation du prochain tour…'),
         ],
       ),
     ),
@@ -777,37 +788,129 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       _waitingCard('Ton partenaire choisit la suite de la partie…'),
   ];
 
-  Widget _corruptionDecision() => ListView(
-    key: const Key('network-corruption-decision'),
-    padding: const EdgeInsets.all(16),
-    children: [
-      Text('Corruption', style: Theme.of(context).textTheme.headlineSmall),
-      const Text('Seule la carte proposée est rendue publique.'),
-      const SizedBox(height: 16),
-      if (!controller.isCorruptionActor)
-        _waitingCard('Ton partenaire décide s’il propose une corruption.')
-      else ...[
-        for (final card in controller.corruptionCards)
-          ListTile(
-            key: Key('corruption-card-${card.id}'),
-            title: Text(card.title),
-            subtitle: const Text('Carte de la défausse'),
-            trailing: FilledButton.tonal(
-              onPressed: () => controller.proposeCorruption(
-                card.identity,
-                CorruptionObjective.OWN_INITIAL_ACTION,
-              ),
-              child: const Text('Proposer'),
+  bool get _hasNegotiationProposal {
+    final directPa = int.tryParse(auctionForm.counterAmount.text.trim()) ?? 0;
+    return directPa > 0 || _requestInversion || _negotiationCards.isNotEmpty;
+  }
+
+  Widget _corruptionDecision() {
+    if (!controller.isCorruptionActor) {
+      return ListView(
+        key: const Key('network-post-duel-waiting'),
+        padding: const EdgeInsets.all(16),
+        children: [
+          _waitingCard('Ton partenaire choisit la suite de la résolution…'),
+        ],
+      );
+    }
+    if (_postDuelChoice == _PostDuelChoice.compromise) {
+      return _negotiationEditor(
+        title: 'Tenter un compromis',
+        waiting: 'Ton partenaire prépare une proposition…',
+        buttonLabel: 'Envoyer la proposition',
+        onSubmit: () => _submitNegotiation(adaptation: false),
+        canEdit: controller.isFinalLoser,
+        requireNonEmpty: true,
+        leading: Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            key: const Key('back-to-post-duel-choice'),
+            onPressed: () => setState(() => _postDuelChoice = null),
+            icon: const Icon(Icons.arrow_back),
+            label: const Text('Retour'),
+          ),
+        ),
+      );
+    }
+    if (_postDuelChoice == null) {
+      return ListView(
+        key: const Key('network-post-duel-choice'),
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(
+            'Choisis la suite',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 16),
+          FilledButton(
+            key: const Key('choose-negotiation'),
+            onPressed: () =>
+                setState(() => _postDuelChoice = _PostDuelChoice.compromise),
+            child: const Text('Tenter un compromis'),
+          ),
+          FilledButton.tonal(
+            key: const Key('choose-corruption'),
+            onPressed: () =>
+                setState(() => _postDuelChoice = _PostDuelChoice.corruption),
+            child: const Text('Proposer une corruption'),
+          ),
+          OutlinedButton(
+            key: const Key('accept-final-result'),
+            onPressed: controller.skipCorruption,
+            child: const Text('Accepter le résultat'),
+          ),
+        ],
+      );
+    }
+    return ListView(
+      key: const Key('network-corruption-decision'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text('Corruption', style: Theme.of(context).textTheme.headlineSmall),
+        const Text('Seules les cartes proposées sont rendues publiques.'),
+        const SizedBox(height: 16),
+        ...[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              key: const Key('back-to-post-duel-choice'),
+              onPressed: () => setState(() => _postDuelChoice = null),
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Retour'),
             ),
           ),
-        OutlinedButton(
-          key: const Key('skip-network-corruption'),
-          onPressed: controller.skipCorruption,
-          child: const Text('Continuer sans corruption'),
-        ),
+          for (final card in controller.corruptionCards)
+            CheckboxListTile(
+              key: Key('corruption-card-${card.identity}'),
+              title: Text(card.title),
+              subtitle: Text(
+                controller.isCorruptionCardPlayable(card)
+                    ? 'Carte de la défausse · 🌶️ ${card.chiliLevel}'
+                    : 'Indisponible au niveau 🌶️ actuel',
+              ),
+              value: _corruptionCards.contains(card.identity),
+              onChanged: controller.isCorruptionCardPlayable(card)
+                  ? (selected) => setState(() {
+                      if (selected ?? false) {
+                        _corruptionCards.add(card.identity);
+                      } else {
+                        _corruptionCards.remove(card.identity);
+                      }
+                    })
+                  : null,
+            ),
+          FilledButton(
+            key: const Key('propose-network-corruption'),
+            onPressed: _corruptionCards.isEmpty
+                ? null
+                : () async {
+                    await controller.proposeCorruption(
+                      Set<String>.from(_corruptionCards),
+                      CorruptionObjective.OWN_INITIAL_ACTION,
+                    );
+                    if (mounted) setState(_corruptionCards.clear);
+                  },
+            child: Text('Proposer le lot (${_corruptionCards.length})'),
+          ),
+          OutlinedButton(
+            key: const Key('skip-network-corruption'),
+            onPressed: controller.skipCorruption,
+            child: const Text('Continuer sans corruption'),
+          ),
+        ],
       ],
-    ],
-  );
+    );
+  }
 
   Widget _corruptionResponse() {
     final offer = controller.corruption!;
@@ -820,7 +923,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         for (final action in offer.actions)
-          Text('Carte : ${_title(action.cardId)}'),
+          ListTile(
+            title: Text(_title(action.cardId)),
+            subtitle: action.effectiveSpice == null
+                ? null
+                : Text('🌶️ ${action.effectiveSpice}'),
+          ),
         const SizedBox(height: 16),
         if (offer.offeredBy == controller.playerId)
           _waitingCard('En attente de la réponse du partenaire…')
@@ -839,28 +947,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       ],
     );
   }
-
-  Widget _corruptionExecution() => ListView(
-    key: const Key('network-corruption-execution'),
-    padding: const EdgeInsets.all(16),
-    children: [
-      const Text('Corruption acceptée'),
-      if (controller.corruption!.offeredBy != controller.playerId)
-        _waitingCard('Le partenaire exécute l’action convenue…')
-      else ...[
-        FilledButton(
-          key: const Key('complete-network-corruption'),
-          onPressed: () => controller.completeCorruption(completed: true),
-          child: const Text('Action exécutée'),
-        ),
-        OutlinedButton(
-          key: const Key('skip-network-corruption-action'),
-          onPressed: () => controller.completeCorruption(completed: false),
-          child: const Text('Action non exécutée'),
-        ),
-      ],
-    ],
-  );
 
   Widget _recovery() {
     final done = controller.round!.recoveryDonePlayerIds.contains(

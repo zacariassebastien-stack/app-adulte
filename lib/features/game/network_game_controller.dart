@@ -190,6 +190,7 @@ final class NetworkGameController extends ChangeNotifier {
   V4SpiceProgression _spiceProgression = V4SpiceProgression(
     initialUnitsBySpice: const {},
   );
+  int _canonicalUnlockedSpice = 1;
   int _deckCycle = 1;
   int _choiceVersion = 0;
   bool _infiniteMode = false;
@@ -205,6 +206,7 @@ final class NetworkGameController extends ChangeNotifier {
   bool _resolving = false;
   bool _transitioning = false;
   bool _publishingAction = false;
+  bool _startingNextRound = false;
   bool _disposed = false;
   PostGameProfileChoice? postGameProfileChoice;
 
@@ -221,7 +223,31 @@ final class NetworkGameController extends ChangeNotifier {
       .firstOrNull;
   bool get isInitialLoser => initialResolution?.loserPlayerId == playerId;
   bool get isInitialWinner => initialResolution?.winnerPlayerId == playerId;
-  bool get inversionAllowed => initialResolution?.inversionAllowed ?? false;
+  String? get finalWinnerId =>
+      finalResolution?.finalWinnerPlayerId ?? finalResolution?.retainedPlayerId;
+  String? get finalLoserId {
+    final winner = finalWinnerId;
+    if (winner == null) return null;
+    return playerIds.where((id) => id != winner).firstOrNull;
+  }
+
+  bool get isFinalLoser => finalLoserId == playerId;
+  bool get isFinalWinner => finalWinnerId == playerId;
+  bool get isNegotiationProposer =>
+      finalResolution == null ? isInitialLoser : isFinalLoser;
+  bool get isNegotiationResponder =>
+      finalResolution == null ? isInitialWinner : isFinalWinner;
+  bool get inversionAllowed {
+    if (finalResolution == null) {
+      return initialResolution?.inversionAllowed ?? false;
+    }
+    if (!isFinalLoser) return false;
+    final role = _activeReveal?.choice.parameters['role'] as String?;
+    final opposite =
+        _activeReveal?.choice.parameters['opposite_personal_value'] as int?;
+    return (role == 'FAIRE' || role == 'RECEVOIR') && opposite != null;
+  }
+
   bool get hasSubmittedTieDecision =>
       round?.tieDecisions.containsKey(playerId) ?? false;
   int get minimumDefense => (round?.counterBid?.amount ?? 0) + 1;
@@ -234,7 +260,7 @@ final class NetworkGameController extends ChangeNotifier {
   Map<String, CardHistoryState> get history => Map.unmodifiable(_history);
   HybridDeckOrientation get orientation =>
       round?.hybridOrientation ?? HybridDeckOrientation.faceToFace;
-  int get activeSpice => _context.chiliActive;
+  int get activeSpice => _canonicalUnlockedSpice;
   V4SpiceProgression get spiceProgression => _spiceProgression;
   V4SessionPresence get presence => _presence;
   List<V4PersistentEffect> get persistentEffects =>
@@ -420,7 +446,7 @@ final class NetworkGameController extends ChangeNotifier {
 
   List<NetworkDuelCard> get auctionCards => [
     for (final item in _runtime)
-      if ((item.zone == CardZone.HAND || item.zone == CardZone.DISCARD) &&
+      if (item.zone == CardZone.DISCARD &&
           item.occurrenceId !=
               _activeReveal?.choice.parameters['occurrence_id'])
         ?_networkCard(
@@ -430,10 +456,11 @@ final class NetworkGameController extends ChangeNotifier {
         ),
   ];
 
+  bool isAuctionCardPlayable(NetworkDuelCard card) =>
+      card.chiliLevel <= _canonicalUnlockedSpice;
+
   String? get corruptionActorId {
-    final retained = finalResolution?.retainedPlayerId;
-    if (retained == null) return null;
-    return playerIds.firstWhere((id) => id != retained);
+    return finalLoserId;
   }
 
   bool get isCorruptionActor => corruptionActorId == playerId;
@@ -446,6 +473,9 @@ final class NetworkGameController extends ChangeNotifier {
           variantId: item.variantId,
         ),
   ];
+
+  bool isCorruptionCardPlayable(NetworkDuelCard card) =>
+      card.chiliLevel <= _canonicalUnlockedSpice;
 
   bool get recoveryAvailable => recoveryEngine.available(
     currentPa: actionPoints[playerId] ?? const BalanceConfig().initialPa,
@@ -473,6 +503,8 @@ final class NetworkGameController extends ChangeNotifier {
       final current = await repository.openCurrentRound(
         command: _command('OPEN', roundId: null, roundNumber: 0),
       );
+      _canonicalUnlockedSpice = current.v4UnlockedSpice;
+      _syncSpiceContext();
       await _restoreOrCreatePrivateState(current);
       await _switchRound(current);
     } catch (error) {
@@ -617,7 +649,7 @@ final class NetworkGameController extends ChangeNotifier {
     final effectiveSpice = parameters.effectiveSpice(
       candidate?.spiceLevel ?? card.variant.chiliLevel,
     );
-    return _spiceProgression.isPlayable(effectiveSpice) &&
+    return effectiveSpice <= _canonicalUnlockedSpice &&
         (candidate == null ||
             const V4ContextualPool().isContextuallyEligible(
               candidate,
@@ -777,8 +809,11 @@ final class NetworkGameController extends ChangeNotifier {
     required int directPa,
     Set<String> cardIds = const {},
   }) async {
-    if (viewState != NetworkGameViewState.negotiationProposal ||
-        !isInitialLoser) {
+    final unifiedChoice =
+        viewState == NetworkGameViewState.corruptionDecision && isFinalLoser;
+    final legacyChoice =
+        viewState == NetworkGameViewState.negotiationProposal && isInitialLoser;
+    if (!unifiedChoice && !legacyChoice) {
       return;
     }
     final offer = _negotiationOffer(
@@ -786,6 +821,11 @@ final class NetworkGameController extends ChangeNotifier {
       directPa: directPa,
       cardIds: cardIds,
     );
+    if (!offer.inversionRequested &&
+        offer.directPa == 0 &&
+        offer.cards.isEmpty) {
+      throw ArgumentError('Une proposition de compromis ne peut pas être vide');
+    }
     _validateNegotiationOffer(offer, NegotiationPhase.proposal);
     await _networkAction(
       (repository as NetworkNegotiationRepository).submitNegotiationProposal(
@@ -797,7 +837,7 @@ final class NetworkGameController extends ChangeNotifier {
 
   Future<void> respondNegotiation({required bool accepted}) async {
     if (viewState != NetworkGameViewState.negotiationResponse ||
-        !isInitialWinner) {
+        !isNegotiationResponder) {
       return;
     }
     final proposal = negotiation?.proposal;
@@ -952,15 +992,20 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   Future<void> proposeCorruption(
-    String occurrenceId,
+    Set<String> occurrenceIds,
     CorruptionObjective objective,
   ) async {
-    final card = corruptionCards
-        .where((item) => item.identity == occurrenceId)
-        .firstOrNull;
+    final cards = corruptionCards
+        .where(
+          (item) =>
+              occurrenceIds.contains(item.identity) &&
+              isCorruptionCardPlayable(item),
+        )
+        .toList();
     if (viewState != NetworkGameViewState.corruptionDecision ||
         !isCorruptionActor ||
-        card == null) {
+        cards.isEmpty ||
+        cards.length != occurrenceIds.length) {
       return;
     }
     await _networkAction(
@@ -968,11 +1013,14 @@ final class NetworkGameController extends ChangeNotifier {
         command: _command('CORRUPTION_OFFER'),
         objective: objective,
         actions: [
-          ActionPromise(
-            cardId: card.id,
-            occurrenceId: card.identity,
-            source: CardZone.DISCARD,
-          ),
+          for (final card in cards)
+            ActionPromise(
+              cardId: card.id,
+              occurrenceId: card.identity,
+              variantId: card.variant.id,
+              effectiveSpice: card.chiliLevel,
+              source: CardZone.DISCARD,
+            ),
         ],
       ),
     );
@@ -999,41 +1047,6 @@ final class NetworkGameController extends ChangeNotifier {
         accepted: accepted,
       ),
     );
-  }
-
-  Future<void> completeCorruption({required bool completed}) async {
-    final offer = corruption;
-    if (viewState != NetworkGameViewState.corruptionExecution ||
-        offer == null ||
-        offer.offeredBy != playerId) {
-      return;
-    }
-    final actions = [
-      for (final action in offer.actions)
-        action.copyWith(
-          status: completed
-              ? ActionExecutionStatus.COMPLETED
-              : ActionExecutionStatus.SKIPPED,
-        ),
-    ];
-    final resolution = corruptionEngine.resolve(
-      offer: CorruptionOffer(
-        offeredBy: offer.offeredBy,
-        objective: offer.objective,
-        actions: actions,
-      ),
-      accepted: true,
-      cards: _runtime,
-    );
-    await _networkAction(
-      repository.resolveCorruption(
-        command: _command('CORRUPTION_RESOLVE'),
-        actions: actions,
-      ),
-    );
-    _runtime = resolution.cards;
-    await _persist();
-    notifyListeners();
   }
 
   Future<void> recoverWith(String occurrenceId) async {
@@ -1148,7 +1161,10 @@ final class NetworkGameController extends ChangeNotifier {
       final atBoundary = viewState == NetworkGameViewState.waitingNext;
       if (atBoundary && !isCycleController) return;
       if (atBoundary && !canStartNextRound) return;
-      if (atBoundary) await _prepareNextRound();
+      if (atBoundary) {
+        await _startNextRoundAutomatically();
+        return;
+      }
       await _apply(
         await repository.readyNextRound(
           command: _command(
@@ -1214,6 +1230,8 @@ final class NetworkGameController extends ChangeNotifier {
       return;
     }
     if (value.roundNumber < roundNumber) return;
+    _canonicalUnlockedSpice = value.v4UnlockedSpice;
+    _syncSpiceContext();
     if (value.clothingCounts.isNotEmpty) {
       _context = _context.copyWith(clothesByPlayer: value.clothingCounts);
     }
@@ -1314,7 +1332,9 @@ final class NetworkGameController extends ChangeNotifier {
           await _publishActionProjection(value);
           return;
         }
-        await _recordLearningForRound();
+        if (!_acceptedCorruptionAwaitingCompletion(value)) {
+          await _recordLearningForRound();
+        }
         viewState = NetworkGameViewState.actionInProgress;
         break;
       case NetworkGamePhase.corruptionDecision:
@@ -1324,9 +1344,18 @@ final class NetworkGameController extends ChangeNotifier {
         viewState = NetworkGameViewState.corruptionResponse;
         break;
       case NetworkGamePhase.corruptionExecution:
-        viewState = NetworkGameViewState.corruptionExecution;
+        // Compatibility only: the pending SQL migration converts persisted
+        // legacy rows to the normal FINAL_RESOLVED action flow.
+        viewState = NetworkGameViewState.actionInProgress;
         break;
       case NetworkGamePhase.recovery:
+        final corruption = value.corruption;
+        if (corruption?.accepted == true &&
+            corruption!.actions.every(
+              (action) => action.status != ActionExecutionStatus.PROPOSED,
+            )) {
+          await _recordLearningForRound();
+        }
         viewState = NetworkGameViewState.recovery;
         break;
       case NetworkGamePhase.recoveryResponse:
@@ -1336,8 +1365,18 @@ final class NetworkGameController extends ChangeNotifier {
         viewState = NetworkGameViewState.recoveryExecution;
         break;
       case NetworkGamePhase.waitingNext:
+        if (value.corruption?.accepted == true &&
+            value.corruption!.actions.every(
+              (action) => action.status == ActionExecutionStatus.COMPLETED,
+            )) {
+          await _recordLearningForRound();
+        }
         viewState = NetworkGameViewState.waitingNext;
-        break;
+        notifyListeners();
+        if (isCycleController && canStartNextRound) {
+          await _startNextRoundAutomatically();
+        }
+        return;
       case NetworkGamePhase.closed:
         viewState = NetworkGameViewState.waitingNext;
         notifyListeners();
@@ -1351,6 +1390,33 @@ final class NetworkGameController extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  Future<void> _startNextRoundAutomatically() async {
+    if (_startingNextRound ||
+        viewState != NetworkGameViewState.waitingNext ||
+        !isCycleController ||
+        !canStartNextRound) {
+      return;
+    }
+    _startingNextRound = true;
+    try {
+      await _prepareNextRound();
+      await _publishCanonicalSpiceIfNeeded();
+      await _apply(
+        await repository.readyNextRound(command: _command('START_NEXT_ROUND')),
+      );
+    } catch (error) {
+      _fail(error);
+    } finally {
+      _startingNextRound = false;
+    }
+  }
+
+  bool _acceptedCorruptionAwaitingCompletion(NetworkGameRoundStateDto value) =>
+      value.corruption?.accepted == true &&
+      value.corruption!.actions.any(
+        (action) => action.status == ActionExecutionStatus.PROPOSED,
+      );
 
   Future<void> _closeNormalRoundForRecovery(
     NetworkGameRoundStateDto value,
@@ -1458,6 +1524,22 @@ final class NetworkGameController extends ChangeNotifier {
           .cards;
       changed = !_sameRuntime(_runtime, reconciled);
       _runtime = reconciled;
+      for (final action in publicCorruption.actions.where(
+        (item) => item.status == ActionExecutionStatus.COMPLETED,
+      )) {
+        final consumed = _runtime.any(
+          (card) =>
+              card.occurrenceId == action.identity &&
+              card.zone == CardZone.EXHAUSTED,
+        );
+        if (consumed &&
+            !_spiceProgression.consumedOccurrenceIds.contains(
+              action.identity,
+            )) {
+          _consumeOccurrence(action.identity);
+          changed = true;
+        }
+      }
     }
     final publicRecovery = value.recoveryHistory
         .where((item) => item.playerId == playerId && item.completed)
@@ -1866,13 +1948,22 @@ final class NetworkGameController extends ChangeNotifier {
       );
     }
     final reveal = _activeReveal;
+    final corruption = currentRound.corruption;
+    final acceptedCorruption = corruption?.accepted == true;
+    final completedCorruptionOccurrences = <String>{
+      if (acceptedCorruption)
+        for (final action in corruption!.actions)
+          if (action.status == ActionExecutionStatus.COMPLETED) action.identity,
+    };
     final played = <String>{
-      if (reveal != null)
+      if (!acceptedCorruption && reveal != null)
         (reveal.choice.parameters['occurrence_id'] as String?) ??
             '${reveal.choice.cardId}|${reveal.choice.variantId}',
       for (final card in result.compromise)
         if (card.ownerPlayerId == playerId &&
-            card.origin == NetworkCompromiseOrigin.AUCTION)
+            (acceptedCorruption
+                ? completedCorruptionOccurrences.contains(card.occurrenceId)
+                : card.origin == NetworkCompromiseOrigin.AUCTION))
           card.occurrenceId,
     };
     final locked = <String>{
@@ -1902,6 +1993,10 @@ final class NetworkGameController extends ChangeNotifier {
                 ),
             ];
       for (final item in compromise) {
+        if (acceptedCorruption &&
+            !completedCorruptionOccurrences.contains(item.occurrenceId)) {
+          continue;
+        }
         final definition = _definitions[item.cardId];
         final variant = definition?.variants
             .where((candidate) => candidate.stableId == item.variantId)
@@ -1974,7 +2069,8 @@ final class NetworkGameController extends ChangeNotifier {
     final response = negotiation?.response;
     if (proposal == null || response == null) return events;
 
-    if (isInitialWinner && !response.acceptAuction) {
+    if ((finalResolution == null ? isInitialWinner : isFinalWinner) &&
+        !response.acceptAuction) {
       for (final item in proposal.cards) {
         final definition = _definitions[item.cardId];
         final variant = definition?.variants
@@ -1992,7 +2088,8 @@ final class NetworkGameController extends ChangeNotifier {
       }
     }
 
-    if (isInitialLoser && proposal.inversionRequested) {
+    if ((finalResolution == null ? isInitialLoser : isFinalLoser) &&
+        proposal.inversionRequested) {
       final initial = result.compromise
           .where((item) => item.origin == NetworkCompromiseOrigin.INITIAL_DUEL)
           .firstOrNull;
@@ -2116,7 +2213,7 @@ final class NetworkGameController extends ChangeNotifier {
       currentHand: currentHand,
       pool: pool.drawable,
       allCandidates: accessoryEligibleCandidates,
-      progression: _spiceProgression,
+      progression: _networkPlayabilityProgression,
       style: _deckStyle,
       random: Random(_stableHash('$playerId/$targetRound/$_deckCycle')),
       orientation: _presence == V4SessionPresence.distance
@@ -2596,9 +2693,8 @@ final class NetworkGameController extends ChangeNotifier {
     V4ResolvedParameters parameters,
     V4SessionPresence presence,
   ) =>
-      _spiceProgression.isPlayable(
-        parameters.effectiveSpice(candidate.spiceLevel),
-      ) &&
+      parameters.effectiveSpice(candidate.spiceLevel) <=
+          _canonicalUnlockedSpice &&
       const V4ContextualPool().isContextuallyEligible(
         candidate,
         V4PoolContext(
@@ -2609,9 +2705,35 @@ final class NetworkGameController extends ChangeNotifier {
 
   void _syncSpiceContext() {
     _context = _context.copyWith(
-      chiliActive: _spiceProgression.unlockedLevel,
-      chiliUnlocked: _spiceProgression.unlockedLevel,
+      chiliActive: _canonicalUnlockedSpice,
+      chiliUnlocked: _canonicalUnlockedSpice,
     );
+  }
+
+  V4SpiceProgression get _networkPlayabilityProgression => V4SpiceProgression(
+    initialUnitsBySpice: _spiceProgression.initialUnitsBySpice,
+    consumedOccurrenceIds: _spiceProgression.consumedOccurrenceIds,
+    unlockedLevel: _canonicalUnlockedSpice,
+  );
+
+  Future<void> _publishCanonicalSpiceIfNeeded() async {
+    if (repository is! NetworkSessionFlowRepository || !isCycleController) {
+      return;
+    }
+    final flow = repository as NetworkSessionFlowRepository;
+    while (_canonicalUnlockedSpice < _spiceProgression.unlockedLevel) {
+      final next = _canonicalUnlockedSpice + 1;
+      final before = _canonicalUnlockedSpice;
+      await _apply(
+        await flow.publishUnlockedSpice(
+          command: _command('PUBLISH_V4_SPICE_$next'),
+          unlockedSpice: next,
+        ),
+      );
+      if (_canonicalUnlockedSpice <= before) {
+        throw const NetworkRoundException('ROUND_SPICE_SYNC_FAILED');
+      }
+    }
   }
 
   NetworkDuelCard? _networkCard(
@@ -2956,6 +3078,9 @@ final class NetworkGameController extends ChangeNotifier {
           .where((item) => item.identity == id)
           .firstOrNull;
       if (card == null) throw ArgumentError('Carte d’enchère indisponible');
+      if (!isAuctionCardPlayable(card)) {
+        throw ArgumentError('Carte d’enchère indisponible au niveau actuel');
+      }
       final direction = _networkDirection(card);
       final parameters =
           _resolvedParameters[card.identity] ?? const V4ResolvedParameters();
@@ -2971,7 +3096,7 @@ final class NetworkGameController extends ChangeNotifier {
           snapshotValue: card.personalValue,
           logicalOrder: cards.length + 1,
           resolvedParameters: parameters,
-          effectiveSpice: parameters.effectiveSpice(card.chiliLevel),
+          effectiveSpice: card.chiliLevel,
         ),
       );
     }
@@ -3004,6 +3129,8 @@ final class NetworkGameController extends ChangeNotifier {
 
   NegotiationState _negotiationState(NegotiationPhase phase) {
     final initial = initialResolution!;
+    final winner = finalWinnerId ?? initial.winnerPlayerId!;
+    final loser = finalLoserId ?? initial.loserPlayerId!;
     final dto = negotiation;
     NegotiationOffer? engineOffer(NetworkNegotiationOfferDto? value) =>
         value == null
@@ -3019,8 +3146,8 @@ final class NetworkGameController extends ChangeNotifier {
           );
     final response = dto?.response;
     return NegotiationState(
-      initialWinnerId: initial.winnerPlayerId!,
-      initialLoserId: initial.loserPlayerId!,
+      initialWinnerId: winner,
+      initialLoserId: loser,
       initialHighValue: initial.highValue,
       initialGapCost: initial.gapCost,
       actionPoints: actionPoints,

@@ -494,6 +494,94 @@ void main() {
   });
 
   test(
+    'corruption batch DTO preserves exact occurrences and execution state',
+    () {
+      final dto = NetworkCorruptionDto(
+        offeredBy: 'bob',
+        objective: CorruptionObjective.OWN_INITIAL_ACTION,
+        accepted: true,
+        actions: const [
+          ActionPromise(
+            cardId: 'card.v4.001',
+            occurrenceId: 'bob:discard:1',
+            variantId: 'variant.v4.001.base',
+            effectiveSpice: 2,
+            source: CardZone.DISCARD,
+            status: ActionExecutionStatus.COMPLETED,
+          ),
+          ActionPromise(
+            cardId: 'card.v4.002',
+            occurrenceId: 'bob:discard:2',
+            variantId: 'variant.v4.002.base',
+            effectiveSpice: 3,
+            source: CardZone.DISCARD,
+            status: ActionExecutionStatus.SKIPPED,
+          ),
+        ],
+      );
+      final restored = NetworkCorruptionDto.fromJson(dto.toJson());
+      expect(restored.actions.map((item) => item.identity), [
+        'bob:discard:1',
+        'bob:discard:2',
+      ]);
+      expect(restored.actions.map((item) => item.effectiveSpice), [2, 3]);
+      expect(restored.actions.map((item) => item.status), [
+        ActionExecutionStatus.COMPLETED,
+        ActionExecutionStatus.SKIPPED,
+      ]);
+    },
+  );
+
+  test('corruption migration replaces actions without recalculating PA', () {
+    final sql = File(
+      'supabase/migrations/202610100002_network_corruption_replacement.sql',
+    ).readAsStringSync();
+    expect(sql, contains("'final_winner_player_id'"));
+    expect(sql, contains("'{compromise}',v_compromise"));
+    expect(sql, contains("'{accepted_compromise}'"));
+    expect(sql, contains("phase='FINAL_RESOLVED'"));
+    expect(sql, contains("phase='CORRUPTION_EXECUTION'"));
+    expect(sql, contains("'origin','CORRUPTION'"));
+    expect(sql, contains("action->>'status'='COMPLETED'"));
+    expect(sql, contains('previous.recovery_history'));
+    expect(sql, contains("p_objective<>'OWN_INITIAL_ACTION'"));
+    expect(sql, contains("previous.final_resolution->'compromise'"));
+    expect(sql, isNot(contains('set action_points=')));
+    expect(
+      sql,
+      isNot(contains('update public.network_game_states set action_points')),
+    );
+    expect(
+      RegExp(
+        r"\(card->>'effective_spice'\)::integer>v_unlocked_spice",
+      ).allMatches(sql),
+      hasLength(2),
+    );
+    expect(sql, contains('select v4_unlocked_spice into v_unlocked_spice'));
+  });
+
+  test('canonical network spice is shared and published monotonically', () {
+    final sql = File(
+      'supabase/migrations/202610100002_network_corruption_replacement.sql',
+    ).readAsStringSync();
+    expect(sql, contains('v4_unlocked_spice integer not null default 1'));
+    expect(sql, contains("'v4_unlocked_spice',g.v4_unlocked_spice"));
+    expect(sql, contains('publish_network_v4_unlocked_spice'));
+    expect(sql, contains("v_round.phase<>'WAITING_NEXT'"));
+    expect(sql, contains("role='PLAYER_1'"));
+    expect(sql, contains('p_unlocked_spice<>v_current+1'));
+    expect(sql, contains('p_unlocked_spice not between 1 and 4'));
+    expect(sql, contains("'PUBLISH_V4_SPICE'"));
+    expect(sql, contains('submit_network_negotiation_proposal'));
+    expect(sql, contains("p_offer->'cards'"));
+    expect(sql, contains('v_compromise:=public.v4_corruption_compromise'));
+    expect(
+      sql,
+      contains("(card->>'effective_spice')::integer>v_unlocked_spice"),
+    );
+  });
+
+  test(
     'final migration persists style and occurrence-aware public actions',
     () {
       final sql = File(
@@ -528,5 +616,126 @@ void main() {
     expect(sql, contains("raise exception 'ROUND_NOT_FOUND'"));
     expect(sql, isNot(contains('profile_preferences')));
     expect(sql, isNot(contains('personal_profile')));
+  });
+
+  group('unified post-duel choice', () {
+    final migration = File(
+      'supabase/migrations/202610100003_unified_post_duel_choice.sql',
+    ).readAsStringSync();
+    final paSettlementMigration = File(
+      'supabase/migrations/202610100004_fix_duel_pa_settlement.sql',
+    ).readAsStringSync();
+    final corruptionCompletionMigration = File(
+      'supabase/migrations/202610100005_normalize_corruption_action_completion.sql',
+    ).readAsStringSync();
+    final controller = File(
+      'lib/features/game/network_game_controller.dart',
+    ).readAsStringSync();
+    final screen = File(
+      'lib/features/game/network_duel_screen.dart',
+    ).readAsStringSync();
+
+    test('offers the three final-loser routes', () {
+      expect(screen, contains("Key('choose-negotiation')"));
+      expect(screen, contains("Key('choose-corruption')"));
+      expect(screen, contains("Key('accept-final-result')"));
+      expect(screen, contains('onPressed: controller.skipCorruption'));
+      expect(controller, contains('isFinalLoser'));
+      expect(controller, contains('isFinalWinner'));
+    });
+
+    test('rejects an empty compromise on client and server', () {
+      expect(
+        controller,
+        contains('Une proposition de compromis ne peut pas être vide'),
+      );
+      expect(
+        migration,
+        contains("raise exception 'ROUND_NEGOTIATION_INVALID'"),
+      );
+      expect(migration, contains("and jsonb_array_length(p_offer->'cards')=0"));
+    });
+
+    test('accepted or refused compromise never reopens corruption', () {
+      expect(migration, contains("phase='FINAL_RESOLVED',updated_at=now()"));
+      final route = migration.substring(
+        migration.indexOf(
+          'create or replace function public.route_network_post_duel',
+        ),
+      );
+      expect(route, isNot(contains("'NEGOTIATION_RESPONSE'")));
+      expect(route, contains("'COUNTER_DECISION'"));
+      expect(route, contains("'CORRUPTION_DECISION'"));
+    });
+
+    test('uses final actors after a modified resolution', () {
+      expect(
+        migration,
+        contains("v_round.final_resolution->>'final_winner_player_id'"),
+      );
+      expect(migration, contains("v_round.negotiation->>'offered_by'"));
+      expect(
+        migration,
+        contains('where session_id=p_session_id and user_id<>v_winner'),
+      );
+      expect(controller, contains('finalResolution?.finalWinnerPlayerId'));
+    });
+
+    test('corruption uses the normal action completion flow', () {
+      expect(screen, contains('_PostDuelChoice.corruption'));
+      expect(screen, contains('controller.proposeCorruption'));
+      expect(
+        corruptionCompletionMigration,
+        contains(
+          'create or replace function public.respond_network_corruption',
+        ),
+      );
+      expect(
+        corruptionCompletionMigration,
+        contains("phase='FINAL_RESOLVED',updated_at=now()"),
+      );
+      expect(
+        corruptionCompletionMigration,
+        contains("old.phase='FINAL_RESOLVED'"),
+      );
+      expect(
+        corruptionCompletionMigration,
+        contains("new.phase='WAITING_NEXT'"),
+      );
+      expect(
+        corruptionCompletionMigration,
+        contains("action||jsonb_build_object('status','COMPLETED')"),
+      );
+      expect(
+        corruptionCompletionMigration,
+        contains("where phase='CORRUPTION_EXECUTION'"),
+      );
+      expect(screen, isNot(contains('complete-network-corruption')));
+      expect(screen, isNot(contains('Confirmer l’exécution')));
+      expect(screen, isNot(contains("Key('start-next-network-round')")));
+      expect(controller, contains('_startNextRoundAutomatically'));
+    });
+
+    test('direct duel acceptance settles its PA cost exactly once', () {
+      expect(
+        paSettlementMigration,
+        contains("old.phase='COUNTER_DECISION' and new.phase='FINAL_RESOLVED'"),
+      );
+      expect(paSettlementMigration, contains('and old.counter_bid is null'));
+      expect(
+        paSettlementMigration,
+        contains("old.initial_resolution->>'gap_cost'"),
+      );
+      expect(
+        paSettlementMigration,
+        contains("where session_id=new.session_id for update"),
+      );
+      expect(
+        RegExp(
+          r'update public\.network_game_states set',
+        ).allMatches(paSettlementMigration),
+        hasLength(1),
+      );
+    });
   });
 }
