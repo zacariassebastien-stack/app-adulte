@@ -49,9 +49,7 @@ void main() {
     );
   }
 
-  testWidgets('four cards form a fan and taps move through states 1, 2, 3', (
-    tester,
-  ) async {
+  testWidgets('tapping the selected central card opens form 3', (tester) async {
     await pumpHand(tester);
     for (var index = 0; index < 4; index++) {
       expect(find.byKey(Key('hand-card-card-$index')), findsOneWidget);
@@ -64,7 +62,10 @@ void main() {
       CardVisualState.focused,
     );
 
-    await tester.tapAt(const Offset(50, 650));
+    await tester.pumpAndSettle();
+    await tester.tapAt(
+      tester.getCenter(find.byKey(const Key('hand-card-card-0'))),
+    );
     await tester.pump();
     expect(
       tester.widget<CardRenderer>(find.byType(CardRenderer).first).state,
@@ -83,6 +84,41 @@ void main() {
     );
     expect(renderers.last.state, CardVisualState.focused);
     expect(renderers.first.state, CardVisualState.normal);
+  });
+
+  testWidgets('a central tap outside the selected card changes nothing', (
+    tester,
+  ) async {
+    await pumpHand(tester);
+    await tester.tapAt(const Offset(50, 650));
+    await tester.pumpAndSettle();
+
+    final selectedBounds = tester.getRect(
+      find.byKey(const Key('hand-card-card-0')),
+    );
+    await tester.tapAt(Offset(20, selectedBounds.center.dy));
+    await tester.pump();
+
+    final renderers = tester.widgetList<CardRenderer>(
+      find.byType(CardRenderer),
+    );
+    expect(renderers.first.state, CardVisualState.focused);
+    expect(renderers.last.state, CardVisualState.normal);
+  });
+
+  testWidgets('upper two thirds cannot select a card from the resting hand', (
+    tester,
+  ) async {
+    await pumpHand(tester);
+    await tester.tapAt(const Offset(750, 400));
+    await tester.pump();
+
+    expect(
+      tester
+          .widgetList<CardRenderer>(find.byType(CardRenderer))
+          .every((card) => card.state == CardVisualState.normal),
+      isTrue,
+    );
   });
 
   testWidgets('drag tracks focus without also opening the card', (
