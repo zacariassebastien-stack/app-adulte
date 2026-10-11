@@ -110,10 +110,10 @@ void main() {
       );
       state = engine.decide(state, accepted: true);
       expect(state.phase, NegotiationPhase.resolved);
-      expect(state.finalWinnerId, 'B');
+      expect(state.finalWinnerId, 'A');
       expect(state.inversionApplied, isTrue);
       expect(state.finalOffer!.cardIds, ['card.bid']);
-      expect(state.actionPoints, {'A': 100, 'B': 85});
+      expect(state.actionPoints, {'A': 95, 'B': 85});
     });
 
     test('no counter-inversion and low PA only permits card resources', () {

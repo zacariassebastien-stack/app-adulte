@@ -210,14 +210,10 @@ final class NegotiationEngineV3 {
     if (!accepted) {
       return _resolve(state, state.initialWinnerId, false, spendLoser: 0);
     }
-    final loserWins =
-        offer.inversionRequested ||
-        offer.personalPa > 0 ||
-        offer.cardIds.isNotEmpty;
     return _copy(
       _resolve(
         state,
-        loserWins ? state.initialLoserId : state.initialWinnerId,
+        state.initialWinnerId,
         offer.inversionRequested,
         spendLoser:
             offer.personalPa +
@@ -266,10 +262,9 @@ final class NegotiationEngineV3 {
       return _resolve(state, state.initialWinnerId, false, spendLoser: 0);
     }
     final offer = state.finalOffer!;
-    final loserWins = offer.inversionRequested || offer.totalPa > 0;
     return _resolve(
       state,
-      loserWins ? state.initialLoserId : state.initialWinnerId,
+      state.initialWinnerId,
       offer.inversionRequested,
       spendLoser:
           offer.personalPa +

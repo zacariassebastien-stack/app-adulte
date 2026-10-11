@@ -85,24 +85,29 @@ void main() {
     var state = NegotiationState(
       initialWinnerId: 'a',
       initialLoserId: 'b',
-      initialHighValue: 12,
-      initialGapCost: 5,
+      initialHighValue: 20,
+      initialGapCost: 4,
       actionPoints: const {'a': 100, 'b': 100},
     );
     state = engine.propose(
       state,
       NegotiationOffer(
-        inversionRequested: true,
+        inversionRequested: false,
         personalPa: 3,
         cardIds: const ['b:1', 'b:2'],
         cardValues: const {'b:1': 6, 'b:2': 7},
       ),
     );
     state = engine.decide(state, accepted: true);
-    expect(state.finalWinnerId, 'b');
+    expect(state.finalWinnerId, 'a');
     expect(state.finalOffer!.cardIds, ['b:1', 'b:2']);
-    expect(state.actionPoints['a'], 100);
-    expect(state.actionPoints['b'], 85);
+    expect(state.actionPoints['a'], 96);
+    expect(state.actionPoints['b'], 97);
+    expect(
+      () => engine.decide(state, accepted: true),
+      throwsStateError,
+      reason: 'a resolved compromise cannot debit either player twice',
+    );
   });
 
   test('refusing the complete proposal keeps the initial result', () {
@@ -628,6 +633,9 @@ void main() {
     final corruptionCompletionMigration = File(
       'supabase/migrations/202610100005_normalize_corruption_action_completion.sql',
     ).readAsStringSync();
+    final winnerIdentityMigration = File(
+      'supabase/migrations/202610100006_preserve_duel_winner_after_compromise.sql',
+    ).readAsStringSync();
     final controller = File(
       'lib/features/game/network_game_controller.dart',
     ).readAsStringSync();
@@ -735,6 +743,37 @@ void main() {
           r'update public\.network_game_states set',
         ).allMatches(paSettlementMigration),
         hasLength(1),
+      );
+    });
+
+    test('accepted compromise preserves duel winner and command idempotence', () {
+      expect(
+        winnerIdentityMigration,
+        contains("'retained_player_id',v_loser"),
+      );
+      expect(
+        winnerIdentityMigration,
+        contains("'final_winner_player_id',v_winner"),
+      );
+      expect(
+        winnerIdentityMigration,
+        contains("v_round.final_resolution->>'final_winner_player_id'"),
+      );
+      expect(
+        winnerIdentityMigration,
+        isNot(contains("'final_winner_player_id',v_loser")),
+      );
+      final idempotenceGuard = winnerIdentityMigration.indexOf(
+        'if found then',
+      );
+      final pointsDebit = winnerIdentityMigration.indexOf(
+        'update public.network_game_states set action_points=v_points',
+      );
+      expect(idempotenceGuard, greaterThanOrEqualTo(0));
+      expect(pointsDebit, greaterThan(idempotenceGuard));
+      expect(
+        winnerIdentityMigration,
+        contains("v_command.kind<>'NEGOTIATION_RESPONSE'"),
       );
     });
   });
