@@ -207,8 +207,10 @@ final class NetworkGameController extends ChangeNotifier {
   bool _transitioning = false;
   bool _publishingAction = false;
   bool _startingNextRound = false;
+  bool _continuingDeck = false;
   bool _reportingHybridAvailability = false;
   String? _preparedHybridAvailabilityKey;
+  final Set<String> _activatedRoundIds = {};
   bool _disposed = false;
   PostGameProfileChoice? postGameProfileChoice;
 
@@ -406,13 +408,7 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   bool get deckExhausted {
-    if (round?.cycleExhausted == true) {
-      if (sessionMode != V4SessionMode.hybrid) return true;
-      final alternate = _presence == V4SessionPresence.presentiel
-          ? V4SessionPresence.distance
-          : V4SessionPresence.presentiel;
-      if (_availablePlayableOccurrences(alternate) == 0) return true;
-    }
+    if (round?.cycleExhausted == true) return true;
     if (_availablePlayableOccurrences(_presence) > 0) return false;
     if (sessionMode == V4SessionMode.hybrid) {
       final alternate = _presence == V4SessionPresence.presentiel
@@ -589,38 +585,31 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   Future<void> continueDeck(DeckExhaustionChoice choice) async {
-    if (repository is! NetworkSessionFlowRepository || !isCycleController) {
+    if (repository is! NetworkSessionFlowRepository ||
+        !isCycleController ||
+        _continuingDeck) {
       return;
     }
-    if (choice != DeckExhaustionChoice.newCustomizedGame &&
-        choice != DeckExhaustionChoice.finish) {
-      final cycle = DeckCycleState(
-        style: _deckStyle,
-        infinite: _infiniteMode,
-        recentOccurrenceKeys: _recentCardIds,
-      ).next(choice);
-      _deckCycle++;
-      _infiniteMode = cycle.infinite;
-      _deckStyle = cycle.style;
-      _buildDeckCycle();
-      _refill(roundNumber + 1);
-      await _persist();
-    }
-    await _networkAction(
-      (repository as NetworkSessionFlowRepository).continueDeckCycle(
-        command: _command('CONTINUE_CYCLE'),
-        choice: choice,
-        deckAdjustment: {
-          for (final shortage in _deckShortages)
-            shortage.requestedSpice: shortage.missingCount,
-        },
-      ),
-    );
-    if (choice != DeckExhaustionChoice.newCustomizedGame &&
-        choice != DeckExhaustionChoice.finish &&
-        viewState == NetworkGameViewState.waitingNext &&
-        !deckExhausted) {
-      await completeAction();
+    _continuingDeck = true;
+    try {
+      await _networkAction(
+        (repository as NetworkSessionFlowRepository).continueDeckCycle(
+          command: _command('CONTINUE_CYCLE'),
+          choice: choice,
+          deckAdjustment: {
+            for (final shortage in _deckShortages)
+              shortage.requestedSpice: shortage.missingCount,
+          },
+        ),
+      );
+      if (choice != DeckExhaustionChoice.newCustomizedGame &&
+          choice != DeckExhaustionChoice.finish &&
+          viewState == NetworkGameViewState.waitingNext &&
+          !deckExhausted) {
+        await completeAction();
+      }
+    } finally {
+      _continuingDeck = false;
     }
   }
 
@@ -1290,12 +1279,12 @@ final class NetworkGameController extends ChangeNotifier {
       }
     }
     _deckStyle = value.deckStyle;
-    _deckCycle = value.deckCycle;
     _infiniteMode = value.infiniteMode;
-    if (publicCycleAdvanced && decksEmpty && deckExhausted) {
-      _buildDeckCycle();
-      _refill(value.roundNumber + 1);
-      await _persist(roundNumber: value.roundNumber);
+    if (publicCycleAdvanced) {
+      await _transitionToCanonicalDeckCycle(
+        deckCycle: value.deckCycle,
+        targetRound: value.roundNumber + 1,
+      );
     }
     if (round?.roundId != value.roundId) {
       await _activatePreparedRound(value);
@@ -2057,6 +2046,24 @@ final class NetworkGameController extends ChangeNotifier {
     await _persist(roundNumber: roundNumber + 1);
   }
 
+  Future<void> _transitionToCanonicalDeckCycle({
+    required int deckCycle,
+    required int targetRound,
+  }) async {
+    if (deckCycle <= _deckCycle) return;
+    _deckCycle = deckCycle;
+    _runtime = [];
+    _resolvedParameters = {};
+    _publicDiscards = [];
+    _activeReveal = null;
+    selectedCard = null;
+    _choiceVersion = 0;
+    _nextRoundPrepared = false;
+    _buildDeckCycle();
+    _refill(targetRound);
+    await _persist(roundNumber: targetRound);
+  }
+
   Future<void> _recordLearningForRound() async {
     final currentRound = round;
     final result = currentRound?.finalResolution;
@@ -2313,14 +2320,20 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   Future<void> _activatePreparedRound(NetworkGameRoundStateDto next) async {
-    if (!_nextRoundPrepared && next.roundNumber == roundNumber + 1) {
-      await _prepareNextRound();
-    }
-    if (_nextRoundPrepared && next.roundNumber == roundNumber + 1) {
-      _nextRoundPrepared = false;
-      _activeReveal = null;
-      selectedCard = null;
-      await _persist(roundNumber: next.roundNumber);
+    if (!_activatedRoundIds.add(next.roundId)) return;
+    try {
+      if (!_nextRoundPrepared && next.roundNumber == roundNumber + 1) {
+        await _prepareNextRound();
+      }
+      if (_nextRoundPrepared && next.roundNumber == roundNumber + 1) {
+        _nextRoundPrepared = false;
+        _activeReveal = null;
+        selectedCard = null;
+        await _persist(roundNumber: next.roundNumber);
+      }
+    } catch (_) {
+      _activatedRoundIds.remove(next.roundId);
+      rethrow;
     }
   }
 
@@ -2331,10 +2344,6 @@ final class NetworkGameController extends ChangeNotifier {
     if (needed <= 0) {
       _ensurePlayableHand(targetRound);
       return;
-    }
-    if (decksEmpty && _infiniteMode) {
-      _deckCycle++;
-      _buildDeckCycle();
     }
     final currentHand = <DeckCandidateV3>[];
     for (final card in _runtime.where((card) => card.zone == CardZone.HAND)) {
@@ -2619,7 +2628,7 @@ final class NetworkGameController extends ChangeNotifier {
     _allDeckCandidates = List.of(source);
     _spiceProgression = V4SpiceProgression.fromCandidates(
       source,
-      unlockedLevel: _spiceProgression.unlockedLevel,
+      unlockedLevel: _canonicalUnlockedSpice,
     );
     _syncSpiceContext();
     _faceToFaceDeck = List.of(source);

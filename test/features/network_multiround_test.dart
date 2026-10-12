@@ -605,6 +605,303 @@ void main() {
     expect(backend.currentRound, 1);
   });
 
+  test('canonical cycle exhaustion is shared in hybrid mode', () async {
+    final backend = _Backend()
+      ..hybridMode = true
+      ..cycleExhausted = true
+      ..hybridOrientation = HybridDeckOrientation.distance;
+    final alice = NetworkGameController(
+      session: session,
+      playerId: 'alice',
+      repository: backend.repository('alice'),
+      privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: catalog,
+      sessionMode: V4SessionMode.hybrid,
+    );
+    final bob = NetworkGameController(
+      session: session,
+      playerId: 'bob',
+      repository: backend.repository('bob'),
+      privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: catalog,
+      sessionMode: V4SessionMode.hybrid,
+    );
+    addTearDown(alice.dispose);
+    addTearDown(bob.dispose);
+
+    await Future.wait([alice.start(), bob.start()]);
+
+    expect(alice.deckExhausted, isTrue);
+    expect(bob.deckExhausted, isTrue);
+  });
+
+  test(
+    'server continuation creates one clean canonical cycle and preserves session state',
+    () async {
+      final backend = _Backend()
+        ..cycleExhausted = true
+        ..v4UnlockedSpice = 3
+        ..hybridOrientation = HybridDeckOrientation.distance
+        ..round.phase = NetworkGamePhase.waitingNext
+        ..round.ready.addAll(const {'alice', 'bob'});
+      backend.points
+        ..['alice'] = 87
+        ..['bob'] = 76;
+      final store = MemoryNetworkDuelSecretStore();
+      final bobStore = MemoryNetworkDuelSecretStore();
+      final oldCards = _handStates(catalog).take(6).toList();
+      final oldOccurrenceIds = oldCards
+          .map((card) => card.occurrenceId)
+          .toSet();
+      final zones = CardZone.values;
+      await store.saveGame(
+        sessionId: session.id,
+        playerId: 'alice',
+        state: NetworkPrivateGameState(
+          roundNumber: 1,
+          cards: [
+            for (var index = 0; index < oldCards.length; index++)
+              oldCards[index].copyWith(zone: zones[index]),
+          ],
+          history: const {'card.hug': CardHistoryState.playedOrDiscarded},
+          deckCycle: 1,
+          sessionMode: V4SessionMode.hybrid,
+          presence: V4SessionPresence.distance,
+          clothesByPlayer: const {'alice': 3, 'bob': 4},
+          resolvedParameters: {
+            oldCards.first.occurrenceId: const V4ResolvedParameters(
+              zoneSelectionSource: V4ZoneSelectionSource.game,
+              sexualOrIntimateZone: true,
+              zoneId: 'zone.intimate',
+            ),
+          },
+          persistentEffects: const [
+            V4PersistentEffect(
+              cardId: 'card.v4.033',
+              targetPlayerId: 'bob',
+              remainingActions: 3,
+            ),
+          ],
+          accessoryPool: V4SessionAccessoryPool(
+            profileAccessories: [
+              V4Accessory(
+                id: 'accessory-1',
+                name: 'Accessoire conservé',
+                ownerPlayerId: 'alice',
+                tags: const {V4AccessoryTag.vibrant},
+              ),
+            ],
+          ),
+        ),
+      );
+      final controller = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: backend.repository('alice'),
+        privateStore: store,
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog,
+        sessionMode: V4SessionMode.hybrid,
+      );
+      final bob = NetworkGameController(
+        session: session,
+        playerId: 'bob',
+        repository: backend.repository('bob'),
+        privateStore: bobStore,
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog,
+        sessionMode: V4SessionMode.hybrid,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(bob.dispose);
+      await Future.wait([controller.start(), bob.start()]);
+
+      await Future.wait([
+        controller.continueDeck(DeckExhaustionChoice.infinite),
+        controller.continueDeck(DeckExhaustionChoice.infinite),
+      ]);
+      await _settle();
+
+      expect(backend.deckCycle, 2);
+      expect(backend.infiniteMode, isTrue);
+      expect(backend.currentRound, 2);
+      expect(controller.actionPoints, {'alice': 87, 'bob': 76});
+      expect(controller.activeSpice, 3);
+      expect(controller.presence, V4SessionPresence.distance);
+      expect(bob.presence, V4SessionPresence.distance);
+      expect(controller.runtime, hasLength(const BalanceConfig().handSize));
+      expect(controller.runtime, everyElement(isA<CardRuntimeState>()));
+      expect(
+        controller.runtime.map((card) => card.zone),
+        everyElement(CardZone.HAND),
+      );
+
+      final saved = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      expect(saved.deckCycle, 2);
+      expect(
+        saved.resolvedParameters.values.where(
+          (parameters) => parameters.zoneId == 'zone.intimate',
+        ),
+        isEmpty,
+      );
+      expect(saved.publicDiscards, isEmpty);
+      expect(saved.clothesByPlayer, {'alice': 3, 'bob': 4});
+      expect(saved.accessoryPool.available.single.id, 'accessory-1');
+      expect(saved.persistentEffects.single.remainingActions, 2);
+      expect(saved.history['card.hug'], CardHistoryState.playedOrDiscarded);
+      expect(saved.cards.where((card) => card.zone != CardZone.HAND), isEmpty);
+      expect(
+        saved.cards
+            .where((card) => oldOccurrenceIds.contains(card.occurrenceId))
+            .every((card) => card.zone == CardZone.HAND),
+        isTrue,
+      );
+      expect(
+        (await bobStore.loadGame(
+          sessionId: session.id,
+          playerId: 'bob',
+        ))!.deckCycle,
+        2,
+      );
+    },
+  );
+
+  test(
+    'reconnect observes a newer cycle once and rebuilds from its stock',
+    () async {
+      final backend = _Backend()
+        ..deckCycle = 2
+        ..v4UnlockedSpice = 2
+        ..round.phase = NetworkGamePhase.waitingNext
+        ..round.ready.addAll(const {'alice', 'bob'});
+      final store = MemoryNetworkDuelSecretStore();
+      final oldCards = _handStates(catalog).take(4).toList();
+      await store.saveGame(
+        sessionId: session.id,
+        playerId: 'alice',
+        state: NetworkPrivateGameState(
+          roundNumber: 1,
+          cards: [
+            oldCards[0].copyWith(zone: CardZone.HAND),
+            oldCards[1].copyWith(zone: CardZone.DISCARD),
+            oldCards[2].copyWith(zone: CardZone.EXHAUSTED),
+            oldCards[3].copyWith(zone: CardZone.RESERVED),
+          ],
+          history: const {},
+          deckCycle: 1,
+          resolvedParameters: {
+            oldCards[1].occurrenceId: const V4ResolvedParameters(
+              zoneSelectionSource: V4ZoneSelectionSource.game,
+              zoneId: 'zone.old',
+            ),
+          },
+        ),
+      );
+      final controller = _controller(backend, session, catalog, 'alice', store);
+      addTearDown(controller.dispose);
+
+      await controller.start();
+      await _settle();
+
+      expect(backend.currentRound, 2);
+      final firstSaved = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      expect(firstSaved.deckCycle, 2);
+      expect(
+        firstSaved.resolvedParameters.values.where(
+          (parameters) => parameters.zoneId == 'zone.old',
+        ),
+        isEmpty,
+      );
+      expect(
+        firstSaved.cards.map((card) => card.zone),
+        everyElement(CardZone.HAND),
+      );
+
+      final locked = controller.hand.first.identity;
+      controller.toggleLock(locked);
+      backend.notifyTwice();
+      await _settle();
+
+      expect(controller.lockedCardId, locked);
+      expect(
+        (await store.loadGame(
+          sessionId: session.id,
+          playerId: 'alice',
+        ))!.deckCycle,
+        2,
+      );
+    },
+  );
+
+  test('continuation is rejected before canonical cycle exhaustion', () async {
+    final backend = _Backend()..round.phase = NetworkGamePhase.waitingNext;
+    await expectLater(
+      (backend.repository('alice') as NetworkSessionFlowRepository)
+          .continueDeckCycle(
+            command: _command(
+              'early-cycle',
+              'alice',
+              'CONTINUE_CYCLE',
+              backend.round.id,
+            ),
+            choice: DeckExhaustionChoice.continueSpicier,
+          ),
+      throwsA(
+        isA<NetworkRoundException>().having(
+          (error) => error.code,
+          'code',
+          'ROUND_CYCLE_NOT_EXHAUSTED',
+        ),
+      ),
+    );
+
+    final sql = File(
+      'supabase/migrations/'
+      '202610100011_canonical_deck_cycle_transition.sql',
+    ).readAsStringSync();
+    expect(sql, contains('cycle_exhausted is true'));
+    expect(sql, contains("raise exception 'ROUND_CYCLE_NOT_EXHAUSTED'"));
+    expect(sql, contains('return public.get_current_network_game_round'));
+  });
+
+  test(
+    'cycle continuation retry returns the same canonical increment',
+    () async {
+      final backend = _Backend()
+        ..cycleExhausted = true
+        ..round.phase = NetworkGamePhase.waitingNext;
+      final repository =
+          backend.repository('alice') as NetworkSessionFlowRepository;
+      final command = _command(
+        'continue-cycle-once',
+        'alice',
+        'CONTINUE_CYCLE',
+        backend.round.id,
+      );
+
+      final first = await repository.continueDeckCycle(
+        command: command,
+        choice: DeckExhaustionChoice.infinite,
+      );
+      final retry = await repository.continueDeckCycle(
+        command: command,
+        choice: DeckExhaustionChoice.infinite,
+      );
+
+      expect(first.deckCycle, 2);
+      expect(retry.deckCycle, 2);
+      expect(backend.deckCycle, 2);
+    },
+  );
+
   test('player 2 advances after player 1 completed and disconnected', () async {
     final setup = await _setup(session, catalog);
     await _playUnequal(setup);
@@ -3438,6 +3735,9 @@ final class _Backend {
   bool redactOpponentReveal = false;
   bool routeToUnifiedPostDuelChoice = false;
   bool hybridMode = false;
+  int deckCycle = 1;
+  bool infiniteMode = false;
+  PlayerStyle deckStyle = PlayerStyle.SOFT;
   int v4UnlockedSpice = 1;
   HybridDeckOrientation hybridOrientation = HybridDeckOrientation.faceToFace;
   HybridDeckOrientation? hybridAvailabilityOrientation;
@@ -3465,7 +3765,10 @@ final class _Backend {
     hybridAvailabilityOrientation: hybridAvailabilityOrientation,
     hybridAvailabilityGeneration: hybridAvailabilityGeneration,
     hybridAvailabilityByPlayer: hybridAvailability,
+    deckCycle: deckCycle,
     v4UnlockedSpice: v4UnlockedSpice,
+    infiniteMode: infiniteMode,
+    deckStyle: deckStyle,
     v4ConsumedOccurrenceIds: consumedCompromiseOccurrences[player],
     cycleExhausted: cycleExhausted,
     actionProjection: round.actionProjection,
@@ -3577,7 +3880,40 @@ class _Repository
     required NetworkCommandDto command,
     required DeckExhaustionChoice choice,
     Map<int, int> deckAdjustment = const {},
-  }) async => backend.state(player);
+  }) async {
+    if (backend.commands.contains(command.commandId)) {
+      return backend.state(player);
+    }
+    if (player != 'alice') {
+      throw const NetworkRoundException('ROUND_NOT_ACTIVE_PLAYER');
+    }
+    if (backend.phase != NetworkGamePhase.waitingNext) {
+      throw const NetworkRoundException('ROUND_INVALID_PHASE');
+    }
+    if (!backend.cycleExhausted) {
+      throw const NetworkRoundException('ROUND_CYCLE_NOT_EXHAUSTED');
+    }
+    backend.commands.add(command.commandId);
+    if (choice != DeckExhaustionChoice.newCustomizedGame &&
+        choice != DeckExhaustionChoice.finish) {
+      backend.deckCycle++;
+      backend.infiniteMode =
+          backend.infiniteMode || choice == DeckExhaustionChoice.infinite;
+      backend.deckStyle = switch (choice) {
+        DeckExhaustionChoice.continueSpicier =>
+          backend.deckStyle == PlayerStyle.SOFT
+              ? PlayerStyle.EPICE
+              : PlayerStyle.INTENABLE,
+        DeckExhaustionChoice.continueIntenable => PlayerStyle.INTENABLE,
+        _ => backend.deckStyle,
+      };
+      backend.consumedCompromiseOccurrences['alice']!.clear();
+      backend.consumedCompromiseOccurrences['bob']!.clear();
+    }
+    backend.cycleExhausted = false;
+    _notify();
+    return backend.state(player);
+  }
 
   @override
   Future<NetworkGameRoundStateDto> publishUnlockedSpice({
