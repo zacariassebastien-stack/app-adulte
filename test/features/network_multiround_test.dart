@@ -7,10 +7,15 @@ import 'package:couple_cards/domain/domain.dart';
 import 'package:couple_cards/engines/engines.dart';
 import 'package:couple_cards/features/game/network_duel_secret_store.dart';
 import 'package:couple_cards/features/game/network_game_controller.dart';
+import 'package:couple_cards/features/game/network_duel_screen.dart';
 import 'package:couple_cards/features/game/network_profile_learning.dart';
 import 'package:couple_cards/features/lobby/lobby_models.dart';
+import 'package:couple_cards/features/lobby/active_session_store.dart';
+import 'package:couple_cards/features/lobby/game_history.dart';
 import 'package:couple_cards/sync/sync.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   late Catalog catalog;
@@ -2368,6 +2373,215 @@ void main() {
     expect(setup.backend.phase, NetworkGamePhase.sessionClosed);
   });
 
+  test('FINISH uses canonical CLOSE_SESSION and is idempotent', () async {
+    final setup = await _setup(session, catalog);
+    addTearDown(setup.dispose);
+    setup.backend
+      ..cycleExhausted = true
+      ..round.phase = NetworkGamePhase.waitingNext
+      ..round.ready.addAll(const {'alice', 'bob'});
+    setup.backend.notify();
+    await _settle();
+
+    await setup.alice.continueDeck(DeckExhaustionChoice.finish);
+    await _settle();
+    await setup.alice.continueDeck(DeckExhaustionChoice.finish);
+    await _settle();
+
+    expect(setup.backend.phase, NetworkGamePhase.sessionClosed);
+    expect(setup.alice.viewState, NetworkGameViewState.sessionEnded);
+    expect(setup.bob.viewState, NetworkGameViewState.sessionEnded);
+    expect(setup.backend.closeApplications, 1);
+    expect(
+      setup.backend.commands,
+      contains('game:session-multi:round-1:alice:close_session'),
+    );
+    expect(
+      setup.backend.commands.where((id) => id.contains('continue_cycle')),
+      isEmpty,
+    );
+  });
+
+  test(
+    'NEW_GAME closes canonically without creating or reusing a session',
+    () async {
+      final setup = await _setup(session, catalog);
+      addTearDown(setup.dispose);
+      setup.backend
+        ..cycleExhausted = true
+        ..round.phase = NetworkGamePhase.waitingNext
+        ..round.ready.addAll(const {'alice', 'bob'});
+      setup.backend.notify();
+      await _settle();
+
+      await setup.alice.continueDeck(DeckExhaustionChoice.newCustomizedGame);
+      await _settle();
+
+      expect(setup.backend.phase, NetworkGamePhase.sessionClosed);
+      expect(setup.backend.closeApplications, 1);
+      expect(setup.backend.roundCreations, 1);
+      expect(
+        setup.alice.sessionClosureIntent,
+        DeckExhaustionChoice.newCustomizedGame,
+      );
+      expect(setup.bob.sessionClosureIntent, isNull);
+      expect(
+        setup.backend.commands.where((id) => id.contains('continue_cycle')),
+        isEmpty,
+      );
+    },
+  );
+
+  test('legacy FINISH and NEW_GAME cycle commands are rejected', () async {
+    for (final choice in [
+      DeckExhaustionChoice.finish,
+      DeckExhaustionChoice.newCustomizedGame,
+    ]) {
+      final backend = _Backend()
+        ..cycleExhausted = true
+        ..round.phase = NetworkGamePhase.waitingNext;
+      await expectLater(
+        (backend.repository('alice') as NetworkSessionFlowRepository)
+            .continueDeckCycle(
+              command: _command(
+                'legacy-${choice.name}',
+                'alice',
+                'CONTINUE_CYCLE',
+                backend.round.id,
+              ),
+              choice: choice,
+            ),
+        throwsA(
+          isA<NetworkRoundException>().having(
+            (error) => error.code,
+            'code',
+            'ROUND_INVALID_ARGUMENT',
+          ),
+        ),
+      );
+    }
+
+    final sql = File(
+      'supabase/migrations/202610100012_canonical_session_closure.sql',
+    ).readAsStringSync();
+    expect(sql, contains("p_choice in ('NEW_GAME','FINISH')"));
+    expect(sql, isNot(contains("status = 'closed'")));
+    expect(sql, isNot(contains("phase = 'SESSION_CLOSED'")));
+  });
+
+  testWidgets('SESSION_CLOSED uses neutral voluntary ending copy', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final backend = _Backend()..round.phase = NetworkGamePhase.sessionClosed;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: NetworkDuelScreen(
+          session: session,
+          playerId: 'alice',
+          repository: backend.repository('alice'),
+          catalog: catalog,
+          secretStore: MemoryNetworkDuelSecretStore(),
+        ),
+      ),
+    );
+    for (var index = 0; index < 20; index++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    expect(
+      find.text('Partie terminée'),
+      findsWidgets,
+      reason: tester
+          .widgetList<Text>(find.byType(Text))
+          .map((widget) => widget.data)
+          .whereType<String>()
+          .join(' | '),
+    );
+    expect(find.textContaining('déconnexion'), findsNothing);
+    expect(
+      find.byKey(const Key('return-home-after-session-end')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('NEW_GAME clears old local session and returns to normal menu', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final backend = _Backend()
+      ..cycleExhausted = true
+      ..round.phase = NetworkGamePhase.waitingNext
+      ..round.ready.addAll(const {'alice', 'bob'});
+    final activeStore = _MemoryActiveSessionStore()..value = session.id;
+    final secretStore = MemoryNetworkDuelSecretStore();
+    NetworkDuelExit? exit;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: FilledButton(
+              key: const Key('open-duel-for-new-game'),
+              onPressed: () async {
+                exit = await Navigator.of(context).push<NetworkDuelExit>(
+                  MaterialPageRoute<NetworkDuelExit>(
+                    builder: (_) => NetworkDuelScreen(
+                      session: session,
+                      playerId: 'alice',
+                      repository: backend.repository('alice'),
+                      catalog: catalog,
+                      secretStore: secretStore,
+                      activeSessionStore: activeStore,
+                      historyStore: MemoryGameHistoryStore(),
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Ouvrir'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('open-duel-for-new-game')));
+    for (var index = 0; index < 20; index++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.byKey(const Key('new-customized-game')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('new-customized-game')));
+    for (var index = 0; index < 20; index++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    expect(backend.closeApplications, 1);
+    expect(
+      activeStore.value,
+      isNull,
+      reason: tester
+          .widgetList<Text>(find.byType(Text))
+          .map((widget) => widget.data)
+          .whereType<String>()
+          .join(' | '),
+    );
+    expect(
+      await secretStore.loadGame(sessionId: session.id, playerId: 'alice'),
+      isNull,
+    );
+    expect(
+      exit,
+      NetworkDuelExit.newGame,
+      reason: tester
+          .widgetList<Text>(find.byType(Text))
+          .map((widget) => widget.data)
+          .whereType<String>()
+          .join(' | '),
+    );
+    expect(backend.roundCreations, 1);
+    expect(find.byKey(const Key('open-duel-for-new-game')), findsOneWidget);
+  });
+
   test(
     'reconnect after cancellation restores only the valid hand state',
     () async {
@@ -3716,6 +3930,19 @@ final class _RoundRecord {
   final ties = <String, TieDecision>{};
 }
 
+final class _MemoryActiveSessionStore implements ActiveSessionStore {
+  String? value;
+
+  @override
+  Future<void> clear() async => value = null;
+
+  @override
+  Future<String?> load() async => value;
+
+  @override
+  Future<void> save(String sessionId) async => value = sessionId;
+}
+
 final class _Backend {
   final rounds = <int, _RoundRecord>{1: _RoundRecord(1)};
   final points = <String, int>{'alice': 100, 'bob': 100};
@@ -3731,6 +3958,7 @@ final class _Backend {
   int initialApplications = 0;
   int counterApplications = 0;
   int defenseApplications = 0;
+  int closeApplications = 0;
   bool cycleExhausted = false;
   bool redactOpponentReveal = false;
   bool routeToUnifiedPostDuelChoice = false;
@@ -3881,6 +4109,10 @@ class _Repository
     required DeckExhaustionChoice choice,
     Map<int, int> deckAdjustment = const {},
   }) async {
+    if (choice == DeckExhaustionChoice.finish ||
+        choice == DeckExhaustionChoice.newCustomizedGame) {
+      throw const NetworkRoundException('ROUND_INVALID_ARGUMENT');
+    }
     if (backend.commands.contains(command.commandId)) {
       return backend.state(player);
     }
@@ -4068,6 +4300,7 @@ class _Repository
     required NetworkCommandDto command,
   }) async {
     if (!backend.commands.add(command.commandId)) return backend.state(player);
+    backend.closeApplications++;
     backend.round.phase = NetworkGamePhase.sessionClosed;
     _notify();
     return backend.state(player);

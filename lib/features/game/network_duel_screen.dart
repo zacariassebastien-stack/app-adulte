@@ -68,6 +68,8 @@ class NetworkDuelScreen extends StatefulWidget {
   State<NetworkDuelScreen> createState() => _NetworkDuelScreenState();
 }
 
+enum NetworkDuelExit { finished, newGame }
+
 enum _PostDuelChoice { compromise, corruption }
 
 class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
@@ -82,6 +84,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   late final GamePreferencesController preferences;
   late final bool _ownsPreferences;
   bool _historyRecorded = false;
+  bool _leavingForNewGame = false;
 
   @override
   void initState() {
@@ -775,8 +778,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       ),
       OutlinedButton(
         key: const Key('new-customized-game'),
-        onPressed: () =>
-            controller.continueDeck(DeckExhaustionChoice.newCustomizedGame),
+        onPressed: _startNewGame,
         child: const Text('Nouvelle partie'),
       ),
       TextButton(
@@ -1258,7 +1260,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   Future<void> _quitGame() async {
     try {
       await controller.closeSession();
-      await _finishLocally();
+      await _finishLocally(NetworkDuelExit.finished);
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1269,6 +1271,14 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     }
   }
 
+  Future<void> _startNewGame() async {
+    if (_leavingForNewGame) return;
+    _leavingForNewGame = true;
+    await controller.continueDeck(DeckExhaustionChoice.newCustomizedGame);
+    if (!mounted) return;
+    await _finishLocally(NetworkDuelExit.newGame);
+  }
+
   Widget _sessionEnded() => Center(
     child: Padding(
       padding: const EdgeInsets.all(24),
@@ -1276,14 +1286,14 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Partie terminée suite à une déconnexion.',
+            'Partie terminée',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 20),
           FilledButton(
             key: const Key('return-home-after-session-end'),
-            onPressed: _finishLocally,
+            onPressed: () => _finishLocally(NetworkDuelExit.finished),
             child: const Text('Retour à l’accueil'),
           ),
         ],
@@ -1291,7 +1301,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     ),
   );
 
-  Future<void> _finishLocally() async {
+  Future<void> _finishLocally(NetworkDuelExit exit) async {
+    await controller.clearLocalSessionState();
     await widget.activeSessionStore.clear();
     if (!_historyRecorded) {
       _historyRecorded = true;
@@ -1300,10 +1311,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       );
     }
     if (mounted) {
-      Navigator.of(
-        context,
-        rootNavigator: true,
-      ).popUntil((route) => route.isFirst);
+      Navigator.of(context, rootNavigator: true).pop(exit);
     }
   }
 

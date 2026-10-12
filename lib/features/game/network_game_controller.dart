@@ -213,6 +213,8 @@ final class NetworkGameController extends ChangeNotifier {
   final Set<String> _activatedRoundIds = {};
   bool _disposed = false;
   PostGameProfileChoice? postGameProfileChoice;
+  DeckExhaustionChoice? _sessionClosureIntent;
+  bool _localSessionCleared = false;
 
   String get opponentId => playerIds.firstWhere((id) => id != playerId);
   int get roundNumber => round?.roundNumber ?? 1;
@@ -421,6 +423,7 @@ final class NetworkGameController extends ChangeNotifier {
 
   PlayerStyle get deckStyle => _deckStyle;
   bool get infiniteMode => _infiniteMode;
+  DeckExhaustionChoice? get sessionClosureIntent => _sessionClosureIntent;
   bool get isCycleController => session.players.any(
     (player) =>
         player.userId == playerId && player.role == LobbyPlayerRole.player1,
@@ -592,6 +595,12 @@ final class NetworkGameController extends ChangeNotifier {
     }
     _continuingDeck = true;
     try {
+      if (choice == DeckExhaustionChoice.finish ||
+          choice == DeckExhaustionChoice.newCustomizedGame) {
+        _sessionClosureIntent = choice;
+        await closeSession();
+        return;
+      }
       await _networkAction(
         (repository as NetworkSessionFlowRepository).continueDeckCycle(
           command: _command('CONTINUE_CYCLE'),
@@ -804,6 +813,17 @@ final class NetworkGameController extends ChangeNotifier {
         command: _command('CLOSE_SESSION'),
       ),
     );
+  }
+
+  Future<void> clearLocalSessionState() async {
+    _localSessionCleared = true;
+    final subscription = _subscription;
+    _subscription = null;
+    if (subscription != null) {
+      unawaited(subscription.cancel());
+    }
+    await privateStore.clear(sessionId: session.id, playerId: playerId);
+    await privateStore.clearGame(sessionId: session.id, playerId: playerId);
   }
 
   void _restoreCancelledChoice() {
@@ -3428,35 +3448,38 @@ final class NetworkGameController extends ChangeNotifier {
         'network.prototype';
   }
 
-  Future<void> _persist({int? roundNumber}) => privateStore.saveGame(
-    sessionId: session.id,
-    playerId: playerId,
-    state: NetworkPrivateGameState(
-      roundNumber: roundNumber ?? this.roundNumber,
-      cards: _runtime,
-      history: _history,
-      activeReveal: _activeReveal,
-      nextRoundPrepared: _nextRoundPrepared,
-      learningRecordedRounds: _learningRecordedRounds,
-      faceToFaceDeck: _faceToFaceDeck,
-      distanceDeck: _distanceDeck,
-      deckCycle: _deckCycle,
-      infiniteMode: _infiniteMode,
-      deckStyle: _deckStyle,
-      deckShortages: _deckShortages,
-      recentCardIds: _recentCardIds,
-      publicDiscards: _publicDiscards,
-      choiceVersion: _choiceVersion,
-      spiceProgression: _spiceProgression,
-      availableAccessories: _context.accessories,
-      clothesByPlayer: _context.clothesByPlayer,
-      sessionMode: sessionMode,
-      presence: _presence,
-      resolvedParameters: _resolvedParameters,
-      persistentEffects: _persistentEffects,
-      accessoryPool: _accessoryPool,
-    ),
-  );
+  Future<void> _persist({int? roundNumber}) {
+    if (_localSessionCleared) return Future<void>.value();
+    return privateStore.saveGame(
+      sessionId: session.id,
+      playerId: playerId,
+      state: NetworkPrivateGameState(
+        roundNumber: roundNumber ?? this.roundNumber,
+        cards: _runtime,
+        history: _history,
+        activeReveal: _activeReveal,
+        nextRoundPrepared: _nextRoundPrepared,
+        learningRecordedRounds: _learningRecordedRounds,
+        faceToFaceDeck: _faceToFaceDeck,
+        distanceDeck: _distanceDeck,
+        deckCycle: _deckCycle,
+        infiniteMode: _infiniteMode,
+        deckStyle: _deckStyle,
+        deckShortages: _deckShortages,
+        recentCardIds: _recentCardIds,
+        publicDiscards: _publicDiscards,
+        choiceVersion: _choiceVersion,
+        spiceProgression: _spiceProgression,
+        availableAccessories: _context.accessories,
+        clothesByPlayer: _context.clothesByPlayer,
+        sessionMode: sessionMode,
+        presence: _presence,
+        resolvedParameters: _resolvedParameters,
+        persistentEffects: _persistentEffects,
+        accessoryPool: _accessoryPool,
+      ),
+    );
+  }
 
   void _capturePublicDiscards(NetworkGameRoundStateDto value) {
     if (value.finalResolution == null) return;

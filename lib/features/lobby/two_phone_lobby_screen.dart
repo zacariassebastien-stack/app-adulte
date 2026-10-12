@@ -257,8 +257,8 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
         ),
       );
       if (!mounted || setup == null || !setup.complete) return;
-      await Navigator.of(context).push(
-        MaterialPageRoute<void>(
+      final exit = await Navigator.of(context).push<NetworkDuelExit>(
+        MaterialPageRoute<NetworkDuelExit>(
           builder: (_) => NetworkDuelScreen(
             session: controller.session!,
             playerId: playerId,
@@ -277,6 +277,9 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
           ),
         ),
       );
+      if (exit != null) {
+        await controller.clearActiveSession();
+      }
     } catch (_) {
       if (mounted) {
         setState(() {

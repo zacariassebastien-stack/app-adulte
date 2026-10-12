@@ -375,6 +375,8 @@ abstract interface class NetworkDuelSecretStore {
     required String sessionId,
     required String playerId,
   });
+
+  Future<void> clearGame({required String sessionId, required String playerId});
 }
 
 final class SharedPreferencesNetworkDuelSecretStore
@@ -447,6 +449,15 @@ final class SharedPreferencesNetworkDuelSecretStore
             Map<String, Object?>.from(jsonDecode(encoded) as Map),
           );
   }
+
+  @override
+  Future<void> clearGame({
+    required String sessionId,
+    required String playerId,
+  }) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.remove(_gameKey(sessionId, playerId));
+  }
 }
 
 final class MemoryNetworkDuelSecretStore implements NetworkDuelSecretStore {
@@ -486,4 +497,10 @@ final class MemoryNetworkDuelSecretStore implements NetworkDuelSecretStore {
     required String sessionId,
     required String playerId,
   }) async => _games[_key(sessionId, playerId)];
+
+  @override
+  Future<void> clearGame({
+    required String sessionId,
+    required String playerId,
+  }) async => _games.remove(_key(sessionId, playerId));
 }

@@ -210,6 +210,30 @@ void main() {
     controller.dispose();
   });
 
+  test(
+    'return from a closed game clears lobby without creating a session',
+    () async {
+      final backend = FakeLobbyBackend();
+      final store = _MemoryActiveSessionStore();
+      final controller = LobbyController(
+        repository: backend.repository('host'),
+        activeSessionStore: store,
+        commandIdFactory: () => 'create-1',
+      );
+      await controller.create();
+      final oldSessionId = controller.session!.id;
+
+      await controller.clearActiveSession();
+
+      expect(controller.state, LobbyViewState.idle);
+      expect(controller.session, isNull);
+      expect(store.value, isNull);
+      expect(backend.createCalls, 1);
+      expect(backend.sessions.keys.where((id) => id != oldSessionId), isEmpty);
+      controller.dispose();
+    },
+  );
+
   test('unknown active session is ignored and cleared', () async {
     final backend = FakeLobbyBackend();
     final store = _MemoryActiveSessionStore()..value = 'unknown';
