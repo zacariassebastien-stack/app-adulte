@@ -2582,6 +2582,215 @@ void main() {
     expect(find.byKey(const Key('open-duel-for-new-game')), findsOneWidget);
   });
 
+  testWidgets(
+    'execution renders canonical action and details for each variant',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final backend = _Backend();
+      _setProjectedAction(
+        backend,
+        cards: [
+          _projectedCard(
+            occurrenceId: 'constraint-light',
+            cardId: 'card.v4.034',
+            variantId: 'variant.v4.034.s1',
+          ),
+          _projectedCard(
+            occurrenceId: 'constraint-full',
+            cardId: 'card.v4.034',
+            variantId: 'variant.v4.034.s3',
+          ),
+          _projectedCard(
+            occurrenceId: 'blindfold',
+            cardId: 'card.v4.035',
+            variantId: 'variant.v4.035.s1',
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NetworkDuelScreen(
+            session: session,
+            playerId: 'alice',
+            repository: backend.repository('alice'),
+            catalog: catalog,
+            secretStore: MemoryNetworkDuelSecretStore(),
+          ),
+        ),
+      );
+      for (var index = 0; index < 20; index++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+
+      expect(find.text('Entrave légère.'), findsOneWidget);
+      expect(find.text('Immobiliser.'), findsOneWidget);
+      expect(
+        find.textContaining('Quelques instants sans regarder'),
+        findsOneWidget,
+      );
+      expect(find.text('Contraintes'), findsNothing);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NetworkDuelScreen(
+            session: session,
+            playerId: 'bob',
+            repository: backend.repository('bob'),
+            catalog: catalog,
+            secretStore: MemoryNetworkDuelSecretStore(),
+          ),
+        ),
+      );
+      for (var index = 0; index < 20; index++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(find.text('Entrave légère.'), findsOneWidget);
+      expect(find.text('Immobiliser.'), findsOneWidget);
+      expect(
+        find.textContaining('Quelques instants sans regarder'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  test(
+    '006 and 007 derive deterministic counts from canonical clothing',
+    () async {
+      const cases = [
+        ('card.v4.006', 'variant.v4.006.base', 6, 5),
+        ('card.v4.006', 'variant.v4.006.base', 0, 0),
+        ('card.v4.007', 'variant.v4.007.base', 6, 4),
+        ('card.v4.007', 'variant.v4.007.base', 1, 0),
+      ];
+      for (final (cardId, variantId, initial, expected) in cases) {
+        final backend = _Backend()..clothingCounts['alice'] = initial;
+        _setProjectedAction(
+          backend,
+          cards: [
+            _projectedCard(
+              occurrenceId: '$cardId-$initial',
+              cardId: cardId,
+              variantId: variantId,
+              targetPlayerIds: const ['alice'],
+            ),
+          ],
+          requiredClothingPlayerIds: const {'alice'},
+        );
+        final controller = NetworkGameController(
+          session: session,
+          playerId: 'alice',
+          repository: backend.repository('alice'),
+          privateStore: MemoryNetworkDuelSecretStore(),
+          learningStore: MemoryNetworkProfileLearningStore(),
+          catalog: catalog,
+        );
+        await controller.start();
+        await _settle();
+        expect(controller.suggestedOwnClothingCount(), expected);
+        controller.dispose();
+      }
+    },
+  );
+
+  testWidgets('006 preapplies its deterministic count on Terminé', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final backend = _Backend()..clothingCounts['alice'] = 6;
+    _setProjectedAction(
+      backend,
+      cards: [
+        _projectedCard(
+          occurrenceId: 'remove-one-ui',
+          cardId: 'card.v4.006',
+          variantId: 'variant.v4.006.base',
+          targetPlayerIds: const ['alice'],
+        ),
+      ],
+      requiredClothingPlayerIds: const {'alice'},
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: NetworkDuelScreen(
+          session: session,
+          playerId: 'alice',
+          repository: backend.repository('alice'),
+          catalog: catalog,
+          secretStore: MemoryNetworkDuelSecretStore(),
+        ),
+      ),
+    );
+    for (var index = 0; index < 20; index++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    expect(find.text('Ajuster les vêtements (5)'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('complete-network-action')));
+    await tester.pump();
+    expect(find.byKey(const Key('clothing-resync-count')), findsNothing);
+    expect(backend.clothingCounts['alice'], 5);
+  });
+
+  test(
+    'deterministic clothing count is shared and survives next round reconnect',
+    () async {
+      final backend = _Backend()..clothingCounts['alice'] = 6;
+      _setProjectedAction(
+        backend,
+        cards: [
+          _projectedCard(
+            occurrenceId: 'remove-one',
+            cardId: 'card.v4.006',
+            variantId: 'variant.v4.006.base',
+            targetPlayerIds: const ['alice'],
+          ),
+        ],
+        requiredClothingPlayerIds: const {'alice'},
+      );
+      var alice = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: backend.repository('alice'),
+        privateStore: MemoryNetworkDuelSecretStore(),
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog,
+      );
+      final bob = NetworkGameController(
+        session: session,
+        playerId: 'bob',
+        repository: backend.repository('bob'),
+        privateStore: MemoryNetworkDuelSecretStore(),
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog,
+      );
+      await Future.wait([alice.start(), bob.start()]);
+      await alice.updateOwnClothingCount(alice.suggestedOwnClothingCount());
+      await alice.completeAction();
+      await _settle();
+      expect(bob.clothingCounts['alice'], 5);
+
+      await bob.completeAction();
+      await _settle();
+      expect(backend.clothingCounts['alice'], 5);
+
+      alice.dispose();
+      alice = NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: backend.repository('alice'),
+        privateStore: MemoryNetworkDuelSecretStore(),
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog,
+      );
+      await alice.start();
+      await _settle();
+      expect(alice.clothingCounts['alice'], 5);
+      alice.dispose();
+      bob.dispose();
+    },
+  );
+
   test(
     'reconnect after cancellation restores only the valid hand state',
     () async {
@@ -2770,7 +2979,7 @@ void main() {
   });
 
   test(
-    'FINAL_RESOLVED learning survives duplicate events reconnect and Terminé once',
+    'learning waits for both Terminé and remains idempotent after reconnect',
     () async {
       final backend = _Backend();
       final aliceSecrets = MemoryNetworkDuelSecretStore();
@@ -2799,12 +3008,11 @@ void main() {
       await _settle();
 
       expect(backend.phase, NetworkGamePhase.finalResolved);
-      expect(aliceLearning.appliedEventIds['alice'], hasLength(1));
-      final learnedOnce = jsonEncode(aliceLearning.values['alice']!.toJson());
+      expect(aliceLearning.appliedEventIds['alice'], anyOf(isNull, isEmpty));
 
       backend.notifyTwice();
       await _settle();
-      expect(jsonEncode(aliceLearning.values['alice']!.toJson()), learnedOnce);
+      expect(aliceLearning.appliedEventIds['alice'], anyOf(isNull, isEmpty));
 
       alice.dispose();
       alice = NetworkGameController(
@@ -2817,17 +3025,59 @@ void main() {
       );
       await alice.start();
       await _settle();
-      expect(aliceLearning.appliedEventIds['alice'], hasLength(1));
-      expect(jsonEncode(aliceLearning.values['alice']!.toJson()), learnedOnce);
+      expect(aliceLearning.appliedEventIds['alice'], anyOf(isNull, isEmpty));
 
       await alice.completeAction();
       await _settle();
+      expect(aliceLearning.appliedEventIds['alice'], anyOf(isNull, isEmpty));
+      await bob.completeAction();
+      await _settle();
       expect(aliceLearning.appliedEventIds['alice'], hasLength(1));
+      final learnedOnce = jsonEncode(aliceLearning.values['alice']!.toJson());
+
+      backend.notifyTwice();
+      await _settle();
       expect(jsonEncode(aliceLearning.values['alice']!.toJson()), learnedOnce);
       alice.dispose();
       bob.dispose();
     },
   );
+
+  test('closing before both Terminé records no learning', () async {
+    final backend = _Backend();
+    final learning = MemoryNetworkProfileLearningStore();
+    final alice = NetworkGameController(
+      session: session,
+      playerId: 'alice',
+      repository: backend.repository('alice'),
+      privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: learning,
+      catalog: catalog,
+    );
+    final bob = NetworkGameController(
+      session: session,
+      playerId: 'bob',
+      repository: backend.repository('bob'),
+      privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: catalog,
+    );
+    addTearDown(alice.dispose);
+    addTearDown(bob.dispose);
+    await Future.wait([alice.start(), bob.start()]);
+    final setup = _Setup(backend, alice, bob);
+    await _playUnequal(setup);
+    final loser = alice.isInitialLoser ? alice : bob;
+    await loser.acceptInitialResult();
+    await _settle();
+
+    await alice.completeAction();
+    await alice.closeSession();
+    await _settle();
+
+    expect(backend.phase, NetworkGamePhase.sessionClosed);
+    expect(learning.appliedEventIds['alice'], anyOf(isNull, isEmpty));
+  });
 
   test('equal, insufficient, excessive and third bids are rejected', () async {
     final setup = await _setup(session, catalog);
@@ -3909,6 +4159,40 @@ Future<void> _settle() async {
   }
 }
 
+NetworkResolvedActionCardDto _projectedCard({
+  required String occurrenceId,
+  required String cardId,
+  required String variantId,
+  List<String> targetPlayerIds = const ['bob'],
+}) => NetworkResolvedActionCardDto(
+  occurrenceId: occurrenceId,
+  cardId: cardId,
+  variantId: variantId,
+  direction: NetworkCardDirection.FAIRE,
+  targetPlayerIds: targetPlayerIds,
+  effectiveSpice: 1,
+);
+
+void _setProjectedAction(
+  _Backend backend, {
+  required List<NetworkResolvedActionCardDto> cards,
+  Set<String> requiredClothingPlayerIds = const {},
+}) {
+  backend.round
+    ..phase = NetworkGamePhase.finalResolved
+    ..finalResolution = NetworkFinalResolutionDto(
+      retainedPlayerId: 'alice',
+      initialWinnerPlayerId: 'alice',
+      finalWinnerPlayerId: 'alice',
+      cardId: cards.first.cardId,
+      variantId: cards.first.variantId,
+    )
+    ..actionProjection = NetworkResolvedActionProjectionDto(
+      cards: cards,
+      requiredClothingPlayerIds: requiredClothingPlayerIds,
+    );
+}
+
 final class _RoundRecord {
   _RoundRecord(this.number) : id = 'round-$number';
   final int number;
@@ -3953,6 +4237,8 @@ final class _Backend {
     'bob': <String>{},
   };
   final changes = StreamController<void>.broadcast();
+  final clothingCounts = <String, int>{'alice': 6, 'bob': 6};
+  final clothingResynced = <String>{};
   int currentRound = 1;
   int roundCreations = 1;
   int initialApplications = 0;
@@ -4000,6 +4286,8 @@ final class _Backend {
     v4ConsumedOccurrenceIds: consumedCompromiseOccurrences[player],
     cycleExhausted: cycleExhausted,
     actionProjection: round.actionProjection,
+    clothingCounts: clothingCounts,
+    clothingResyncedPlayerIds: clothingResynced,
     ownReveal: round.reveals[player],
     opponentReveal: _revealsPublic && !redactOpponentReveal
         ? round.reveals.entries
@@ -4669,6 +4957,10 @@ class _Repository
     }
     if (!closesBoundary) {
       backend.commands.add(command.commandId);
+      if (clothingCount != null) {
+        backend.clothingCounts[player] = clothingCount;
+        backend.clothingResynced.add(player);
+      }
     }
     if (!closesBoundary && backend.hybridMode) {
       backend.hybridAvailabilityOrientation ??= backend.hybridOrientation;

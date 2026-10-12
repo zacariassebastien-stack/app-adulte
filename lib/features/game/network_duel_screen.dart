@@ -85,6 +85,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   late final bool _ownsPreferences;
   bool _historyRecorded = false;
   bool _leavingForNewGame = false;
+  int? _pendingClothingCount;
 
   @override
   void initState() {
@@ -134,6 +135,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         _corruptionCards.clear();
         _postDuelChoice = null;
         _requestInversion = false;
+        _pendingClothingCount = null;
       }
     });
   }
@@ -619,20 +621,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         if (!result.mutualAbandon) ...[
           const SizedBox(height: 12),
           if (projection != null && projection.cards.isNotEmpty) ...[
-            for (final card in projection.cards)
-              ListTile(
-                title: Text(_title(card.cardId)),
-                subtitle: Text(
-                  [
-                    card.direction.name,
-                    'cible : ${card.targetPlayerIds.join(', ')}',
-                    if (card.zoneId != null) 'zone : ${card.zoneId}',
-                    if (card.accessoryId != null)
-                      'accessoire : ${controller.accessoryName(card.accessoryId) ?? card.accessoryId}',
-                    '🌶️ ${card.effectiveSpice}',
-                  ].join(' · '),
-                ),
-              ),
+            for (final card in projection.cards) _resolvedActionTile(card),
           ] else if (result.compromise.isNotEmpty) ...[
             for (final card in result.compromise)
               ListTile(
@@ -653,6 +642,17 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               '${_title(effect.cardId)} · ${effect.remainingActions} action(s) restante(s)',
             ),
         ],
+        if (controller.ownClothingResyncRequired &&
+            controller.ownClothingChangeIsDeterministic) ...[
+          const SizedBox(height: 12),
+          OutlinedButton(
+            key: const Key('adjust-deterministic-clothing-count'),
+            onPressed: _adjustClothingCount,
+            child: Text(
+              'Ajuster les vêtements (${_pendingClothingCount ?? controller.suggestedOwnClothingCount()})',
+            ),
+          ),
+        ],
         const SizedBox(height: 20),
         FilledButton(
           key: const Key('complete-network-action'),
@@ -672,42 +672,80 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
 
   Future<void> _completeAction() async {
     if (controller.ownClothingResyncRequired) {
-      final input = TextEditingController(
-        text: '${controller.clothingCounts[controller.playerId] ?? 0}',
-      );
-      final count = await showDialog<int>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Vêtements'),
-          content: TextField(
-            key: const Key('clothing-resync-count'),
-            controller: input,
-            autofocus: true,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Combien de vêtements portes-tu actuellement ?',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final value = int.tryParse(input.text);
-                if (value != null && value >= 0) Navigator.pop(context, value);
-              },
-              child: const Text('Valider'),
-            ),
-          ],
-        ),
-      );
-      input.dispose();
+      final count = controller.ownClothingChangeIsDeterministic
+          ? _pendingClothingCount ?? controller.suggestedOwnClothingCount()
+          : await _requestClothingCount(controller.suggestedOwnClothingCount());
       if (count == null) return;
       await controller.updateOwnClothingCount(count);
     }
     await controller.completeAction();
+  }
+
+  Future<void> _adjustClothingCount() async {
+    final count = await _requestClothingCount(
+      _pendingClothingCount ?? controller.suggestedOwnClothingCount(),
+    );
+    if (count != null && mounted) setState(() => _pendingClothingCount = count);
+  }
+
+  Future<int?> _requestClothingCount(int initialCount) async {
+    final input = TextEditingController(text: '$initialCount');
+    final count = await showDialog<int>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Vêtements'),
+        content: TextField(
+          key: const Key('clothing-resync-count'),
+          controller: input,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Combien de vêtements portes-tu actuellement ?',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = int.tryParse(input.text);
+              if (value != null && value >= 0) Navigator.pop(context, value);
+            },
+            child: const Text('Valider'),
+          ),
+        ],
+      ),
+    );
+    input.dispose();
+    return count;
+  }
+
+  Widget _resolvedActionTile(NetworkResolvedActionCardDto card) {
+    final definition = widget.catalog.cards.firstWhere(
+      (item) => item.stableId == card.cardId,
+    );
+    final variant = definition.variants.firstWhere(
+      (item) => item.stableId == card.variantId,
+    );
+    final actionText =
+        variant.actionText ?? definition.actionText ?? _title(card.cardId);
+    final detailsText = variant.detailsText ?? definition.detailsText;
+    return ListTile(
+      title: Text(actionText),
+      subtitle: Text(
+        [
+          if (detailsText != null && detailsText.trim().isNotEmpty) detailsText,
+          card.direction.name,
+          'cible : ${card.targetPlayerIds.join(', ')}',
+          if (card.zoneId != null) 'zone : ${card.zoneId}',
+          if (card.accessoryId != null)
+            'accessoire : ${controller.accessoryName(card.accessoryId) ?? card.accessoryId}',
+          '🌶️ ${card.effectiveSpice}',
+        ].join(' · '),
+      ),
+    );
   }
 
   Widget _waitingNext() => Center(

@@ -299,6 +299,58 @@ final class NetworkGameController extends ChangeNotifier {
         resyncedPlayerIds: round?.clothingResyncedPlayerIds ?? const {},
       );
 
+  bool get ownClothingChangeIsDeterministic {
+    final cards = actionProjection?.cards.where(
+      (card) => card.targetPlayerIds.contains(playerId),
+    );
+    if (cards == null || cards.isEmpty) return false;
+    var found = false;
+    for (final card in cards) {
+      final behavior = _definitions[card.cardId]?.v4?.clothingBehavior;
+      if (behavior == V4ClothingBehavior.removeOne ||
+          behavior == V4ClothingBehavior.removeTwo) {
+        found = true;
+      } else if (behavior != null && behavior != V4ClothingBehavior.none) {
+        return false;
+      }
+    }
+    return found;
+  }
+
+  int suggestedOwnClothingCount() {
+    final canonicalCount =
+        round?.clothingCounts[playerId] ??
+        _context.clothesByPlayer[playerId] ??
+        0;
+    final cards = actionProjection?.cards
+        .where((card) => card.targetPlayerIds.contains(playerId))
+        .toList(growable: false);
+    if (cards == null || cards.isEmpty) return canonicalCount;
+    final behaviors = <V4ClothingBehavior>[];
+    for (final card in cards) {
+      final behavior = _definitions[card.cardId]?.v4?.clothingBehavior;
+      if (behavior == V4ClothingBehavior.removeOne ||
+          behavior == V4ClothingBehavior.removeTwo) {
+        behaviors.add(behavior!);
+      } else if (behavior != null && behavior != V4ClothingBehavior.none) {
+        // Outfit choices and resets require the player's real resulting count.
+        return canonicalCount;
+      }
+    }
+    var snapshot = V4ClothingSnapshot(
+      state: canonicalCount == 0 ? V4ClothingState.nu : V4ClothingState.habille,
+      removableClothing: canonicalCount,
+    );
+    for (final behavior in behaviors) {
+      snapshot = const V4ClothingEngine().apply(
+        current: snapshot,
+        behavior: behavior,
+        fullOutfitCount: canonicalCount,
+      );
+    }
+    return snapshot.removableClothing;
+  }
+
   Future<void> updateOwnClothingCount(int actualCount) async {
     if (actualCount < 0) {
       throw ArgumentError.value(actualCount, 'actualCount');
@@ -1378,10 +1430,6 @@ final class NetworkGameController extends ChangeNotifier {
           await _publishActionProjection(value);
           return;
         }
-        if (!_acceptedCorruptionAwaitingCompletion(value) &&
-            !_acceptedAuctionAwaitingCompletion(value)) {
-          await _recordLearningForRound();
-        }
         viewState = NetworkGameViewState.actionInProgress;
         break;
       case NetworkGamePhase.corruptionDecision:
@@ -1396,13 +1444,6 @@ final class NetworkGameController extends ChangeNotifier {
         viewState = NetworkGameViewState.actionInProgress;
         break;
       case NetworkGamePhase.recovery:
-        final corruption = value.corruption;
-        if (corruption?.accepted == true &&
-            corruption!.actions.every(
-              (action) => action.status != ActionExecutionStatus.PROPOSED,
-            )) {
-          await _recordLearningForRound();
-        }
         viewState = NetworkGameViewState.recovery;
         break;
       case NetworkGamePhase.recoveryResponse:
@@ -1412,13 +1453,7 @@ final class NetworkGameController extends ChangeNotifier {
         viewState = NetworkGameViewState.recoveryExecution;
         break;
       case NetworkGamePhase.waitingNext:
-        if ((value.corruption?.accepted == true &&
-                value.corruption!.actions.every(
-                  (action) => action.status == ActionExecutionStatus.COMPLETED,
-                )) ||
-            _acceptedAuctionExecutionCompleted(value)) {
-          await _recordLearningForRound();
-        }
+        await _recordLearningForRound();
         viewState = NetworkGameViewState.waitingNext;
         notifyListeners();
         if (_hybridAvailabilityReportRequired(value)) {
@@ -1532,31 +1567,6 @@ final class NetworkGameController extends ChangeNotifier {
     } finally {
       _startingNextRound = false;
     }
-  }
-
-  bool _acceptedCorruptionAwaitingCompletion(NetworkGameRoundStateDto value) =>
-      value.corruption?.accepted == true &&
-      value.corruption!.actions.any(
-        (action) => action.status == ActionExecutionStatus.PROPOSED,
-      );
-
-  bool _acceptedAuctionAwaitingCompletion(NetworkGameRoundStateDto value) =>
-      value.negotiation?.response?.accepted == true &&
-      value.finalResolution?.compromise.any(
-            (card) => card.origin == NetworkCompromiseOrigin.AUCTION,
-          ) ==
-          true &&
-      !_acceptedAuctionExecutionCompleted(value);
-
-  bool _acceptedAuctionExecutionCompleted(NetworkGameRoundStateDto value) {
-    if (value.negotiation?.response?.accepted != true) return false;
-    final occurrences = value.finalResolution?.compromise
-        .where((card) => card.origin == NetworkCompromiseOrigin.AUCTION)
-        .map((card) => card.occurrenceId)
-        .toSet();
-    return occurrences != null &&
-        occurrences.isNotEmpty &&
-        value.v4ConsumedOccurrenceIds.containsAll(occurrences);
   }
 
   Future<void> _closeNormalRoundForRecovery(
