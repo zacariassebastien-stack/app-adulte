@@ -651,6 +651,7 @@ final class NetworkGameRoundStateDto {
     this.hybridOrientation = HybridDeckOrientation.faceToFace,
     this.deckCycle = 1,
     this.v4UnlockedSpice = 1,
+    Set<String>? v4ConsumedOccurrenceIds,
     this.infiniteMode = false,
     this.deckStyle = PlayerStyle.SOFT,
     this.cycleExhausted = false,
@@ -678,6 +679,9 @@ final class NetworkGameRoundStateDto {
        clothingResyncedPlayerIds = Set.unmodifiable(
          clothingResyncedPlayerIds ?? const {},
        ),
+       v4ConsumedOccurrenceIds = Set.unmodifiable(
+         v4ConsumedOccurrenceIds ?? const {},
+       ),
        recoveryByPlayer = Map.unmodifiable(recoveryByPlayer ?? const {}),
        recoveryDonePlayerIds = Set.unmodifiable(
          recoveryDonePlayerIds ?? const {},
@@ -697,6 +701,7 @@ final class NetworkGameRoundStateDto {
   final HybridDeckOrientation hybridOrientation;
   final int deckCycle;
   final int v4UnlockedSpice;
+  final Set<String> v4ConsumedOccurrenceIds;
   final bool infiniteMode;
   final PlayerStyle deckStyle;
   final bool cycleExhausted;
@@ -738,6 +743,7 @@ final class NetworkGameRoundStateDto {
         : 'DISTANCE',
     'deck_cycle': deckCycle,
     'v4_unlocked_spice': v4UnlockedSpice,
+    'v4_consumed_occurrence_ids': v4ConsumedOccurrenceIds.toList()..sort(),
     'infinite_mode': infiniteMode,
     'deck_style': deckStyle.name,
     'cycle_exhausted': cycleExhausted,
@@ -810,6 +816,10 @@ final class NetworkGameRoundStateDto {
           : HybridDeckOrientation.faceToFace,
       deckCycle: (json['deck_cycle'] as int?) ?? 1,
       v4UnlockedSpice: (json['v4_unlocked_spice'] as int?) ?? 1,
+      v4ConsumedOccurrenceIds:
+          ((json['v4_consumed_occurrence_ids'] as List?) ?? const [])
+              .cast<String>()
+              .toSet(),
       infiniteMode: (json['infinite_mode'] as bool?) ?? false,
       deckStyle: PlayerStyle.values.byName(
         (json['deck_style'] as String?) ?? PlayerStyle.SOFT.name,

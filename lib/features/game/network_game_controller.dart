@@ -1332,7 +1332,8 @@ final class NetworkGameController extends ChangeNotifier {
           await _publishActionProjection(value);
           return;
         }
-        if (!_acceptedCorruptionAwaitingCompletion(value)) {
+        if (!_acceptedCorruptionAwaitingCompletion(value) &&
+            !_acceptedAuctionAwaitingCompletion(value)) {
           await _recordLearningForRound();
         }
         viewState = NetworkGameViewState.actionInProgress;
@@ -1365,10 +1366,11 @@ final class NetworkGameController extends ChangeNotifier {
         viewState = NetworkGameViewState.recoveryExecution;
         break;
       case NetworkGamePhase.waitingNext:
-        if (value.corruption?.accepted == true &&
-            value.corruption!.actions.every(
-              (action) => action.status == ActionExecutionStatus.COMPLETED,
-            )) {
+        if ((value.corruption?.accepted == true &&
+                value.corruption!.actions.every(
+                  (action) => action.status == ActionExecutionStatus.COMPLETED,
+                )) ||
+            _acceptedAuctionExecutionCompleted(value)) {
           await _recordLearningForRound();
         }
         viewState = NetworkGameViewState.waitingNext;
@@ -1417,6 +1419,25 @@ final class NetworkGameController extends ChangeNotifier {
       value.corruption!.actions.any(
         (action) => action.status == ActionExecutionStatus.PROPOSED,
       );
+
+  bool _acceptedAuctionAwaitingCompletion(NetworkGameRoundStateDto value) =>
+      value.negotiation?.response?.accepted == true &&
+      value.finalResolution?.compromise.any(
+            (card) => card.origin == NetworkCompromiseOrigin.AUCTION,
+          ) ==
+          true &&
+      !_acceptedAuctionExecutionCompleted(value);
+
+  bool _acceptedAuctionExecutionCompleted(NetworkGameRoundStateDto value) {
+    if (value.negotiation?.response?.accepted != true) return false;
+    final occurrences = value.finalResolution?.compromise
+        .where((card) => card.origin == NetworkCompromiseOrigin.AUCTION)
+        .map((card) => card.occurrenceId)
+        .toSet();
+    return occurrences != null &&
+        occurrences.isNotEmpty &&
+        value.v4ConsumedOccurrenceIds.containsAll(occurrences);
+  }
 
   Future<void> _closeNormalRoundForRecovery(
     NetworkGameRoundStateDto value,
@@ -1470,7 +1491,9 @@ final class NetworkGameController extends ChangeNotifier {
         final reconciled = [
           for (final card in _runtime)
             if (auctionOccurrences.contains(card.occurrenceId) &&
-                (card.zone == CardZone.HAND || card.zone == CardZone.RESERVED))
+                (card.zone == CardZone.HAND ||
+                    card.zone == CardZone.RESERVED ||
+                    card.zone == CardZone.DISCARD))
               card.copyWith(zone: CardZone.ENGAGED, locked: false)
             else
               card,
@@ -1502,6 +1525,9 @@ final class NetworkGameController extends ChangeNotifier {
         _runtime = reconciled;
       }
     }
+    changed =
+        _applyCanonicalConsumedOccurrences(value.v4ConsumedOccurrenceIds) ||
+        changed;
     final publicCorruption = value.corruption;
     if (publicCorruption != null &&
         publicCorruption.offeredBy == playerId &&
@@ -1873,6 +1899,7 @@ final class NetworkGameController extends ChangeNotifier {
             candidate,
       ];
       _distanceDeck = List.of(_faceToFaceDeck);
+      _applyCanonicalConsumedOccurrences(current.v4ConsumedOccurrenceIds);
       _syncSpiceContext();
       if (_faceToFaceDeck.isEmpty &&
           _distanceDeck.isEmpty &&
@@ -1891,6 +1918,7 @@ final class NetworkGameController extends ChangeNotifier {
     _choiceVersion = 0;
     _learningRecordedRounds = {};
     _buildDeckCycle();
+    _applyCanonicalConsumedOccurrences(current.v4ConsumedOccurrenceIds);
     _refill(current.roundNumber);
     await _persist(roundNumber: current.roundNumber);
   }
@@ -1898,6 +1926,9 @@ final class NetworkGameController extends ChangeNotifier {
   Future<void> _prepareNextRound() async {
     if (_nextRoundPrepared) return;
     _closePersistentEffects();
+    _applyCanonicalConsumedOccurrences(
+      round?.v4ConsumedOccurrenceIds ?? const {},
+    );
     final played = _runtime
         .where((card) => card.zone == CardZone.ENGAGED)
         .map((card) => card.cardId)
@@ -2650,6 +2681,49 @@ final class NetworkGameController extends ChangeNotifier {
     _distanceDeck.removeWhere((card) => card.occurrenceId == occurrenceId);
     _resolvedParameters.remove(occurrenceId);
     _syncSpiceContext();
+  }
+
+  bool _applyCanonicalConsumedOccurrences(Set<String> occurrenceIds) {
+    var changed = false;
+    for (final occurrenceId in occurrenceIds) {
+      final existing = _runtime
+          .where((card) => card.occurrenceId == occurrenceId)
+          .firstOrNull;
+      if (existing == null) {
+        final candidate = _candidateForOccurrence(occurrenceId);
+        if (candidate != null) {
+          _runtime = [
+            ..._runtime,
+            CardRuntimeState(
+              cardId: candidate.cardId,
+              occurrenceId: candidate.occurrenceId,
+              variantId: candidate.variantId,
+              zone: CardZone.EXHAUSTED,
+            ),
+          ];
+          changed = true;
+        }
+      } else if (existing.zone != CardZone.EXHAUSTED) {
+        _runtime = [
+          for (final card in _runtime)
+            if (card.occurrenceId == occurrenceId)
+              card.copyWith(zone: CardZone.EXHAUSTED, locked: false)
+            else
+              card,
+        ];
+        changed = true;
+      }
+      if (!_spiceProgression.consumedOccurrenceIds.contains(occurrenceId)) {
+        _consumeOccurrence(occurrenceId);
+        changed = true;
+      } else {
+        _faceToFaceDeck.removeWhere(
+          (card) => card.occurrenceId == occurrenceId,
+        );
+        _distanceDeck.removeWhere((card) => card.occurrenceId == occurrenceId);
+      }
+    }
+    return changed;
   }
 
   V4PoolContext _poolContext() => V4PoolContext(

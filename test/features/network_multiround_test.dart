@@ -213,6 +213,215 @@ void main() {
     controller.dispose();
   });
 
+  test('refused compromise preserves the second discard use', () async {
+    final setup = await _setup(session, catalog);
+    addTearDown(setup.dispose);
+    await _playUnequal(setup);
+    final firstLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+    await firstLoser.acceptInitialResult();
+    await _settle();
+    await _completeResolvedAction(setup);
+    await _settle();
+
+    expect(setup.alice.roundNumber, 2);
+    expect(
+      [
+        ...setup.alice.runtime,
+        ...setup.bob.runtime,
+      ].where((card) => card.zone == CardZone.DISCARD),
+      isNotEmpty,
+      reason: 'a normal first use must end in DISCARD',
+    );
+
+    await _playUnequal(setup);
+    setup.backend.routeToUnifiedPostDuelChoice = true;
+    final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+    final winner = identical(loser, setup.alice) ? setup.bob : setup.alice;
+    await loser.acceptInitialResult();
+    await _settle();
+    final offered = loser.auctionCards.firstWhere(loser.isAuctionCardPlayable);
+    await loser.proposeNegotiation(
+      directPa: 0,
+      inversion: false,
+      cardIds: {offered.identity},
+    );
+    await _settle();
+    await winner.respondNegotiation(accepted: false);
+    await _settle();
+
+    expect(
+      loser.runtime
+          .singleWhere((card) => card.occurrenceId == offered.identity)
+          .zone,
+      CardZone.DISCARD,
+    );
+    expect(
+      setup.backend.consumedCompromiseOccurrences[loser.playerId],
+      isNot(contains(offered.identity)),
+    );
+  });
+
+  test(
+    'accepted compromise consumes discard and learns once after both completions',
+    () async {
+      final aliceSecrets = MemoryNetworkDuelSecretStore();
+      final bobSecrets = MemoryNetworkDuelSecretStore();
+      final aliceLearning = MemoryNetworkProfileLearningStore();
+      final bobLearning = MemoryNetworkProfileLearningStore();
+      final setup = await _setup(
+        session,
+        catalog,
+        aliceSecrets: aliceSecrets,
+        bobSecrets: bobSecrets,
+        aliceLearning: aliceLearning,
+        bobLearning: bobLearning,
+      );
+      addTearDown(setup.dispose);
+      await _playUnequal(setup);
+      final firstLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+      await firstLoser.acceptInitialResult();
+      await _settle();
+      await _completeResolvedAction(setup);
+      await _settle();
+
+      await _playUnequal(setup);
+      setup.backend.routeToUnifiedPostDuelChoice = true;
+      final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+      final winner = identical(loser, setup.alice) ? setup.bob : setup.alice;
+      final loserSecrets = loser.playerId == 'alice'
+          ? aliceSecrets
+          : bobSecrets;
+      final loserLearning = loser.playerId == 'alice'
+          ? aliceLearning
+          : bobLearning;
+      await loser.acceptInitialResult();
+      await _settle();
+      final offered = loser.auctionCards.firstWhere(
+        loser.isAuctionCardPlayable,
+      );
+      final learnedBefore =
+          loserLearning.appliedEventIds[loser.playerId]?.length ?? 0;
+
+      await loser.proposeNegotiation(
+        directPa: 0,
+        inversion: false,
+        cardIds: {offered.identity},
+      );
+      await _settle();
+      await winner.respondNegotiation(accepted: true);
+      await _settle();
+      expect(
+        loser.runtime
+            .singleWhere((card) => card.occurrenceId == offered.identity)
+            .zone,
+        CardZone.ENGAGED,
+      );
+      expect(
+        loserLearning.appliedEventIds[loser.playerId]?.length ?? 0,
+        learnedBefore,
+        reason: 'accepted auction cards are not learned at FINAL_RESOLVED',
+      );
+
+      await loser.completeAction();
+      await _settle();
+      expect(
+        loserLearning.appliedEventIds[loser.playerId]?.length ?? 0,
+        learnedBefore,
+      );
+      await winner.completeAction();
+      await _settle();
+
+      expect(
+        setup.backend.consumedCompromiseOccurrences[loser.playerId],
+        contains(offered.identity),
+      );
+      expect(
+        loser.runtime
+            .singleWhere((card) => card.occurrenceId == offered.identity)
+            .zone,
+        CardZone.EXHAUSTED,
+      );
+      expect(
+        loserLearning.appliedEventIds[loser.playerId]?.length ?? 0,
+        learnedBefore + 1,
+      );
+      final learnedOnce = jsonEncode(
+        (await loserLearning.load(loser.playerId))?.toJson(),
+      );
+
+      setup.backend.notifyTwice();
+      await _settle();
+      expect(
+        jsonEncode((await loserLearning.load(loser.playerId))?.toJson()),
+        learnedOnce,
+      );
+      await expectLater(
+        (setup.backend.repository(loser.playerId)
+                as NetworkNegotiationRepository)
+            .submitNegotiationProposal(
+              command: _command(
+                'repropose-consumed',
+                loser.playerId,
+                'NEGOTIATION_PROPOSAL',
+                setup.backend.round.id,
+              ),
+              offer: NetworkNegotiationOfferDto(
+                inversionRequested: false,
+                directPa: 0,
+                cards: [
+                  NetworkCompromiseCardDto(
+                    occurrenceId: offered.identity,
+                    cardId: offered.id,
+                    variantId: offered.variant.id,
+                    ownerPlayerId: loser.playerId,
+                    nativeDirection: NetworkCardDirection.GENERAL,
+                    effectiveDirection: NetworkCardDirection.GENERAL,
+                    origin: NetworkCompromiseOrigin.AUCTION,
+                    snapshotValue: offered.personalValue,
+                  ),
+                ],
+              ),
+            ),
+        throwsA(isA<NetworkRoundException>()),
+      );
+
+      final reconnected = _controller(
+        setup.backend,
+        session,
+        catalog,
+        loser.playerId,
+        loserSecrets,
+        learningStore: loserLearning,
+      );
+      addTearDown(reconnected.dispose);
+      await reconnected.start();
+      await _settle();
+      expect(
+        reconnected.runtime
+            .singleWhere((card) => card.occurrenceId == offered.identity)
+            .zone,
+        CardZone.EXHAUSTED,
+      );
+      expect(
+        jsonEncode((await loserLearning.load(loser.playerId))?.toJson()),
+        learnedOnce,
+      );
+    },
+  );
+
+  test('migration persists and rejects consumed compromise occurrences', () {
+    final sql = File(
+      'supabase/migrations/202610100007_consume_accepted_compromise_occurrences.sql',
+    ).readAsStringSync();
+    expect(sql, contains('v4_consumed_occurrences jsonb'));
+    expect(sql, contains("old.phase='FINAL_RESOLVED'"));
+    expect(sql, contains("new.phase='WAITING_NEXT'"));
+    expect(sql, contains("value->>'origin'='AUCTION'"));
+    expect(sql, contains('game.v4_consumed_occurrences'));
+    expect(sql, contains("raise exception 'ROUND_CORRUPTION_FORBIDDEN'"));
+    expect(sql, contains("then '{}'::jsonb"));
+  });
+
   test('public round DTO removes opponent values and compromise snapshots', () {
     final opponentReveal = ChoiceRevealDto(
       sessionRound: 'session-multi.round-1',
@@ -2512,21 +2721,30 @@ List<CardRuntimeState> _handStates(Catalog catalog) => [
       ),
 ];
 
-Future<_Setup> _setup(LobbySession session, Catalog catalog) async {
+Future<_Setup> _setup(
+  LobbySession session,
+  Catalog catalog, {
+  NetworkDuelSecretStore? aliceSecrets,
+  NetworkDuelSecretStore? bobSecrets,
+  NetworkProfileLearningStore? aliceLearning,
+  NetworkProfileLearningStore? bobLearning,
+}) async {
   final backend = _Backend();
   final alice = _controller(
     backend,
     session,
     catalog,
     'alice',
-    MemoryNetworkDuelSecretStore(),
+    aliceSecrets ?? MemoryNetworkDuelSecretStore(),
+    learningStore: aliceLearning,
   );
   final bob = _controller(
     backend,
     session,
     catalog,
     'bob',
-    MemoryNetworkDuelSecretStore(),
+    bobSecrets ?? MemoryNetworkDuelSecretStore(),
+    learningStore: bobLearning,
   );
   await Future.wait([alice.start(), bob.start()]);
   return _Setup(backend, alice, bob);
@@ -2537,13 +2755,14 @@ NetworkGameController _controller(
   LobbySession session,
   Catalog catalog,
   String playerId,
-  NetworkDuelSecretStore store,
-) => NetworkGameController(
+  NetworkDuelSecretStore store, {
+  NetworkProfileLearningStore? learningStore,
+}) => NetworkGameController(
   session: session,
   playerId: playerId,
   repository: backend.repository(playerId),
   privateStore: store,
-  learningStore: MemoryNetworkProfileLearningStore(),
+  learningStore: learningStore ?? MemoryNetworkProfileLearningStore(),
   catalog: catalog,
   nonceFactory: () => 'nonce-$playerId-${backend.currentRound}',
   clock: () => DateTime.utc(2026, 9, 30, 12, backend.currentRound),
@@ -2725,6 +2944,7 @@ final class _RoundRecord {
   NetworkAuctionBidDto? counter;
   NetworkAuctionBidDto? defense;
   NetworkFinalResolutionDto? finalResolution;
+  NetworkNegotiationDto? negotiation;
   NetworkResolvedActionProjectionDto? actionProjection;
   NetworkCorruptionDto? corruption;
   final recoveries = <String, NetworkRecoveryDto>{};
@@ -2738,6 +2958,10 @@ final class _Backend {
   final rounds = <int, _RoundRecord>{1: _RoundRecord(1)};
   final points = <String, int>{'alice': 100, 'bob': 100};
   final commands = <String>{};
+  final consumedCompromiseOccurrences = <String, Set<String>>{
+    'alice': <String>{},
+    'bob': <String>{},
+  };
   final changes = StreamController<void>.broadcast();
   int currentRound = 1;
   int roundCreations = 1;
@@ -2746,6 +2970,7 @@ final class _Backend {
   int defenseApplications = 0;
   bool cycleExhausted = false;
   bool redactOpponentReveal = false;
+  bool routeToUnifiedPostDuelChoice = false;
   int v4UnlockedSpice = 1;
   HybridDeckOrientation hybridOrientation = HybridDeckOrientation.faceToFace;
 
@@ -2768,6 +2993,7 @@ final class _Backend {
     tieDecisions: round.ties,
     hybridOrientation: hybridOrientation,
     v4UnlockedSpice: v4UnlockedSpice,
+    v4ConsumedOccurrenceIds: consumedCompromiseOccurrences[player],
     cycleExhausted: cycleExhausted,
     actionProjection: round.actionProjection,
     ownReveal: round.reveals[player],
@@ -2781,6 +3007,7 @@ final class _Backend {
     counterBid: round.counter,
     finalDefense: round.defense,
     finalResolution: round.finalResolution,
+    negotiation: round.negotiation,
     corruption: round.corruption,
     recoveryByPlayer: round.recoveries,
     recoveryDonePlayerIds: round.recoveryDone,
@@ -2799,6 +3026,7 @@ final class _Backend {
 class _Repository
     implements
         NetworkGameRepository,
+        NetworkNegotiationRepository,
         NetworkSessionFlowRepository,
         NetworkCommitCancellationRepository,
         NetworkSessionClosureRepository {
@@ -2864,6 +3092,71 @@ class _Repository
     _notify();
     return backend.state(player);
   }
+
+  @override
+  Future<NetworkGameRoundStateDto> submitNegotiationProposal({
+    required NetworkCommandDto command,
+    required NetworkNegotiationOfferDto offer,
+  }) async {
+    if (!_accept(command)) return backend.state(player);
+    if (backend.phase != NetworkGamePhase.corruptionDecision ||
+        offer.cards.any(
+          (card) => backend.consumedCompromiseOccurrences[player]!.contains(
+            card.occurrenceId,
+          ),
+        )) {
+      throw const NetworkRoundException('ROUND_NEGOTIATION_INVALID');
+    }
+    backend.round.negotiation = NetworkNegotiationDto(proposal: offer);
+    backend.round.phase = NetworkGamePhase.negotiationResponse;
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> respondNegotiation({
+    required NetworkCommandDto command,
+    required NetworkNegotiationResponseDto response,
+  }) async {
+    if (!_accept(command)) return backend.state(player);
+    if (backend.phase != NetworkGamePhase.negotiationResponse) {
+      throw const NetworkRoundException('ROUND_INVALID_PHASE');
+    }
+    final negotiation = backend.round.negotiation!;
+    final offer = negotiation.proposal!;
+    backend.round.negotiation = NetworkNegotiationDto(
+      proposal: offer,
+      response: response,
+      finalOffer: response.accepted ? offer : null,
+    );
+    if (response.accepted) {
+      final previous = backend.round.finalResolution!;
+      backend.round.finalResolution = NetworkFinalResolutionDto(
+        retainedPlayerId: offer.cards.first.ownerPlayerId,
+        initialWinnerPlayerId: previous.initialWinnerPlayerId,
+        finalWinnerPlayerId: previous.finalWinnerPlayerId,
+        cardId: offer.cards.first.cardId,
+        variantId: offer.cards.first.variantId,
+        inverted: offer.inversionRequested,
+        compromise: offer.cards,
+      );
+    }
+    backend.round.phase = NetworkGamePhase.finalResolved;
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> adaptNegotiation({
+    required NetworkCommandDto command,
+    required NetworkNegotiationOfferDto offer,
+  }) async => throw UnimplementedError('Legacy test flow is not exercised');
+
+  @override
+  Future<NetworkGameRoundStateDto> validateNegotiation({
+    required NetworkCommandDto command,
+    required bool accepted,
+  }) async => throw UnimplementedError('Legacy test flow is not exercised');
 
   @override
   Future<NetworkGameRoundStateDto> submitCommit({
@@ -2977,7 +3270,9 @@ class _Repository
         initial.winnerPlayerId!,
         initial.winnerPlayerId!,
       );
-      backend.round.phase = NetworkGamePhase.finalResolved;
+      backend.round.phase = backend.routeToUnifiedPostDuelChoice
+          ? NetworkGamePhase.corruptionDecision
+          : NetworkGamePhase.finalResolved;
     } else {
       if (amount == null || amount <= 0 || amount > backend.points[player]!) {
         throw const NetworkRoundException('ROUND_INVALID_BID');
@@ -3296,6 +3591,16 @@ class _Repository
                 action.copyWith(status: ActionExecutionStatus.COMPLETED),
             ],
           );
+        }
+        final negotiation = backend.round.negotiation;
+        if (negotiation?.response?.accepted == true) {
+          for (final card in backend.round.finalResolution!.compromise.where(
+            (card) => card.origin == NetworkCompromiseOrigin.AUCTION,
+          )) {
+            backend.consumedCompromiseOccurrences[card.ownerPlayerId]!.add(
+              card.occurrenceId,
+            );
+          }
         }
         backend.round.phase = NetworkGamePhase.waitingNext;
       }
