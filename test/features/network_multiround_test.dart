@@ -605,6 +605,129 @@ void main() {
     expect(backend.currentRound, 1);
   });
 
+  test('player 2 advances after player 1 completed and disconnected', () async {
+    final setup = await _setup(session, catalog);
+    await _playUnequal(setup);
+    final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+    await loser.acceptInitialResult();
+    await _settle();
+
+    await setup.alice.completeAction();
+    await _settle();
+    expect(setup.backend.round.ready, {'alice'});
+    setup.alice.dispose();
+
+    await setup.bob.completeAction();
+    await _settle();
+
+    expect(setup.backend.currentRound, 2);
+    expect(setup.backend.roundCreations, 2);
+    expect(setup.bob.roundNumber, 2);
+    expect(setup.bob.viewState, NetworkGameViewState.choosing);
+    setup.bob.dispose();
+  });
+
+  test('concurrent next-round requests create one canonical round', () async {
+    final backend = _Backend();
+    backend.round
+      ..phase = NetworkGamePhase.waitingNext
+      ..ready.addAll(const {'alice', 'bob'});
+    final oldRoundId = backend.round.id;
+    final results = await Future.wait([
+      backend
+          .repository('alice')
+          .readyNextRound(
+            command: _command(
+              'start-alice',
+              'alice',
+              'START_NEXT_ROUND',
+              oldRoundId,
+            ),
+          ),
+      backend
+          .repository('bob')
+          .readyNextRound(
+            command: _command(
+              'start-bob',
+              'bob',
+              'START_NEXT_ROUND',
+              oldRoundId,
+            ),
+          ),
+    ]);
+
+    expect(backend.currentRound, 2);
+    expect(backend.roundCreations, 2);
+    expect(results.map((state) => state.roundId).toSet(), {'round-2'});
+  });
+
+  test('retry after next-round creation returns the canonical round', () async {
+    final backend = _Backend();
+    backend.round
+      ..phase = NetworkGamePhase.waitingNext
+      ..ready.addAll(const {'alice', 'bob'});
+    final oldRoundId = backend.round.id;
+    final repository = backend.repository('bob');
+    final command = _command(
+      'start-bob',
+      'bob',
+      'START_NEXT_ROUND',
+      oldRoundId,
+    );
+
+    final created = await repository.readyNextRound(command: command);
+    final retried = await repository.readyNextRound(command: command);
+
+    expect(created.roundId, 'round-2');
+    expect(retried.roundId, created.roundId);
+    expect(backend.roundCreations, 2);
+  });
+
+  test('player 1 spice publication survives player 2 advancement', () async {
+    final backend = _Backend();
+    backend.round
+      ..phase = NetworkGamePhase.waitingNext
+      ..ready.addAll(const {'alice', 'bob'});
+    final oldRoundId = backend.round.id;
+
+    await backend
+        .repository('bob')
+        .readyNextRound(
+          command: _command('start-bob', 'bob', 'START_NEXT_ROUND', oldRoundId),
+        );
+    final published =
+        await (backend.repository('alice') as NetworkSessionFlowRepository)
+            .publishUnlockedSpice(
+              command: _command(
+                'spice-alice',
+                'alice',
+                'PUBLISH_V4_SPICE',
+                oldRoundId,
+              ),
+              unlockedSpice: 2,
+            );
+
+    expect(backend.currentRound, 2);
+    expect(backend.v4UnlockedSpice, 2);
+    expect(published.roundId, 'round-2');
+    expect(published.v4UnlockedSpice, 2);
+  });
+
+  test('next-round migration accepts a concurrent caller after close', () {
+    final sql = File(
+      'supabase/migrations/'
+      '202610100009_player_independent_next_round.sql',
+    ).readAsStringSync();
+
+    expect(sql, contains("v_round.phase = 'CLOSED'"));
+    expect(sql, contains('state.current_round_number > v_round.round_number'));
+    expect(sql, contains('return public.get_current_network_game_round'));
+    expect(sql, contains('pg_advisory_xact_lock'));
+    expect(sql, contains('on conflict (session_id, round_number) do nothing'));
+    expect(sql, contains('publish_network_v4_unlocked_spice'));
+    expect(sql, contains('state.current_round_number=v_round.round_number+1'));
+  });
+
   test('private state round-trips hand, lock, history and active secret', () {
     final reveal = ChoiceRevealDto(
       sessionRound: 'session-multi.round-1',
@@ -2958,6 +3081,7 @@ final class _Backend {
   final rounds = <int, _RoundRecord>{1: _RoundRecord(1)};
   final points = <String, int>{'alice': 100, 'bob': 100};
   final commands = <String>{};
+  final closedRoundIds = <String>{};
   final consumedCompromiseOccurrences = <String, Set<String>>{
     'alice': <String>{},
     'bob': <String>{},
@@ -3079,9 +3203,15 @@ class _Repository
     if (backend.commands.contains(command.commandId)) {
       return backend.state(player);
     }
-    if (backend.phase != NetworkGamePhase.waitingNext ||
+    final commandRoundId = command.payload['round_id'];
+    final validBoundary =
+        backend.phase == NetworkGamePhase.waitingNext ||
+        (commandRoundId is String &&
+            backend.closedRoundIds.contains(commandRoundId));
+    if (!validBoundary ||
         player != 'alice' ||
-        backend.round.ready.length != 2 ||
+        (backend.phase == NetworkGamePhase.waitingNext &&
+            backend.round.ready.length != 2) ||
         unlockedSpice < 1 ||
         unlockedSpice > 4 ||
         unlockedSpice != backend.v4UnlockedSpice + 1) {
@@ -3568,6 +3698,11 @@ class _Repository
     int? clothingCount,
   }) async {
     if (!_accept(command)) return backend.state(player);
+    final commandRoundId = command.payload['round_id'];
+    if (commandRoundId is String &&
+        backend.closedRoundIds.contains(commandRoundId)) {
+      return backend.state(player);
+    }
     if (backend.phase != NetworkGamePhase.finalResolved &&
         backend.phase != NetworkGamePhase.waitingNext) {
       throw const NetworkRoundException('ROUND_INVALID_PHASE');
@@ -3605,6 +3740,7 @@ class _Repository
         backend.round.phase = NetworkGamePhase.waitingNext;
       }
     } else {
+      backend.closedRoundIds.add(backend.round.id);
       backend.round.phase = NetworkGamePhase.closed;
       backend.currentRound++;
       backend.rounds.putIfAbsent(backend.currentRound, () {

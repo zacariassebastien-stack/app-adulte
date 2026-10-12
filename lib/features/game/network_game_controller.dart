@@ -1159,7 +1159,6 @@ final class NetworkGameController extends ChangeNotifier {
     }
     try {
       final atBoundary = viewState == NetworkGameViewState.waitingNext;
-      if (atBoundary && !isCycleController) return;
       if (atBoundary && !canStartNextRound) return;
       if (atBoundary) {
         await _startNextRoundAutomatically();
@@ -1375,7 +1374,7 @@ final class NetworkGameController extends ChangeNotifier {
         }
         viewState = NetworkGameViewState.waitingNext;
         notifyListeners();
-        if (isCycleController && canStartNextRound) {
+        if (canStartNextRound) {
           await _startNextRoundAutomatically();
         }
         return;
@@ -1396,16 +1395,31 @@ final class NetworkGameController extends ChangeNotifier {
   Future<void> _startNextRoundAutomatically() async {
     if (_startingNextRound ||
         viewState != NetworkGameViewState.waitingNext ||
-        !isCycleController ||
         !canStartNextRound) {
       return;
     }
     _startingNextRound = true;
     try {
+      final boundaryRoundId = round!.roundId;
+      final boundaryRoundNumber = roundNumber;
       await _prepareNextRound();
-      await _publishCanonicalSpiceIfNeeded();
+      if (isCycleController) {
+        await _publishCanonicalSpiceIfNeeded(
+          roundId: boundaryRoundId,
+          roundNumber: boundaryRoundNumber,
+        );
+      }
+      if (round?.roundId != boundaryRoundId) {
+        return;
+      }
       await _apply(
-        await repository.readyNextRound(command: _command('START_NEXT_ROUND')),
+        await repository.readyNextRound(
+          command: _command(
+            'START_NEXT_ROUND',
+            roundId: boundaryRoundId,
+            roundNumber: boundaryRoundNumber,
+          ),
+        ),
       );
     } catch (error) {
       _fail(error);
@@ -2790,7 +2804,10 @@ final class NetworkGameController extends ChangeNotifier {
     unlockedLevel: _canonicalUnlockedSpice,
   );
 
-  Future<void> _publishCanonicalSpiceIfNeeded() async {
+  Future<void> _publishCanonicalSpiceIfNeeded({
+    required String roundId,
+    required int roundNumber,
+  }) async {
     if (repository is! NetworkSessionFlowRepository || !isCycleController) {
       return;
     }
@@ -2800,7 +2817,11 @@ final class NetworkGameController extends ChangeNotifier {
       final before = _canonicalUnlockedSpice;
       await _apply(
         await flow.publishUnlockedSpice(
-          command: _command('PUBLISH_V4_SPICE_$next'),
+          command: _command(
+            'PUBLISH_V4_SPICE_$next',
+            roundId: roundId,
+            roundNumber: roundNumber,
+          ),
           unlockedSpice: next,
         ),
       );
