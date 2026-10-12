@@ -3,6 +3,7 @@
 -- caller observing the old round already closed receives the canonical round.
 drop function if exists public.ready_network_next_round(uuid, uuid, uuid, text);
 drop function if exists public.ready_network_next_round(uuid, uuid, uuid, text, boolean);
+drop function if exists public.ready_network_next_round(uuid, uuid, uuid, text, boolean, integer);
 create function public.ready_network_next_round(
   p_session_id uuid,
   p_round_id uuid,
