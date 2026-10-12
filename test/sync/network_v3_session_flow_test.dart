@@ -586,6 +586,62 @@ void main() {
     );
   });
 
+  test('auction compromise persists only server-canonical card data', () {
+    final canonicalization = File(
+      'supabase/migrations/202610100008_canonicalize_auction_compromise.sql',
+    ).readAsStringSync();
+    final canonicalSource = File(
+      'supabase/migrations/202610100007_consume_accepted_compromise_occurrences.sql',
+    ).readAsStringSync();
+    final response = File(
+      'supabase/migrations/202610100006_preserve_duel_winner_after_compromise.sql',
+    ).readAsStringSync();
+
+    final reconstruction = canonicalization.indexOf(
+      'v_compromise:=public.v4_corruption_compromise',
+    );
+    final canonicalOffer =
+        RegExp(
+          r"v_canonical_offer:=jsonb_set\(\s*p_offer,'\{cards\}',v_compromise,true",
+        ).firstMatch(canonicalization)?.start ??
+        -1;
+    final persistence = canonicalization.indexOf(
+      "'proposal',v_canonical_offer",
+    );
+    expect(reconstruction, greaterThanOrEqualTo(0));
+    expect(canonicalOffer, greaterThan(reconstruction));
+    expect(persistence, greaterThan(canonicalOffer));
+    expect(
+      canonicalization,
+      contains("card||jsonb_build_object('origin','AUCTION')"),
+    );
+    expect(canonicalization, isNot(contains("'proposal',p_offer")));
+    for (final serverDerivedField in [
+      "'card_id',v_choice->>'card_id'",
+      "'variant_id',v_choice->>'variant_id'",
+      "'owner_player_id',p_player_id",
+      "'native_direction',v_native_direction",
+      "'effective_direction',v_effective_direction",
+      "'snapshot_value',0",
+      "'resolved_parameters',v_parameters",
+      "'effective_spice',v_effective_spice",
+    ]) {
+      expect(canonicalSource, contains(serverDerivedField));
+    }
+
+    // The original payload can contain forged card/variant/direction,
+    // parameters, spice or snapshot fields. It remains only as the private
+    // idempotency command payload; the response consumes the canonical offer.
+    expect(canonicalization, contains("'NEGOTIATION_PROPOSAL',p_offer"));
+    expect(response, contains("v_offer:=v_round.negotiation->'proposal'"));
+    expect(
+      response,
+      contains(
+        "v_cards:=jsonb_build_array(v_initial_card)||coalesce(v_offer->'cards','[]'::jsonb)",
+      ),
+    );
+  });
+
   test(
     'final migration persists style and occurrence-aware public actions',
     () {
