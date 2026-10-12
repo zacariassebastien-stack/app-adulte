@@ -224,6 +224,25 @@ final class SupabaseNetworkGameRepository
   );
 
   @override
+  Future<NetworkGameRoundStateDto> reportHybridAvailability({
+    required NetworkCommandDto command,
+    required NetworkHybridAvailabilityDto availability,
+    required int generation,
+  }) => _rpc(
+    'report_network_hybrid_availability',
+    command,
+    extra: {
+      'p_orientation':
+          availability.orientation == HybridDeckOrientation.faceToFace
+          ? 'FACE_TO_FACE'
+          : 'DISTANCE',
+      'p_generation': generation,
+      'p_has_playable_current': availability.hasPlayableCurrentOrientation,
+      'p_has_playable_alternate': availability.hasPlayableAlternateOrientation,
+    },
+  );
+
+  @override
   Future<NetworkGameRoundStateDto> continueDeckCycle({
     required NetworkCommandDto command,
     required DeckExhaustionChoice choice,
@@ -393,12 +412,14 @@ final class SupabaseNetworkGameRepository
   Future<NetworkGameRoundStateDto> readyNextRound({
     required NetworkCommandDto command,
     bool noPlayableOccurrences = false,
+    bool hasPlayableAlternateOrientation = false,
     int? clothingCount,
   }) => _rpc(
     'ready_network_next_round',
     command,
     extra: {
       'p_no_playable_occurrences': noPlayableOccurrences,
+      'p_has_playable_alternate': hasPlayableAlternateOrientation,
       'p_clothing_count': clothingCount,
     },
   );

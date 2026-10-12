@@ -1447,7 +1447,19 @@ void main() {
         presence: V4SessionPresence.presentiel,
       ),
     );
-    final backend = _Backend()..round.phase = NetworkGamePhase.waitingNext;
+    final backend = _Backend()
+      ..hybridMode = true
+      ..hybridAvailabilityOrientation = HybridDeckOrientation.faceToFace
+      ..hybridAvailabilityGeneration = 1
+      ..hybridAvailability.addAll({
+        for (final player in const ['alice', 'bob'])
+          player: const NetworkHybridAvailabilityDto(
+            orientation: HybridDeckOrientation.faceToFace,
+            hasPlayableCurrentOrientation: false,
+            hasPlayableAlternateOrientation: true,
+          ),
+      })
+      ..round.phase = NetworkGamePhase.waitingNext;
     final controller = NetworkGameController(
       session: session,
       playerId: 'alice',
@@ -1594,6 +1606,336 @@ void main() {
     expect(backend.cycleExhausted, isFalse);
     expect(alice.hand, hasLength(4));
     expect(bob.hand, hasLength(4));
+  });
+
+  test('hybrid switch waits for both matching playable reports', () async {
+    final backend = _Backend()
+      ..hybridMode = true
+      ..round.phase = NetworkGamePhase.waitingNext;
+    final alice = backend.repository('alice') as NetworkSessionFlowRepository;
+    final bob = backend.repository('bob') as NetworkSessionFlowRepository;
+
+    final switched = await alice.setHybridOrientation(
+      command: _command(
+        'switch-distance',
+        'alice',
+        'SET_ORIENTATION',
+        backend.round.id,
+      ),
+      orientation: HybridDeckOrientation.distance,
+    );
+    expect(switched.hybridAvailabilityByPlayer, isEmpty);
+
+    await alice.reportHybridAvailability(
+      command: _command(
+        'report-alice-distance',
+        'alice',
+        'REPORT_HYBRID_AVAILABILITY',
+        backend.round.id,
+      ),
+      availability: const NetworkHybridAvailabilityDto(
+        orientation: HybridDeckOrientation.distance,
+        hasPlayableCurrentOrientation: true,
+        hasPlayableAlternateOrientation: true,
+      ),
+      generation: backend.hybridAvailabilityGeneration,
+    );
+    await expectLater(
+      backend
+          .repository('alice')
+          .readyNextRound(
+            command: _command(
+              'start-before-bob',
+              'alice',
+              'START_NEXT_ROUND',
+              backend.round.id,
+            ),
+          ),
+      throwsA(
+        isA<NetworkRoundException>().having(
+          (error) => error.code,
+          'code',
+          'ROUND_HYBRID_AVAILABILITY_PENDING',
+        ),
+      ),
+    );
+    expect(backend.currentRound, 1);
+
+    await bob.reportHybridAvailability(
+      command: _command(
+        'report-bob-distance',
+        'bob',
+        'REPORT_HYBRID_AVAILABILITY',
+        backend.round.id,
+      ),
+      availability: const NetworkHybridAvailabilityDto(
+        orientation: HybridDeckOrientation.distance,
+        hasPlayableCurrentOrientation: true,
+        hasPlayableAlternateOrientation: false,
+      ),
+      generation: backend.hybridAvailabilityGeneration,
+    );
+    final next = await backend
+        .repository('bob')
+        .readyNextRound(
+          command: _command(
+            'start-after-bob',
+            'bob',
+            'START_NEXT_ROUND',
+            backend.round.id,
+          ),
+        );
+
+    expect(next.roundNumber, 2);
+    expect(backend.roundCreations, 2);
+  });
+
+  test('hybrid availability rejects a stale orientation report', () async {
+    final backend = _Backend()
+      ..hybridMode = true
+      ..round.phase = NetworkGamePhase.waitingNext;
+    final alice = backend.repository('alice') as NetworkSessionFlowRepository;
+    await alice.setHybridOrientation(
+      command: _command(
+        'switch-distance-stale',
+        'alice',
+        'SET_ORIENTATION',
+        backend.round.id,
+      ),
+      orientation: HybridDeckOrientation.distance,
+    );
+
+    await expectLater(
+      alice.reportHybridAvailability(
+        command: _command(
+          'stale-face-report',
+          'alice',
+          'REPORT_HYBRID_AVAILABILITY',
+          backend.round.id,
+        ),
+        availability: const NetworkHybridAvailabilityDto(
+          orientation: HybridDeckOrientation.faceToFace,
+          hasPlayableCurrentOrientation: true,
+          hasPlayableAlternateOrientation: true,
+        ),
+        generation: backend.hybridAvailabilityGeneration,
+      ),
+      throwsA(
+        isA<NetworkRoundException>().having(
+          (error) => error.code,
+          'code',
+          'ROUND_HYBRID_ORIENTATION_STALE',
+        ),
+      ),
+    );
+    expect(backend.hybridAvailability, isEmpty);
+  });
+
+  test(
+    'hybrid availability distinguishes switch from exhausted cycle',
+    () async {
+      Future<_Backend> report({required bool alternate}) async {
+        final backend = _Backend()
+          ..hybridMode = true
+          ..hybridOrientation = HybridDeckOrientation.distance
+          ..hybridAvailabilityOrientation = HybridDeckOrientation.distance
+          ..hybridAvailabilityGeneration = 1
+          ..round.phase = NetworkGamePhase.waitingNext;
+        await (backend.repository('alice') as NetworkSessionFlowRepository)
+            .reportHybridAvailability(
+              command: _command(
+                'availability-$alternate',
+                'alice',
+                'REPORT_HYBRID_AVAILABILITY',
+                backend.round.id,
+              ),
+              availability: NetworkHybridAvailabilityDto(
+                orientation: HybridDeckOrientation.distance,
+                hasPlayableCurrentOrientation: false,
+                hasPlayableAlternateOrientation: alternate,
+              ),
+              generation: 1,
+            );
+        return backend;
+      }
+
+      final switchable = await report(alternate: true);
+      expect(switchable.cycleExhausted, isFalse);
+      final exhausted = await report(alternate: false);
+      expect(exhausted.cycleExhausted, isTrue);
+    },
+  );
+
+  test('late hybrid client rebuilds and reports before progression', () async {
+    final bothCards = _cardIdsForPresence(
+      catalog,
+      V4PresenceCompatibility.both,
+    ).take(6).toSet();
+    final focusedCatalog = _catalogWithCards(catalog, bothCards);
+    final backend = _Backend()
+      ..hybridMode = true
+      ..hybridOrientation = HybridDeckOrientation.distance
+      ..hybridAvailabilityOrientation = HybridDeckOrientation.distance
+      ..hybridAvailabilityGeneration = 1
+      ..round.phase = NetworkGamePhase.waitingNext;
+    final alice = NetworkGameController(
+      session: session,
+      playerId: 'alice',
+      repository: backend.repository('alice'),
+      privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: focusedCatalog,
+      sessionMode: V4SessionMode.hybrid,
+    );
+    addTearDown(alice.dispose);
+    await alice.start();
+    await _settle();
+
+    expect(backend.currentRound, 1);
+    expect(backend.hybridAvailability.keys, {'alice'});
+
+    final bobStore = MemoryNetworkDuelSecretStore();
+    await bobStore.saveGame(
+      sessionId: session.id,
+      playerId: 'bob',
+      state: NetworkPrivateGameState(
+        roundNumber: 1,
+        cards: _handStates(focusedCatalog).take(2).toList(),
+        history: const {},
+        sessionMode: V4SessionMode.hybrid,
+        presence: V4SessionPresence.presentiel,
+      ),
+    );
+    final bob = NetworkGameController(
+      session: session,
+      playerId: 'bob',
+      repository: backend.repository('bob'),
+      privateStore: bobStore,
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: focusedCatalog,
+      sessionMode: V4SessionMode.hybrid,
+    );
+    addTearDown(bob.dispose);
+    await bob.start();
+    await _settle();
+
+    expect(bob.presence, V4SessionPresence.distance);
+    expect(bob.hand, hasLength(4));
+    expect(backend.currentRound, 2);
+    expect(backend.roundCreations, 2);
+  });
+
+  test('hybrid rebuild guards a full but unplayable retained hand', () async {
+    final bothCards = _cardIdsForPresence(
+      catalog,
+      V4PresenceCompatibility.both,
+    ).take(6).toSet();
+    final focusedCatalog = _catalogWithCards(catalog, bothCards);
+    final savedHand = _handStates(focusedCatalog).take(4).toList();
+    final savedIds = savedHand.map((card) => card.occurrenceId).toSet();
+    final store = MemoryNetworkDuelSecretStore();
+    await store.saveGame(
+      sessionId: session.id,
+      playerId: 'alice',
+      state: NetworkPrivateGameState(
+        roundNumber: 1,
+        cards: savedHand,
+        history: const {},
+        sessionMode: V4SessionMode.hybrid,
+        // The cached orientation already matches the canonical one. The new
+        // generation must still force a rebuild before availability is sent.
+        presence: V4SessionPresence.distance,
+        resolvedParameters: {
+          for (final card in savedHand)
+            card.occurrenceId: const V4ResolvedParameters(
+              zoneSelectionSource: V4ZoneSelectionSource.game,
+              sexualOrIntimateZone: true,
+              zoneId: 'zone.intime',
+            ),
+        },
+      ),
+    );
+    final backend = _Backend()
+      ..hybridMode = true
+      ..hybridOrientation = HybridDeckOrientation.distance
+      ..hybridAvailabilityOrientation = HybridDeckOrientation.distance
+      ..hybridAvailabilityGeneration = 1
+      ..round.phase = NetworkGamePhase.waitingNext;
+    final controller = NetworkGameController(
+      session: session,
+      playerId: 'alice',
+      repository: backend.repository('alice'),
+      privateStore: store,
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: focusedCatalog,
+      sessionMode: V4SessionMode.hybrid,
+    );
+    addTearDown(controller.dispose);
+    await controller.start();
+    await _settle();
+
+    expect(controller.hand, hasLength(4));
+    expect(controller.hand.where(controller.isCardPlayable), isNotEmpty);
+    expect(
+      savedIds.where(
+        (id) => controller.hand.any((card) => card.identity == id),
+      ),
+      hasLength(3),
+    );
+  });
+
+  test('hybrid availability retries are idempotent', () async {
+    final backend = _Backend()
+      ..hybridMode = true
+      ..hybridOrientation = HybridDeckOrientation.distance
+      ..hybridAvailabilityOrientation = HybridDeckOrientation.distance
+      ..hybridAvailabilityGeneration = 1
+      ..round.phase = NetworkGamePhase.waitingNext;
+    final repository =
+        backend.repository('alice') as NetworkSessionFlowRepository;
+    final command = _command(
+      'same-availability-report',
+      'alice',
+      'REPORT_HYBRID_AVAILABILITY',
+      backend.round.id,
+    );
+    const availability = NetworkHybridAvailabilityDto(
+      orientation: HybridDeckOrientation.distance,
+      hasPlayableCurrentOrientation: true,
+      hasPlayableAlternateOrientation: false,
+    );
+
+    await repository.reportHybridAvailability(
+      command: command,
+      availability: availability,
+      generation: 1,
+    );
+    await repository.reportHybridAvailability(
+      command: command,
+      availability: availability,
+      generation: 1,
+    );
+
+    expect(backend.hybridAvailability, hasLength(1));
+    expect(backend.currentRound, 1);
+  });
+
+  test('hybrid readiness migration enforces the canonical barrier', () {
+    final sql = File(
+      'supabase/migrations/'
+      '202610100010_hybrid_orientation_readiness.sql',
+    ).readAsStringSync();
+
+    expect(sql, contains('hybrid_availability_generation'));
+    expect(sql, contains('report_network_hybrid_availability'));
+    expect(sql, contains("raise exception 'ROUND_HYBRID_ORIENTATION_STALE'"));
+    expect(
+      sql,
+      contains("raise exception 'ROUND_HYBRID_AVAILABILITY_PENDING'"),
+    );
+    expect(sql, contains("raise exception 'ROUND_HYBRID_SWITCH_REQUIRED'"));
+    expect(sql, contains('p_has_playable_alternate'));
+    expect(sql, contains("set cycle_exhausted=exists("));
   });
 
   test('network boundary SQL waits for both player reports', () {
@@ -3095,8 +3437,12 @@ final class _Backend {
   bool cycleExhausted = false;
   bool redactOpponentReveal = false;
   bool routeToUnifiedPostDuelChoice = false;
+  bool hybridMode = false;
   int v4UnlockedSpice = 1;
   HybridDeckOrientation hybridOrientation = HybridDeckOrientation.faceToFace;
+  HybridDeckOrientation? hybridAvailabilityOrientation;
+  int hybridAvailabilityGeneration = 0;
+  final hybridAvailability = <String, NetworkHybridAvailabilityDto>{};
 
   _RoundRecord get round => rounds[currentRound]!;
   NetworkGamePhase get phase => round.phase;
@@ -3116,6 +3462,9 @@ final class _Backend {
     readyNextPlayerIds: round.ready,
     tieDecisions: round.ties,
     hybridOrientation: hybridOrientation,
+    hybridAvailabilityOrientation: hybridAvailabilityOrientation,
+    hybridAvailabilityGeneration: hybridAvailabilityGeneration,
+    hybridAvailabilityByPlayer: hybridAvailability,
     v4UnlockedSpice: v4UnlockedSpice,
     v4ConsumedOccurrenceIds: consumedCompromiseOccurrences[player],
     cycleExhausted: cycleExhausted,
@@ -3181,10 +3530,45 @@ class _Repository
     required HybridDeckOrientation orientation,
   }) async {
     if (_accept(command)) {
+      backend.hybridMode = true;
       backend.hybridOrientation = orientation;
       backend.cycleExhausted = false;
+      backend.hybridAvailabilityOrientation = orientation;
+      backend.hybridAvailabilityGeneration++;
+      backend.hybridAvailability.clear();
       _notify();
     }
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> reportHybridAvailability({
+    required NetworkCommandDto command,
+    required NetworkHybridAvailabilityDto availability,
+    required int generation,
+  }) async {
+    if (backend.commands.contains(command.commandId)) {
+      return backend.state(player);
+    }
+    if (backend.phase != NetworkGamePhase.waitingNext ||
+        backend.hybridAvailabilityOrientation != availability.orientation ||
+        backend.hybridOrientation != availability.orientation ||
+        backend.hybridAvailabilityGeneration != generation) {
+      throw const NetworkRoundException('ROUND_HYBRID_ORIENTATION_STALE');
+    }
+    final previous = backend.hybridAvailability[player];
+    if (previous != null &&
+        previous.toJson().toString() != availability.toJson().toString()) {
+      throw const NetworkRoundException('ROUND_HYBRID_AVAILABILITY_CONFLICT');
+    }
+    backend.commands.add(command.commandId);
+    backend.hybridAvailability[player] = availability;
+    backend.cycleExhausted = backend.hybridAvailability.values.any(
+      (report) =>
+          !report.hasPlayableCurrentOrientation &&
+          !report.hasPlayableAlternateOrientation,
+    );
+    _notify();
     return backend.state(player);
   }
 
@@ -3695,9 +4079,12 @@ class _Repository
   Future<NetworkGameRoundStateDto> readyNextRound({
     required NetworkCommandDto command,
     bool noPlayableOccurrences = false,
+    bool hasPlayableAlternateOrientation = false,
     int? clothingCount,
   }) async {
-    if (!_accept(command)) return backend.state(player);
+    if (backend.commands.contains(command.commandId)) {
+      return backend.state(player);
+    }
     final commandRoundId = command.payload['round_id'];
     if (commandRoundId is String &&
         backend.closedRoundIds.contains(commandRoundId)) {
@@ -3711,7 +4098,22 @@ class _Repository
     if (closesBoundary && backend.cycleExhausted) {
       throw const NetworkRoundException('ROUND_CYCLE_EXHAUSTED');
     }
-    backend.cycleExhausted = backend.cycleExhausted || noPlayableOccurrences;
+    if (!closesBoundary) {
+      backend.commands.add(command.commandId);
+    }
+    if (!closesBoundary && backend.hybridMode) {
+      backend.hybridAvailabilityOrientation ??= backend.hybridOrientation;
+      backend.hybridAvailability[player] = NetworkHybridAvailabilityDto(
+        orientation: backend.hybridOrientation,
+        hasPlayableCurrentOrientation: !noPlayableOccurrences,
+        hasPlayableAlternateOrientation: hasPlayableAlternateOrientation,
+      );
+      if (noPlayableOccurrences && !hasPlayableAlternateOrientation) {
+        backend.cycleExhausted = true;
+      }
+    } else {
+      backend.cycleExhausted = backend.cycleExhausted || noPlayableOccurrences;
+    }
     backend.round.ready.add(player);
     if (!closesBoundary) {
       if (backend.round.ready.length == 2) {
@@ -3740,6 +4142,23 @@ class _Repository
         backend.round.phase = NetworkGamePhase.waitingNext;
       }
     } else {
+      final barrierOrientation = backend.hybridAvailabilityOrientation;
+      if (barrierOrientation != null) {
+        if (backend.hybridAvailability.length != 2 ||
+            backend.hybridAvailability.values.any(
+              (report) => report.orientation != barrierOrientation,
+            )) {
+          throw const NetworkRoundException(
+            'ROUND_HYBRID_AVAILABILITY_PENDING',
+          );
+        }
+        if (backend.hybridAvailability.values.any(
+          (report) => !report.hasPlayableCurrentOrientation,
+        )) {
+          throw const NetworkRoundException('ROUND_HYBRID_SWITCH_REQUIRED');
+        }
+      }
+      backend.commands.add(command.commandId);
       backend.closedRoundIds.add(backend.round.id);
       backend.round.phase = NetworkGamePhase.closed;
       backend.currentRound++;

@@ -636,6 +636,35 @@ final class NetworkFinalResolutionDto {
       );
 }
 
+final class NetworkHybridAvailabilityDto {
+  const NetworkHybridAvailabilityDto({
+    required this.orientation,
+    required this.hasPlayableCurrentOrientation,
+    required this.hasPlayableAlternateOrientation,
+  });
+
+  final HybridDeckOrientation orientation;
+  final bool hasPlayableCurrentOrientation;
+  final bool hasPlayableAlternateOrientation;
+
+  Map<String, Object?> toJson() => {
+    'orientation': orientation == HybridDeckOrientation.faceToFace
+        ? 'FACE_TO_FACE'
+        : 'DISTANCE',
+    'has_playable_current': hasPlayableCurrentOrientation,
+    'has_playable_alternate': hasPlayableAlternateOrientation,
+  };
+
+  factory NetworkHybridAvailabilityDto.fromJson(Map<String, Object?> json) =>
+      NetworkHybridAvailabilityDto(
+        orientation: json['orientation'] == 'DISTANCE'
+            ? HybridDeckOrientation.distance
+            : HybridDeckOrientation.faceToFace,
+        hasPlayableCurrentOrientation: json['has_playable_current'] == true,
+        hasPlayableAlternateOrientation: json['has_playable_alternate'] == true,
+      );
+}
+
 final class NetworkGameRoundStateDto {
   NetworkGameRoundStateDto({
     required this.roundId,
@@ -655,6 +684,9 @@ final class NetworkGameRoundStateDto {
     this.infiniteMode = false,
     this.deckStyle = PlayerStyle.SOFT,
     this.cycleExhausted = false,
+    this.hybridAvailabilityOrientation,
+    this.hybridAvailabilityGeneration = 0,
+    Map<String, NetworkHybridAvailabilityDto>? hybridAvailabilityByPlayer,
     this.actionProjection,
     Map<String, int>? clothingCounts,
     Set<String>? clothingResyncedPlayerIds,
@@ -678,6 +710,9 @@ final class NetworkGameRoundStateDto {
        clothingCounts = Map.unmodifiable(clothingCounts ?? const {}),
        clothingResyncedPlayerIds = Set.unmodifiable(
          clothingResyncedPlayerIds ?? const {},
+       ),
+       hybridAvailabilityByPlayer = Map.unmodifiable(
+         hybridAvailabilityByPlayer ?? const {},
        ),
        v4ConsumedOccurrenceIds = Set.unmodifiable(
          v4ConsumedOccurrenceIds ?? const {},
@@ -705,6 +740,9 @@ final class NetworkGameRoundStateDto {
   final bool infiniteMode;
   final PlayerStyle deckStyle;
   final bool cycleExhausted;
+  final HybridDeckOrientation? hybridAvailabilityOrientation;
+  final int hybridAvailabilityGeneration;
+  final Map<String, NetworkHybridAvailabilityDto> hybridAvailabilityByPlayer;
   final NetworkResolvedActionProjectionDto? actionProjection;
   final Map<String, int> clothingCounts;
   final Set<String> clothingResyncedPlayerIds;
@@ -747,6 +785,16 @@ final class NetworkGameRoundStateDto {
     'infinite_mode': infiniteMode,
     'deck_style': deckStyle.name,
     'cycle_exhausted': cycleExhausted,
+    'hybrid_availability_orientation': switch (hybridAvailabilityOrientation) {
+      HybridDeckOrientation.faceToFace => 'FACE_TO_FACE',
+      HybridDeckOrientation.distance => 'DISTANCE',
+      null => null,
+    },
+    'hybrid_availability_generation': hybridAvailabilityGeneration,
+    'hybrid_availability': {
+      for (final entry in hybridAvailabilityByPlayer.entries)
+        entry.key: entry.value.toJson(),
+    },
     'action_projection': actionProjection?.toJson(),
     'clothing_counts': clothingCounts,
     'clothing_resynced': {for (final id in clothingResyncedPlayerIds) id: true},
@@ -794,6 +842,9 @@ final class NetworkGameRoundStateDto {
     final clothingResynced = Map<String, Object?>.from(
       (json['clothing_resynced'] as Map?) ?? const {},
     );
+    final hybridAvailability = Map<String, Object?>.from(
+      (json['hybrid_availability'] as Map?) ?? const {},
+    );
     return NetworkGameRoundStateDto(
       roundId: json['round_id']! as String,
       sessionId: json['session_id']! as String,
@@ -825,6 +876,20 @@ final class NetworkGameRoundStateDto {
         (json['deck_style'] as String?) ?? PlayerStyle.SOFT.name,
       ),
       cycleExhausted: (json['cycle_exhausted'] as bool?) ?? false,
+      hybridAvailabilityOrientation:
+          switch (json['hybrid_availability_orientation']) {
+            'FACE_TO_FACE' => HybridDeckOrientation.faceToFace,
+            'DISTANCE' => HybridDeckOrientation.distance,
+            _ => null,
+          },
+      hybridAvailabilityGeneration:
+          (json['hybrid_availability_generation'] as int?) ?? 0,
+      hybridAvailabilityByPlayer: {
+        for (final entry in hybridAvailability.entries)
+          entry.key: NetworkHybridAvailabilityDto.fromJson(
+            Map<String, Object?>.from(entry.value! as Map),
+          ),
+      },
       actionProjection: optional(
         'action_projection',
         NetworkResolvedActionProjectionDto.fromJson,
@@ -955,6 +1020,7 @@ abstract interface class NetworkGameRepository {
   Future<NetworkGameRoundStateDto> readyNextRound({
     required NetworkCommandDto command,
     bool noPlayableOccurrences = false,
+    bool hasPlayableAlternateOrientation = false,
     int? clothingCount,
   });
 
@@ -1007,6 +1073,11 @@ abstract interface class NetworkSessionFlowRepository {
   Future<NetworkGameRoundStateDto> setHybridOrientation({
     required NetworkCommandDto command,
     required HybridDeckOrientation orientation,
+  });
+  Future<NetworkGameRoundStateDto> reportHybridAvailability({
+    required NetworkCommandDto command,
+    required NetworkHybridAvailabilityDto availability,
+    required int generation,
   });
   Future<NetworkGameRoundStateDto> continueDeckCycle({
     required NetworkCommandDto command,

@@ -207,6 +207,8 @@ final class NetworkGameController extends ChangeNotifier {
   bool _transitioning = false;
   bool _publishingAction = false;
   bool _startingNextRound = false;
+  bool _reportingHybridAvailability = false;
+  String? _preparedHybridAvailabilityKey;
   bool _disposed = false;
   PostGameProfileChoice? postGameProfileChoice;
 
@@ -359,6 +361,16 @@ final class NetworkGameController extends ChangeNotifier {
         ? V4SessionPresence.distance
         : V4SessionPresence.presentiel;
     final alternateAvailability = _availablePlayableOccurrences(alternate);
+    final barrierOrientation = round?.hybridAvailabilityOrientation;
+    if (barrierOrientation == orientation &&
+        round!.hybridAvailabilityByPlayer.values.any(
+          (report) =>
+              report.orientation == orientation &&
+              !report.hasPlayableCurrentOrientation &&
+              report.hasPlayableAlternateOrientation,
+        )) {
+      return true;
+    }
     if (round?.cycleExhausted == true && alternateAvailability > 0) {
       return true;
     }
@@ -374,7 +386,24 @@ final class NetworkGameController extends ChangeNotifier {
         V4CycleAvailability.switchHybridContext;
   }
 
-  bool get canStartNextRound => !deckExhausted && !mustSwitchHybridContext;
+  bool get canStartNextRound =>
+      !deckExhausted &&
+      !mustSwitchHybridContext &&
+      _hybridAvailabilityBarrierSatisfied;
+
+  bool get _hybridAvailabilityBarrierSatisfied {
+    final current = round;
+    if (sessionMode != V4SessionMode.hybrid ||
+        current?.hybridAvailabilityOrientation == null) {
+      return true;
+    }
+    if (current!.hybridAvailabilityOrientation != orientation) return false;
+    return playerIds.every((id) {
+      final report = current.hybridAvailabilityByPlayer[id];
+      return report?.orientation == orientation &&
+          report!.hasPlayableCurrentOrientation;
+    });
+  }
 
   bool get deckExhausted {
     if (round?.cycleExhausted == true) {
@@ -1171,6 +1200,15 @@ final class NetworkGameController extends ChangeNotifier {
           ),
           noPlayableOccurrences:
               !atBoundary && _availablePlayableOccurrences(_presence) == 0,
+          hasPlayableAlternateOrientation:
+              !atBoundary &&
+              sessionMode == V4SessionMode.hybrid &&
+              _availablePlayableOccurrences(
+                    _presence == V4SessionPresence.presentiel
+                        ? V4SessionPresence.distance
+                        : V4SessionPresence.presentiel,
+                  ) >
+                  0,
           clothingCount: !atBoundary && ownClothingResyncRequired
               ? _context.clothesByPlayer[playerId]
               : null,
@@ -1246,8 +1284,8 @@ final class NetworkGameController extends ChangeNotifier {
             : ProximityState.SEPARATED,
       );
       if (previousPresence != _presence &&
-          value.phase == NetworkGamePhase.waitingNext) {
-        _rebuildHandForPresence(value.roundNumber + 1);
+          value.phase != NetworkGamePhase.waitingNext) {
+        _rebuildHandForPresence(value.roundNumber);
         await _persist(roundNumber: value.roundNumber);
       }
     }
@@ -1374,6 +1412,18 @@ final class NetworkGameController extends ChangeNotifier {
         }
         viewState = NetworkGameViewState.waitingNext;
         notifyListeners();
+        if (_hybridAvailabilityReportRequired(value)) {
+          final preparationKey =
+              '${value.roundId}:${value.hybridAvailabilityGeneration}:'
+              '${orientation.name}';
+          if (_preparedHybridAvailabilityKey != preparationKey) {
+            _rebuildHandForPresence(value.roundNumber + 1);
+            _preparedHybridAvailabilityKey = preparationKey;
+            await _persist(roundNumber: value.roundNumber);
+          }
+          await _reportHybridAvailability(value);
+          return;
+        }
         if (canStartNextRound) {
           await _startNextRoundAutomatically();
         }
@@ -1390,6 +1440,53 @@ final class NetworkGameController extends ChangeNotifier {
         break;
     }
     notifyListeners();
+  }
+
+  bool _hybridAvailabilityReportRequired(NetworkGameRoundStateDto value) {
+    if (sessionMode != V4SessionMode.hybrid ||
+        value.hybridAvailabilityOrientation != orientation) {
+      return false;
+    }
+    final report = value.hybridAvailabilityByPlayer[playerId];
+    return report?.orientation != orientation;
+  }
+
+  Future<void> _reportHybridAvailability(NetworkGameRoundStateDto value) async {
+    if (_reportingHybridAvailability ||
+        repository is! NetworkSessionFlowRepository ||
+        value.phase != NetworkGamePhase.waitingNext ||
+        value.hybridAvailabilityOrientation != orientation) {
+      return;
+    }
+    final alternate = _presence == V4SessionPresence.presentiel
+        ? V4SessionPresence.distance
+        : V4SessionPresence.presentiel;
+    final availability = NetworkHybridAvailabilityDto(
+      orientation: orientation,
+      hasPlayableCurrentOrientation:
+          _availablePlayableOccurrences(_presence) > 0,
+      hasPlayableAlternateOrientation:
+          _availablePlayableOccurrences(alternate) > 0,
+    );
+    _reportingHybridAvailability = true;
+    try {
+      await _apply(
+        await (repository as NetworkSessionFlowRepository)
+            .reportHybridAvailability(
+              command: _command(
+                'REPORT_HYBRID_AVAILABILITY_'
+                '${value.hybridAvailabilityGeneration}_'
+                '${orientation.name}',
+              ),
+              availability: availability,
+              generation: value.hybridAvailabilityGeneration,
+            ),
+      );
+    } catch (error) {
+      _fail(error);
+    } finally {
+      _reportingHybridAvailability = false;
+    }
   }
 
   Future<void> _startNextRoundAutomatically() async {
@@ -2231,7 +2328,10 @@ final class NetworkGameController extends ChangeNotifier {
     var needed =
         const BalanceConfig().handSize -
         _runtime.where((card) => card.zone == CardZone.HAND).length;
-    if (needed <= 0) return;
+    if (needed <= 0) {
+      _ensurePlayableHand(targetRound);
+      return;
+    }
     if (decksEmpty && _infiniteMode) {
       _deckCycle++;
       _buildDeckCycle();
