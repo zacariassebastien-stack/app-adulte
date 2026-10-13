@@ -574,6 +574,18 @@ final class NetworkGameController extends ChangeNotifier {
           occurrenceId: item.occurrenceId,
           variantId: item.variantId,
         ),
+    for (final candidate in _allDeckCandidates)
+      if (!_runtime.any(
+            (item) => item.occurrenceId == candidate.occurrenceId,
+          ) &&
+          !_spiceProgression.consumedOccurrenceIds.contains(
+            candidate.occurrenceId,
+          ))
+        ?_networkRecoveryCard(
+          candidate.cardId,
+          occurrenceId: candidate.occurrenceId,
+          variantId: candidate.variantId,
+        ),
   ];
 
   Future<void> start() async {
@@ -1149,8 +1161,8 @@ final class NetworkGameController extends ChangeNotifier {
     final runtime = _runtime
         .where((item) => item.occurrenceId == occurrenceId)
         .firstOrNull;
-    if (card == null || runtime == null) return;
-    final source = switch (runtime.zone) {
+    if (card == null) return;
+    final source = switch (runtime?.zone) {
       CardZone.HAND => RecoverySource.HAND,
       CardZone.DISCARD => RecoverySource.DISCARD,
       _ => RecoverySource.CATALOG,
@@ -1712,9 +1724,10 @@ final class NetworkGameController extends ChangeNotifier {
       );
       changed = changed || !_sameRuntime(_runtime, reconciled);
       _runtime = reconciled;
-      if (!_spiceProgression.consumedOccurrenceIds.contains(
-        publicRecovery.occurrenceId ?? publicRecovery.variantId,
-      )) {
+      if (publicRecovery.source != RecoverySource.CATALOG &&
+          !_spiceProgression.consumedOccurrenceIds.contains(
+            publicRecovery.occurrenceId ?? publicRecovery.variantId,
+          )) {
         _consumeOccurrence(
           publicRecovery.occurrenceId ?? publicRecovery.variantId,
         );
@@ -3162,18 +3175,18 @@ final class NetworkGameController extends ChangeNotifier {
           if (card.zone == CardZone.EXHAUSTED) card.cardId,
       },
     );
+    final eligibility = recoveryEngine.actionEligibility(
+      card: engine,
+      context: recoveryContext,
+      actor: _profile(playerId),
+      partner: _profile(opponentId),
+      hierarchy: _hierarchy,
+    );
     final eligible = variantId == null
-        ? recoveryEngine
-              .actionEligibility(
-                card: engine,
-                context: recoveryContext,
-                actor: _profile(playerId),
-                partner: _profile(opponentId),
-                hierarchy: _hierarchy,
-              )
-              .eligibleVariants
-              .firstOrNull
-        : engine.variants.where((item) => item.id == variantId).firstOrNull;
+        ? eligibility.eligibleVariants.firstOrNull
+        : eligibility.eligibleVariants
+              .where((item) => item.id == variantId)
+              .firstOrNull;
     if (eligible == null) return null;
     final variant = definition.variants.firstWhere(
       (item) => item.stableId == eligible.id,
@@ -3183,8 +3196,17 @@ final class NetworkGameController extends ChangeNotifier {
         : _runtime
               .where((item) => item.occurrenceId == occurrenceId)
               .firstOrNull;
+    final candidate = occurrenceId == null
+        ? null
+        : _candidateForOccurrence(occurrenceId);
+    final effectiveDirection =
+        occurrence?.effectiveDirection ??
+        (candidate == null
+            ? _fixedDirection(definition, variant)
+            : _directionFor(candidate)?.effectiveDirection ??
+                  _fixedDirection(definition, variant));
     final role = _profileRole(
-      occurrence?.effectiveDirection ?? _fixedDirection(definition, variant),
+      effectiveDirection,
       fallback: _roleFor(definition, variant),
     );
     final elementId =
@@ -3207,11 +3229,8 @@ final class NetworkGameController extends ChangeNotifier {
         recevoir: _privateValue(elementId, ProfileRole.RECEVOIR),
       ),
       occurrenceId: occurrenceId,
-      nativeDirection:
-          occurrence?.nativeDirection ?? _fixedDirection(definition, variant),
-      effectiveDirection:
-          occurrence?.effectiveDirection ??
-          _fixedDirection(definition, variant),
+      nativeDirection: occurrence?.nativeDirection ?? effectiveDirection,
+      effectiveDirection: effectiveDirection,
     );
   }
 

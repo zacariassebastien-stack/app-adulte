@@ -4124,6 +4124,65 @@ void main() {
   );
 
   test(
+    'network Recovery exposes and preserves a never-distributed CATALOG occurrence',
+    () async {
+      final setup = await _setup(session, catalog);
+      await _playUnequal(setup);
+      final recovering = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+      final partner = identical(recovering, setup.alice)
+          ? setup.bob
+          : setup.alice;
+      await recovering.acceptInitialResult();
+      await _settle();
+      setup.backend.points[recovering.playerId] = 10;
+      setup.backend.points[partner.playerId] = 11;
+      setup.backend.round.phase = NetworkGamePhase.recovery;
+      setup.backend.notify();
+      await _settle();
+
+      final runtimeIds = recovering.runtime
+          .map((item) => item.occurrenceId)
+          .toSet();
+      final catalogOption = recovering.recoveryCards.firstWhere(
+        (card) => !runtimeIds.contains(card.identity),
+      );
+      final before = setup.backend.points[recovering.playerId]!;
+      await recovering.recoverWith(catalogOption.identity);
+      await _settle();
+      expect(
+        setup.backend.round.recoveries[recovering.playerId]!.source,
+        RecoverySource.CATALOG,
+      );
+      await partner.respondToRecovery(RecoveryResponse.ACCEPT);
+      await _settle();
+      await recovering.completeRecovery(completed: true);
+      await recovering.completeRecovery(completed: true);
+      await _settle();
+
+      expect(
+        setup.backend.points[recovering.playerId],
+        before + (catalogOption.personalValue * 1.5).ceil(),
+      );
+      expect(setup.backend.round.recoveryHistory, hasLength(1));
+      expect(
+        setup.backend.round.recoveryHistory.single.gain,
+        (catalogOption.personalValue * 1.5).ceil(),
+      );
+      expect(
+        recovering.runtime.any(
+          (item) => item.occurrenceId == catalogOption.identity,
+        ),
+        isFalse,
+      );
+      expect(
+        recovering.spiceProgression.consumedOccurrenceIds,
+        isNot(contains(catalogOption.identity)),
+      );
+      setup.dispose();
+    },
+  );
+
+  test(
     'corruption/recovery projection contains no unrelated private state',
     () {
       final state = NetworkGameRoundStateDto(
