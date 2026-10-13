@@ -681,6 +681,8 @@ final class NetworkGameRoundStateDto {
     this.deckCycle = 1,
     this.v4UnlockedSpice = 1,
     Set<String>? v4ConsumedOccurrenceIds,
+    List<V4PersistentEffect>? v4PersistentEffects,
+    this.hasCanonicalPersistentEffects = true,
     this.infiniteMode = false,
     this.deckStyle = PlayerStyle.SOFT,
     this.cycleExhausted = false,
@@ -717,6 +719,7 @@ final class NetworkGameRoundStateDto {
        v4ConsumedOccurrenceIds = Set.unmodifiable(
          v4ConsumedOccurrenceIds ?? const {},
        ),
+       v4PersistentEffects = List.unmodifiable(v4PersistentEffects ?? const []),
        recoveryByPlayer = Map.unmodifiable(recoveryByPlayer ?? const {}),
        recoveryDonePlayerIds = Set.unmodifiable(
          recoveryDonePlayerIds ?? const {},
@@ -737,6 +740,8 @@ final class NetworkGameRoundStateDto {
   final int deckCycle;
   final int v4UnlockedSpice;
   final Set<String> v4ConsumedOccurrenceIds;
+  final List<V4PersistentEffect> v4PersistentEffects;
+  final bool hasCanonicalPersistentEffects;
   final bool infiniteMode;
   final PlayerStyle deckStyle;
   final bool cycleExhausted;
@@ -782,6 +787,10 @@ final class NetworkGameRoundStateDto {
     'deck_cycle': deckCycle,
     'v4_unlocked_spice': v4UnlockedSpice,
     'v4_consumed_occurrence_ids': v4ConsumedOccurrenceIds.toList()..sort(),
+    if (hasCanonicalPersistentEffects)
+      'v4_persistent_effects': [
+        for (final effect in v4PersistentEffects) effect.toJson(),
+      ],
     'infinite_mode': infiniteMode,
     'deck_style': deckStyle.name,
     'cycle_exhausted': cycleExhausted,
@@ -871,6 +880,11 @@ final class NetworkGameRoundStateDto {
           ((json['v4_consumed_occurrence_ids'] as List?) ?? const [])
               .cast<String>()
               .toSet(),
+      v4PersistentEffects: [
+        for (final raw in (json['v4_persistent_effects'] as List?) ?? const [])
+          V4PersistentEffect.fromJson(Map<String, Object?>.from(raw! as Map)),
+      ],
+      hasCanonicalPersistentEffects: json.containsKey('v4_persistent_effects'),
       infiniteMode: (json['infinite_mode'] as bool?) ?? false,
       deckStyle: PlayerStyle.values.byName(
         (json['deck_style'] as String?) ?? PlayerStyle.SOFT.name,

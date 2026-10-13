@@ -1330,6 +1330,9 @@ final class NetworkGameController extends ChangeNotifier {
     if (value.roundNumber < roundNumber) return;
     _canonicalUnlockedSpice = value.v4UnlockedSpice;
     _syncSpiceContext();
+    if (value.hasCanonicalPersistentEffects) {
+      _persistentEffects = List.of(value.v4PersistentEffects);
+    }
     if (value.clothingCounts.isNotEmpty) {
       _context = _context.copyWith(clothesByPlayer: value.clothingCounts);
     }
@@ -2055,7 +2058,6 @@ final class NetworkGameController extends ChangeNotifier {
 
   Future<void> _prepareNextRound() async {
     if (_nextRoundPrepared) return;
-    _closePersistentEffects();
     _applyCanonicalConsumedOccurrences(
       round?.v4ConsumedOccurrenceIds ?? const {},
     );
@@ -3142,61 +3144,6 @@ final class NetworkGameController extends ChangeNotifier {
     return (
       value: values.isEmpty ? null : const V4PaCalculator().combine(values),
       excluded: false,
-    );
-  }
-
-  void _closePersistentEffects() {
-    final produced = <V4PersistentEffect>[];
-    final result = finalResolution;
-    final resolvedCards = result == null || result.mutualAbandon
-        ? const <NetworkCompromiseCardDto>[]
-        : result.compromise.isNotEmpty
-        ? result.compromise
-        : result.cardId == null
-        ? const <NetworkCompromiseCardDto>[]
-        : [
-            NetworkCompromiseCardDto(
-              occurrenceId: result.cardId!,
-              cardId: result.cardId!,
-              variantId: result.variantId ?? '',
-              ownerPlayerId:
-                  result.retainedPlayerId ??
-                  result.finalWinnerPlayerId ??
-                  playerId,
-              nativeDirection: NetworkCardDirection.GENERAL,
-              effectiveDirection: NetworkCardDirection.GENERAL,
-              origin: NetworkCompromiseOrigin.INITIAL_DUEL,
-              snapshotValue: 0,
-            ),
-          ];
-    for (final card in resolvedCards) {
-      final definition = _definitions[card.cardId];
-      final duration = definition?.v4?.durationActions;
-      if (duration != null) {
-        final projected = actionProjection?.cards
-            .where((item) => item.occurrenceId == card.occurrenceId)
-            .firstOrNull;
-        final targets =
-            projected?.targetPlayerIds ??
-            const V4ActionTargetResolver().resolve(
-              ownerPlayerId: card.ownerPlayerId,
-              playerIds: playerIds,
-              direction: CardOccurrenceDirection.values.byName(
-                card.effectiveDirection.name,
-              ),
-            );
-        produced.addAll(
-          const V4PersistentEffectEngine().createForAction(
-            cardId: card.cardId,
-            targetPlayerIds: targets,
-            durationActions: duration,
-          ),
-        );
-      }
-    }
-    _persistentEffects = const V4PersistentEffectEngine().closeAction(
-      activeBeforeAction: _persistentEffects,
-      producedEffects: produced,
     );
   }
 

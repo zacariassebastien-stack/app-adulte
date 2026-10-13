@@ -649,11 +649,21 @@ void main() {
         ..cycleExhausted = true
         ..v4UnlockedSpice = 3
         ..hybridOrientation = HybridDeckOrientation.distance
+        ..persistentEffects = const [
+          V4PersistentEffect(
+            cardId: 'card.v4.033',
+            targetPlayerId: 'bob',
+            remainingActions: 2,
+          ),
+        ]
         ..round.phase = NetworkGamePhase.waitingNext
         ..round.ready.addAll(const {'alice', 'bob'});
       backend.points
         ..['alice'] = 87
         ..['bob'] = 76;
+      backend.clothingCounts
+        ..['alice'] = 3
+        ..['bob'] = 4;
       final store = MemoryNetworkDuelSecretStore();
       final bobStore = MemoryNetworkDuelSecretStore();
       final oldCards = _handStates(catalog).take(6).toList();
@@ -1093,6 +1103,102 @@ void main() {
       jsonEncode(_Backend().state('bob').toJson()),
       isNot(contains('private-nonce')),
     );
+  });
+
+  test('public round DTO carries canonical persistent effects', () {
+    final canonical = NetworkGameRoundStateDto(
+      roundId: 'round',
+      sessionId: 'session',
+      sessionRound: 'session.round-1',
+      roundNumber: 1,
+      phase: NetworkGamePhase.waitingNext,
+      playerId: 'alice',
+      commits: const {},
+      actionPoints: const {'alice': 100, 'bob': 100},
+      readyNextPlayerIds: const {'alice', 'bob'},
+      tieDecisions: const {},
+      v4PersistentEffects: const [
+        V4PersistentEffect(
+          cardId: 'card.v4.034',
+          targetPlayerId: 'bob',
+          remainingActions: 2,
+        ),
+      ],
+    );
+
+    final decoded = NetworkGameRoundStateDto.fromJson(canonical.toJson());
+    expect(decoded.hasCanonicalPersistentEffects, isTrue);
+    expect(
+      decoded.v4PersistentEffects.map((effect) => effect.toJson()),
+      canonical.v4PersistentEffects.map((effect) => effect.toJson()),
+    );
+
+    final legacyJson = Map<String, Object?>.from(canonical.toJson())
+      ..remove('v4_persistent_effects');
+    final legacy = NetworkGameRoundStateDto.fromJson(legacyJson);
+    expect(legacy.hasCanonicalPersistentEffects, isFalse);
+    expect(legacy.v4PersistentEffects, isEmpty);
+  });
+
+  test('persistent-effect migration owns one canonical close transition', () {
+    final sql = File(
+      'supabase/migrations/202610100013_canonical_persistent_effects.sql',
+    ).readAsStringSync();
+
+    expect(sql, contains('v4_persistent_effects jsonb not null'));
+    expect(sql, startsWith('-- Persist duration-card effects'));
+    expect(sql, contains('\nbegin;\n'));
+    final transactionStart = sql.indexOf('\nbegin;\n');
+    final roundLock = sql.indexOf(
+      'lock table public.network_rounds in share row exclusive mode',
+    );
+    final backfill = sql.indexOf('\ndo \$\$');
+    final trigger = sql.indexOf(
+      'create trigger network_v4_persistent_effects_on_action_close',
+    );
+    final transactionCommit = sql.lastIndexOf('\ncommit;');
+    expect(transactionStart, lessThan(roundLock));
+    expect(roundLock, lessThan(backfill));
+    expect(backfill, lessThan(trigger));
+    expect(trigger, lessThan(transactionCommit));
+    expect(
+      sql,
+      contains('lock table public.network_rounds in share row exclusive mode'),
+    );
+    for (final cardId in const [
+      '033',
+      '034',
+      '035',
+      '060',
+      '061',
+      '062',
+      '063',
+    ]) {
+      expect(sql, contains("('card.v4.$cardId',3)"));
+    }
+    expect(
+      sql,
+      contains("old.phase='FINAL_RESOLVED' and new.phase='WAITING_NEXT'"),
+    );
+    expect(sql, contains("round.phase in ('WAITING_NEXT','CLOSED')"));
+    expect(sql, isNot(contains("round.phase='FINAL_RESOLVED'")));
+    expect(sql, contains("'v4_persistent_effects',g.v4_persistent_effects"));
+    expect(sql.trimRight(), endsWith('commit;'));
+    expect(
+      sql,
+      contains(
+        'revoke update on public.network_game_states\n'
+        '  from anon,authenticated',
+      ),
+    );
+    expect(
+      sql,
+      contains(
+        'revoke all on public.network_v4_persistent_effect_definitions\n'
+        '  from anon,authenticated',
+      ),
+    );
+    expect(sql, isNot(contains('persistent_effect_event')));
   });
 
   test(
@@ -2791,6 +2897,305 @@ void main() {
     },
   );
 
+  test('persistent effects advance once per projected action in order', () {
+    final activated = _advancePersistentEffects(const [], [
+      _projectedCard(
+        occurrenceId: 'effect',
+        cardId: 'card.v4.034',
+        variantId: 'variant.v4.034.s1',
+        targetPlayerIds: const ['bob'],
+      ),
+    ]);
+    expect(activated.single.remainingActions, 3);
+
+    final afterThree = _advancePersistentEffects(activated, [
+      _projectedCard(
+        occurrenceId: 'x1',
+        cardId: 'card.v4.001',
+        variantId: 'variant.v4.001.base',
+      ),
+      _projectedCard(
+        occurrenceId: 'x2',
+        cardId: 'card.v4.001',
+        variantId: 'variant.v4.001.base',
+      ),
+      _projectedCard(
+        occurrenceId: 'x3',
+        cardId: 'card.v4.001',
+        variantId: 'variant.v4.001.base',
+      ),
+    ]);
+    expect(afterThree, isEmpty);
+
+    final effectFirst = _advancePersistentEffects(const [], [
+      _projectedCard(
+        occurrenceId: 'effect-first',
+        cardId: 'card.v4.034',
+        variantId: 'variant.v4.034.s1',
+        targetPlayerIds: const ['bob'],
+      ),
+      _projectedCard(
+        occurrenceId: 'after-1',
+        cardId: 'card.v4.001',
+        variantId: 'variant.v4.001.base',
+      ),
+      _projectedCard(
+        occurrenceId: 'after-2',
+        cardId: 'card.v4.001',
+        variantId: 'variant.v4.001.base',
+      ),
+    ]);
+    expect(effectFirst.single.remainingActions, 1);
+
+    final existingAcrossLot = _advancePersistentEffects(
+      const [
+        V4PersistentEffect(
+          cardId: 'card.v4.035',
+          targetPlayerId: 'alice',
+          remainingActions: 3,
+        ),
+      ],
+      [
+        _projectedCard(
+          occurrenceId: 'lot-1',
+          cardId: 'card.v4.001',
+          variantId: 'variant.v4.001.base',
+        ),
+        _projectedCard(
+          occurrenceId: 'lot-2',
+          cardId: 'card.v4.001',
+          variantId: 'variant.v4.001.base',
+        ),
+      ],
+    );
+    expect(existingAcrossLot.single.remainingActions, 1);
+
+    final renewed = _advancePersistentEffects(
+      const [
+        V4PersistentEffect(
+          cardId: 'card.v4.034',
+          targetPlayerId: 'bob',
+          remainingActions: 1,
+        ),
+        V4PersistentEffect(
+          cardId: 'card.v4.033',
+          targetPlayerId: 'alice',
+          remainingActions: 3,
+        ),
+      ],
+      [
+        _projectedCard(
+          occurrenceId: 'renew',
+          cardId: 'card.v4.034',
+          variantId: 'variant.v4.034.s2',
+          targetPlayerIds: const ['bob', 'alice'],
+        ),
+      ],
+    );
+    expect(renewed, hasLength(3));
+    expect(
+      renewed
+          .singleWhere(
+            (effect) =>
+                effect.cardId == 'card.v4.034' &&
+                effect.targetPlayerId == 'bob',
+          )
+          .remainingActions,
+      3,
+    );
+    expect(
+      renewed
+          .singleWhere(
+            (effect) =>
+                effect.cardId == 'card.v4.034' &&
+                effect.targetPlayerId == 'alice',
+          )
+          .remainingActions,
+      3,
+    );
+    expect(
+      renewed
+          .singleWhere((effect) => effect.cardId == 'card.v4.033')
+          .remainingActions,
+      2,
+    );
+  });
+
+  test(
+    'canonical effects wait for both Terminé and survive retry and empty-cache reconnect',
+    () async {
+      final backend = _Backend();
+      _setProjectedAction(
+        backend,
+        cards: [
+          _projectedCard(
+            occurrenceId: 'canonical-effect',
+            cardId: 'card.v4.034',
+            variantId: 'variant.v4.034.s1',
+            targetPlayerIds: const ['bob'],
+          ),
+        ],
+      );
+      final alice = _controller(
+        backend,
+        session,
+        catalog,
+        'alice',
+        MemoryNetworkDuelSecretStore(),
+      );
+      final bob = _controller(
+        backend,
+        session,
+        catalog,
+        'bob',
+        MemoryNetworkDuelSecretStore(),
+      );
+      addTearDown(alice.dispose);
+      addTearDown(bob.dispose);
+      await Future.wait([alice.start(), bob.start()]);
+
+      await alice.completeAction();
+      await _settle();
+      expect(backend.persistentEffects, isEmpty);
+      expect(backend.persistentEffectTransitions, 0);
+
+      await bob.completeAction();
+      await _settle();
+      expect(backend.persistentEffectTransitions, 1);
+      expect(backend.persistentEffects.single.remainingActions, 3);
+      expect(alice.persistentEffects, backend.persistentEffects);
+      expect(bob.persistentEffects, backend.persistentEffects);
+
+      backend.notifyTwice();
+      await _settle();
+      expect(backend.persistentEffectTransitions, 1);
+      expect(backend.persistentEffects.single.remainingActions, 3);
+
+      final reconnected = _controller(
+        backend,
+        session,
+        catalog,
+        'alice',
+        MemoryNetworkDuelSecretStore(),
+      );
+      addTearDown(reconnected.dispose);
+      await reconnected.start();
+      await _settle();
+      expect(reconnected.persistentEffects, backend.persistentEffects);
+    },
+  );
+
+  test(
+    'closing before both Terminé does not mutate persistent effects',
+    () async {
+      final backend = _Backend();
+      _setProjectedAction(
+        backend,
+        cards: [
+          _projectedCard(
+            occurrenceId: 'never-executed-effect',
+            cardId: 'card.v4.034',
+            variantId: 'variant.v4.034.s1',
+          ),
+        ],
+      );
+      final alice = _controller(
+        backend,
+        session,
+        catalog,
+        'alice',
+        MemoryNetworkDuelSecretStore(),
+      );
+      final bob = _controller(
+        backend,
+        session,
+        catalog,
+        'bob',
+        MemoryNetworkDuelSecretStore(),
+      );
+      addTearDown(alice.dispose);
+      addTearDown(bob.dispose);
+      await Future.wait([alice.start(), bob.start()]);
+
+      await alice.completeAction();
+      await alice.closeSession();
+      await _settle();
+
+      expect(backend.phase, NetworkGamePhase.sessionClosed);
+      expect(backend.persistentEffects, isEmpty);
+      expect(backend.persistentEffectTransitions, 0);
+    },
+  );
+
+  test(
+    'all post-duel routes apply only their canonical final projection',
+    () async {
+      for (final route in const [
+        ('normal', 'card.v4.033', null, null),
+        ('compromise accepted', 'card.v4.034', true, null),
+        ('compromise refused', 'card.v4.035', false, null),
+        ('corruption accepted', 'card.v4.060', null, true),
+        ('corruption refused', 'card.v4.061', null, false),
+      ]) {
+        final backend = _Backend();
+        _setProjectedAction(
+          backend,
+          cards: [
+            _projectedCard(
+              occurrenceId: route.$1,
+              cardId: route.$2,
+              variantId: catalog.cards
+                  .singleWhere((card) => card.stableId == route.$2)
+                  .variants
+                  .first
+                  .stableId,
+            ),
+          ],
+        );
+        if (route.$3 != null) {
+          backend.round.negotiation = NetworkNegotiationDto(
+            response: NetworkNegotiationResponseDto(accepted: route.$3!),
+          );
+        }
+        if (route.$4 != null) {
+          backend.round.corruption = NetworkCorruptionDto(
+            offeredBy: 'bob',
+            objective: CorruptionObjective.OWN_INITIAL_ACTION,
+            actions: [
+              ActionPromise(
+                cardId: route.$2,
+                occurrenceId: route.$1,
+                source: CardZone.DISCARD,
+              ),
+            ],
+            accepted: route.$4,
+          );
+        }
+        final alice = _controller(
+          backend,
+          session,
+          catalog,
+          'alice',
+          MemoryNetworkDuelSecretStore(),
+        );
+        final bob = _controller(
+          backend,
+          session,
+          catalog,
+          'bob',
+          MemoryNetworkDuelSecretStore(),
+        );
+        await Future.wait([alice.start(), bob.start()]);
+        await alice.completeAction();
+        await bob.completeAction();
+        await _settle();
+        expect(backend.persistentEffects.single.cardId, route.$2);
+        alice.dispose();
+        bob.dispose();
+      }
+    },
+  );
+
   test(
     'reconnect after cancellation restores only the valid hand state',
     () async {
@@ -4173,6 +4578,35 @@ NetworkResolvedActionCardDto _projectedCard({
   effectiveSpice: 1,
 );
 
+List<V4PersistentEffect> _advancePersistentEffects(
+  List<V4PersistentEffect> active,
+  List<NetworkResolvedActionCardDto> cards,
+) {
+  const durationCards = {
+    'card.v4.033',
+    'card.v4.034',
+    'card.v4.035',
+    'card.v4.060',
+    'card.v4.061',
+    'card.v4.062',
+    'card.v4.063',
+  };
+  var result = active;
+  for (final card in cards) {
+    result = const V4PersistentEffectEngine().closeAction(
+      activeBeforeAction: result,
+      producedEffects: durationCards.contains(card.cardId)
+          ? const V4PersistentEffectEngine().createForAction(
+              cardId: card.cardId,
+              targetPlayerIds: card.targetPlayerIds,
+              durationActions: 3,
+            )
+          : const [],
+    );
+  }
+  return result;
+}
+
 void _setProjectedAction(
   _Backend backend, {
   required List<NetworkResolvedActionCardDto> cards,
@@ -4239,6 +4673,8 @@ final class _Backend {
   final changes = StreamController<void>.broadcast();
   final clothingCounts = <String, int>{'alice': 6, 'bob': 6};
   final clothingResynced = <String>{};
+  List<V4PersistentEffect> persistentEffects = const [];
+  int persistentEffectTransitions = 0;
   int currentRound = 1;
   int roundCreations = 1;
   int initialApplications = 0;
@@ -4284,6 +4720,7 @@ final class _Backend {
     infiniteMode: infiniteMode,
     deckStyle: deckStyle,
     v4ConsumedOccurrenceIds: consumedCompromiseOccurrences[player],
+    v4PersistentEffects: persistentEffects,
     cycleExhausted: cycleExhausted,
     actionProjection: round.actionProjection,
     clothingCounts: clothingCounts,
@@ -4978,6 +5415,11 @@ class _Repository
     backend.round.ready.add(player);
     if (!closesBoundary) {
       if (backend.round.ready.length == 2) {
+        backend.persistentEffects = _advancePersistentEffects(
+          backend.persistentEffects,
+          backend.round.actionProjection?.cards ?? const [],
+        );
+        backend.persistentEffectTransitions++;
         final corruption = backend.round.corruption;
         if (corruption?.accepted == true) {
           backend.round.corruption = NetworkCorruptionDto(
