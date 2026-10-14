@@ -4016,6 +4016,122 @@ void main() {
   );
 
   test(
+    'mutual abandon learns completed Recovery once after both completions',
+    () async {
+      final aliceSecrets = MemoryNetworkDuelSecretStore();
+      final aliceLearning = MemoryNetworkProfileLearningStore();
+      final bobLearning = MemoryNetworkProfileLearningStore();
+      final setup = await _setup(
+        session,
+        catalog,
+        aliceSecrets: aliceSecrets,
+        aliceLearning: aliceLearning,
+        bobLearning: bobLearning,
+      );
+      await _enterMutualAbandonRecovery(setup);
+
+      final option = setup.alice.recoveryCards.first;
+      await setup.alice.recoverWith(option.identity);
+      await _settle();
+      await setup.bob.respondToRecovery(RecoveryResponse.ACCEPT);
+      await _settle();
+      await setup.alice.completeRecovery(completed: true);
+      await _settle();
+      await setup.alice.skipRecovery();
+      await setup.bob.skipRecovery();
+      await _settle();
+      setup.backend.cycleExhausted = true;
+      await _completeResolvedAction(setup);
+
+      expect(setup.backend.phase, NetworkGamePhase.waitingNext);
+      expect(_totalAcceptance(aliceLearning, 'alice'), greaterThan(0));
+      expect(aliceLearning.appliedEventIds['alice'], hasLength(1));
+      final learned = jsonEncode(aliceLearning.values['alice']!.toJson());
+
+      setup.backend.notify();
+      setup.backend.notify();
+      await _settle();
+      expect(aliceLearning.appliedEventIds['alice'], hasLength(1));
+      expect(jsonEncode(aliceLearning.values['alice']!.toJson()), learned);
+
+      setup.alice.dispose();
+      final reconnected = _controller(
+        setup.backend,
+        session,
+        catalog,
+        'alice',
+        aliceSecrets,
+        learningStore: aliceLearning,
+      );
+      await reconnected.start();
+      await _settle();
+      expect(aliceLearning.appliedEventIds['alice'], hasLength(1));
+      expect(jsonEncode(aliceLearning.values['alice']!.toJson()), learned);
+      reconnected.dispose();
+      setup.bob.dispose();
+    },
+  );
+
+  for (final scenario in [
+    (name: 'refused', accepted: false, completed: false),
+    (name: 'not completed', accepted: true, completed: false),
+  ]) {
+    test('mutual abandon Recovery ${scenario.name} learns nothing', () async {
+      final aliceLearning = MemoryNetworkProfileLearningStore();
+      final setup = await _setup(
+        session,
+        catalog,
+        aliceLearning: aliceLearning,
+      );
+      addTearDown(setup.dispose);
+      await _enterMutualAbandonRecovery(setup);
+
+      final option = setup.alice.recoveryCards.first;
+      await setup.alice.recoverWith(option.identity);
+      await _settle();
+      await setup.bob.respondToRecovery(
+        scenario.accepted ? RecoveryResponse.ACCEPT : RecoveryResponse.REFUSE,
+      );
+      await _settle();
+      if (scenario.accepted) {
+        await setup.alice.completeRecovery(completed: scenario.completed);
+        await _settle();
+      }
+      await setup.alice.skipRecovery();
+      await setup.bob.skipRecovery();
+      await _settle();
+      await _completeResolvedAction(setup);
+
+      expect(_totalAcceptance(aliceLearning, 'alice'), 0);
+    });
+  }
+
+  test('normal non-Recovery action learning remains unchanged', () async {
+    final aliceLearning = MemoryNetworkProfileLearningStore();
+    final bobLearning = MemoryNetworkProfileLearningStore();
+    final setup = await _setup(
+      session,
+      catalog,
+      aliceLearning: aliceLearning,
+      bobLearning: bobLearning,
+    );
+    addTearDown(setup.dispose);
+    await _playUnequal(setup);
+    final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+    await loser.acceptInitialResult();
+    await _settle();
+    await _completeResolvedAction(setup);
+
+    expect(aliceLearning.appliedEventIds['alice'], hasLength(1));
+    expect(bobLearning.appliedEventIds['bob'], hasLength(1));
+    expect(
+      _totalAcceptance(aliceLearning, 'alice') +
+          _totalAcceptance(bobLearning, 'bob'),
+      greaterThan(0),
+    );
+  });
+
+  test(
     'recovery honors threshold, applies gain once and resumes next round',
     () async {
       final setup = await _setup(session, catalog);
@@ -4546,6 +4662,30 @@ Future<void> _completeResolvedAction(_Setup setup) async {
   await setup.bob.completeAction();
   await _settle();
 }
+
+Future<void> _enterMutualAbandonRecovery(_Setup setup) async {
+  await _playUnequal(setup);
+  setup.backend.points
+    ..['alice'] = 10
+    ..['bob'] = 11;
+  setup.backend.round
+    ..finalResolution = const NetworkFinalResolutionDto(mutualAbandon: true)
+    ..actionProjection = null
+    ..phase = NetworkGamePhase.recovery;
+  setup.backend.notify();
+  await _settle();
+  expect(setup.alice.viewState, NetworkGameViewState.recovery);
+}
+
+double _totalAcceptance(
+  MemoryNetworkProfileLearningStore store,
+  String playerId,
+) =>
+    store.values[playerId]?.entries.values.fold<double>(
+      0,
+      (total, entry) => total + entry.acceptanceCount,
+    ) ??
+    0;
 
 NetworkGameController _cycleController(_Setup setup) =>
     setup.alice.isCycleController ? setup.alice : setup.bob;

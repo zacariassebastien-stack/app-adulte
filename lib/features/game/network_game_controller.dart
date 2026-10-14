@@ -2209,37 +2209,37 @@ final class NetworkGameController extends ChangeNotifier {
         );
       }
       if (accepted.isNotEmpty) acceptedBatches.add(accepted);
-      final recoveryAccepted = <ResolvedLearningCard>[];
-      for (final recovery in currentRound.recoveryHistory) {
-        if (!recovery.completed) continue;
-        final definition = _definitions[recovery.cardId];
-        final variant = definition?.variants
-            .where((item) => item.stableId == recovery.variantId)
-            .firstOrNull;
-        if (definition == null || variant == null) continue;
-        recoveryAccepted.add(
-          _resolvedLearningCard(
-            v3LearningDescriptor(
-              definition,
-              variant,
-              occurrenceId: recovery.occurrenceId,
-            ),
-            ownerId: recovery.playerId,
-            effectiveDirection: _runtime
-                .where((item) => item.occurrenceId == recovery.occurrenceId)
-                .map(
-                  (item) => NetworkCardDirection.values.byName(
-                    item.effectiveDirection.name,
-                  ),
-                )
-                .firstOrNull,
-          ),
-        );
-      }
-      if (recoveryAccepted.isNotEmpty) {
-        acceptedBatches.add(recoveryAccepted);
-      }
       resistanceEvents.addAll(_negotiationResistance(result, currentRound));
+    }
+    final recoveryAccepted = <ResolvedLearningCard>[];
+    for (final recovery in currentRound.recoveryHistory) {
+      if (!recovery.completed) continue;
+      final definition = _definitions[recovery.cardId];
+      final variant = definition?.variants
+          .where((item) => item.stableId == recovery.variantId)
+          .firstOrNull;
+      if (definition == null || variant == null) continue;
+      recoveryAccepted.add(
+        _resolvedLearningCard(
+          v3LearningDescriptor(
+            definition,
+            variant,
+            occurrenceId: recovery.occurrenceId,
+          ),
+          ownerId: recovery.playerId,
+          effectiveDirection: _runtime
+              .where((item) => item.occurrenceId == recovery.occurrenceId)
+              .map(
+                (item) => NetworkCardDirection.values.byName(
+                  item.effectiveDirection.name,
+                ),
+              )
+              .firstOrNull,
+        ),
+      );
+    }
+    if (recoveryAccepted.isNotEmpty) {
+      acceptedBatches.add(recoveryAccepted);
     }
     await learning.recordResolvedRoundOnce(
       eventId: 'v4-learning:${currentRound.roundId}:$playerId:final-resolved',
