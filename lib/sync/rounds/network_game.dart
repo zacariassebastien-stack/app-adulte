@@ -673,6 +673,7 @@ final class NetworkGameRoundStateDto {
     required this.roundNumber,
     required this.phase,
     required this.playerId,
+    this.roundRevision,
     required Map<String, String> commits,
     required Map<String, int> actionPoints,
     required Set<String> readyNextPlayerIds,
@@ -732,6 +733,7 @@ final class NetworkGameRoundStateDto {
   final int roundNumber;
   final NetworkGamePhase phase;
   final String playerId;
+  final int? roundRevision;
   final Map<String, String> commits;
   final Map<String, int> actionPoints;
   final Set<String> readyNextPlayerIds;
@@ -775,6 +777,7 @@ final class NetworkGameRoundStateDto {
     'round_number': roundNumber,
     'phase': _phaseWire(phase),
     'player_id': playerId,
+    if (roundRevision != null) 'round_revision': roundRevision,
     'commits': commits,
     'action_points': actionPoints,
     'ready_next': {for (final id in readyNextPlayerIds) id: true},
@@ -861,6 +864,7 @@ final class NetworkGameRoundStateDto {
       roundNumber: json['round_number']! as int,
       phase: _phaseFromWire(json['phase']! as String),
       playerId: json['player_id']! as String,
+      roundRevision: json['round_revision'] as int?,
       commits: Map<String, String>.from(json['commits']! as Map),
       actionPoints: Map<String, int>.from(json['action_points']! as Map),
       readyNextPlayerIds: {
@@ -950,6 +954,12 @@ final class NetworkGameRoundStateDto {
       ],
     );
   }
+
+  NetworkGameRoundStateDto withRoundRevision(int revision) =>
+      NetworkGameRoundStateDto.fromJson({
+        ...toJson(),
+        'round_revision': revision,
+      });
 }
 
 abstract interface class NetworkGameRepository {

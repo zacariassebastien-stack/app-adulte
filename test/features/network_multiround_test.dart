@@ -3933,6 +3933,169 @@ void main() {
   );
 
   test(
+    'older or unversioned snapshots cannot regress state or lifecycle',
+    () async {
+      final backend = _Backend();
+      backend.round
+        ..phase = NetworkGamePhase.corruptionDecision
+        ..finalResolution = const NetworkFinalResolutionDto(
+          retainedPlayerId: 'bob',
+          initialWinnerPlayerId: 'bob',
+          finalWinnerPlayerId: 'bob',
+          cardId: 'card.v4.001',
+          variantId: 'variant.v4.001.base',
+        );
+      final newer = _revisioned(backend.state('bob'), 3);
+      final repository = _RevisionRepository(backend, 'bob', newer);
+      final controller = NetworkGameController(
+        session: session,
+        playerId: 'bob',
+        repository: repository,
+        privateStore: MemoryNetworkDuelSecretStore(),
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog,
+      );
+      addTearDown(() async {
+        controller.dispose();
+        await repository.dispose();
+      });
+
+      await controller.start();
+      expect(controller.viewState, NetworkGameViewState.corruptionDecision);
+      final offered = controller.hand.first;
+      final zoneBefore = controller.runtime
+          .singleWhere((card) => card.occurrenceId == offered.identity)
+          .zone;
+
+      backend.round
+        ..phase = NetworkGamePhase.finalResolved
+        ..finalResolution = NetworkFinalResolutionDto(
+          retainedPlayerId: 'bob',
+          initialWinnerPlayerId: 'bob',
+          finalWinnerPlayerId: 'bob',
+          cardId: offered.id,
+          variantId: offered.variant.id,
+          compromise: [
+            NetworkCompromiseCardDto(
+              occurrenceId: offered.identity,
+              cardId: offered.id,
+              variantId: offered.variant.id,
+              ownerPlayerId: 'bob',
+              nativeDirection: NetworkCardDirection.values.byName(
+                offered.nativeDirection.name,
+              ),
+              effectiveDirection: NetworkCardDirection.values.byName(
+                offered.effectiveDirection.name,
+              ),
+              origin: NetworkCompromiseOrigin.AUCTION,
+              snapshotValue: offered.personalValue,
+            ),
+          ],
+        );
+      final older = _revisioned(backend.state('bob'), 2);
+
+      repository.emit(older);
+      await _settle();
+      expect(controller.viewState, NetworkGameViewState.corruptionDecision);
+      expect(controller.round!.roundRevision, 3);
+      expect(
+        controller.runtime
+            .singleWhere((card) => card.occurrenceId == offered.identity)
+            .zone,
+        zoneBefore,
+      );
+
+      final unversionedJson = older.toJson()..remove('round_revision');
+      repository.emit(NetworkGameRoundStateDto.fromJson(unversionedJson));
+      await _settle();
+      expect(controller.viewState, NetworkGameViewState.corruptionDecision);
+      expect(controller.round!.roundRevision, 3);
+      expect(
+        controller.runtime
+            .singleWhere((card) => card.occurrenceId == offered.identity)
+            .zone,
+        zoneBefore,
+      );
+    },
+  );
+
+  test('an initial unversioned snapshot still loads', () async {
+    final backend = _Backend();
+    backend.round
+      ..phase = NetworkGamePhase.corruptionDecision
+      ..finalResolution = const NetworkFinalResolutionDto(
+        retainedPlayerId: 'bob',
+        initialWinnerPlayerId: 'bob',
+        finalWinnerPlayerId: 'bob',
+        cardId: 'card.v4.001',
+        variantId: 'variant.v4.001.base',
+      );
+    final initial = backend.state('bob');
+    final repository = _RevisionRepository(backend, 'bob', initial);
+    final controller = NetworkGameController(
+      session: session,
+      playerId: 'bob',
+      repository: repository,
+      privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: catalog,
+    );
+    addTearDown(() async {
+      controller.dispose();
+      await repository.dispose();
+    });
+
+    await controller.start();
+
+    expect(controller.viewState, NetworkGameViewState.corruptionDecision);
+    expect(controller.round!.roundRevision, isNull);
+  });
+
+  test(
+    'invalid Termine phase refreshes the canonical post-duel decision',
+    () async {
+      final backend = _Backend();
+      backend.round
+        ..phase = NetworkGamePhase.finalResolved
+        ..finalResolution = const NetworkFinalResolutionDto(
+          retainedPlayerId: 'bob',
+          initialWinnerPlayerId: 'bob',
+          finalWinnerPlayerId: 'bob',
+          cardId: 'card.v4.001',
+          variantId: 'variant.v4.001.base',
+        );
+      final stale = _revisioned(backend.state('bob'), 2);
+      final repository = _RevisionRepository(backend, 'bob', stale);
+      final controller = NetworkGameController(
+        session: session,
+        playerId: 'bob',
+        repository: repository,
+        privateStore: MemoryNetworkDuelSecretStore(),
+        learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog,
+      );
+      addTearDown(() async {
+        controller.dispose();
+        await repository.dispose();
+      });
+
+      await controller.start();
+      expect(controller.viewState, NetworkGameViewState.actionInProgress);
+
+      backend.round.phase = NetworkGamePhase.corruptionDecision;
+      repository
+        ..canonical = _revisioned(backend.state('bob'), 3)
+        ..rejectNextCompletion = true;
+      await controller.completeAction();
+
+      expect(repository.completionAttempts, 1);
+      expect(controller.viewState, NetworkGameViewState.corruptionDecision);
+      expect(controller.errorMessage, isNull);
+      expect(controller.actionCompletionSubmitted, isFalse);
+    },
+  );
+
+  test(
     'accepted corruption uses normal completion and consumes its batch once',
     () async {
       final setup = await _setup(session, catalog);
@@ -4776,6 +4939,11 @@ NetworkResolvedActionCardDto _projectedCard({
   targetPlayerIds: targetPlayerIds,
   effectiveSpice: 1,
 );
+
+NetworkGameRoundStateDto _revisioned(
+  NetworkGameRoundStateDto state,
+  int revision,
+) => state.withRoundRevision(revision);
 
 List<V4PersistentEffect> _advancePersistentEffects(
   List<V4PersistentEffect> active,
@@ -5682,6 +5850,59 @@ class _Repository
     await for (final _ in backend.changes.stream) {
       yield backend.state(player);
     }
+  }
+}
+
+final class _RevisionRepository extends _Repository {
+  _RevisionRepository(super.backend, super.player, this.canonical);
+
+  final StreamController<NetworkGameRoundStateDto> updates =
+      StreamController<NetworkGameRoundStateDto>.broadcast();
+  NetworkGameRoundStateDto canonical;
+  bool rejectNextCompletion = false;
+  int completionAttempts = 0;
+
+  void emit(NetworkGameRoundStateDto value) => updates.add(value);
+
+  Future<void> dispose() => updates.close();
+
+  @override
+  Future<NetworkGameRoundStateDto> openCurrentRound({
+    required NetworkCommandDto command,
+  }) async => canonical;
+
+  @override
+  Future<NetworkGameRoundStateDto> getCurrentRound({
+    required String sessionId,
+  }) async => canonical;
+
+  @override
+  Future<NetworkGameRoundStateDto> readyNextRound({
+    required NetworkCommandDto command,
+    bool noPlayableOccurrences = false,
+    bool hasPlayableAlternateOrientation = false,
+    int? clothingCount,
+  }) async {
+    completionAttempts++;
+    if (rejectNextCompletion) {
+      rejectNextCompletion = false;
+      throw const NetworkRoundException('ROUND_INVALID_PHASE');
+    }
+    return super.readyNextRound(
+      command: command,
+      noPlayableOccurrences: noPlayableOccurrences,
+      hasPlayableAlternateOrientation: hasPlayableAlternateOrientation,
+      clothingCount: clothingCount,
+    );
+  }
+
+  @override
+  Stream<NetworkGameRoundStateDto> watchRound({
+    required String sessionId,
+    required String roundId,
+  }) async* {
+    yield canonical;
+    yield* updates.stream;
   }
 }
 

@@ -211,6 +211,8 @@ final class NetworkGameController extends ChangeNotifier {
   bool _reportingHybridAvailability = false;
   String? _preparedHybridAvailabilityKey;
   final Set<String> _activatedRoundIds = {};
+  final Map<String, int> _latestRoundRevisions = {};
+  Future<void> _snapshotApplication = Future<void>.value();
   bool _disposed = false;
   PostGameProfileChoice? postGameProfileChoice;
   DeckExhaustionChoice? _sessionClosureIntent;
@@ -1287,6 +1289,17 @@ final class NetworkGameController extends ChangeNotifier {
               : null,
         ),
       );
+    } on NetworkRoundException catch (error) {
+      if (error.code == 'ROUND_INVALID_PHASE') {
+        try {
+          await _apply(await repository.getCurrentRound(sessionId: session.id));
+          return;
+        } catch (refreshError) {
+          _fail(refreshError);
+          return;
+        }
+      }
+      _fail(error);
     } catch (error) {
       _fail(error);
     }
@@ -1311,9 +1324,11 @@ final class NetworkGameController extends ChangeNotifier {
     }
   }
 
-  Future<void> _switchRound(NetworkGameRoundStateDto value) async {
+  Future<void> _switchRound(
+    NetworkGameRoundStateDto value, {
+    bool applyImmediately = false,
+  }) async {
     final changed = round?.roundId != value.roundId;
-    round = value;
     if (changed) {
       // Publish the new round's immediately usable state before awaiting the
       // old realtime subscription cancellation. Otherwise the new round
@@ -1330,16 +1345,42 @@ final class NetworkGameController extends ChangeNotifier {
             onError: (Object error) => _fail(error),
           );
     }
-    await _apply(value);
+    if (applyImmediately) {
+      await _applyNow(value, roundBound: true);
+    } else {
+      await _apply(value, roundBound: true);
+    }
   }
 
-  Future<void> _apply(NetworkGameRoundStateDto value) async {
+  Future<void> _apply(
+    NetworkGameRoundStateDto value, {
+    bool roundBound = false,
+  }) {
+    final operation = _snapshotApplication.then(
+      (_) => _applyNow(value, roundBound: roundBound),
+    );
+    _snapshotApplication = operation.then<void>((_) {}, onError: (_, _) {});
+    return operation;
+  }
+
+  Future<void> _applyNow(
+    NetworkGameRoundStateDto value, {
+    bool roundBound = false,
+  }) async {
     if (_disposed) return;
     if (value.sessionId != session.id) {
       _fail(const NetworkRoundException('ROUND_NOT_FOUND'));
       return;
     }
     if (value.roundNumber < roundNumber) return;
+    final revision = value.roundRevision;
+    final latest = _latestRoundRevisions[value.roundId];
+    if (revision == null) {
+      if (latest != null) return;
+    } else {
+      if (latest != null && revision < latest) return;
+      _latestRoundRevisions[value.roundId] = revision;
+    }
     _canonicalUnlockedSpice = value.v4UnlockedSpice;
     _syncSpiceContext();
     if (value.hasCanonicalPersistentEffects) {
@@ -1363,6 +1404,7 @@ final class NetworkGameController extends ChangeNotifier {
           value.phase != NetworkGamePhase.waitingNext) {
         _rebuildHandForPresence(value.roundNumber);
         await _persist(roundNumber: value.roundNumber);
+        if (_isSuperseded(value)) return;
       }
     }
     _deckStyle = value.deckStyle;
@@ -1372,11 +1414,13 @@ final class NetworkGameController extends ChangeNotifier {
         deckCycle: value.deckCycle,
         targetRound: value.roundNumber + 1,
       );
+      if (_isSuperseded(value)) return;
     }
-    if (round?.roundId != value.roundId) {
+    if (round?.roundId != value.roundId && !roundBound) {
       await _activatePreparedRound(value);
+      if (_isSuperseded(value)) return;
       if (value.roundNumber < roundNumber) return;
-      await _switchRound(value);
+      await _switchRound(value, applyImmediately: true);
       return;
     }
     round = value;
@@ -1384,6 +1428,7 @@ final class NetworkGameController extends ChangeNotifier {
     await _closeNormalRoundForRecovery(value);
     await _reconcilePublicLifecycle(value);
     if (_disposed ||
+        _isSuperseded(value) ||
         round?.roundId != value.roundId ||
         value.roundNumber < roundNumber) {
       return;
@@ -1484,7 +1529,7 @@ final class NetworkGameController extends ChangeNotifier {
           return;
         }
         if (canStartNextRound) {
-          await _startNextRoundAutomatically();
+          await _startNextRoundAutomatically(applyImmediately: true);
         }
         return;
       case NetworkGamePhase.closed:
@@ -1492,6 +1537,7 @@ final class NetworkGameController extends ChangeNotifier {
         notifyListeners();
         await _switchRound(
           await repository.getCurrentRound(sessionId: session.id),
+          applyImmediately: true,
         );
         return;
       case NetworkGamePhase.sessionClosed:
@@ -1499,6 +1545,12 @@ final class NetworkGameController extends ChangeNotifier {
         break;
     }
     notifyListeners();
+  }
+
+  bool _isSuperseded(NetworkGameRoundStateDto value) {
+    final revision = value.roundRevision;
+    if (revision == null) return false;
+    return (_latestRoundRevisions[value.roundId] ?? revision) > revision;
   }
 
   bool _hybridAvailabilityReportRequired(NetworkGameRoundStateDto value) {
@@ -1529,7 +1581,7 @@ final class NetworkGameController extends ChangeNotifier {
     );
     _reportingHybridAvailability = true;
     try {
-      await _apply(
+      await _applyNow(
         await (repository as NetworkSessionFlowRepository)
             .reportHybridAvailability(
               command: _command(
@@ -1548,7 +1600,9 @@ final class NetworkGameController extends ChangeNotifier {
     }
   }
 
-  Future<void> _startNextRoundAutomatically() async {
+  Future<void> _startNextRoundAutomatically({
+    bool applyImmediately = false,
+  }) async {
     if (_startingNextRound ||
         viewState != NetworkGameViewState.waitingNext ||
         !canStartNextRound) {
@@ -1563,20 +1617,24 @@ final class NetworkGameController extends ChangeNotifier {
         await _publishCanonicalSpiceIfNeeded(
           roundId: boundaryRoundId,
           roundNumber: boundaryRoundNumber,
+          applyImmediately: applyImmediately,
         );
       }
       if (round?.roundId != boundaryRoundId) {
         return;
       }
-      await _apply(
-        await repository.readyNextRound(
-          command: _command(
-            'START_NEXT_ROUND',
-            roundId: boundaryRoundId,
-            roundNumber: boundaryRoundNumber,
-          ),
+      final updated = await repository.readyNextRound(
+        command: _command(
+          'START_NEXT_ROUND',
+          roundId: boundaryRoundId,
+          roundNumber: boundaryRoundNumber,
         ),
       );
+      if (applyImmediately) {
+        await _applyNow(updated);
+      } else {
+        await _apply(updated);
+      }
     } catch (error) {
       _fail(error);
     } finally {
@@ -1768,7 +1826,7 @@ final class NetworkGameController extends ChangeNotifier {
     }
     _revealing = true;
     try {
-      await _apply(
+      await _applyNow(
         await repository.submitReveal(
           command: _command('REVEAL', choiceVersion: _choiceVersion),
           reveal: reveal,
@@ -1814,7 +1872,7 @@ final class NetworkGameController extends ChangeNotifier {
                   V4ClothingBehavior.none)
             ...card.targetPlayerIds,
       };
-      await _apply(
+      await _applyNow(
         await actionRepository.publishV4ActionProjection(
           command: _command('PUBLISH_V4_ACTION'),
           projection: NetworkResolvedActionProjectionDto(
@@ -1874,7 +1932,7 @@ final class NetworkGameController extends ChangeNotifier {
           repository as NetworkPrivateInitialResolutionRepository;
       _resolving = true;
       try {
-        await _apply(
+        await _applyNow(
           await privateResolver.resolveInitialPrivately(
             command: _command('INITIAL_RESOLVE'),
           ),
@@ -1928,7 +1986,7 @@ final class NetworkGameController extends ChangeNotifier {
             ? false
             : commitments[winner]!.cardInvertible,
       );
-      await _apply(
+      await _applyNow(
         await repository.submitInitialResolution(
           command: _command('INITIAL_RESOLVE'),
           resolution: initial,
@@ -2961,6 +3019,7 @@ final class NetworkGameController extends ChangeNotifier {
   Future<void> _publishCanonicalSpiceIfNeeded({
     required String roundId,
     required int roundNumber,
+    required bool applyImmediately,
   }) async {
     if (repository is! NetworkSessionFlowRepository || !isCycleController) {
       return;
@@ -2969,16 +3028,19 @@ final class NetworkGameController extends ChangeNotifier {
     while (_canonicalUnlockedSpice < _spiceProgression.unlockedLevel) {
       final next = _canonicalUnlockedSpice + 1;
       final before = _canonicalUnlockedSpice;
-      await _apply(
-        await flow.publishUnlockedSpice(
-          command: _command(
-            'PUBLISH_V4_SPICE_$next',
-            roundId: roundId,
-            roundNumber: roundNumber,
-          ),
-          unlockedSpice: next,
+      final updated = await flow.publishUnlockedSpice(
+        command: _command(
+          'PUBLISH_V4_SPICE_$next',
+          roundId: roundId,
+          roundNumber: roundNumber,
         ),
+        unlockedSpice: next,
       );
+      if (applyImmediately) {
+        await _applyNow(updated);
+      } else {
+        await _apply(updated);
+      }
       if (_canonicalUnlockedSpice <= before) {
         throw const NetworkRoundException('ROUND_SPICE_SYNC_FAILED');
       }

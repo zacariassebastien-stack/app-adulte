@@ -109,10 +109,15 @@ final class SupabaseNetworkGameRepository
     required String sessionId,
   }) async {
     final playerId = await _identity();
-    return _call('get_current_network_game_round', {
+    final current = await _call('get_current_network_game_round', {
       'p_session_id': sessionId,
       'p_player_id': playerId,
     });
+    return _refreshWithCanonicalRevision(
+      sessionId: sessionId,
+      playerId: playerId,
+      current: current,
+    );
   }
 
   @override
@@ -465,13 +470,52 @@ final class SupabaseNetworkGameRepository
     final identity = await _identity();
     _matching(command, identity);
     final roundId = command.payload['round_id'] as String?;
-    return _call(function, {
+    final result = await _call(function, {
       'p_session_id': command.sessionId,
       'p_round_id': ?roundId,
       'p_player_id': command.playerId,
       'p_command_id': command.commandId,
       ...extra,
     });
+    return _refreshWithCanonicalRevision(
+      sessionId: command.sessionId,
+      playerId: identity,
+      current: result,
+    );
+  }
+
+  Future<NetworkGameRoundStateDto> _refreshWithCanonicalRevision({
+    required String sessionId,
+    required String playerId,
+    required NetworkGameRoundStateDto current,
+  }) async {
+    var candidate = current;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final revisionBefore = await _roundRevision(candidate.roundId);
+      final refreshed = await _call('get_current_network_game_round', {
+        'p_session_id': sessionId,
+        'p_player_id': playerId,
+      });
+      if (refreshed.roundId != candidate.roundId) {
+        candidate = refreshed;
+        continue;
+      }
+      final revisionAfter = await _roundRevision(candidate.roundId);
+      if (revisionBefore != null && revisionBefore == revisionAfter) {
+        return refreshed.withRoundRevision(revisionBefore);
+      }
+      candidate = refreshed;
+    }
+    return candidate;
+  }
+
+  Future<int?> _roundRevision(String roundId) async {
+    final event = await client
+        .from('network_round_public_events')
+        .select('revision')
+        .eq('round_id', roundId)
+        .maybeSingle();
+    return (event?['revision'] as num?)?.toInt();
   }
 
   Future<NetworkGameRoundStateDto> _call(
