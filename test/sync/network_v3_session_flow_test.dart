@@ -643,6 +643,124 @@ void main() {
   });
 
   test(
+    'accepted auction collision keeps canonical card and verifies duel owner',
+    () {
+      final verification = File(
+        'supabase/migrations/202610100014_verify_compromise_card_origins.sql',
+      ).readAsStringSync();
+      final response = File(
+        'supabase/migrations/202610100006_preserve_duel_winner_after_compromise.sql',
+      ).readAsStringSync();
+
+      expect(
+        verification,
+        contains("if v_card->>'origin' = 'INITIAL_DUEL' then"),
+      );
+      expect(
+        verification,
+        contains("reveal.player_id::text = v_card->>'owner_player_id'"),
+      );
+      expect(
+        verification,
+        contains(
+          "reveal.choice_payload#>>'{parameters,occurrence_id}' =\n"
+          "          v_card->>'occurrence_id'",
+        ),
+      );
+      expect(
+        verification,
+        isNot(
+          contains(
+            "if found then\n"
+            "      v_parameters := v_choice#>'{parameters,resolved_parameters}'",
+          ),
+        ),
+      );
+      expect(
+        verification,
+        contains(
+          "AUCTION and CORRUPTION cards were already reconstructed and validated",
+        ),
+      );
+
+      // The correction only changes verification. Accepted compromises retain
+      // the established winner, retained actor and PA debit semantics.
+      expect(response, contains("'retained_player_id',v_loser"));
+      expect(response, contains("'final_winner_player_id',v_winner"));
+      expect(
+        response,
+        contains(
+          "v_spend:=(v_offer->>'direct_pa')::integer\n"
+          "    + case when v_inverted",
+        ),
+      );
+    },
+  );
+
+  test('action identity mismatch remains a client-visible network code', () {
+    final repository = File(
+      'lib/data/remote/supabase_network_game_repository.dart',
+    ).readAsStringSync();
+    expect(repository, contains("'ROUND_ACTION_IDENTITY_MISMATCH'"));
+  });
+
+  group('negotiation direction validation', () {
+    final migration = File(
+      'supabase/migrations/202610100015_fix_negotiation_direction_validation.sql',
+    ).readAsStringSync().replaceAll('\r\n', '\n');
+
+    test('accepts a canonical RECEVOIR occurrence with legacy FAIRE role', () {
+      expect(
+        migration,
+        contains(
+          "coalesce(v_choice#>>'{parameters,native_direction}',\n"
+          "      v_choice#>>'{parameters,role}','GENERAL') <>\n"
+          "     coalesce(v_choice#>>'{parameters,effective_direction}',",
+        ),
+      );
+      expect(
+        migration,
+        isNot(
+          contains(
+            "coalesce(v_choice#>>'{parameters,native_direction}',\n"
+            "      v_choice#>>'{parameters,role}','GENERAL') <>\n"
+            "     coalesce(v_choice#>>'{parameters,role}','GENERAL')",
+          ),
+        ),
+      );
+    });
+
+    test('keeps matching legacy role and canonical direction valid', () {
+      expect(
+        migration,
+        contains(
+          "'native_direction',coalesce(\n"
+          "      v_choice#>>'{parameters,native_direction}',\n"
+          "      v_choice#>>'{parameters,role}','GENERAL'",
+        ),
+      );
+      expect(
+        migration,
+        contains(
+          "'effective_direction',case coalesce(\n"
+          "      v_choice#>>'{parameters,effective_direction}',",
+        ),
+      );
+    });
+
+    test('rejects a real native and effective direction mismatch', () {
+      expect(
+        migration,
+        contains("raise exception 'ROUND_DIRECTION_MISMATCH'"),
+      );
+      final repository = File(
+        'lib/data/remote/supabase_network_game_repository.dart',
+      ).readAsStringSync();
+      expect(repository, contains("'ROUND_DIRECTION_MISMATCH'"));
+    });
+  });
+
+  test(
     'final migration persists style and occurrence-aware public actions',
     () {
       final sql = File(
