@@ -1,0 +1,1306 @@
+{
+  "schema_version": 1,
+  "catalog_version": 1,
+  "locale": "fr-FR",
+  "source": "Spécification consolidée fournie par l’utilisateur — sections 1 à 4",
+  "zones": [
+    {
+      "id": "face_hair",
+      "title": "Visage / cheveux",
+      "modifier": 0
+    },
+    {
+      "id": "neck_nape",
+      "title": "Cou / nuque",
+      "modifier": 0
+    },
+    {
+      "id": "arms_hands",
+      "title": "Bras / mains",
+      "modifier": 0
+    },
+    {
+      "id": "back_shoulders",
+      "title": "Dos / épaules",
+      "modifier": 0
+    },
+    {
+      "id": "belly",
+      "title": "Ventre",
+      "modifier": 0
+    },
+    {
+      "id": "legs",
+      "title": "Jambes hors cuisses",
+      "modifier": 0
+    },
+    {
+      "id": "feet",
+      "title": "Pieds",
+      "modifier": 0
+    },
+    {
+      "id": "thighs",
+      "title": "Cuisses",
+      "modifier": 1
+    },
+    {
+      "id": "buttocks",
+      "title": "Fesses",
+      "modifier": 1
+    },
+    {
+      "id": "chest",
+      "title": "Poitrine / seins",
+      "modifier": 1
+    },
+    {
+      "id": "penis",
+      "title": "Pénis",
+      "modifier": 2
+    },
+    {
+      "id": "vulva",
+      "title": "Vulve",
+      "modifier": 2
+    },
+    {
+      "id": "anus",
+      "title": "Anus",
+      "modifier": 2
+    }
+  ],
+  "concepts": [
+    {
+      "id": "001",
+      "title": "Câlin",
+      "kind": "action",
+      "action_text": "Prenez-vous dans les bras.",
+      "variants": [
+        {
+          "id": "001.action",
+          "title": "Câlin",
+          "chili": 1
+        }
+      ]
+    },
+    {
+      "id": "002",
+      "title": "Embrasser",
+      "kind": "zones",
+      "action_text": "Embrassez une zone du corps choisie.",
+      "details_text": "Il s’agit d’un baiser sur le corps, pas d’un baiser bouche-à-bouche.",
+      "intrinsic_chili": 1,
+      "variants": [
+        {
+          "id": "002.zone.face_hair",
+          "title": "Visage / cheveux",
+          "zone_id": "face_hair"
+        },
+        {
+          "id": "002.zone.neck_nape",
+          "title": "Cou / nuque",
+          "zone_id": "neck_nape"
+        },
+        {
+          "id": "002.zone.arms_hands",
+          "title": "Bras / mains",
+          "zone_id": "arms_hands"
+        },
+        {
+          "id": "002.zone.back_shoulders",
+          "title": "Dos / épaules",
+          "zone_id": "back_shoulders"
+        },
+        {
+          "id": "002.zone.belly",
+          "title": "Ventre",
+          "zone_id": "belly"
+        },
+        {
+          "id": "002.zone.legs",
+          "title": "Jambes hors cuisses",
+          "zone_id": "legs"
+        },
+        {
+          "id": "002.zone.feet",
+          "title": "Pieds",
+          "zone_id": "feet"
+        },
+        {
+          "id": "002.zone.thighs",
+          "title": "Cuisses",
+          "zone_id": "thighs"
+        },
+        {
+          "id": "002.zone.buttocks",
+          "title": "Fesses",
+          "zone_id": "buttocks"
+        },
+        {
+          "id": "002.zone.chest",
+          "title": "Poitrine / seins",
+          "zone_id": "chest"
+        },
+        {
+          "id": "002.zone.penis",
+          "title": "Pénis",
+          "zone_id": "penis"
+        },
+        {
+          "id": "002.zone.vulva",
+          "title": "Vulve",
+          "zone_id": "vulva"
+        },
+        {
+          "id": "002.zone.anus",
+          "title": "Anus",
+          "zone_id": "anus"
+        },
+        {
+          "id": "002.zone.free",
+          "title": "Zone libre",
+          "free_zone": true
+        }
+      ]
+    },
+    {
+      "id": "003",
+      "title": "S’embrasser",
+      "kind": "evolution",
+      "action_text": "Embrassez-vous bouche-à-bouche à l’intensité choisie.",
+      "stages": [
+        {
+          "id": "003.stage.1",
+          "title": "Stade 1",
+          "chili": 1
+        },
+        {
+          "id": "003.stage.2",
+          "title": "Stade 2",
+          "chili": 2
+        },
+        {
+          "id": "003.stage.3",
+          "title": "Stade 3",
+          "chili": 2
+        }
+      ]
+    },
+    {
+      "id": "004",
+      "title": "Jeu de bouche",
+      "kind": "zones",
+      "action_text": "Choisissez une technique avec la bouche et une zone du corps.",
+      "details_text": "La technique est réalisée avec la bouche sur la zone choisie.",
+      "intrinsic_chili": 1,
+      "variants": [
+        {
+          "id": "004.zone.face_hair",
+          "title": "Visage / cheveux",
+          "zone_id": "face_hair"
+        },
+        {
+          "id": "004.zone.neck_nape",
+          "title": "Cou / nuque",
+          "zone_id": "neck_nape"
+        },
+        {
+          "id": "004.zone.arms_hands",
+          "title": "Bras / mains",
+          "zone_id": "arms_hands"
+        },
+        {
+          "id": "004.zone.back_shoulders",
+          "title": "Dos / épaules",
+          "zone_id": "back_shoulders"
+        },
+        {
+          "id": "004.zone.belly",
+          "title": "Ventre",
+          "zone_id": "belly"
+        },
+        {
+          "id": "004.zone.legs",
+          "title": "Jambes hors cuisses",
+          "zone_id": "legs"
+        },
+        {
+          "id": "004.zone.feet",
+          "title": "Pieds",
+          "zone_id": "feet"
+        },
+        {
+          "id": "004.zone.thighs",
+          "title": "Cuisses",
+          "zone_id": "thighs"
+        },
+        {
+          "id": "004.zone.buttocks",
+          "title": "Fesses",
+          "zone_id": "buttocks"
+        },
+        {
+          "id": "004.zone.chest",
+          "title": "Poitrine / seins",
+          "zone_id": "chest"
+        },
+        {
+          "id": "004.zone.penis",
+          "title": "Pénis",
+          "zone_id": "penis"
+        },
+        {
+          "id": "004.zone.vulva",
+          "title": "Vulve",
+          "zone_id": "vulva"
+        },
+        {
+          "id": "004.zone.anus",
+          "title": "Anus",
+          "zone_id": "anus"
+        },
+        {
+          "id": "004.zone.free",
+          "title": "Zone libre",
+          "free_zone": true
+        }
+      ]
+    },
+    {
+      "id": "005",
+      "title": "Jeu de main",
+      "kind": "zones",
+      "action_text": "Choisissez une technique manuelle et une zone du corps.",
+      "details_text": "La technique est réalisée avec les mains sur la zone choisie.",
+      "intrinsic_chili": 1,
+      "variants": [
+        {
+          "id": "005.zone.face_hair",
+          "title": "Visage / cheveux",
+          "zone_id": "face_hair"
+        },
+        {
+          "id": "005.zone.neck_nape",
+          "title": "Cou / nuque",
+          "zone_id": "neck_nape"
+        },
+        {
+          "id": "005.zone.arms_hands",
+          "title": "Bras / mains",
+          "zone_id": "arms_hands"
+        },
+        {
+          "id": "005.zone.back_shoulders",
+          "title": "Dos / épaules",
+          "zone_id": "back_shoulders"
+        },
+        {
+          "id": "005.zone.belly",
+          "title": "Ventre",
+          "zone_id": "belly"
+        },
+        {
+          "id": "005.zone.legs",
+          "title": "Jambes hors cuisses",
+          "zone_id": "legs"
+        },
+        {
+          "id": "005.zone.feet",
+          "title": "Pieds",
+          "zone_id": "feet"
+        },
+        {
+          "id": "005.zone.thighs",
+          "title": "Cuisses",
+          "zone_id": "thighs"
+        },
+        {
+          "id": "005.zone.buttocks",
+          "title": "Fesses",
+          "zone_id": "buttocks"
+        },
+        {
+          "id": "005.zone.chest",
+          "title": "Poitrine / seins",
+          "zone_id": "chest"
+        },
+        {
+          "id": "005.zone.penis",
+          "title": "Pénis",
+          "zone_id": "penis"
+        },
+        {
+          "id": "005.zone.vulva",
+          "title": "Vulve",
+          "zone_id": "vulva"
+        },
+        {
+          "id": "005.zone.anus",
+          "title": "Anus",
+          "zone_id": "anus"
+        },
+        {
+          "id": "005.zone.free",
+          "title": "Zone libre",
+          "free_zone": true
+        }
+      ]
+    },
+    {
+      "id": "006",
+      "title": "Retirer un vêtement",
+      "kind": "action",
+      "action_text": "Retirez un vêtement.",
+      "variants": [
+        {
+          "id": "006.action",
+          "title": "Retirer un vêtement",
+          "chili": 1
+        }
+      ],
+      "capacity_rule": "initial_clothing_single"
+    },
+    {
+      "id": "007",
+      "title": "Retirer deux vêtements",
+      "kind": "action",
+      "action_text": "Retirez deux vêtements.",
+      "variants": [
+        {
+          "id": "007.action",
+          "title": "Retirer deux vêtements",
+          "chili": 1
+        }
+      ],
+      "capacity_rule": "initial_clothing_double"
+    },
+    {
+      "id": "008",
+      "title": "Être en sous-vêtements",
+      "kind": "action",
+      "action_text": "Atteignez l’état « en sous-vêtements ».",
+      "variants": [
+        {
+          "id": "008.action",
+          "title": "Être en sous-vêtements",
+          "chili": 2
+        }
+      ]
+    },
+    {
+      "id": "009",
+      "title": "Nu",
+      "kind": "action",
+      "action_text": "Atteignez l’état « nu ».",
+      "variants": [
+        {
+          "id": "009.action",
+          "title": "Nu",
+          "chili": 2
+        }
+      ]
+    },
+    {
+      "id": "010",
+      "title": "Strip-tease",
+      "kind": "evolution",
+      "action_text": "Réalisez un strip-tease à l’intensité choisie.",
+      "details_text": "Vous pouvez vous rhabiller complètement avant de le réaliser, même si vous êtes déjà nu.",
+      "stages": [
+        {
+          "id": "010.stage.1",
+          "title": "Stade 1",
+          "chili": 1
+        },
+        {
+          "id": "010.stage.2",
+          "title": "Stade 2",
+          "chili": 2
+        },
+        {
+          "id": "010.stage.3",
+          "title": "Stade 3",
+          "chili": 2
+        }
+      ]
+    },
+    {
+      "id": "012",
+      "title": "Choix de tenue",
+      "kind": "action",
+      "action_text": "Choisissez la tenue que l’autre doit porter.",
+      "variants": [
+        {
+          "id": "012.action",
+          "title": "Choix de tenue",
+          "chili": 1
+        }
+      ]
+    },
+    {
+      "id": "013",
+      "title": "Changement complet de tenue",
+      "kind": "action",
+      "action_text": "Changez complètement de tenue en choisissant vous-même votre nouvelle tenue.",
+      "variants": [
+        {
+          "id": "013.action",
+          "title": "Changement complet de tenue",
+          "chili": 1
+        }
+      ]
+    },
+    {
+      "id": "016",
+      "title": "Imposer une posture",
+      "kind": "action",
+      "action_text": "Choisissez la posture que l’autre doit prendre.",
+      "details_text": "Les vêtements actuels restent tels quels.",
+      "variants": [
+        {
+          "id": "016.action",
+          "title": "Imposer une posture",
+          "chili": 1
+        }
+      ]
+    },
+    {
+      "id": "018",
+      "title": "Simulation",
+      "kind": "evolution",
+      "action_text": "Réalisez la simulation à l’intensité choisie.",
+      "stages": [
+        {
+          "id": "018.stage.1",
+          "title": "Stade 1",
+          "chili": 1
+        },
+        {
+          "id": "018.stage.2",
+          "title": "Stade 2",
+          "chili": 2
+        },
+        {
+          "id": "018.stage.3",
+          "title": "Stade 3",
+          "chili": 2
+        }
+      ]
+    },
+    {
+      "id": "019",
+      "title": "Masturbation",
+      "kind": "evolution",
+      "action_text": "Réalisez l’action au stade choisi.",
+      "stages": [
+        {
+          "id": "019.stage.1",
+          "title": "Stade 1",
+          "chili": 3
+        },
+        {
+          "id": "019.stage.2",
+          "title": "Stade 2",
+          "chili": 3
+        },
+        {
+          "id": "019.stage.3",
+          "title": "Stade 3",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "020",
+      "title": "Masturbation mutuelle",
+      "kind": "action",
+      "action_text": "Partagez une masturbation mutuelle.",
+      "variants": [
+        {
+          "id": "020.action",
+          "title": "Masturbation mutuelle",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "021",
+      "title": "Masturbation solo",
+      "kind": "action",
+      "action_text": "Réalisez une masturbation solo.",
+      "variants": [
+        {
+          "id": "021.action",
+          "title": "Masturbation solo",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "022",
+      "title": "Doigter vaginal",
+      "kind": "evolution",
+      "action_text": "Réalisez l’action au stade choisi.",
+      "stages": [
+        {
+          "id": "022.stage.1",
+          "title": "Stade 1",
+          "chili": 3
+        },
+        {
+          "id": "022.stage.2",
+          "title": "Stade 2",
+          "chili": 4
+        },
+        {
+          "id": "022.stage.3",
+          "title": "Stade 3",
+          "chili": 4
+        }
+      ]
+    },
+    {
+      "id": "023",
+      "title": "Doigter anal",
+      "kind": "evolution",
+      "action_text": "Réalisez l’action au stade choisi.",
+      "stages": [
+        {
+          "id": "023.stage.1",
+          "title": "Stade 1",
+          "chili": 3
+        },
+        {
+          "id": "023.stage.2",
+          "title": "Stade 2",
+          "chili": 4
+        },
+        {
+          "id": "023.stage.3",
+          "title": "Stade 3",
+          "chili": 4
+        }
+      ]
+    },
+    {
+      "id": "024",
+      "title": "Jeu intime",
+      "kind": "action",
+      "action_text": "Choisissez une pratique intime.",
+      "variants": [
+        {
+          "id": "024.action",
+          "title": "Jeu intime",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "025",
+      "title": "Sexe oral",
+      "kind": "evolution",
+      "action_text": "Réalisez l’action au stade choisi.",
+      "details_text": "L’anal n’est pas inclus : il relève du concept 028.",
+      "stages": [
+        {
+          "id": "025.stage.1",
+          "title": "Stade 1",
+          "chili": 3
+        },
+        {
+          "id": "025.stage.2",
+          "title": "Stade 2",
+          "chili": 3
+        },
+        {
+          "id": "025.stage.3",
+          "title": "Stade 3",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "026",
+      "title": "69",
+      "kind": "action",
+      "action_text": "Réalisez un 69.",
+      "variants": [
+        {
+          "id": "026.action",
+          "title": "69",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "027",
+      "title": "Pénétration vaginale",
+      "kind": "evolution",
+      "action_text": "Réalisez l’action au stade choisi.",
+      "stages": [
+        {
+          "id": "027.stage.1",
+          "title": "Stade 1",
+          "chili": 4
+        },
+        {
+          "id": "027.stage.2",
+          "title": "Stade 2",
+          "chili": 4
+        },
+        {
+          "id": "027.stage.3",
+          "title": "Stade 3",
+          "chili": 4
+        }
+      ]
+    },
+    {
+      "id": "028",
+      "title": "Sexe oral anal",
+      "kind": "action",
+      "action_text": "Réalisez l’action choisie de sexe oral anal.",
+      "variants": [
+        {
+          "id": "028.action",
+          "title": "Sexe oral anal",
+          "chili": 4
+        }
+      ]
+    },
+    {
+      "id": "029",
+      "title": "Choisir une position sexuelle",
+      "kind": "action",
+      "action_text": "Choisissez une position sexuelle et réalisez-la à deux.",
+      "details_text": "Il s’agit de réaliser la position, pas seulement de la nommer.",
+      "variants": [
+        {
+          "id": "029.action",
+          "title": "Choisir une position sexuelle",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "030",
+      "title": "Facesitting",
+      "kind": "evolution",
+      "action_text": "Réalisez l’action au stade choisi.",
+      "stages": [
+        {
+          "id": "030.stage.1",
+          "title": "Stade 1",
+          "chili": 3
+        },
+        {
+          "id": "030.stage.2",
+          "title": "Stade 2",
+          "chili": 3
+        },
+        {
+          "id": "030.stage.3",
+          "title": "Stade 3",
+          "chili": 4
+        }
+      ]
+    },
+    {
+      "id": "031",
+      "title": "Frottement génital",
+      "kind": "action",
+      "action_text": "Réalisez un frottement génital.",
+      "variants": [
+        {
+          "id": "031.action",
+          "title": "Frottement génital",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "032",
+      "title": "Ordre",
+      "kind": "action",
+      "action_text": "Choisissez l’ordre que l’autre doit suivre.",
+      "details_text": "Le choix ouvert de l’ordre constitue l’identité de la carte.",
+      "variants": [
+        {
+          "id": "032.action",
+          "title": "Ordre",
+          "chili": 1
+        }
+      ]
+    },
+    {
+      "id": "033",
+      "title": "Interdiction de toucher",
+      "kind": "action",
+      "action_text": "Engagez l’interdiction de toucher.",
+      "details_text": "Effet persistant, sans évolution.",
+      "variants": [
+        {
+          "id": "033.action",
+          "title": "Interdiction de toucher",
+          "chili": 1
+        }
+      ],
+      "persistent_effect": true
+    },
+    {
+      "id": "034",
+      "title": "Entrave",
+      "kind": "evolution",
+      "action_text": "Réalisez l’entrave au stade choisi.",
+      "stages": [
+        {
+          "id": "034.stage.1",
+          "title": "Stade 1",
+          "chili": 1
+        },
+        {
+          "id": "034.stage.2",
+          "title": "Stade 2",
+          "chili": 2
+        },
+        {
+          "id": "034.stage.3",
+          "title": "Stade 3",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "035",
+      "title": "Privation visuelle",
+      "kind": "action",
+      "action_text": "Engagez la privation visuelle.",
+      "details_text": "Un seul effet de privation visuelle, sans évolution. Durée : 3 actions/tours selon le système persistant existant.",
+      "variants": [
+        {
+          "id": "035.action",
+          "title": "Privation visuelle",
+          "chili": 2
+        }
+      ],
+      "persistent_effect": true
+    },
+    {
+      "id": "037",
+      "title": "Fessée",
+      "kind": "evolution",
+      "action_text": "Réalisez l’action au stade choisi.",
+      "stages": [
+        {
+          "id": "037.stage.1",
+          "title": "Stade 1",
+          "chili": 2
+        },
+        {
+          "id": "037.stage.2",
+          "title": "Stade 2",
+          "chili": 2
+        },
+        {
+          "id": "037.stage.3",
+          "title": "Stade 3",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "038",
+      "title": "Danser",
+      "kind": "action",
+      "action_text": "Dansez.",
+      "variants": [
+        {
+          "id": "038.action",
+          "title": "Danser",
+          "chili": 1
+        }
+      ]
+    },
+    {
+      "id": "039",
+      "title": "Prendre une pose",
+      "kind": "action",
+      "action_text": "Choisissez vous-même votre pose et prenez-la.",
+      "variants": [
+        {
+          "id": "039.action",
+          "title": "Prendre une pose",
+          "chili": 1
+        }
+      ]
+    },
+    {
+      "id": "042",
+      "title": "Sexting",
+      "kind": "action",
+      "action_text": "Échangez des messages pendant 3 tours.",
+      "details_text": "Communication suivie ; à distinguer du message ponctuel 043.",
+      "variants": [
+        {
+          "id": "042.action",
+          "title": "Sexting",
+          "chili": 2
+        }
+      ]
+    },
+    {
+      "id": "043",
+      "title": "Message coquin",
+      "kind": "evolution",
+      "action_text": "Envoyez un message coquin ponctuel au stade choisi.",
+      "stages": [
+        {
+          "id": "043.stage.1",
+          "title": "Stade 1",
+          "chili": 1
+        },
+        {
+          "id": "043.stage.2",
+          "title": "Stade 2",
+          "chili": 2
+        },
+        {
+          "id": "043.stage.3",
+          "title": "Stade 3",
+          "chili": 2
+        }
+      ]
+    },
+    {
+      "id": "044",
+      "title": "Photo",
+      "kind": "evolution",
+      "action_text": "Réalisez une photo au stade choisi.",
+      "stages": [
+        {
+          "id": "044.stage.1",
+          "title": "Stade 1",
+          "chili": 1
+        },
+        {
+          "id": "044.stage.2",
+          "title": "Stade 2",
+          "chili": 2
+        },
+        {
+          "id": "044.stage.3",
+          "title": "Stade 3",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "045",
+      "title": "Photo mutuelle",
+      "kind": "evolution",
+      "action_text": "Réalisez une photo mutuelle au stade choisi.",
+      "details_text": "Le dernier stade peut représenter les deux joueurs pendant une pratique sexuelle très engagée, y compris une pénétration.",
+      "stages": [
+        {
+          "id": "045.stage.1",
+          "title": "Stade 1",
+          "chili": 1
+        },
+        {
+          "id": "045.stage.2",
+          "title": "Stade 2",
+          "chili": 2
+        },
+        {
+          "id": "045.stage.3",
+          "title": "Stade 3",
+          "chili": 4
+        }
+      ]
+    },
+    {
+      "id": "046",
+      "title": "Vidéo intime",
+      "kind": "evolution",
+      "action_text": "Réalisez une vidéo intime au stade choisi.",
+      "stages": [
+        {
+          "id": "046.stage.1",
+          "title": "Stade 1",
+          "chili": 1
+        },
+        {
+          "id": "046.stage.2",
+          "title": "Stade 2",
+          "chili": 2
+        },
+        {
+          "id": "046.stage.3",
+          "title": "Stade 3",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "047",
+      "title": "Vidéo mutuelle",
+      "kind": "evolution",
+      "action_text": "Réalisez une vidéo mutuelle au stade choisi.",
+      "details_text": "Le dernier stade suit la même logique que Photo mutuelle.",
+      "stages": [
+        {
+          "id": "047.stage.1",
+          "title": "Stade 1",
+          "chili": 1
+        },
+        {
+          "id": "047.stage.2",
+          "title": "Stade 2",
+          "chili": 2
+        },
+        {
+          "id": "047.stage.3",
+          "title": "Stade 3",
+          "chili": 4
+        }
+      ]
+    },
+    {
+      "id": "048",
+      "title": "Jeu de rôle",
+      "kind": "action",
+      "action_text": "Choisissez et jouez un jeu de rôle.",
+      "variants": [
+        {
+          "id": "048.action",
+          "title": "Jeu de rôle",
+          "chili": 2
+        }
+      ]
+    },
+    {
+      "id": "049",
+      "title": "Sextoy sur partenaire",
+      "kind": "accessory",
+      "action_text": "Choisissez la zone et l’accessoire pour l’action sur votre partenaire.",
+      "selection_axes": [
+        "zone",
+        "accessory"
+      ],
+      "variants": [
+        {
+          "id": "049.external",
+          "title": "Usage externe",
+          "chili": 3
+        },
+        {
+          "id": "049.phallus",
+          "title": "Usage phallus",
+          "chili": 3
+        },
+        {
+          "id": "049.vaginal_insertion",
+          "title": "Insertion vaginale",
+          "chili": 4
+        },
+        {
+          "id": "049.anal_insertion",
+          "title": "Insertion anale",
+          "chili": 4
+        }
+      ]
+    },
+    {
+      "id": "050",
+      "title": "Masturbation avec sextoy sur soi",
+      "kind": "accessory",
+      "action_text": "Choisissez la zone et l’accessoire pour l’action sur vous-même.",
+      "selection_axes": [
+        "zone",
+        "accessory"
+      ],
+      "variants": [
+        {
+          "id": "050.external",
+          "title": "Usage externe",
+          "chili": 3
+        },
+        {
+          "id": "050.phallus",
+          "title": "Usage phallus",
+          "chili": 3
+        },
+        {
+          "id": "050.vaginal_insertion",
+          "title": "Insertion vaginale",
+          "chili": 4
+        },
+        {
+          "id": "050.anal_insertion",
+          "title": "Insertion anale",
+          "chili": 4
+        }
+      ]
+    },
+    {
+      "id": "051",
+      "title": "Sextoy sur l’autre / mutuel",
+      "kind": "accessory",
+      "action_text": "Choisissez la zone et l’accessoire pour l’action sur l’autre ou mutuelle.",
+      "selection_axes": [
+        "zone",
+        "accessory"
+      ],
+      "variants": [
+        {
+          "id": "051.external",
+          "title": "Usage externe",
+          "chili": 3
+        },
+        {
+          "id": "051.phallus",
+          "title": "Usage phallus",
+          "chili": 3
+        },
+        {
+          "id": "051.vaginal_insertion",
+          "title": "Insertion vaginale",
+          "chili": 4
+        },
+        {
+          "id": "051.anal_insertion",
+          "title": "Insertion anale",
+          "chili": 4
+        }
+      ]
+    },
+    {
+      "id": "052",
+      "title": "Sextoy contrôlé à distance",
+      "kind": "accessory",
+      "action_text": "Choisissez l’usage et l’accessoire contrôlé à distance.",
+      "selection_axes": [
+        "zone",
+        "accessory"
+      ],
+      "variants": [
+        {
+          "id": "052.external",
+          "title": "Usage externe",
+          "chili": 3
+        },
+        {
+          "id": "052.phallus",
+          "title": "Usage phallus",
+          "chili": 3
+        },
+        {
+          "id": "052.vaginal_insertion",
+          "title": "Insertion vaginale",
+          "chili": 4
+        },
+        {
+          "id": "052.anal_insertion",
+          "title": "Insertion anale",
+          "chili": 4
+        }
+      ]
+    },
+    {
+      "id": "053",
+      "title": "Contenu adulte partagé",
+      "kind": "action",
+      "action_text": "Partagez un contenu adulte.",
+      "variants": [
+        {
+          "id": "053.action",
+          "title": "Contenu adulte partagé",
+          "chili": 2
+        }
+      ]
+    },
+    {
+      "id": "054",
+      "title": "Exposition / sensation",
+      "kind": "action",
+      "action_text": "Choisissez une situation procurant un léger frisson subjectif d’exposition.",
+      "details_text": "Cela ne signifie pas une exposition réelle à des personnes non consentantes.",
+      "variants": [
+        {
+          "id": "054.action",
+          "title": "Exposition / sensation",
+          "chili": 2
+        }
+      ]
+    },
+    {
+      "id": "055",
+      "title": "Choix de l’éjaculation",
+      "kind": "action",
+      "action_text": "Choisissez les modalités de l’éjaculation.",
+      "variants": [
+        {
+          "id": "055.action",
+          "title": "Choix de l’éjaculation",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "056",
+      "title": "Paroles dégradantes",
+      "kind": "evolution",
+      "action_text": "Réalisez l’action au stade choisi.",
+      "details_text": "Le dernier stade peut relever d’un fort engagement psychologique.",
+      "stages": [
+        {
+          "id": "056.stage.1",
+          "title": "Stade 1",
+          "chili": 2
+        },
+        {
+          "id": "056.stage.2",
+          "title": "Stade 2",
+          "chili": 3
+        },
+        {
+          "id": "056.stage.3",
+          "title": "Stade 3",
+          "chili": 4
+        }
+      ]
+    },
+    {
+      "id": "057",
+      "title": "Supplier",
+      "kind": "evolution",
+      "action_text": "Suppliez au stade choisi.",
+      "stages": [
+        {
+          "id": "057.stage.1",
+          "title": "Supplication simple",
+          "chili": 1
+        },
+        {
+          "id": "057.stage.2",
+          "title": "Demande insistante / appuyée",
+          "chili": 2
+        },
+        {
+          "id": "057.stage.3",
+          "title": "Supplication intense / pratiquement à genoux",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "058",
+      "title": "Ailleurs en privé",
+      "kind": "action",
+      "action_text": "Choisissez un autre endroit privé et changez d’endroit.",
+      "details_text": "Présentiel uniquement, par exemple du salon à la chambre.",
+      "variants": [
+        {
+          "id": "058.action",
+          "title": "Ailleurs en privé",
+          "chili": 1
+        }
+      ],
+      "session_modes": [
+        "face_to_face"
+      ]
+    },
+    {
+      "id": "060",
+      "title": "Privation auditive",
+      "kind": "action",
+      "action_text": "Engagez la privation auditive.",
+      "details_text": "Effet persistant, sans évolution.",
+      "variants": [
+        {
+          "id": "060.action",
+          "title": "Privation auditive",
+          "chili": 2
+        }
+      ],
+      "persistent_effect": true
+    },
+    {
+      "id": "061",
+      "title": "Silence",
+      "kind": "action",
+      "action_text": "Engagez le silence.",
+      "details_text": "Effet persistant, sans évolution.",
+      "variants": [
+        {
+          "id": "061.action",
+          "title": "Silence",
+          "chili": 2
+        }
+      ],
+      "persistent_effect": true
+    },
+    {
+      "id": "062",
+      "title": "Prise au cou",
+      "kind": "evolution",
+      "action_text": "Réalisez une prise contrôlée au cou à l’intensité choisie.",
+      "details_text": "Il ne s’agit pas d’une strangulation réelle.",
+      "stages": [
+        {
+          "id": "062.stage.1",
+          "title": "Stade 1",
+          "chili": 1
+        },
+        {
+          "id": "062.stage.2",
+          "title": "Stade 2",
+          "chili": 2
+        },
+        {
+          "id": "062.stage.3",
+          "title": "Stade 3",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "063",
+      "title": "Tirage des cheveux",
+      "kind": "evolution",
+      "action_text": "Réalisez un tirage contrôlé des cheveux à l’intensité choisie.",
+      "details_text": "Il ne s’agit pas d’un arrachement.",
+      "stages": [
+        {
+          "id": "063.stage.1",
+          "title": "Stade 1",
+          "chili": 1
+        },
+        {
+          "id": "063.stage.2",
+          "title": "Stade 2",
+          "chili": 2
+        },
+        {
+          "id": "063.stage.3",
+          "title": "Stade 3",
+          "chili": 3
+        }
+      ]
+    },
+    {
+      "id": "065",
+      "title": "Footjob",
+      "kind": "action",
+      "action_text": "Réalisez un footjob.",
+      "variants": [
+        {
+          "id": "065.action",
+          "title": "Footjob",
+          "chili": 3
+        }
+      ]
+    }
+  ]
+}

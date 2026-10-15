@@ -1,0 +1,52 @@
+{
+  "lot": 1,
+  "scope": "Editorial catalogue contract only; no runtime, network, SQL or dependency changes",
+  "specification": {
+    "path": "docs/specs/consolidated_concepts.fr.txt",
+    "sha256": "a1b319edd589f207b73e32e9c281ac4bd41ada7a037e516c60a128a22eb8ab00"
+  },
+  "active_concepts": 56,
+  "reserved_concepts": [
+    "036",
+    "059",
+    "064"
+  ],
+  "removed_concepts": [
+    "011",
+    "014",
+    "015",
+    "017",
+    "040",
+    "041"
+  ],
+  "entry_counts": [
+    26,
+    11,
+    17,
+    2
+  ],
+  "cumulative_counts": [
+    26,
+    37,
+    54,
+    56
+  ],
+  "pure_checks": {
+    "entrypoint": "tool/check_concept_catalog.dart",
+    "passed": 23,
+    "failed": 0,
+    "shares_checks_with": "test/catalog/concept_catalog_contract_test.dart"
+  },
+  "targeted_analysis": "No issues found for reader, shared checks and CLI",
+  "standard_test_runner": {
+    "status": "suite_load_failed",
+    "tests_executed": 0,
+    "reason": "Access denied copying compiled kernel into sandbox temporary directory (errno 5)"
+  },
+  "unchanged_historical_migrations": 11,
+  "actual_deletions": [
+    "assets/catalog/source/cards.v1.fr.json"
+  ],
+  "runtime_catalog_still_loaded": "assets/catalog/source/cards.v2.fr.json",
+  "hybrid_weighting": "Unchanged; user decision pending; see docs/hybrid_weighting_review.md"
+}

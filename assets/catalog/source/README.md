@@ -1,20 +1,17 @@
-# Catalogue V1
+# Source utilisée par le runtime antérieur à la refonte
 
-Contenu:
-- cards.v1.fr.json : 100 CardDefinition et 128 CardVariantDefinition
-- profile_elements.v1.fr.json : taxonomie de préférences dérivée du catalogue
-- tags.v1.json : dictionnaire de tags
-- VALIDATION.txt : contrôle structurel
+Le contrat éditorial actif est désormais
+[`../concepts/active.fr.json`](../concepts/active.fr.json) : 56 concepts.
+Voir le [contrat du Lot 1](../../../docs/catalog/concept_contract.md).
 
-Important:
-Ce paquet est un SEED fonctionnel pour le moteur, pas le catalogue éditorial final.
-Les 100 cartes historiques ont été structurées sans changer leur identité.
-Les variantes supplémentaires des cartes ouvertes servent à valider le mécanisme d'évolution.
-Les combinaisons sensibles devront rester explicitement consenties et ne doivent pas être déduites automatiquement.
+`cards.v2.fr.json` reste chargé par les anciens consommateurs tant que les
+lots moteur, usage, serveur et UI ne les ont pas remplacés. Ce fichier ne
+fait pas autorité sur les décisions éditoriales du nouveau catalogue.
 
-Prochaine passe éditoriale:
-1. enrichir les variantes réellement intéressantes;
-2. affiner FAIRE/RECEVOIR par pratique;
-3. dissocier les tags purement techniques des éléments de profil;
-4. ajouter les textes d'instruction localisés;
-5. étendre progressivement au-delà des 100 cartes.
+`cards.v1.fr.json`, ancien seed sans lecteur de production ni test, a été
+supprimé au Lot 1. Son empreinte dans `docs/source_hashes.json` reste une
+attestation historique de l'archive initiale, pas une liste des fichiers actifs.
+
+Les profils, tags et scénarios encore consommés restent en place : ils ne
+doivent pas être supprimés avec les anciens fichiers de cartes sans examen
+de leurs dépendances.

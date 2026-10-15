@@ -1,5 +1,31 @@
 # Reprise du modèle de cartes conceptuelles — 15 octobre 2026
 
+Mise à jour après réception de la spécification consolidée : les paragraphes
+ci-dessous conservent l'audit initial du Lot 0. Les décisions manquantes ont été
+fournies et le Lot 1 est décrit dans le [contrat catalogue](catalog/concept_contract.md).
+La [spécification consolidée](specs/consolidated_concepts.fr.txt) fait autorité.
+
+Le découpage courant remplace le regroupement initial ci-dessous :
+
+1. Contrat catalogue — 56 actifs, 3 réservés, 6 supprimés, taxonomie et tests purs.
+2. Deck pur — concepts, classes, ratios, quotas et cas 006/007.
+3. Identité d'usage et snapshot — persistance, reprise, historique.
+4. Serveur — adaptation par nouvelles migrations uniquement.
+5. Runtime/UI — choix dynamiques des stades et variantes.
+6. Parcours secondaires — enchères, compromis, corruption, Recovery et apprentissage.
+7. Nettoyage final — références mortes, analyse et vérifications d'ensemble.
+
+Décision validée pour le Lot 2 : les classes autorisées mais vides perdent leur
+poids, redistribué proportionnellement aux classes autorisées non vides.
+Sans candidat, appliquer la logique de cycle/épuisement, sans fallback vers
+une carte épuisée. La pondération hybride est suspendue à une décision ; voir
+[l'inspection de son fonctionnement actuel](hybrid_weighting_review.md).
+
+Le besoin de convertir d'anciennes sessions ne justifie pas de conserver deux
+moteurs pour des sessions de développement sans valeur. Les limitations locales
+des tests ne doivent provoquer aucun changement d'architecture ou de dépendances
+sans validation préalable.
+
 ## État de ce lot
 
 Lot 0 : inspection et préparation uniquement. Aucun comportement du jeu,

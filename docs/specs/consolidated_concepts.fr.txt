@@ -1,0 +1,868 @@
+SPÉCIFICATION CONSOLIDÉE — NOUVEAU CATALOGUE / CARTES CONCEPTUELLES
+
+Cette spécification remplace les anciennes règles du dépôt lorsqu'elles sont contradictoires.
+Ne pas implémenter de nouvelle mécanique non décrite ici sans me prévenir.
+Ne pas ajouter d'anti-triche : le jeu repose sur un modèle de confiance entre les deux joueurs.
+Les migrations Supabase déjà déployées restent immuables : toute évolution SQL nécessite une nouvelle migration.
+
+============================================================
+1. CATALOGUE ACTIF
+============================================================
+
+Le catalogue original contenait 65 concepts.
+
+9 concepts sortent du catalogue actif :
+- 011 Strip-tease complet : SUPPRIMÉ, redondant avec 010.
+- 014 Corps contre corps : SUPPRIMÉ, trop proche de Câlin.
+- 015 Frottements habillés : SUPPRIMÉ.
+- 017 Reproduire une posture : SUPPRIMÉ, trop proche de 016.
+- 036 Température : RÉSERVÉ à un futur système.
+- 040 Douche à deux : SUPPRIMÉ.
+- 041 Bain à deux : SUPPRIMÉ.
+- 059 Texture : RÉSERVÉ à un futur système.
+- 064 Dégustation sensuelle : RÉSERVÉ à un futur système.
+
+Catalogue actif actuel : 56 concepts.
+
+036 + 059 + 064 ne doivent pas être détruits conceptuellement :
+ils sont réservés à un futur gameplay commun Température/Texture/Dégustation.
+Ils ne font cependant plus partie du catalogue actif actuel.
+
+============================================================
+2. CATALOGUE ACTIF ET PIMENTS VALIDÉS
+============================================================
+
+001 Câlin
+- action unique
+- piment : 1
+
+002 Embrasser
+- embrasser une ZONE DU CORPS, pas bouche-à-bouche
+- variantes de zones + zone libre
+- aucune évolution
+- base piment 1 + modificateur de zone
+
+003 S'embrasser
+- bouche-à-bouche
+- 3 évolutions d'intensité
+- piments : 1 / 2 / 2
+
+004 Jeu de bouche
+- techniques avec la bouche sur différentes zones
+- variantes de zones + zone libre
+- aucune évolution
+- base piment 1 + modificateur de zone
+- description UI doit rendre le sens clair
+
+005 Jeu de main
+- techniques manuelles sur différentes zones
+- variantes de zones + zone libre
+- aucune évolution
+- base piment 1 + modificateur de zone
+- description UI doit rendre le sens clair
+
+006 Retirer un vêtement
+- action unique
+- piment 1
+- multiplicité/capacité spéciale liée au nombre initial de vêtements
+- voir règles conceptuelles plus bas
+
+007 Retirer deux vêtements
+- action unique
+- piment 1
+- multiplicité/capacité spéciale liée au nombre initial de vêtements
+- reste séparé de 006 : le hasard doit pouvoir décider 1 ou 2 vêtements
+- voir règles conceptuelles plus bas
+
+008 Être en sous-vêtements
+- action unique / état à atteindre
+- piment 2
+
+009 Nu
+- action unique / état à atteindre
+- piment 2
+
+010 Strip-tease
+- 3 évolutions
+- piments : 1 / 2 / 2
+- le joueur peut se rhabiller complètement avant de réaliser le strip-tease
+- donc la carte reste jouable même si le joueur est déjà nu
+
+012 Choix de tenue
+- action unique
+- piment 1
+- le joueur actif choisit quelle tenue l'autre doit porter
+
+013 Changement complet de tenue
+- action unique
+- piment 1
+- la cible change complètement de tenue mais choisit elle-même sa nouvelle tenue
+
+016 Imposer une posture
+- action unique
+- piment 1
+- le joueur actif choisit la posture/position que l'autre doit prendre
+- les vêtements actuels restent tels quels
+
+018 Simulation
+- 3 évolutions
+- piments : 1 / 2 / 2
+
+019 Masturbation
+- 3 évolutions
+- piments : 3 / 3 / 3
+- le numéro de stade n'implique pas automatiquement une hausse de piment
+
+020 Masturbation mutuelle
+- action unique
+- piment 3
+
+021 Masturbation solo
+- action unique
+- piment 3
+
+022 Doigter vaginal
+- 3 évolutions
+- piments : 3 / 4 / 4
+
+023 Doigter anal
+- 3 évolutions
+- piments : 3 / 4 / 4
+
+024 Jeu intime
+- action unique
+- piment 3
+- joker permettant de choisir une pratique intime
+
+025 Sexe oral
+- évolutions conservées
+- piments : 3 / 3 / 3
+- n'inclut PAS l'anal
+
+026 69
+- action unique
+- piment 3
+
+027 Pénétration vaginale
+- 3 évolutions
+- piments : 4 / 4 / 4
+
+028 Sexe oral anal
+- action unique
+- piment 4
+- volontairement séparé de 025
+
+029 Choisir une position sexuelle
+- action unique
+- piment 3
+- le joueur choisit une position sexuelle et les deux l'exécutent
+- ce n'est pas simplement nommer une position
+
+030 Facesitting
+- 3 évolutions
+- piments : 3 / 3 / 4
+
+031 Frottement génital
+- action unique
+- piment 3
+
+032 Ordre
+- action unique
+- piment 1
+- choix ouvert de l'ordre = identité même de la carte
+
+033 Interdiction de toucher
+- aucune évolution
+- piment 1
+- effet persistant
+
+034 Entrave
+- 3 évolutions
+- piments : 1 / 2 / 3
+
+035 Privation visuelle
+- aucune évolution
+- piment 2
+- un seul effet de privation visuelle
+- persiste 3 actions/tours selon le système persistant déjà défini
+
+037 Fessée
+- 3 évolutions
+- piments : 2 / 2 / 3
+
+038 Danser
+- action unique
+- piment 1
+
+039 Prendre une pose
+- action unique
+- piment 1
+- l'acteur choisit sa propre pose
+- différent de 016 où l'autre impose la posture
+
+042 Sexting
+- aucune évolution
+- piment 2
+- communication par messages pendant 3 tours
+- ne pas confondre avec 043
+
+043 Message coquin
+- 3 évolutions
+- piments : 1 / 2 / 2
+- message ponctuel
+
+044 Photo
+- 3 évolutions
+- piments : 1 / 2 / 3
+
+045 Photo mutuelle
+- 3 évolutions
+- piments : 1 / 2 / 4
+- le dernier stade peut représenter une photo des deux pendant une pratique sexuelle très engagée, y compris pénétration
+
+046 Vidéo intime
+- 3 évolutions
+- piments : 1 / 2 / 3
+
+047 Vidéo mutuelle
+- 3 évolutions
+- piments : 1 / 2 / 4
+- même logique que 045
+
+048 Jeu de rôle
+- action unique
+- piment 2
+
+049 Sextoy sur partenaire
+- aucune évolution
+- variantes selon zone/accessoire
+- usage sexuel externe/phallus : piment 3
+- insertion vaginale/anale : piment 4
+
+050 Masturbation avec sextoy sur soi
+- aucune évolution
+- variantes selon zone/accessoire
+- externe/phallus : piment 3
+- insertion vaginale/anale : piment 4
+
+051 Sextoy sur l'autre / mutuel
+- aucune évolution
+- variantes selon zone/accessoire
+- externe/phallus : piment 3
+- insertion vaginale/anale : piment 4
+
+052 Sextoy contrôlé à distance
+- aucune évolution
+- variantes selon zone/accessoire si applicable
+- externe/phallus : piment 3
+- insertion vaginale/anale : piment 4
+
+053 Contenu adulte partagé
+- action unique
+- piment 2
+
+054 Exposition / sensation
+- action unique
+- piment 2
+- correspond à une situation avec un léger sentiment/risque subjectif d'exposition
+- recherche d'un frisson d'exposition
+- ne pas transformer cela en exposition réelle non consentie
+
+055 Choix de l'éjaculation
+- action unique
+- piment 3
+
+056 Paroles dégradantes
+- 3 évolutions
+- piments : 2 / 3 / 4
+- le piment 4 peut venir d'un fort engagement psychologique ; le niveau 4 n'est pas réservé aux pénétrations
+
+057 Supplier
+- 3 évolutions
+- piments : 1 / 2 / 3
+- stade 1 : supplication simple
+- stade 2 : demande insistante / appuyée
+- stade 3 : supplication intense / pratiquement à genoux
+
+058 Ailleurs en privé
+- action unique
+- piment 1
+- PRESENTIEL uniquement
+- changement d'endroit privé choisi par le joueur, ex. salon -> chambre
+
+060 Privation auditive
+- aucune évolution
+- piment 2
+- effet persistant
+
+061 Silence
+- aucune évolution
+- piment 2
+- effet persistant
+
+062 Prise au cou
+- 3 évolutions
+- piments : 1 / 2 / 3
+- progression d'intensité
+- prise contrôlée au cou, PAS strangulation réelle
+
+063 Tirage des cheveux
+- 3 évolutions
+- piments : 1 / 2 / 3
+- progression d'intensité
+- tirage contrôlé, pas arrachement
+
+065 Footjob
+- action unique
+- piment 3
+
+============================================================
+3. PHILOSOPHIE DU PIMENT
+============================================================
+
+Le piment n'est PAS une note de préférence personnelle.
+
+Les PA, valeurs personnelles, exclusions, enchères, etc. gèrent la volonté personnelle du joueur.
+
+Le piment sert principalement de GATE DE PROGRESSION :
+"À quel point serait-il prématuré que cette possibilité apparaisse au début de la partie ?"
+
+Référence :
+
+Piment 1 :
+- introduction
+- peut apparaître dès le début sans escalade brutale
+
+Piment 2 :
+- érotisation
+- clairement intime/sexuel ou psychologiquement engageant
+- mais pas encore une pratique sexuelle explicite majeure
+
+Piment 3 :
+- sexualité explicite / engagement marqué
+- ne doit pas apparaître immédiatement
+
+Piment 4 :
+- très engageant
+- réservé à une partie fortement escaladée
+- peut être physique OU psychologique
+
+IMPORTANT :
+Le numéro d'un stade d'évolution ne détermine PAS automatiquement son piment.
+Exemple :
+- Masturbation = 3/3/3
+- Pénétration vaginale = 4/4/4
+
+============================================================
+4. MODIFICATEURS DE ZONES
+============================================================
+
+Pour les cartes GÉNÉRIQUES dont la zone est un paramètre :
+
+piment_effectif = min(4, piment_intrinsèque + modificateur_zone)
+
+Modificateurs validés :
+
++0 :
+- visage / cheveux
+- cou / nuque
+- bras / mains
+- dos / épaules
+- ventre
+- jambes hors cuisses
+- pieds
+
++1 :
+- cuisses
+- fesses
+- poitrine / seins
+
++2 :
+- pénis / vulve
+- anus
+
+IMPORTANT :
+- "entrejambe par-dessus vêtements" n'est PAS une zone.
+- l'état vestimentaire est distinct de la zone.
+- ne pas ajouter le modificateur à une pratique qui contient déjà intrinsèquement la zone.
+  Exemple : Doigter vaginal ne reçoit pas encore +2.
+- idem pour pénétration vaginale, footjob, etc.
+
+Pour une variante "zone libre" :
+- le joueur ne peut choisir qu'une zone dont le piment effectif respecte le plafond global courant.
+- la zone libre ne doit jamais permettre de contourner la progression.
+
+============================================================
+5. NOUVEAU MODÈLE : UNE CARTE CONCEPTUELLE = UNE UNITÉ DU DECK
+============================================================
+
+L'ancien modèle "une variante/stade = une occurrence séparée dans le deck" doit être remplacé.
+
+Une carte conceptuelle avec plusieurs évolutions apparaît UNE SEULE FOIS comme concept dans le deck/stock logique.
+
+Exemple :
+Photo mutuelle 1/2/4 = un concept, pas trois cartes.
+
+Au moment de sélectionner/jouer le concept :
+- proposer les stades actuellement autorisés par le piment global ;
+- le joueur choisit le stade qu'il souhaite réellement utiliser.
+
+Exemple Photo mutuelle 1/2/4 :
+global 1 -> stade 1
+global 2 -> stades 1 et 2
+global 3 -> stades 1 et 2
+global 4 -> stades 1, 2 et 4
+
+Le joueur n'est JAMAIS obligé de choisir le stade le plus élevé disponible.
+
+Si le piment global augmente pendant qu'un concept reste en main :
+- les nouveaux stades autorisés deviennent immédiatement disponibles.
+- pas besoin de repiocher une autre occurrence.
+
+Les variantes peuvent rester dans le catalogue comme définitions d'actions.
+Elles cessent d'être des unités de deck.
+
+============================================================
+6. QUOTA D'UTILISATION PAR CONCEPT
+============================================================
+
+L'ancien système générique :
+première utilisation -> DISCARD -> seconde utilisation -> CONSUMED
+doit être remplacé.
+
+Nouveau principe :
+
+Un concept possédant N stades d'évolution possède N utilisations maximales par cycle.
+
+Exemple :
+- concept à 1 stade -> normalement 1 utilisation/cycle
+- concept à 3 stades -> 3 utilisations/cycle
+
+IMPORTANT :
+le joueur peut choisir LE MÊME STADE plusieurs fois.
+
+Exemple :
+Masturbation 3/3/3 :
+3 utilisations disponibles.
+Il est possible de choisir le premier stade trois fois si ce sont les choix effectués.
+
+On consomme donc :
+- une utilisation du CONCEPT
+et NON
+- "le stade utilisé".
+
+Toute utilisation réellement engagée doit compter dans le même quota conceptuel, y compris lorsqu'elle vient d'un mécanisme secondaire qui utilise réellement la carte.
+
+Ne pas conserver parallèlement l'ancienne règle générique de seconde utilisation via DISCARD si elle devient redondante avec ce quota.
+
+============================================================
+7. CAS SPÉCIAL 006 / 007
+============================================================
+
+006 et 007 ne deviennent PAS des cartes à évolutions.
+
+Elles doivent rester deux concepts différents :
+- retirer 1 vêtement
+- retirer 2 vêtements
+
+La présence aléatoire de l'une ou l'autre dans la pioche fait partie du gameplay.
+
+En revanche, leur ancienne multiplicité physique dans le deck doit disparaître.
+
+Représentation souhaitée :
+- un concept 006 + compteur/capacité d'utilisation
+- un concept 007 + compteur/capacité d'utilisation
+
+La capacité reste dérivée des vêtements initiaux selon les règles existantes validées.
+
+Ancienne référence :
+occ006 = min(2, T)
+occ007 = ceil((T - occ006) / 2)
+où T = nombre initial de vêtements.
+
+Conserver le comportement fonctionnel voulu, mais ne plus matérialiser plusieurs copies du concept dans le deck.
+
+============================================================
+8. IDENTITÉ IMMUTABLE DE CHAQUE UTILISATION
+============================================================
+
+Point critique réseau/persistance :
+
+Le concept peut être réutilisé avec :
+- un autre stade
+- une autre zone
+- une autre direction
+- d'autres paramètres
+- une autre valeur personnelle
+etc.
+
+Il ne faut donc PAS réutiliser naïvement le même ancien occurrenceId pour plusieurs usages différents.
+
+Chaque utilisation engagée doit créer une identité/snapshot IMMUTABLE contenant au minimum les données nécessaires à la reconstruction exacte de cette utilisation :
+- concept
+- variante/stade choisi
+- directions/cibles
+- paramètres résolus
+- accessoires si concernés
+- valeur personnelle/éléments nécessaires aux calculs historiques
+- toute donnée nécessaire au reconnect/retry/apprentissage/résolution
+
+L'identité d'usage doit rester stable pendant tout le cycle de vie de cette utilisation :
+réservation -> engagement -> enchère -> compromis/corruption éventuels -> résolution -> apprentissage -> historique.
+
+Les retries et reconnexions doivent retrouver la même utilisation, pas en fabriquer une nouvelle.
+
+Le schéma exact doit être choisi après inspection des dépendances actuelles.
+Si une décision architecturale importante non décrite ici est nécessaire, demander validation avant de l'imposer.
+
+============================================================
+9. NOUVELLE LOGIQUE DE PIOCHE
+============================================================
+
+OBJECTIF :
+le nombre de variantes ou d'évolutions d'un concept ne doit plus augmenter mécaniquement sa probabilité de pioche.
+
+Une carte conceptuelle = une seule candidate de pioche.
+
+Le piment global :
+- fixe ce qui est AUTORISÉ.
+
+Soft / Épicé / Intenable :
+- fixe ce qui est FAVORISÉ parmi les possibilités autorisées.
+
+Anciennes pondérations à conserver pour l'instant, mais à appliquer correctement AUX CLASSES DE CONCEPTS et non aux occurrences :
+
+SOFT :
+- piment 1 : 45 %
+- piment 2 : 40 %
+- piment 3 : 13 %
+- piment 4 : 2 %
+
+ÉPICÉ :
+- piment 1 : 20 %
+- piment 2 : 40 %
+- piment 3 : 30 %
+- piment 4 : 10 %
+
+INTENABLE :
+- piment 1 : 10 %
+- piment 2 : 25 %
+- piment 3 : 40 %
+- piment 4 : 25 %
+
+Si certaines classes sont impossibles à cause du plafond global :
+- redistribuer proportionnellement leur poids entre les classes actuellement autorisées.
+
+Exemple Épicé avec global 3 :
+poids originaux 20/40/30/10
+classe 4 interdite
+=> normalisation des 20/40/30 :
+environ 22,2 / 44,4 / 33,3 / 0.
+
+Processus conceptuel :
+1. déterminer les concepts candidats ;
+2. déterminer leur classe de pioche courante ;
+3. choisir une classe selon les poids du style normalisés ;
+4. choisir uniformément un CONCEPT admissible de cette classe ;
+5. mettre ce concept en main.
+
+Ne PAS choisir une occurrence/stade avant le concept.
+
+============================================================
+10. CLASSE DE PIOCHE DYNAMIQUE
+============================================================
+
+Pour une action simple :
+classe de pioche = son piment.
+
+Pour une carte à évolutions :
+classe de pioche = piment maximal du stade ACTUELLEMENT ACCESSIBLE.
+
+Exemple Entrave 1/2/3 :
+global 1 -> classe 1
+global 2 -> classe 2
+global 3 ou 4 -> classe 3
+
+Exemple Photo mutuelle 1/2/4 :
+global 1 -> classe 1
+global 2 -> classe 2
+global 3 -> classe 2
+global 4 -> classe 4
+
+Cela ne signifie PAS que le joueur devra utiliser le stade correspondant à la classe de pioche.
+Il pourra sélectionner n'importe quel stade actuellement autorisé.
+
+============================================================
+11. CAS PARTICULIER DES ZONES LIBRES POUR LA PIOCHE
+============================================================
+
+Les concepts génériques à zone libre ne doivent pas tous remonter artificiellement dans les classes hautes simplement parce qu'une zone très intime est possible.
+
+Règle validée :
+
+classe_pioche_zone_libre =
+max(1, piment_maximal_actuellement_accessible - 1)
+
+Le -1 concerne UNIQUEMENT LA CLASSE DE PIOCHE.
+
+Il ne modifie jamais le piment réel de l'action choisie.
+
+Exemple Jeu de main, base 1 :
+global 1 :
+- max accessible 1
+- classe pioche 1
+
+global 2 :
+- max accessible 2
+- classe pioche 1
+
+global 3 :
+- max accessible 3
+- classe pioche 2
+
+global 4 :
+- max possible toujours 3
+- classe pioche 2
+
+Une fois la carte jouée :
+- bras -> piment réel 1
+- cuisses -> piment réel 2
+- pénis/vulve -> piment réel 3
+
+Le plafond global reste impératif.
+
+============================================================
+12. RATIO DU CATALOGUE ACTUEL
+============================================================
+
+Sur les 56 concepts actifs, en classant selon leur PREMIER niveau accessible :
+
+piment 1 :
+26 concepts
+46,4 %
+
+piment 2 :
+11 concepts
+19,6 %
+
+piment 3 :
+17 concepts
+30,4 %
+
+piment 4 :
+2 concepts
+3,6 %
+
+Disponibilité cumulée :
+
+global piment 1 :
+26 / 56 = 46,4 %
+
+global piment 2 :
+37 / 56 = 66,1 %
+
+global piment 3 :
+54 / 56 = 96,4 %
+
+global piment 4 :
+56 / 56 = 100 %
+
+Ce profil est actuellement considéré cohérent :
+- environ moitié du catalogue disponible dès l'introduction
+- environ 2/3 à piment 2
+- presque tout à piment 3
+- piment 4 sert surtout à débloquer les formes les plus engageantes de concepts déjà connus
+
+Ne PAS chercher artificiellement à produire 25/25/25/25.
+
+============================================================
+13. NETTOYAGE ATTENDU
+============================================================
+
+Le but n'est PAS d'empiler le nouveau moteur au-dessus de l'ancien.
+
+Après identification précise des dépendances, supprimer ce qui devient réellement obsolète :
+
+- matérialisation d'un stade/variant comme carte indépendante dans le deck
+- ancienne pondération par occurrence
+- ancien modèle générique première utilisation + DISCARD + deuxième utilisation, lorsqu'il est remplacé par le quota conceptuel
+- anciennes structures de stock devenues inutiles
+- tests décrivant uniquement l'ancien comportement supprimé
+- catalogue mort
+- cartes supprimées
+- variantes/stades devenus redondants ou incohérents
+- branches de compatibilité internes inutiles
+
+Conserver uniquement les structures encore nécessaires aux fonctionnalités validées.
+
+Ne PAS maintenir deux moteurs parallèles simplement pour préserver le comportement de sessions de développement sans valeur.
+
+En revanche :
+- ne jamais modifier les migrations Supabase déjà déployées
+- toute modification SQL = nouvelle migration.
+
+Avant de supprimer une structure apparemment ancienne mais encore nécessaire à :
+- reconnect
+- idempotence
+- historique
+- apprentissage
+- compromis
+- corruption
+- Recovery
+- effets persistants
+- accessoires
+etc.
+vérifier ses dépendances.
+
+============================================================
+14. SYSTÈMES EXISTANTS À PRÉSERVER
+============================================================
+
+Le redesign des cartes ne doit pas réinventer les règles déjà validées de :
+
+- PA
+- préférences
+- exclusions
+- enchères
+- contre-enchères
+- défense
+- compromis
+- corruption
+- Recovery
+- vêtements
+- accessoires
+- effets persistants
+- apprentissage
+- contexte PRESENTIEL / DISTANCE / HYBRID
+- reconnect
+- retries/idempotence
+- continuation
+- clôture de session
+
+Ils doivent être adaptés au nouveau concept/usage snapshot seulement lorsque nécessaire.
+
+IMPORTANT :
+ne pas profiter de cette refonte pour ajouter des règles non demandées.
+
+============================================================
+15. STRATÉGIE DE MIGRATION / IMPLÉMENTATION
+============================================================
+
+Procéder par lots courts et contrôlables.
+
+Ordre recommandé :
+
+LOT 1
+Contrat catalogue :
+- retirer les concepts morts
+- intégrer la nouvelle taxonomie concept / variantes / évolutions / piments / zones
+- tests purs du catalogue
+
+LOT 2
+Moteur de deck pur :
+- concept = unité
+- classe de pioche dynamique
+- poids Soft/Épicé/Intenable
+- normalisation selon plafond
+- zone libre -1
+- quota conceptuel
+- 006/007
+- tests unitaires sans réseau
+
+LOT 3
+Usage identity / snapshot :
+- remplacer proprement les hypothèses occurrenceId=variant fixe
+- persistance locale/reconnect/history
+
+LOT 4
+Compatibilité serveur :
+- inspecter les RPC/tables existants
+- nouvelle migration additive si nécessaire
+- ne modifier aucune ancienne migration
+
+LOT 5
+Runtime/UI :
+- choix du stade au moment de jouer
+- choix des variantes/zones
+- nouveaux stades immédiatement disponibles quand le global augmente
+- affichage cohérent en main
+
+LOT 6
+Flows secondaires :
+- enchères
+- compromis
+- corruption
+- Recovery
+- apprentissage
+- effets persistants
+- vêtements
+- accessoires
+
+LOT 7
+Nettoyage :
+- supprimer définitivement l'ancien code devenu sans appel
+- supprimer tests obsolètes
+- recherche références mortes
+- analyze
+- tests complets
+- audit catalogue
+- checkpoint Git propre
+
+Ne pas lancer une énorme refonte opaque d'un seul coup.
+
+============================================================
+16. POINTS QUI NE DOIVENT PAS ÊTRE MODIFIÉS SANS VALIDATION
+============================================================
+
+- pas d'anti-triche
+- pas de modèle client hostile
+- pas de nouvelle mécanique de gameplay
+- pas de nouveau drawSpice éditorial séparé
+- pas de changement arbitraire des poids Soft/Épicé/Intenable
+- pas de modification des valeurs de piment validées
+- pas de fusion 006/007
+- pas de suppression définitive de 036/059/064 : réservés au futur
+- pas de modification des migrations déjà déployées
+- pas de grosse couche de compatibilité historique sans justification
+
+Si l'architecture actuelle impose un choix important non couvert par cette spécification :
+STOPPER ce point, expliquer le problème et proposer les options avant implémentation.
+
+============================================================
+17. ÉTAT DE VALIDATION AVANT CETTE REFONTE
+============================================================
+
+La partie réseau normale et les principaux flows V4 avaient déjà été validés :
+- standard network
+- counterbid/defense
+- compromise
+- corruption
+- Recovery
+- multi-round continuity
+
+La simulation longue avait atteint environ Tour 60.
+
+C'est précisément cette simulation qui a mis en évidence les défauts du modèle catalogue/deck :
+- impression de doublons due aux stages/variants matérialisés séparément
+- ancien modèle de réutilisation peu naturel
+- poids de pioche biaisés par le nombre de candidates
+- progression du piment mal représentée
+
+La refonte actuelle répond à ces problèmes.
+
+Une fois cette refonte terminée et validée, reprendre le planning fonctionnel là où il avait été interrompu :
+Step 8.7 : cycle / exhaustion / continuité longue,
+puis les problèmes UX déjà recensés.
+
+============================================================
+
+Commence par confronter cette spécification au plan de remplacement que tu as déjà rédigé.
+
+Avant de modifier davantage :
+1. indique les divergences éventuelles entre ton plan actuel et cette spécification ;
+2. indique quels anciens composants vont réellement être supprimés/remplacés ;
+3. indique si le nouveau modèle nécessite une nouvelle migration Supabase ;
+4. propose le découpage concret des premiers lots.
+
+Ne commence pas une nouvelle architecture non prévue pour résoudre les limitations locales actuelles des tests.
+Les problèmes de dépendances shared_preferences/Drift/connexion Flutter doivent rester documentés séparément tant que leur cause n'est pas établie.

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "future_system": "Température / Texture / Dégustation",
+  "concepts": [
+    {
+      "id": "036",
+      "title": "Température"
+    },
+    {
+      "id": "059",
+      "title": "Texture"
+    },
+    {
+      "id": "064",
+      "title": "Dégustation sensuelle"
+    }
+  ]
+}
