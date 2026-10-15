@@ -114,6 +114,8 @@ autorisées **et possédant au moins un candidat**. Une classe vide perd son poi
 redistribué proportionnellement aux classes restantes. Sans aucun candidat,
 passer à la logique de cycle/épuisement, sans repêcher de concept épuisé.
 
-La pondération hybride est suspendue à une décision de l'utilisateur. Voir
-[l'inspection détaillée](../hybrid_weighting_review.md). Aucun code de pioche,
-quota runtime, RPC, stockage de session, écran ou pondération hybride n'a changé.
+Décision prise après le Lot 1 : supprimer le biais hybride 70/30 et la duplication
+dans le nouveau moteur ; l'orientation sert seulement à l'admissibilité. Voir
+[l'inspection détaillée](../hybrid_weighting_review.md) et le
+[Lot 2 — moteur pur](../concept_deck_engine.md). Le Lot 1 n'avait modifié aucun
+code de pioche, quota runtime, RPC, stockage de session, écran ou biais hybride.

@@ -1,0 +1,237 @@
+import 'dart:math';
+
+import '../../domain/catalog/concept_catalog.dart';
+import '../../domain/game/game_models.dart' show PlayerStyle;
+
+/// Explicit eligibility for the current context/orientation, consents and gear.
+/// Missing concepts/actions/zones are inadmissible, never implicitly allowed.
+/// The existing runtime is not connected to this input yet.
+final class ConceptDeckEligibility {
+  ConceptDeckEligibility({
+    required Map<String, Set<String>> actionIdsByConcept,
+    required Map<String, Set<String>> zoneIdsByConcept,
+  }) : actionIdsByConcept = Map.unmodifiable({
+         for (final entry in actionIdsByConcept.entries)
+           entry.key: Set<String>.unmodifiable(entry.value),
+       }),
+       zoneIdsByConcept = Map.unmodifiable({
+         for (final entry in zoneIdsByConcept.entries)
+           entry.key: Set<String>.unmodifiable(entry.value),
+       });
+
+  final Map<String, Set<String>> actionIdsByConcept;
+  final Map<String, Set<String>> zoneIdsByConcept;
+
+  bool allowsAction(String conceptId, String actionId) =>
+      actionIdsByConcept[conceptId]?.contains(actionId) ?? false;
+
+  bool allowsZone(String conceptId, String zoneId) =>
+      zoneIdsByConcept[conceptId]?.contains(zoneId) ?? false;
+}
+
+/// One logical stock entry per concept. Variants never get their own quota.
+/// Each cycle is initialized explicitly; exhaustion never resets this stock.
+final class ConceptDeckStock {
+  ConceptDeckStock._(Map<String, int> capacity, Map<String, int> remaining)
+    : capacity = Map.unmodifiable(capacity),
+      remaining = Map.unmodifiable(remaining);
+
+  factory ConceptDeckStock.startCycle({
+    required ConceptCatalog catalog,
+    required int initialClothing,
+  }) {
+    RangeError.checkNotNegative(initialClothing, 'initialClothing');
+    final singleClothing = min(2, initialClothing);
+    final doubleClothing = (initialClothing - singleClothing + 1) ~/ 2;
+    final capacity = <String, int>{
+      for (final concept in catalog.concepts)
+        concept.id: switch (concept.capacityRule) {
+          ConceptCapacityRule.initial_clothing_single => singleClothing,
+          ConceptCapacityRule.initial_clothing_double => doubleClothing,
+          null =>
+            concept.kind == ConceptKind.evolution ? concept.stages.length : 1,
+        },
+    };
+    return ConceptDeckStock._(capacity, capacity);
+  }
+
+  final Map<String, int> capacity;
+  final Map<String, int> remaining;
+
+  int remainingFor(String conceptId) {
+    final value = remaining[conceptId];
+    if (value == null) throw ArgumentError.value(conceptId, 'conceptId');
+    return value;
+  }
+
+  /// Consume once per actually engaged usage, whatever its gameplay origin.
+  /// No stage is consumed; the same stage can be used again within this quota.
+  /// Usage identity, reservation and retry deduplication belong to Lot 3.
+  ConceptDeckStock consume(String conceptId) {
+    final available = remainingFor(conceptId);
+    if (available == 0) throw StateError('Concept quota exhausted: $conceptId');
+    return ConceptDeckStock._(capacity, {
+      ...remaining,
+      conceptId: available - 1,
+    });
+  }
+}
+
+/// An available definition/zone, not a selected or committed usage.
+final class ConceptDeckChoice {
+  const ConceptDeckChoice({
+    required this.actionId,
+    required this.chili,
+    this.zoneId,
+  });
+
+  final String actionId;
+  final String? zoneId;
+  final int chili;
+}
+
+final class ConceptDeckCandidate {
+  ConceptDeckCandidate({
+    required this.concept,
+    required this.drawClass,
+    required List<ConceptDeckChoice> choices,
+  }) : choices = List.unmodifiable(choices);
+
+  final CardConcept concept;
+  final int drawClass;
+  final List<ConceptDeckChoice> choices;
+}
+
+final class ConceptDeckPool {
+  ConceptDeckPool._({
+    required Map<int, List<ConceptDeckCandidate>> classes,
+    required Map<int, double> probabilities,
+  }) : classes = Map.unmodifiable({
+         for (final entry in classes.entries)
+           entry.key: List<ConceptDeckCandidate>.unmodifiable(entry.value),
+       }),
+       probabilities = Map.unmodifiable(probabilities);
+
+  final Map<int, List<ConceptDeckCandidate>> classes;
+  final Map<int, double> probabilities;
+  bool get isEmpty => classes.isEmpty;
+  Iterable<ConceptDeckCandidate> get candidates =>
+      classes.values.expand((v) => v);
+
+  /// No stage/zone selection, quota consumption or automatic cycle fallback.
+  ConceptDeckCandidate? draw(Random random) {
+    if (isEmpty) return null;
+    var point = random.nextDouble();
+    var selectedClass = classes.keys.last;
+    for (final entry in probabilities.entries) {
+      if (point < entry.value) {
+        selectedClass = entry.key;
+        break;
+      }
+      point -= entry.value;
+    }
+    final concepts = classes[selectedClass]!;
+    return concepts[random.nextInt(concepts.length)];
+  }
+}
+
+/// Pure concept → class pool. No parallel hybrid decks or 70/30 weighting.
+final class ConceptDeckEngine {
+  const ConceptDeckEngine();
+
+  static const styleWeights = <PlayerStyle, Map<int, int>>{
+    PlayerStyle.SOFT: {1: 45, 2: 40, 3: 13, 4: 2},
+    PlayerStyle.EPICE: {1: 20, 2: 40, 3: 30, 4: 10},
+    PlayerStyle.INTENABLE: {1: 10, 2: 25, 3: 40, 4: 25},
+  };
+
+  ConceptDeckPool prepare({
+    required ConceptCatalog catalog,
+    required ConceptDeckStock stock,
+    required ConceptDeckEligibility eligibility,
+    required int globalChili,
+    required PlayerStyle style,
+    Set<String> unavailableConceptIds = const {},
+  }) {
+    RangeError.checkValueInInterval(globalChili, 1, 4, 'globalChili');
+    final classes = <int, List<ConceptDeckCandidate>>{};
+    for (final concept in catalog.concepts) {
+      // Quota and current holding/reservation exclusions come first.
+      if (stock.remainingFor(concept.id) == 0 ||
+          unavailableConceptIds.contains(concept.id)) {
+        continue;
+      }
+      final choices = _choices(concept, catalog, eligibility, globalChili);
+      if (choices.isEmpty) continue;
+      final maximum = choices.map((choice) => choice.chili).reduce(max);
+      final drawClass = concept.kind == ConceptKind.zones
+          ? max(1, maximum - 1)
+          : maximum;
+      classes
+          .putIfAbsent(drawClass, () => [])
+          .add(
+            ConceptDeckCandidate(
+              concept: concept,
+              drawClass: drawClass,
+              choices: choices,
+            ),
+          );
+    }
+    // Sort to keep probability intervals stable, independent of catalogue order.
+    final ordered = {
+      for (final level in [1, 2, 3, 4])
+        if (classes.containsKey(level)) level: classes[level]!,
+    };
+    final weights = styleWeights[style]!;
+    final total = ordered.keys.fold<int>(
+      0,
+      (sum, level) => sum + weights[level]!,
+    );
+    return ConceptDeckPool._(
+      classes: ordered,
+      probabilities: {
+        for (final level in ordered.keys) level: weights[level]! / total,
+      },
+    );
+  }
+
+  List<ConceptDeckChoice> _choices(
+    CardConcept concept,
+    ConceptCatalog catalog,
+    ConceptDeckEligibility eligibility,
+    int ceiling,
+  ) {
+    final choices = <ConceptDeckChoice>[];
+    void add(String actionId, int chili, [String? zoneId]) {
+      if (chili <= ceiling) {
+        choices.add(
+          ConceptDeckChoice(actionId: actionId, chili: chili, zoneId: zoneId),
+        );
+      }
+    }
+
+    for (final stage in concept.stages) {
+      if (eligibility.allowsAction(concept.id, stage.id)) {
+        add(stage.id, stage.chili);
+      }
+    }
+    for (final variant in concept.variants) {
+      if (!eligibility.allowsAction(concept.id, variant.id)) continue;
+      if (concept.kind != ConceptKind.zones) {
+        add(variant.id, variant.chili!);
+        continue;
+      }
+      for (final zone in catalog.zones) {
+        if ((variant.freeZone || variant.zoneId == zone.id) &&
+            eligibility.allowsZone(concept.id, zone.id)) {
+          add(
+            variant.id,
+            zone.effectiveChili(concept.intrinsicChili!),
+            zone.id,
+          );
+        }
+      }
+    }
+    return choices;
+  }
+}

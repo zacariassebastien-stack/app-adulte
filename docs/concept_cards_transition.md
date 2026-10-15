@@ -18,8 +18,13 @@ Le découpage courant remplace le regroupement initial ci-dessous :
 Décision validée pour le Lot 2 : les classes autorisées mais vides perdent leur
 poids, redistribué proportionnellement aux classes autorisées non vides.
 Sans candidat, appliquer la logique de cycle/épuisement, sans fallback vers
-une carte épuisée. La pondération hybride est suspendue à une décision ; voir
-[l'inspection de son fonctionnement actuel](hybrid_weighting_review.md).
+une carte épuisée. La décision HYBRID est désormais validée : supprimer le
+biais 70/30 et les deux paquets dans le moteur neuf ; l'orientation sert
+uniquement à l'admissibilité. Voir [l'inspection historique](hybrid_weighting_review.md).
+
+Le [Lot 2 — moteur pur](concept_deck_engine.md) est livré sans raccordement au
+runtime, à l'UI ou au réseau. Les structures anciennes encore consommées sont
+conservées jusqu'au raccordement ; leur liste et leurs dépendances sont tracées.
 
 Le besoin de convertir d'anciennes sessions ne justifie pas de conserver deux
 moteurs pour des sessions de développement sans valeur. Les limitations locales

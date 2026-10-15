@@ -1,0 +1,42 @@
+{
+  "lot": 2,
+  "starting_commit": "7499695",
+  "scope": "Pure concept deck engine only; no runtime, UI, network, RPC, usage identity or dependency changes",
+  "pure_deck_checks": {
+    "entrypoint": "tool/check_concept_deck.dart",
+    "passed": 31,
+    "failed": 0,
+    "registered_suite": "test/engines/concept_deck_engine_test.dart"
+  },
+  "catalogue_regression": {
+    "entrypoint": "tool/check_concept_catalog.dart",
+    "passed": 23,
+    "failed": 0
+  },
+  "targeted_analysis": "No issues found",
+  "standard_runner": "Not retried; previous sandbox/temp and dependency limitations remain documented in Lot 0 and Lot 1",
+  "historical_migrations_unchanged": 11,
+  "hybrid": {
+    "new_engine": "Eligibility only; no 70/30 weighting, repetitions or mirror decks",
+    "legacy_runtime": "Unchanged pending integration",
+    "network_context_issue": "Deferred to network integration: context initialized as face_to_face and not changed by switchOrientation"
+  },
+  "stock": {
+    "unit": "concept",
+    "normal_capacity": "evolution stage count, otherwise 1",
+    "clothing_006": "min(2,T)",
+    "clothing_007": "ceil((T-min(2,T))/2)",
+    "consumes_on_draw": false,
+    "consume_api": "Called once per actually engaged use; retry deduplication deferred to Lot 3"
+  },
+  "eligibility": "Explicit admissible action and zone IDs supplied by the current context/constraints evaluator; no permissive default or context adapter added",
+  "removed_legacy_structures": [],
+  "retirement_inventory": "docs/concept_deck_engine.md",
+  "pending_integration": [
+    "usage identity and persistence",
+    "network RPC adaptation",
+    "runtime/UI",
+    "secondary flows",
+    "retirement of legacy consumers"
+  ]
+}

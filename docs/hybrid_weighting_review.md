@@ -1,5 +1,12 @@
 # Pondération hybride existante — inspection sans modification
 
+**Décision utilisateur appliquée au moteur pur du Lot 2 : suppression du biais
+70/30 et de la duplication.** L'orientation ne sert qu'à l'admissibilité, avant
+le calcul des classes. Voir [le moteur conceptuel](concept_deck_engine.md).
+Les mécanismes historiques décrits ci-dessous restent encore utilisés par
+l'ancien runtime ; ils ne sont pas supprimés avant son raccordement. Les options
+en fin de cette inspection documentent la discussion antérieure, désormais tranchée.
+
 La pondération désigne un biais de fréquence entre cartes nécessitant une
 présence physique (`DISTANCE_EXCLUE`) et cartes compatibles avec la distance.
 Elle est distincte du filtrage d'éligibilité par mode et du piment.
