@@ -35,10 +35,11 @@ void main() {
     caseSensitive: false,
   ).allMatches(sql).toList();
   check(
-    definitions.length == 13,
-    '13 definitions: 10 existing functions and 3 JSON helpers',
+    definitions.length == 14,
+    '14 definitions: 11 existing functions and 3 JSON helpers',
   );
   const modified = {
+    'continue_network_deck_cycle',
     'network_round_json',
     'submit_network_round_reveal',
     'network_final_choice',
@@ -82,6 +83,32 @@ void main() {
       '$helper is internal',
     );
   }
+  check(
+    sql.contains(
+          "historical.usage->>'usage_id'=proposed->>'source_usage_id'",
+        ) &&
+        sql.contains("historical.usage->>'concept_id'=proposed->>'concept_id'"),
+    'Corruption provenance joins a source usage and its concept, never concept alone',
+  );
+  check(
+    sql.contains("coalesce(previous.final_resolution->'compromise'") &&
+        sql.contains("coalesce(previous.corruption->'actions'") &&
+        sql.contains('jsonb_array_elements(previous.recovery_history)'),
+    'Canonical source history includes duel compromise corruption and Recovery usages',
+  );
+  final cycle = definitions
+      .singleWhere((m) => m.group(1) == 'continue_network_deck_cycle')
+      .group(0)!;
+  check(
+    cycle.contains('v_expected<v_cycle') &&
+        cycle.contains('pg_advisory_xact_lock') &&
+        cycle.contains("p_adjustment->>'expected_cycle'"),
+    'Shared continuation serializes and ignores a second renewal of the same cycle',
+  );
+  check(
+    !cycle.contains("role='PLAYER_1'") && cycle.contains('is_session_member'),
+    'Continuation has no permanent first-player privilege',
+  );
   var historical = 0;
   for (final entry
       in baseline['historical_supabase_migrations'] as List<dynamic>) {

@@ -422,10 +422,13 @@ final class AdaptiveProfileState {
     required this.profileId,
     this.learningPreference = ProfileLearningPreference.defer,
     Map<String, PreferenceLearningEntry> entries = const {},
-  }) : entries = Map.unmodifiable(entries);
+    Set<String> appliedRoundEvents = const {},
+  }) : entries = Map.unmodifiable(entries),
+       appliedRoundEvents = Set.unmodifiable(appliedRoundEvents);
 
   static const schemaVersion = 1;
   final String profileId;
+  final Set<String> appliedRoundEvents;
   final ProfileLearningPreference learningPreference;
   final Map<String, PreferenceLearningEntry> entries;
 
@@ -435,15 +438,18 @@ final class AdaptiveProfileState {
   AdaptiveProfileState copyWith({
     ProfileLearningPreference? learningPreference,
     Map<String, PreferenceLearningEntry>? entries,
+    Set<String>? appliedRoundEvents,
   }) => AdaptiveProfileState(
     profileId: profileId,
     learningPreference: learningPreference ?? this.learningPreference,
     entries: entries ?? this.entries,
+    appliedRoundEvents: appliedRoundEvents ?? this.appliedRoundEvents,
   );
 
   Map<String, Object?> toJson() => {
     'schema_version': schemaVersion,
     'profile_id': profileId,
+    'applied_round_events': appliedRoundEvents.toList()..sort(),
     'learning_preference': learningPreference.name,
     'entries': {
       for (final entry in entries.entries) entry.key: entry.value.toJson(),
@@ -459,6 +465,9 @@ final class AdaptiveProfileState {
     final rawEntries = (json['entries']! as Map).cast<String, Object?>();
     return AdaptiveProfileState(
       profileId: json['profile_id']! as String,
+      appliedRoundEvents: ((json['applied_round_events'] as List?) ?? const [])
+          .cast<String>()
+          .toSet(),
       learningPreference: ProfileLearningPreference.values.byName(
         json['learning_preference']! as String,
       ),

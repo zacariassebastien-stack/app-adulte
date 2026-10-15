@@ -26,7 +26,8 @@ void main() {
         'v3.direction.faire',
         'v3.technique.distance_exclue',
       ]);
-      await coordinator.recordHand(
+      await _recordHand(
+        coordinator,
         cards: [massage],
         played: {massage.identity},
         locked: {massage.identity},
@@ -59,7 +60,7 @@ void main() {
         'v3.preference.masser',
         'v3.direction.faire',
       ]);
-      await coordinator.recordAccepted([
+      await _recordAccepted(coordinator, [
         ResolvedLearningCard(
           card: massage,
           participation: ResolvedParticipation.directed,
@@ -147,7 +148,8 @@ void main() {
       tags: const ['v3.preference.masser', 'v3.direction.faire'],
       spiceLevel: 2,
     );
-    await coordinator.recordHand(
+    await _recordHand(
+      coordinator,
       cards: [copy('massage#17'), copy('massage#42')],
       played: const {'massage#17'},
     );
@@ -157,3 +159,32 @@ void main() {
     expect(entry.ignoredCount, 1);
   });
 }
+
+int _learningEventSequence = 0;
+Future<void> _recordHand(
+  NetworkProfileLearningCoordinator coordinator, {
+  required List<LearningCardDescriptor> cards,
+  Set<String> played = const {},
+  Set<String> locked = const {},
+}) => coordinator.recordCompletedRound(
+  eventId: 'hand-${_learningEventSequence++}',
+  expectedPlayers: {'alice', 'bob'},
+  completedPlayers: {'alice', 'bob'},
+  hand: HandLearningEvent(
+    playerId: coordinator.playerId,
+    availableCards: cards,
+    playedCardIdentities: played,
+    lockedCardIdentities: locked,
+  ),
+  accepted: [],
+);
+Future<void> _recordAccepted(
+  NetworkProfileLearningCoordinator coordinator,
+  List<ResolvedLearningCard> cards,
+) => coordinator.recordCompletedRound(
+  eventId: 'accepted-${_learningEventSequence++}',
+  expectedPlayers: {'alice', 'bob'},
+  completedPlayers: {'alice', 'bob'},
+  hand: HandLearningEvent(playerId: coordinator.playerId, availableCards: []),
+  accepted: cards,
+);

@@ -417,12 +417,24 @@ begin
   if exists (
     select 1 from jsonb_array_elements(p_card_ids) proposed
     where not exists (
-      select 1 from public.network_round_reveals reveal
-      join public.network_rounds previous on previous.id=reveal.round_id
+      select 1 from public.network_rounds previous
+      cross join lateral (
+        select reveal.choice_payload as usage
+          from public.network_round_reveals reveal
+          where reveal.round_id=previous.id and reveal.player_id=p_player_id
+        union all
+        select item from jsonb_array_elements(coalesce(previous.final_resolution->'compromise','[]'::jsonb)) item
+        union all
+        select item from jsonb_array_elements(coalesce(previous.corruption->'actions','[]'::jsonb)) item
+          where previous.corruption->>'accepted'='true'
+        union all
+        select item from jsonb_array_elements(previous.recovery_history) item
+          where item->>'response'='ACCEPT'
+      ) historical
       where previous.session_id=p_session_id and previous.round_number<v_round.round_number
-        and reveal.player_id=p_player_id
-        and reveal.choice_payload->>'usage_id'=proposed->>'source_usage_id'
-        and reveal.choice_payload->>'concept_id'=proposed->>'concept_id'
+        and historical.usage->>'owner_player_id'=p_player_id::text
+        and historical.usage->>'usage_id'=proposed->>'source_usage_id'
+        and historical.usage->>'concept_id'=proposed->>'concept_id'
     ) or exists (
       select 1 from public.network_rounds previous,
         jsonb_array_elements(coalesce(previous.corruption->'actions','[]'::jsonb)) action
@@ -547,5 +559,50 @@ begin
     where session_id=p_session_id;
   update public.network_rounds set recovery_history=recovery_history||jsonb_build_array(p_recovery),
     recovery_by_player=recovery_by_player-p_player_id::text,phase='RECOVERY',updated_at=now() where id=p_round_id;
+  return public.network_round_json(p_round_id,p_player_id);
+end; $$;
+
+-- Shared concept cycle: any member may trigger the existing continuation flow.
+create or replace function public.continue_network_deck_cycle(
+  p_session_id uuid,p_round_id uuid,p_player_id uuid,p_choice text,
+  p_adjustment jsonb,p_command_id text
+) returns jsonb language plpgsql security definer set search_path=public as $$
+declare v_command public.network_round_commands%rowtype; v_payload jsonb; v_cycle integer; v_expected integer;
+begin
+  if auth.uid() is null or auth.uid()<>p_player_id then raise exception 'ROUND_IDENTITY_MISMATCH'; end if;
+  if not public.is_session_member(p_session_id) then raise exception 'ROUND_NOT_MEMBER'; end if;
+  if p_choice not in ('CONTINUE_SPICIER','CONTINUE_INTENABLE','INFINITE','NEW_GAME','FINISH')
+    or jsonb_typeof(p_adjustment) is distinct from 'object'
+    or coalesce(p_adjustment->>'expected_cycle','') !~ '^[1-9][0-9]{0,8}$' then raise exception 'ROUND_INVALID_ARGUMENT'; end if;
+  v_expected:=(p_adjustment->>'expected_cycle')::integer;
+  v_payload:=jsonb_build_object('choice',p_choice,'adjustment',p_adjustment);
+  perform pg_advisory_xact_lock(hashtextextended(p_session_id::text,0));
+  select * into v_command from public.network_round_commands where command_id=p_command_id;
+  if found then
+    if v_command.session_id<>p_session_id or v_command.player_id<>p_player_id
+      or v_command.kind<>'CONTINUE_CYCLE' or v_command.command_payload is distinct from v_payload
+      then raise exception 'ROUND_COMMAND_CONFLICT'; end if;
+    return public.network_round_json(p_round_id,p_player_id);
+  end if;
+  select deck_cycle into v_cycle from public.network_game_states
+    where session_id=p_session_id for update;
+  if not found or v_expected>v_cycle then raise exception 'ROUND_CYCLE_MISMATCH'; end if;
+  insert into public.network_round_commands(command_id,session_id,round_id,player_id,kind,command_payload)
+    values(p_command_id,p_session_id,p_round_id,p_player_id,'CONTINUE_CYCLE',v_payload);
+  -- Another member already continued this shared cycle. Record this command
+  -- without advancing again, including a stale finish/new-game choice.
+  if v_expected<v_cycle then return public.network_round_json(p_round_id,p_player_id); end if;
+  update public.network_game_states set
+    deck_cycle=case when p_choice in ('CONTINUE_SPICIER','CONTINUE_INTENABLE','INFINITE') then deck_cycle+1 else deck_cycle end,
+    deck_style=case
+      when p_choice='CONTINUE_INTENABLE' then 'INTENABLE'
+      when p_choice='CONTINUE_SPICIER' and deck_style='SOFT' then 'EPICE'
+      when p_choice='CONTINUE_SPICIER' then 'INTENABLE'
+      else deck_style end,
+    infinite_mode=case when p_choice='INFINITE' then true else infinite_mode end,
+    deck_adjustment='{}'::jsonb,updated_at=now() where session_id=p_session_id;
+  if p_choice in ('NEW_GAME','FINISH') then
+    update public.game_sessions set status='closed' where id=p_session_id;
+  end if;
   return public.network_round_json(p_round_id,p_player_id);
 end; $$;

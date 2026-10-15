@@ -46,11 +46,14 @@ l'orientation canonique alimente désormais le contexte d'éligibilité.
 contrôleur Flutter et SQL ne sont pas exécutés ; ce n'est pas une validation
 complète à deux clients. Les limites de dépendances restent documentées.
 
-Prochain lot : migrer les consommateurs secondaires vers les usages figés
-(compromis, corruption, Recovery, apprentissage et effets partagés), puis nettoyer
-leurs derniers champs temporaires. Préparer séparément les données d'accessoires.
-La migration distante reste non déployée jusqu'à cette intégration et aux
-validations SQL/deux clients. Voir le bilan du Lot 5 pour les dettes précises.
+Le [Lot 6 — raccordement secondaire](concept_secondary_integration.md) migre
+les contrats de compromis, corruption, Recovery et apprentissage vers les usages
+figés. Les propositions réservent, l'acceptation engage ; les retries conservent
+la commande et le snapshot. L'apprentissage attend les deux Terminé canoniques.
+Le cycle partagé est validé : l'épuisement d'un joueur suffit ; la continuation
+renouvelle les quotas et checkpoints des deux côtés, sans privilège PLAYER_1. Inventaire des consommateurs restants et checklist PC
+sont joints au bilan. La migration distante reste non déployée, avec tests SQL
+préparés et limites Flutter documentées. Aucun raccordement d'accessoires fictifs.
 
 Le besoin de convertir d'anciennes sessions ne justifie pas de conserver deux
 moteurs pour des sessions de développement sans valeur. Les limitations locales

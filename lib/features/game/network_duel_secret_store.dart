@@ -3,45 +3,35 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/game/game_models.dart';
+import '../../core/json.dart';
+import '../../domain/round/concept_usage_snapshot.dart';
 import '../../domain/session/session_state.dart';
-import '../../engines/draw/draw_engine.dart';
-import '../../engines/deck/session_deck_builder.dart';
 import '../../sync/commit_reveal/commit_reveal.dart';
 import '../../engines/usage/concept_usage_checkpoint.dart';
 import '../../sync/protocol/network_usage_projection.dart';
 
 final class NetworkPlayedCardRecord {
   const NetworkPlayedCardRecord({
-    required this.cardId,
-    required this.variantId,
-    required this.occurrenceId,
+    required this.usage,
     required this.roundNumber,
-    this.usage,
   });
-
-  final String cardId, variantId, occurrenceId;
+  final NetworkUsageProjection usage;
   final int roundNumber;
-  final NetworkUsageProjection? usage;
-
+  String get cardId => usage.conceptId;
+  String get variantId =>
+      (usage.resolvedAction['stage_id'] ?? usage.resolvedAction['variant_id'])!
+          as String;
+  String get usageId => usage.usageId;
   Map<String, Object?> toJson() => {
-    'card_id': cardId,
-    'variant_id': variantId,
-    'occurrence_id': occurrenceId,
     'round_number': roundNumber,
-    'usage': usage?.toJson(),
+    'usage': usage.toJson(),
   };
-
   factory NetworkPlayedCardRecord.fromJson(Map<String, Object?> json) =>
       NetworkPlayedCardRecord(
-        cardId: json['card_id']! as String,
-        variantId: json['variant_id']! as String,
-        occurrenceId: json['occurrence_id']! as String,
+        usage: NetworkUsageProjection.fromJson(
+          Map<String, Object?>.from(json['usage']! as Map),
+        ),
         roundNumber: json['round_number']! as int,
-        usage: json['usage'] == null
-            ? null
-            : NetworkUsageProjection.fromJson(
-                Map<String, Object?>.from(json['usage']! as Map),
-              ),
       );
 }
 
@@ -49,27 +39,33 @@ final class NetworkPrivateGameState {
   NetworkPrivateGameState({
     required this.roundNumber,
     required List<CardRuntimeState> cards,
-    required Map<String, CardHistoryState> history,
     this.activeReveal,
     this.nextRoundPrepared = false,
     Set<int> learningRecordedRounds = const {},
     this.deckCycle = 1,
     this.infiniteMode = false,
     this.deckStyle = PlayerStyle.SOFT,
-    List<DeckShortage> deckShortages = const [],
     List<NetworkPlayedCardRecord> publicDiscards = const [],
     this.choiceVersion = 0,
     this.cancelCommitRequested = false,
     this.conceptCheckpoint,
+    Map<String, ConceptUsageSnapshot> reservedChoices = const {},
+    JsonMap? pendingSecondaryCommand,
+    JsonMap? pendingLearning,
     this.activeChili = 2,
     this.initialClothing = 5,
     List<ConceptUsageCheckpoint> priorCheckpoints = const [],
     Map<String, int> clothesByPlayer = const {},
     Map<String, int> clothingObservations = const {},
-  }) : cards = List.unmodifiable(cards),
-       history = Map.unmodifiable(history),
+  }) : pendingLearning = pendingLearning == null
+           ? null
+           : freezeJson(pendingLearning) as JsonMap,
+       reservedChoices = Map.unmodifiable(reservedChoices),
+       pendingSecondaryCommand = pendingSecondaryCommand == null
+           ? null
+           : freezeJson(pendingSecondaryCommand) as JsonMap,
+       cards = List.unmodifiable(cards),
        learningRecordedRounds = Set.unmodifiable(learningRecordedRounds),
-       deckShortages = List.unmodifiable(deckShortages),
        publicDiscards = List.unmodifiable(publicDiscards),
        clothesByPlayer = Map.unmodifiable(clothesByPlayer),
        priorCheckpoints = List.unmodifiable(priorCheckpoints),
@@ -77,18 +73,20 @@ final class NetworkPrivateGameState {
 
   final int roundNumber;
   final List<CardRuntimeState> cards;
-  final Map<String, CardHistoryState> history;
   final ChoiceRevealDto? activeReveal;
   final bool nextRoundPrepared;
   final Set<int> learningRecordedRounds;
   final int deckCycle;
   final bool infiniteMode;
   final PlayerStyle deckStyle;
-  final List<DeckShortage> deckShortages;
   final List<NetworkPlayedCardRecord> publicDiscards;
   final int choiceVersion;
   final bool cancelCommitRequested;
   final ConceptUsageCheckpoint? conceptCheckpoint;
+  // Draft choices are not engaged usages. The quota journal remains canonical.
+  final Map<String, ConceptUsageSnapshot> reservedChoices;
+  final JsonMap? pendingSecondaryCommand;
+  final JsonMap? pendingLearning;
   final int activeChili;
   final int initialClothing;
   final List<ConceptUsageCheckpoint> priorCheckpoints;
@@ -100,8 +98,8 @@ final class NetworkPrivateGameState {
     'cards': [
       for (final card in cards)
         {
-          'card_id': card.cardId,
-          'occurrence_id': card.occurrenceId,
+          'concept_id': card.cardId,
+          'usage_id': card.zone == CardZone.HAND ? null : card.occurrenceId,
           'variant_id': card.variantId,
           'zone': card.zone.name,
           'locked': card.locked,
@@ -109,32 +107,21 @@ final class NetworkPrivateGameState {
           'effective_direction': card.effectiveDirection.name,
         },
     ],
-    'history': {
-      for (final entry in history.entries) entry.key: entry.value.name,
-    },
     'active_reveal': activeReveal?.toJson(),
     'next_round_prepared': nextRoundPrepared,
     'learning_recorded_rounds': learningRecordedRounds.toList()..sort(),
     'deck_cycle': deckCycle,
     'infinite_mode': infiniteMode,
     'deck_style': deckStyle.name,
-    'deck_shortages': [
-      for (final shortage in deckShortages)
-        {
-          'requested_spice': shortage.requestedSpice,
-          'requested_count': shortage.requestedCount,
-          'available_count': shortage.availableCount,
-          'missing_count': shortage.missingCount,
-          'replacements': {
-            for (final entry in shortage.replacementsBySpice.entries)
-              entry.key.toString(): entry.value,
-          },
-        },
-    ],
     'public_discards': [for (final card in publicDiscards) card.toJson()],
     'choice_version': choiceVersion,
     'cancel_commit_requested': cancelCommitRequested,
     'concept_checkpoint': conceptCheckpoint?.toJson(),
+    'reserved_choices': {
+      for (final e in reservedChoices.entries) e.key: e.value.toJson(),
+    },
+    'pending_secondary_command': pendingSecondaryCommand,
+    'pending_learning': pendingLearning,
     'active_chili': activeChili,
     'initial_clothing': initialClothing,
     'prior_checkpoints': [
@@ -144,94 +131,82 @@ final class NetworkPrivateGameState {
     'clothing_observations': clothingObservations,
   };
 
-  factory NetworkPrivateGameState.fromJson(Map<String, Object?> json) =>
-      NetworkPrivateGameState(
-        roundNumber: json['round_number']! as int,
-        cards: [
-          for (final value in json['cards']! as List)
-            if (Map<String, Object?>.from(value! as Map) case final card)
-              CardRuntimeState(
-                cardId: card['card_id']! as String,
-                occurrenceId: card['occurrence_id'] as String?,
-                variantId: card['variant_id'] as String?,
-                zone: CardZone.values.byName(card['zone']! as String),
-                locked: card['locked']! as bool,
-                nativeDirection: CardOccurrenceDirection.values.byName(
-                  (card['native_direction'] as String?) ?? 'GENERAL',
-                ),
-                effectiveDirection: CardOccurrenceDirection.values.byName(
-                  (card['effective_direction'] as String?) ??
-                      (card['native_direction'] as String?) ??
-                      'GENERAL',
-                ),
-              ),
-        ],
-        history: {
-          for (final entry in (json['history']! as Map).entries)
-            entry.key as String: CardHistoryState.values.byName(
-              entry.value! as String,
+  factory NetworkPrivateGameState.fromJson(
+    Map<String, Object?> json,
+  ) => NetworkPrivateGameState(
+    roundNumber: json['round_number']! as int,
+    cards: [
+      for (final value in json['cards']! as List)
+        if (Map<String, Object?>.from(value! as Map) case final card)
+          CardRuntimeState(
+            cardId: (card['concept_id'] ?? card['card_id'])! as String,
+            occurrenceId:
+                (card['usage_id'] ?? card['occurrence_id']) as String?,
+            variantId: card['variant_id'] as String?,
+            zone: CardZone.values.byName(card['zone']! as String),
+            locked: card['locked']! as bool,
+            nativeDirection: CardOccurrenceDirection.values.byName(
+              (card['native_direction'] as String?) ?? 'GENERAL',
             ),
-        },
-        activeReveal: json['active_reveal'] == null
-            ? null
-            : ChoiceRevealDto.fromJson(
-                Map<String, Object?>.from(json['active_reveal']! as Map),
-              ),
-        nextRoundPrepared: json['next_round_prepared']! as bool,
-        learningRecordedRounds:
-            ((json['learning_recorded_rounds'] as List?) ?? const [])
-                .cast<int>()
-                .toSet(),
-        deckCycle: (json['deck_cycle'] as int?) ?? 1,
-        infiniteMode: (json['infinite_mode'] as bool?) ?? false,
-        deckStyle: PlayerStyle.values.byName(
-          (json['deck_style'] as String?) ?? PlayerStyle.SOFT.name,
-        ),
-        deckShortages: [
-          for (final raw in (json['deck_shortages'] as List?) ?? const [])
-            if (Map<String, Object?>.from(raw! as Map) case final shortage)
-              DeckShortage(
-                requestedSpice: shortage['requested_spice']! as int,
-                requestedCount: shortage['requested_count']! as int,
-                availableCount: shortage['available_count']! as int,
-                missingCount: shortage['missing_count']! as int,
-                replacementsBySpice: {
-                  for (final entry in Map<String, Object?>.from(
-                    (shortage['replacements'] as Map?) ?? const {},
-                  ).entries)
-                    int.parse(entry.key): entry.value! as int,
-                },
-              ),
-        ],
-        publicDiscards: [
-          for (final raw in (json['public_discards'] as List?) ?? const [])
-            NetworkPlayedCardRecord.fromJson(
-              Map<String, Object?>.from(raw! as Map),
+            effectiveDirection: CardOccurrenceDirection.values.byName(
+              (card['effective_direction'] as String?) ??
+                  (card['native_direction'] as String?) ??
+                  'GENERAL',
             ),
-        ],
-        choiceVersion: (json['choice_version'] as int?) ?? 0,
-        cancelCommitRequested:
-            (json['cancel_commit_requested'] as bool?) ?? false,
-        conceptCheckpoint: json['concept_checkpoint'] == null
-            ? null
-            : ConceptUsageCheckpoint.fromJson(
-                Map<String, Object?>.from(json['concept_checkpoint']! as Map),
-              ),
-        activeChili: (json['active_chili'] as int?) ?? 2,
-        initialClothing: (json['initial_clothing'] as int?) ?? 5,
-        priorCheckpoints: [
-          for (final value in (json['prior_checkpoints'] as List?) ?? [])
-            ConceptUsageCheckpoint.fromJson(
-              Map<String, Object?>.from(value as Map),
-            ),
-        ],
-        clothesByPlayer: Map<String, int>.from(
-          (json['clothes_by_player'] as Map?) ?? {},
+          ),
+    ],
+    activeReveal: json['active_reveal'] == null
+        ? null
+        : ChoiceRevealDto.fromJson(
+            Map<String, Object?>.from(json['active_reveal']! as Map),
+          ),
+    nextRoundPrepared: json['next_round_prepared']! as bool,
+    learningRecordedRounds:
+        ((json['learning_recorded_rounds'] as List?) ?? const [])
+            .cast<int>()
+            .toSet(),
+    deckCycle: (json['deck_cycle'] as int?) ?? 1,
+    infiniteMode: (json['infinite_mode'] as bool?) ?? false,
+    deckStyle: PlayerStyle.values.byName(
+      (json['deck_style'] as String?) ?? PlayerStyle.SOFT.name,
+    ),
+    publicDiscards: [
+      for (final raw in (json['public_discards'] as List?) ?? const [])
+        NetworkPlayedCardRecord.fromJson(
+          Map<String, Object?>.from(raw! as Map),
         ),
-        clothingObservations: Map<String, int>.from(
-          (json['clothing_observations'] as Map?) ?? {},
+    ],
+    choiceVersion: (json['choice_version'] as int?) ?? 0,
+    cancelCommitRequested: (json['cancel_commit_requested'] as bool?) ?? false,
+    conceptCheckpoint: json['concept_checkpoint'] == null
+        ? null
+        : ConceptUsageCheckpoint.fromJson(
+            Map<String, Object?>.from(json['concept_checkpoint']! as Map),
+          ),
+    reservedChoices: {
+      for (final e in ((json['reserved_choices'] as Map?) ?? {}).entries)
+        e.key as String: ConceptUsageSnapshot.fromJson(
+          Map<String, Object?>.from(e.value as Map),
         ),
-      );
+    },
+    pendingSecondaryCommand: json['pending_secondary_command'] == null
+        ? null
+        : Map<String, Object?>.from(json['pending_secondary_command'] as Map),
+    activeChili: (json['active_chili'] as int?) ?? 2,
+    initialClothing: (json['initial_clothing'] as int?) ?? 5,
+    priorCheckpoints: [
+      for (final value in (json['prior_checkpoints'] as List?) ?? [])
+        ConceptUsageCheckpoint.fromJson(
+          Map<String, Object?>.from(value as Map),
+        ),
+    ],
+    clothesByPlayer: Map<String, int>.from(
+      (json['clothes_by_player'] as Map?) ?? {},
+    ),
+    clothingObservations: Map<String, int>.from(
+      (json['clothing_observations'] as Map?) ?? {},
+    ),
+  );
 }
 
 abstract interface class NetworkDuelSecretStore {

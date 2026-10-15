@@ -226,6 +226,17 @@ final class NetworkUsageProjection extends JsonModel {
       )
       .json;
 
+  /// Corruption/Recovery disclose resolved actions, never personal PA values.
+  NetworkUsageProjection withoutPersonalValues() {
+    final json = Map<String, Object?>.from(toJson())..remove('snapshot_value');
+    final inverse = json['inverted_resolution'];
+    if (inverse != null) {
+      json['inverted_resolution'] = Map<String, Object?>.from(inverse as Map)
+        ..remove('snapshot_value');
+    }
+    return NetworkUsageProjection.fromJson(json);
+  }
+
   /// Only selects an already frozen counterpart. It never recalculates values.
   NetworkUsageProjection resolved({required bool inverted}) {
     final json = Map<String, Object?>.from(toJson())

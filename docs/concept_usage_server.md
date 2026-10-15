@@ -226,3 +226,17 @@ la recherche initiale infructueuse. La CLI seule ne fournit pas le moteur local
 nécessaire aux scénarios SQL. Conformément à la décision utilisateur : aucune
 installation supplémentaire, aucun déploiement, aucun contrôle distant nécessaire.
 Les tests SQL restent préparés/non exécutés jusqu'au raccordement approprié.
+
+## Suivi au Lot 6
+
+La migration préparée reste non déployée. Son contrôle de provenance de corruption
+englobe désormais les usages canoniques de compromis/corruption/Recovery antérieurs.
+Les 11 migrations historiques restent inchangées. Audit courant : 21 contrôles
+structurels ; scénarios SQL complétés mais non exécutés. Voir
+[le raccordement secondaire](concept_secondary_integration.md).
+
+La continuation partagée utilise désormais la RPC existante
+`continue_network_deck_cycle` et son JSON `p_adjustment: {expected_cycle: n}`.
+Le serveur incrémente une seule fois le cycle commun ; les deux clients suivent
+ce numéro pour renouveler leurs checkpoints. Aucun rôle PLAYER_1 permanent.
+Le contrat JSON est à basculer avec les clients, sans déploiement dans ce lot.

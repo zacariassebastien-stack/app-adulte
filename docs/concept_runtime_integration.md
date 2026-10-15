@@ -1,5 +1,9 @@
 # Lot 5 — raccordement ciblé du runtime V4
 
+Note de suivi : ce document décrit le checkpoint Lot 5. Le [Lot 6](concept_secondary_integration.md)
+remplace ses adaptations secondaires temporaires et en détaille les suppressions.
+Les limites historiques ci-dessous ne doivent pas être prises pour le bilan actuel.
+
 État : parcours principal raccordé dans le code, contrôles purs réussis ; exécution
 Flutter et validation à deux clients non réalisées. Migration du Lot 4 toujours
 créée et non déployée. Ce checkpoint ne constitue pas une bascule de production.

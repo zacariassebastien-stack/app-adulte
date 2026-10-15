@@ -177,6 +177,22 @@ begin
   perform pg_temp.assert_true(state#>>array['action_points',a::text]='20'
     and jsonb_array_length(state->'recovery_history')=2,'Recovery retry must not duplicate gain/history');
 
+  -- A prior Recovery usage is also a legitimate source, without a duel reveal.
+  update public.network_rounds set recovery_history=jsonb_build_array(
+    pg_temp.make_usage('prior-recovery-a','019',1,a,7)||jsonb_build_object(
+      'player_id',a,'source','HAND','response','ACCEPT','gain',12,'completed',true))
+    where id=prior;
+  update public.network_rounds set phase='CORRUPTION_DECISION',
+    final_resolution=jsonb_set(final_resolution,'{retained_player_id}',to_jsonb(b))
+    where id=current_round;
+  c1:=(pg_temp.make_usage('replayed-recovery-a','019',1,a,7)-'snapshot_value')
+    ||jsonb_build_object('source_usage_id','prior-recovery-a');
+  state:=public.submit_network_corruption_offer(s,current_round,a,'OWN_INITIAL_ACTION',
+    jsonb_build_array(c1),'corruption-from-recovery');
+  perform pg_temp.assert_true(state#>>'{corruption,actions,0,source_usage_id}'='prior-recovery-a'
+    and state#>>'{corruption,actions,0,usage_id}'='replayed-recovery-a',
+    'secondary history source keeps distinct replay identity');
+
   -- Tie concession uses the same canonical usage path, not legacy card IDs.
   insert into public.network_round_commands(command_id,session_id,round_id,player_id,kind)
     values('tie-reveal-b',s,tied,b,'REVEAL');
@@ -185,6 +201,20 @@ begin
   state:=public.submit_network_tie_decision(s,tied,a,'CONCEDE','tie-concede');
   perform pg_temp.assert_true(state#>>'{final_resolution,usage_id}'='tie-b'
     and state#>>'{final_resolution,compromise,0,resolved_action,action_text}'='Frozen action text','tie resolved snapshot');
+  -- PLAYER_2 can trigger continuation; concurrent commands and retry renew once.
+  perform set_config('request.jwt.claim.sub',b::text,true);
+  select jsonb_build_object('expected_cycle',deck_cycle) into saved
+    from public.network_game_states where session_id=s;
+  state:=public.continue_network_deck_cycle(s,current_round,b,'CONTINUE_SPICIER',saved,'cycle-b');
+  perform pg_temp.assert_true((state->>'deck_cycle')::integer=(saved->>'expected_cycle')::integer+1,
+    'second member can renew shared cycle');
+  state:=public.continue_network_deck_cycle(s,current_round,b,'CONTINUE_SPICIER',saved,'cycle-b');
+  perform pg_temp.assert_true((state->>'deck_cycle')::integer=(saved->>'expected_cycle')::integer+1,
+    'same continuation retry keeps cycle');
+  perform set_config('request.jwt.claim.sub',a::text,true);
+  state:=public.continue_network_deck_cycle(s,current_round,a,'INFINITE',saved,'cycle-a-concurrent');
+  perform pg_temp.assert_true((state->>'deck_cycle')::integer=(saved->>'expected_cycle')::integer+1,
+    'concurrent continuation of previous cycle does not renew twice');
   raise notice 'PASS concept usage RPC integration scenarios';
 end; $$;
 rollback;

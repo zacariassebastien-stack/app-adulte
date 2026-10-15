@@ -1,0 +1,64 @@
+{
+  "lot": "6",
+  "baseline_commit": "a6dbaec75cf89387a9dd7f05ffa8c6bdb5e3d098",
+  "status": "secondary_runtime_and_shared_cycle_connected_in_code_not_two_client_validated",
+  "validated_decisions": [
+    "reserve_at_proposal_engage_at_acceptance",
+    "replay_new_usage_and_one_capacity",
+    "replay_original_frozen_resolution_and_value",
+    "Recovery_keeps_existing_spice_exception",
+    "one_exhausted_player_ends_shared_cycle_continuation_renews_both_no_permanent_player1"
+  ],
+  "pure_checks": {
+    "catalog": 23,
+    "deck": 31,
+    "usage": 34,
+    "network_projection": 13,
+    "runtime": 23,
+    "secondary_learning": 13,
+    "total": 137
+  },
+  "sql_structural_checks": 21,
+  "historical_migrations_byte_identical": 11,
+  "targeted_analysis": "no_issues_in_analyzed_pure_components_controller_screen_and_modified_tests",
+  "full_flutter_analysis": "not_executable_with_current_unresolved_dependencies",
+  "explicit_dependency_file_analysis": {
+    "missing_package_errors": 15,
+    "derived_supabase_warning": 1,
+    "files": [
+      "lib/features/game/network_duel_secret_store.dart",
+      "lib/features/game/network_profile_learning.dart",
+      "lib/data/remote/supabase_network_game_repository.dart"
+    ]
+  },
+  "unresolved_dependencies": [
+    "drift",
+    "sqlite3",
+    "sqlite3_flutter_libs",
+    "shared_preferences",
+    "supabase_flutter",
+    "build_runner",
+    "drift_dev"
+  ],
+  "flutter_tests": "prepared_and_analyzed_not_executed",
+  "dependency_install_or_update": false,
+  "sql_migration": "202610150001_concept_usage_contract.sql modified_locally_not_deployed",
+  "sql_change": "corruption source provenance includes prior compromise accepted corruption and accepted Recovery JSON snapshots; existing continuation RPC uses expected_cycle JSON, serializes renewals and removes permanent PLAYER_1 gate",
+  "sql_scenarios": "prepared_not_executed_no_local_PostgreSQL",
+  "new_tables": false,
+  "remote_operations": false,
+  "push": false,
+  "native_secondary_legacy_identity_json": false,
+  "learning": "private pending batch; canonical two-ready barrier; aggregate and event receipt in one existing private save",
+  "secondary_retry": "exact command and draft choices persisted before send; canonical acceptance engages idempotently",
+  "accessories_049_052": "unavailable_pending_concrete_tagged_inventory_no_fallback",
+  "remaining_decision": null,
+  "preexisting_limits": [
+    "real clothing outcome 013 not synchronized by current RPCs",
+    "no new shared-context/settings producer",
+    "no general state-effect synchronization introduced"
+  ],
+  "legacy_inventory": "docs/concept_legacy_consumers.json",
+  "two_client_checklist": "docs/concept_secondary_integration.md",
+  "legacy_audit_checks": 4
+}

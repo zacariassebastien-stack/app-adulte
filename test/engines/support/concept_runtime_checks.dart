@@ -65,6 +65,7 @@ Map<String, void Function()> conceptRuntimeChecks() {
     bool distance = false,
     bool media = true,
     bool send = false,
+    bool recovery = false,
     Map<String, PreferenceValue> overrides = const {},
     Map<String, bool> flags = const {},
   }) => const ConceptActionOptions().evaluate(
@@ -87,6 +88,7 @@ Map<String, void Function()> conceptRuntimeChecks() {
     partner: profile('bob'),
     hierarchy: ProfileHierarchy({}),
     mediaSendRequired: send,
+    recovery: recovery,
   );
   ConceptUsageCheckpoint start() => ConceptUsageCheckpoint.startCycle(
     sessionId: 'session',
@@ -157,6 +159,29 @@ Map<String, void Function()> conceptRuntimeChecks() {
   );
 
   return {
+    'Recovery keeps its existing spice exception while other eligibility and accessory exclusions remain':
+        () {
+          final normal = options(chili: 1);
+          final recovery = options(chili: 1, recovery: true);
+          _check(
+            !normal.containsKey('019') && recovery.containsKey('019'),
+            'Recovery ceiling exception lost',
+          );
+          _check(
+            !options(
+              chili: 1,
+              recovery: true,
+              distance: true,
+            ).containsKey('019'),
+            'Recovery bypassed orientation',
+          );
+          for (final id in ['049', '050', '051', '052']) {
+            _check(
+              !recovery.containsKey(id),
+              'Recovery fabricated an accessory',
+            );
+          }
+        },
     'P4 sextoy metadata preserves self role insertion preferences and validated capabilities':
         () {
           for (final id in ['049', '050', '051', '052']) {
@@ -570,7 +595,7 @@ Map<String, void Function()> conceptRuntimeChecks() {
             'logical_order': 0,
           });
           _check(
-            card.usage!.usageId == native['usage_id'] &&
+            card.usage.usageId == native['usage_id'] &&
                 jsonEncode(card.toJson()['resolved_action']) ==
                     jsonEncode(native['resolved_action']),
             'Frozen action lost',

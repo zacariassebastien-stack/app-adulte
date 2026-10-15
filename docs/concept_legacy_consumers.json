@@ -1,0 +1,449 @@
+{
+  "baseline_commit": "a6dbaec75cf89387a9dd7f05ffa8c6bdb5e3d098",
+  "scope": "Chaque référence occurrence_id/occurrenceId restante sous lib/ ; migrations historiques traitées séparément et immuables",
+  "references": [
+    {
+      "file": "lib/domain/game/game_models.dart",
+      "line": 358,
+      "text": "String? occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id pour une action engagée",
+      "raison": "Type partagé CardRuntimeState conservé pour ses consommateurs locaux/simulation et le cache de vue V4. Le quota conceptuel est uniquement dans ConceptUsageCheckpoint."
+    },
+    {
+      "file": "lib/domain/game/game_models.dart",
+      "line": 363,
+      "text": "}) : occurrenceId = occurrenceId ?? cardId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id pour une action engagée",
+      "raison": "Type partagé CardRuntimeState conservé pour ses consommateurs locaux/simulation et le cache de vue V4. Le quota conceptuel est uniquement dans ConceptUsageCheckpoint."
+    },
+    {
+      "file": "lib/domain/game/game_models.dart",
+      "line": 366,
+      "text": "final String occurrenceId;",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id pour une action engagée",
+      "raison": "Type partagé CardRuntimeState conservé pour ses consommateurs locaux/simulation et le cache de vue V4. Le quota conceptuel est uniquement dans ConceptUsageCheckpoint."
+    },
+    {
+      "file": "lib/domain/game/game_models.dart",
+      "line": 378,
+      "text": "occurrenceId: occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id pour une action engagée",
+      "raison": "Type partagé CardRuntimeState conservé pour ses consommateurs locaux/simulation et le cache de vue V4. Le quota conceptuel est uniquement dans ConceptUsageCheckpoint."
+    },
+    {
+      "file": "lib/engines/corruption/corruption_engine.dart",
+      "line": 15,
+      "text": "this.occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; concept_id pour le verrou de main",
+      "raison": "Moteurs anciens encore utilisés par LocalGameController, LocalPostDuelController et la simulation. Le réseau ne les appelle plus pour consommer ses usages secondaires."
+    },
+    {
+      "file": "lib/engines/corruption/corruption_engine.dart",
+      "line": 20,
+      "text": "final String? occurrenceId;",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; concept_id pour le verrou de main",
+      "raison": "Moteurs anciens encore utilisés par LocalGameController, LocalPostDuelController et la simulation. Le réseau ne les appelle plus pour consommer ses usages secondaires."
+    },
+    {
+      "file": "lib/engines/corruption/corruption_engine.dart",
+      "line": 21,
+      "text": "String get identity => occurrenceId ?? cardId;",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; concept_id pour le verrou de main",
+      "raison": "Moteurs anciens encore utilisés par LocalGameController, LocalPostDuelController et la simulation. Le réseau ne les appelle plus pour consommer ses usages secondaires."
+    },
+    {
+      "file": "lib/engines/corruption/corruption_engine.dart",
+      "line": 27,
+      "text": "occurrenceId: occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; concept_id pour le verrou de main",
+      "raison": "Moteurs anciens encore utilisés par LocalGameController, LocalPostDuelController et la simulation. Le réseau ne les appelle plus pour consommer ses usages secondaires."
+    },
+    {
+      "file": "lib/engines/lifecycle/lifecycle_engine.dart",
+      "line": 48,
+      "text": "String occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; concept_id pour le verrou de main",
+      "raison": "Moteurs anciens encore utilisés par LocalGameController, LocalPostDuelController et la simulation. Le réseau ne les appelle plus pour consommer ses usages secondaires."
+    },
+    {
+      "file": "lib/engines/lifecycle/lifecycle_engine.dart",
+      "line": 51,
+      "text": ".where((card) => card.occurrenceId == occurrenceId)",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; concept_id pour le verrou de main",
+      "raison": "Moteurs anciens encore utilisés par LocalGameController, LocalPostDuelController et la simulation. Le réseau ne les appelle plus pour consommer ses usages secondaires."
+    },
+    {
+      "file": "lib/engines/lifecycle/lifecycle_engine.dart",
+      "line": 58,
+      "text": "card.copyWith(locked: card.occurrenceId == occurrenceId),",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; concept_id pour le verrou de main",
+      "raison": "Moteurs anciens encore utilisés par LocalGameController, LocalPostDuelController et la simulation. Le réseau ne les appelle plus pour consommer ses usages secondaires."
+    },
+    {
+      "file": "lib/engines/lifecycle/lifecycle_engine.dart",
+      "line": 64,
+      "text": "String occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; concept_id pour le verrou de main",
+      "raison": "Moteurs anciens encore utilisés par LocalGameController, LocalPostDuelController et la simulation. Le réseau ne les appelle plus pour consommer ses usages secondaires."
+    },
+    {
+      "file": "lib/engines/lifecycle/lifecycle_engine.dart",
+      "line": 67,
+      "text": "if (card.occurrenceId == occurrenceId && card.zone == CardZone.HAND)",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; concept_id pour le verrou de main",
+      "raison": "Moteurs anciens encore utilisés par LocalGameController, LocalPostDuelController et la simulation. Le réseau ne les appelle plus pour consommer ses usages secondaires."
+    },
+    {
+      "file": "lib/engines/lifecycle/lifecycle_engine.dart",
+      "line": 113,
+      "text": "String occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; concept_id pour le verrou de main",
+      "raison": "Moteurs anciens encore utilisés par LocalGameController, LocalPostDuelController et la simulation. Le réseau ne les appelle plus pour consommer ses usages secondaires."
+    },
+    {
+      "file": "lib/engines/lifecycle/lifecycle_engine.dart",
+      "line": 116,
+      "text": "if (card.occurrenceId == occurrenceId && card.zone == CardZone.DISCARD)",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; concept_id pour le verrou de main",
+      "raison": "Moteurs anciens encore utilisés par LocalGameController, LocalPostDuelController et la simulation. Le réseau ne les appelle plus pour consommer ses usages secondaires."
+    },
+    {
+      "file": "lib/engines/lifecycle/lifecycle_engine.dart",
+      "line": 124,
+      "text": "String occurrenceId, {",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; concept_id pour le verrou de main",
+      "raison": "Moteurs anciens encore utilisés par LocalGameController, LocalPostDuelController et la simulation. Le réseau ne les appelle plus pour consommer ses usages secondaires."
+    },
+    {
+      "file": "lib/engines/lifecycle/lifecycle_engine.dart",
+      "line": 128,
+      "text": "if (card.occurrenceId == occurrenceId &&",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; concept_id pour le verrou de main",
+      "raison": "Moteurs anciens encore utilisés par LocalGameController, LocalPostDuelController et la simulation. Le réseau ne les appelle plus pour consommer ses usages secondaires."
+    },
+    {
+      "file": "lib/engines/profile/profile_learning_engine.dart",
+      "line": 21,
+      "text": "this.occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; conceptIdentity pour une exposition conceptuelle",
+      "raison": "API historique des descripteurs conservée pour ses tests/consommateurs locaux. Le nouveau parcours utilise usageId ou conceptIdentity."
+    },
+    {
+      "file": "lib/engines/profile/profile_learning_engine.dart",
+      "line": 33,
+      "text": "final String? occurrenceId;",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; conceptIdentity pour une exposition conceptuelle",
+      "raison": "API historique des descripteurs conservée pour ses tests/consommateurs locaux. Le nouveau parcours utilise usageId ou conceptIdentity."
+    },
+    {
+      "file": "lib/engines/profile/profile_learning_engine.dart",
+      "line": 38,
+      "text": "usageId ?? conceptIdentity ?? occurrenceId ?? '$cardId|$variantId';",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour une action ; conceptIdentity pour une exposition conceptuelle",
+      "raison": "API historique des descripteurs conservée pour ses tests/consommateurs locaux. Le nouveau parcours utilise usageId ou conceptIdentity."
+    },
+    {
+      "file": "lib/features/game/network_duel_controller.dart",
+      "line": 30,
+      "text": "this.occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en main ; usage_id pour un engagement lors de la future migration du prototype",
+      "raison": "NetworkDuelCard est encore consommé par le runtime V4 ; le contrôleur prototype distinct est consommé par ses tests, sans route applicative active."
+    },
+    {
+      "file": "lib/features/game/network_duel_controller.dart",
+      "line": 40,
+      "text": "final String? occurrenceId;",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en main ; usage_id pour un engagement lors de la future migration du prototype",
+      "raison": "NetworkDuelCard est encore consommé par le runtime V4 ; le contrôleur prototype distinct est consommé par ses tests, sans route applicative active."
+    },
+    {
+      "file": "lib/features/game/network_duel_controller.dart",
+      "line": 45,
+      "text": "String get identity => occurrenceId ?? id;",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en main ; usage_id pour un engagement lors de la future migration du prototype",
+      "raison": "NetworkDuelCard est encore consommé par le runtime V4 ; le contrôleur prototype distinct est consommé par ses tests, sans route applicative active."
+    },
+    {
+      "file": "lib/features/game/network_duel_secret_store.dart",
+      "line": 102,
+      "text": "'usage_id': card.zone == CardZone.HAND ? null : card.occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour un engagement ; concept_id pour une carte en main",
+      "raison": "Champ du type partagé CardRuntimeState ; seule la lecture du JSON Lot 5 accepte encore occurrence_id. Écriture native concept_id/usage_id."
+    },
+    {
+      "file": "lib/features/game/network_duel_secret_store.dart",
+      "line": 143,
+      "text": "occurrenceId:",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour un engagement ; concept_id pour une carte en main",
+      "raison": "Champ du type partagé CardRuntimeState ; seule la lecture du JSON Lot 5 accepte encore occurrence_id. Écriture native concept_id/usage_id."
+    },
+    {
+      "file": "lib/features/game/network_duel_secret_store.dart",
+      "line": 144,
+      "text": "(card['usage_id'] ?? card['occurrence_id']) as String?,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "usage_id pour un engagement ; concept_id pour une carte en main",
+      "raison": "Champ du type partagé CardRuntimeState ; seule la lecture du JSON Lot 5 accepte encore occurrence_id. Écriture native concept_id/usage_id."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 197,
+      "text": ".map((card) => card.occurrenceId)",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 295,
+      "text": "occurrenceId: item.occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 346,
+      "text": "item.occurrenceId != _activeReveal?.choice.usageId)",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 349,
+      "text": "occurrenceId: item.occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 533,
+      "text": "card.occurrenceId == conceptId && card.zone == CardZone.HAND,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 540,
+      "text": "card.occurrenceId == conceptId ? card.copyWith(locked: false) : card,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 592,
+      "text": "occurrenceId: card.id,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 714,
+      "text": "occurrenceId: usage.usageId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 862,
+      "text": "_runtime = _runtime.where((card) => card.occurrenceId != usageId).toList();",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 1004,
+      "text": "occurrenceId: draft.usageId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 1384,
+      "text": "String occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 1388,
+      "text": ".where((item) => item.identity == occurrenceId)",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 1759,
+      "text": "if (auctionOccurrences.contains(card.occurrenceId) &&",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 1779,
+      "text": "card.occurrenceId == initial.usageId",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 1800,
+      "text": "a.occurrenceId != b.occurrenceId ||",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 2226,
+      "text": "String? occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 2233,
+      "text": "if (usage.usageId == occurrenceId) {",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 2316,
+      "text": "occurrenceId: occurrenceId ?? cardId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/features/game/network_game_controller.dart",
+      "line": 2360,
+      "text": "occurrenceId: usage.usageId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id en HAND ; usage_id en ENGAGED et pour une action historique",
+      "raison": "Adaptation locale aux types de vue/état partagés encore consommés par le prototype local. Ni clé de quota ni identité réseau ancienne."
+    },
+    {
+      "file": "lib/sync/projection/network_visibility_projection.dart",
+      "line": 130,
+      "text": "?.occurrenceId ??",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id dans la main privée du prototype ; usage_id pour une action",
+      "raison": "Contrat de projection du prototype, distinct de NetworkGameRoundStateDto. Ses consommateurs de projection/tests ne sont pas migrés ici."
+    },
+    {
+      "file": "lib/sync/protocol/network_dtos.dart",
+      "line": 204,
+      "text": "this.occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id dans la main privée du prototype ; usage_id pour une action",
+      "raison": "Contrat de projection du prototype, distinct de NetworkGameRoundStateDto. Ses consommateurs de projection/tests ne sont pas migrés ici."
+    },
+    {
+      "file": "lib/sync/protocol/network_dtos.dart",
+      "line": 210,
+      "text": "final String? occurrenceId;",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id dans la main privée du prototype ; usage_id pour une action",
+      "raison": "Contrat de projection du prototype, distinct de NetworkGameRoundStateDto. Ses consommateurs de projection/tests ne sont pas migrés ici."
+    },
+    {
+      "file": "lib/sync/protocol/network_dtos.dart",
+      "line": 217,
+      "text": "'occurrence_id': occurrenceId,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id dans la main privée du prototype ; usage_id pour une action",
+      "raison": "Contrat de projection du prototype, distinct de NetworkGameRoundStateDto. Ses consommateurs de projection/tests ne sont pas migrés ici."
+    },
+    {
+      "file": "lib/sync/protocol/network_dtos.dart",
+      "line": 225,
+      "text": "occurrenceId: json['occurrence_id'] as String?,",
+      "disposition": "compatibilite_transitoire",
+      "cible": "concept_id dans la main privée du prototype ; usage_id pour une action",
+      "raison": "Contrat de projection du prototype, distinct de NetworkGameRoundStateDto. Ses consommateurs de projection/tests ne sont pas migrés ici."
+    }
+  ],
+  "native_secondary_wire_legacy_identity_references": 0,
+  "legacy_runtime_consumers": [
+    {
+      "path": "lib/engines/draw/draw_engine.dart",
+      "consumers": [
+        "lib/features/game/local_game_controller.dart",
+        "lib/features/game/network_duel_controller.dart",
+        "lib/simulation/runner.dart"
+      ],
+      "disposition": "conserver tant que ces consommateurs existent ; aucune utilisation par NetworkGameController"
+    },
+    {
+      "path": "lib/data/local/database.dart",
+      "consumers": [
+        "lib/data/repositories/session_repository.dart",
+        "tests de persistance locale"
+      ],
+      "disposition": "Drift conservé pour ses consommateurs locaux ; aucun déplacement du checkpoint privé réseau"
+    },
+    {
+      "path": "lib/engines/eligibility/catalog_engine_adapter.dart",
+      "consumers": [
+        "ConceptRuntimeCatalog/éligibilité V4",
+        "simulation",
+        "prototype local"
+      ],
+      "disposition": "métadonnées V4 validées réutilisées ; les piments/quotas/pioche nouveaux ne viennent pas des anciens champs"
+    }
+  ],
+  "removed": [
+    "NetworkCompromiseCardDto legacy constructor/codec",
+    "NetworkRecoveryDto legacy constructor/codec",
+    "corruption occurrence-only wire format",
+    "historical catalogue reconstruction for secondary actions and learning",
+    "network calls to CorruptionEngine.resolve and RecoveryEngine.applyLifecycle",
+    "old DrawEngine history in network private state",
+    "DeckShortage and its substitution UI",
+    "duplicated deck-remaining counters",
+    "session_deck_builder.dart (remaining cycle definitions moved to deck_cycle_state.dart)"
+  ],
+  "historical_sql": "11 migrations précédant 202610150001 inchangées ; leurs occurrence_id sont des références historiques, pas un chemin du contrat natif",
+  "hybrid": "aucune pondération 70/30 ni duplication de paquet dans le runtime V4 ; orientations seules pour éligibilité",
+  "reference_count": 50
+}

@@ -1,3 +1,4 @@
+import '../support/native_usage_fixture.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -16,15 +17,15 @@ void main() {
     NetworkCompromiseOrigin origin = NetworkCompromiseOrigin.AUCTION,
     NetworkCardDirection direction = NetworkCardDirection.FAIRE,
     int value = 6,
-  }) => NetworkCompromiseCardDto(
-    occurrenceId: occurrence,
-    cardId: cardStableId ?? 'card.$occurrence',
-    variantId: 'variant.$occurrence',
-    ownerPlayerId: owner,
-    nativeDirection: direction,
-    effectiveDirection: direction,
+  }) => NetworkCompromiseCardDto.fromUsage(
+    nativeUsageFixture(
+      conceptId: cardStableId ?? 'card.$occurrence',
+      usageId: occurrence,
+      owner: owner,
+      direction: direction.name,
+      value: value,
+    ),
     origin: origin,
-    snapshotValue: value,
   );
 
   test(
@@ -58,7 +59,7 @@ void main() {
       );
       final decoded = NetworkFinalResolutionDto.fromJson(result.toJson());
       expect(decoded.compromise, hasLength(3));
-      expect(decoded.compromise.map((item) => item.occurrenceId).toSet(), {
+      expect(decoded.compromise.map((item) => item.usageId).toSet(), {
         'round-1:initial:alice',
         'bob:copy-1',
         'bob:copy-2',
@@ -176,42 +177,28 @@ void main() {
     expect(untouched.locked, isTrue);
   });
 
-  test(
-    'private reconstruction preserves occurrence lock cycle and shortages',
-    () {
-      final state = NetworkPrivateGameState(
-        roundNumber: 4,
-        cards: const [
-          CardRuntimeState(
-            cardId: 'card.same',
-            occurrenceId: 'same#42',
-            zone: CardZone.HAND,
-            locked: true,
-          ),
-        ],
-        history: const {},
-        deckCycle: 3,
-        infiniteMode: true,
-        deckStyle: PlayerStyle.INTENABLE,
-        deckShortages: [
-          DeckShortage(
-            requestedSpice: 4,
-            requestedCount: 8,
-            availableCount: 3,
-            missingCount: 5,
-            replacementsBySpice: const {5: 5},
-          ),
-        ],
-      );
-      final restored = NetworkPrivateGameState.fromJson(state.toJson());
-      expect(restored.cards.single.occurrenceId, 'same#42');
-      expect(restored.cards.single.locked, isTrue);
-      expect(restored.deckStyle, PlayerStyle.INTENABLE);
-      expect(restored.infiniteMode, isTrue);
-      expect(restored.deckCycle, 3);
-      expect(restored.deckShortages.single.missingCount, 5);
-    },
-  );
+  test('private reconstruction preserves concept identity lock and cycle', () {
+    final state = NetworkPrivateGameState(
+      roundNumber: 4,
+      cards: const [
+        CardRuntimeState(
+          cardId: 'card.same',
+          occurrenceId: 'same#42',
+          zone: CardZone.HAND,
+          locked: true,
+        ),
+      ],
+      deckCycle: 3,
+      infiniteMode: true,
+      deckStyle: PlayerStyle.INTENABLE,
+    );
+    final restored = NetworkPrivateGameState.fromJson(state.toJson());
+    expect(restored.cards.single.cardId, 'card.same');
+    expect(restored.cards.single.locked, isTrue);
+    expect(restored.deckStyle, PlayerStyle.INTENABLE);
+    expect(restored.infiniteMode, isTrue);
+    expect(restored.deckCycle, 3);
+  });
 
   test('cycle progression keeps intensity in infinite mode', () {
     const soft = DeckCycleState(style: PlayerStyle.SOFT);
@@ -300,10 +287,7 @@ void main() {
       expect(restored.deckStyle, PlayerStyle.INTENABLE);
       expect(restored.deckCycle, 4);
       expect(restored.infiniteMode, isTrue);
-      expect(
-        restored.negotiation!.finalOffer!.cards.single.occurrenceId,
-        'bob:1',
-      );
+      expect(restored.negotiation!.finalOffer!.cards.single.usageId, 'bob:1');
       final encoded = jsonEncode(restored.toJson());
       expect(encoded, isNot(contains('preferences')));
       expect(encoded, isNot(contains('profile_learning')));

@@ -1,6 +1,6 @@
 import '../../engines/auction/auction_engine.dart';
 import '../../engines/corruption/corruption_engine.dart';
-import '../../engines/deck/session_deck_builder.dart';
+import '../../engines/deck/deck_cycle_state.dart';
 import '../../engines/lifecycle/lifecycle_engine.dart';
 import '../../engines/recovery/recovery_engine.dart';
 import '../../domain/game/game_models.dart';
@@ -48,107 +48,56 @@ NetworkCardDirection invertNetworkDirection(NetworkCardDirection direction) =>
     };
 
 final class NetworkCompromiseCardDto {
-  const NetworkCompromiseCardDto({
-    required this.occurrenceId,
-    required this.cardId,
-    required this.variantId,
-    required this.ownerPlayerId,
-    required this.nativeDirection,
-    required this.effectiveDirection,
+  const NetworkCompromiseCardDto.fromUsage(
+    this.usage, {
     required this.origin,
-    required this.snapshotValue,
     this.logicalOrder,
-    this.usage,
   });
-
-  final String occurrenceId;
-  final String cardId;
-  final String variantId;
-  final String ownerPlayerId;
-  final NetworkCardDirection nativeDirection;
-  final NetworkCardDirection effectiveDirection;
+  final NetworkUsageProjection usage;
   final NetworkCompromiseOrigin origin;
-  final int snapshotValue;
   final int? logicalOrder;
-
-  /// Native projection is retained losslessly; old fields serve Lot 6 consumers.
-  final NetworkUsageProjection? usage;
-
+  String get usageId => usage.usageId;
+  String get conceptId => usage.conceptId;
+  String get cardId => conceptId;
+  String get variantId =>
+      (usage.resolvedAction['stage_id'] ?? usage.resolvedAction['variant_id'])!
+          as String;
+  String get ownerPlayerId => usage.ownerPlayerId;
+  NetworkCardDirection get nativeDirection => NetworkCardDirection.values
+      .byName(usage.toJson()['native_direction']! as String);
+  NetworkCardDirection get effectiveDirection => NetworkCardDirection.values
+      .byName(usage.resolvedAction['direction']! as String);
+  int get snapshotValue => usage.snapshotValue!;
   NetworkCompromiseCardDto copyWith({
     NetworkCardDirection? effectiveDirection,
     int? logicalOrder,
-  }) => NetworkCompromiseCardDto(
-    occurrenceId: occurrenceId,
-    cardId: cardId,
-    variantId: variantId,
-    ownerPlayerId: ownerPlayerId,
-    nativeDirection: nativeDirection,
-    effectiveDirection: effectiveDirection ?? this.effectiveDirection,
-    origin: origin,
-    snapshotValue: snapshotValue,
-    logicalOrder: logicalOrder ?? this.logicalOrder,
-    usage: usage,
-  );
-
-  Map<String, Object?> toJson() => usage != null
-      ? {
-          ...usage!.toJson(),
-          'origin': origin.name,
-          if (logicalOrder != null) 'logical_order': logicalOrder,
-        }
-      : {
-          'occurrence_id': occurrenceId,
-          'card_id': cardId,
-          'variant_id': variantId,
-          'owner_player_id': ownerPlayerId,
-          'native_direction': nativeDirection.name,
-          'effective_direction': effectiveDirection.name,
-          'origin': origin.name,
-          'snapshot_value': snapshotValue,
-          'logical_order': logicalOrder,
-        };
-
-  factory NetworkCompromiseCardDto.fromJson(Map<String, Object?> json) {
-    if (json.containsKey('usage_id')) {
-      final native = Map<String, Object?>.from(json)
-        ..remove('origin')
-        ..remove('logical_order');
-      final usage = NetworkUsageProjection.fromJson(native);
-      return NetworkCompromiseCardDto(
-        usage: usage,
-        occurrenceId: usage.usageId,
-        cardId: usage.conceptId,
-        variantId:
-            (usage.resolvedAction['stage_id'] ??
-                    usage.resolvedAction['variant_id'])!
-                as String,
-        ownerPlayerId: native['owner_player_id']! as String,
-        nativeDirection: NetworkCardDirection.values.byName(
-          native['native_direction']! as String,
-        ),
-        effectiveDirection: NetworkCardDirection.values.byName(
-          native['effective_direction']! as String,
-        ),
-        origin: NetworkCompromiseOrigin.values.byName(
-          json['origin']! as String,
-        ),
-        snapshotValue: usage.snapshotValue!,
-        logicalOrder: json['logical_order'] as int?,
-      );
+  }) {
+    final direction = effectiveDirection ?? this.effectiveDirection;
+    final resolved = direction == this.effectiveDirection
+        ? usage
+        : usage.resolved(inverted: direction != nativeDirection);
+    if (resolved.resolvedAction['direction'] != direction.name) {
+      throw StateError('No frozen resolution for this direction');
     }
-    return NetworkCompromiseCardDto(
-      occurrenceId: json['occurrence_id']! as String,
-      cardId: json['card_id']! as String,
-      variantId: json['variant_id']! as String,
-      ownerPlayerId: json['owner_player_id']! as String,
-      nativeDirection: NetworkCardDirection.values.byName(
-        json['native_direction']! as String,
-      ),
-      effectiveDirection: NetworkCardDirection.values.byName(
-        json['effective_direction']! as String,
-      ),
+    return NetworkCompromiseCardDto.fromUsage(
+      resolved,
+      origin: origin,
+      logicalOrder: logicalOrder ?? this.logicalOrder,
+    );
+  }
+
+  Map<String, Object?> toJson() => {
+    ...usage.toJson(),
+    'origin': origin.name,
+    'logical_order': ?logicalOrder,
+  };
+  factory NetworkCompromiseCardDto.fromJson(Map<String, Object?> json) {
+    final native = Map<String, Object?>.from(json)
+      ..remove('origin')
+      ..remove('logical_order');
+    return NetworkCompromiseCardDto.fromUsage(
+      NetworkUsageProjection.fromJson(native),
       origin: NetworkCompromiseOrigin.values.byName(json['origin']! as String),
-      snapshotValue: json['snapshot_value']! as int,
       logicalOrder: json['logical_order'] as int?,
     );
   }
@@ -236,33 +185,67 @@ enum FinalDefenseDecision { renounce, defend }
 
 enum TieDecision { concede, abandon }
 
+/// Shared promise; its action is a frozen usage projection, never a catalogue lookup.
+final class NetworkCorruptionActionDto {
+  NetworkCorruptionActionDto.fromUsage(
+    NetworkUsageProjection usage, {
+    this.source = CardZone.DISCARD,
+    this.status = ActionExecutionStatus.PROPOSED,
+    this.visibility = PromiseVisibility.VISIBLE,
+  }) : usage = usage.withoutPersonalValues();
+  final NetworkUsageProjection usage;
+  final CardZone source;
+  final ActionExecutionStatus status;
+  final PromiseVisibility visibility;
+  String get cardId => usage.conceptId;
+  String get identity => usage.usageId;
+  NetworkCorruptionActionDto copyWith({ActionExecutionStatus? status}) =>
+      NetworkCorruptionActionDto.fromUsage(
+        usage,
+        source: source,
+        status: status ?? this.status,
+        visibility: visibility,
+      );
+  Map<String, Object?> toJson() => {
+    ...usage.toJson(),
+    'source': source.name,
+    'status': status.name,
+    'visibility': visibility.name,
+  };
+  factory NetworkCorruptionActionDto.fromJson(Map<String, Object?> json) {
+    final native = Map<String, Object?>.from(json)
+      ..remove('source')
+      ..remove('status')
+      ..remove('visibility');
+    return NetworkCorruptionActionDto.fromUsage(
+      NetworkUsageProjection.fromJson(native),
+      source: CardZone.values.byName(json['source']! as String),
+      status: ActionExecutionStatus.values.byName(json['status']! as String),
+      visibility: PromiseVisibility.values.byName(
+        json['visibility']! as String,
+      ),
+    );
+  }
+}
+
 final class NetworkCorruptionDto {
   NetworkCorruptionDto({
     required this.offeredBy,
     required this.objective,
-    required List<ActionPromise> actions,
+    required List<NetworkCorruptionActionDto> actions,
     this.accepted,
   }) : actions = List.unmodifiable(actions);
 
   final String offeredBy;
   final CorruptionObjective objective;
-  final List<ActionPromise> actions;
+  final List<NetworkCorruptionActionDto> actions;
   final bool? accepted;
 
   Map<String, Object?> toJson() => {
     'offered_by': offeredBy,
     'objective': objective.name,
     'accepted': accepted,
-    'actions': [
-      for (final action in actions)
-        {
-          'card_id': action.cardId,
-          'occurrence_id': action.occurrenceId,
-          'source': action.source.name,
-          'status': action.status.name,
-          'visibility': action.visibility.name,
-        },
-    ],
+    'actions': [for (final action in actions) action.toJson()],
   };
 
   factory NetworkCorruptionDto.fromJson(Map<String, Object?> json) =>
@@ -275,66 +258,63 @@ final class NetworkCorruptionDto {
         actions: [
           for (final raw in json['actions']! as List)
             if (Map<String, Object?>.from(raw! as Map) case final action)
-              ActionPromise(
-                cardId: action['card_id']! as String,
-                occurrenceId: action['occurrence_id'] as String?,
-                source: CardZone.values.byName(action['source']! as String),
-                status: ActionExecutionStatus.values.byName(
-                  action['status']! as String,
-                ),
-                visibility: PromiseVisibility.values.byName(
-                  action['visibility']! as String,
-                ),
-              ),
+              NetworkCorruptionActionDto.fromJson(action),
         ],
       );
 }
 
 final class NetworkRecoveryDto {
-  const NetworkRecoveryDto({
-    required this.playerId,
-    required this.cardId,
-    required this.variantId,
+  NetworkRecoveryDto.fromUsage(
+    NetworkUsageProjection usage, {
     required this.source,
-    required this.completed,
-    required this.gain,
+    this.completed = false,
+    this.gain = 0,
     this.response,
-    this.occurrenceId,
-  });
-
-  final String playerId;
-  final String cardId;
-  final String variantId;
+  }) : usage = usage.withoutPersonalValues();
+  final NetworkUsageProjection usage;
   final RecoverySource source;
   final bool completed;
   final int gain;
   final RecoveryResponse? response;
-  final String? occurrenceId;
-
+  String get playerId => usage.ownerPlayerId;
+  String get cardId => usage.conceptId;
+  String get usageId => usage.usageId;
+  String get variantId =>
+      (usage.resolvedAction['stage_id'] ?? usage.resolvedAction['variant_id'])!
+          as String;
   Map<String, Object?> toJson() => {
+    ...usage.toJson(),
     'player_id': playerId,
-    'card_id': cardId,
-    'variant_id': variantId,
     'source': source.name,
     'completed': completed,
     'gain': gain,
     'response': response?.name,
-    'occurrence_id': occurrenceId,
   };
-
-  factory NetworkRecoveryDto.fromJson(Map<String, Object?> json) =>
-      NetworkRecoveryDto(
-        playerId: json['player_id']! as String,
-        cardId: json['card_id']! as String,
-        variantId: json['variant_id']! as String,
-        source: RecoverySource.values.byName(json['source']! as String),
-        completed: json['completed']! as bool,
-        gain: json['gain']! as int,
-        response: json['response'] == null
-            ? null
-            : RecoveryResponse.values.byName(json['response']! as String),
-        occurrenceId: json['occurrence_id'] as String?,
-      );
+  factory NetworkRecoveryDto.fromJson(Map<String, Object?> json) {
+    final native = Map<String, Object?>.from(json);
+    for (final key in [
+      'player_id',
+      'source',
+      'completed',
+      'gain',
+      'response',
+    ]) {
+      native.remove(key);
+    }
+    final usage = NetworkUsageProjection.fromJson(native);
+    if (json['player_id'] != usage.ownerPlayerId) {
+      throw const FormatException('Recovery owner mismatch');
+    }
+    return NetworkRecoveryDto.fromUsage(
+      usage,
+      source: RecoverySource.values.byName(json['source']! as String),
+      completed: json['completed']! as bool,
+      gain: json['gain']! as int,
+      response: json['response'] == null
+          ? null
+          : RecoveryResponse.values.byName(json['response']! as String),
+    );
+  }
 }
 
 final class NetworkInitialResolutionDto {
@@ -434,13 +414,8 @@ final class NetworkFinalResolutionDto {
     'retained_player_id': retainedPlayerId,
     'initial_winner_player_id': initialWinnerPlayerId,
     'final_winner_player_id': finalWinnerPlayerId,
-    if (usageId != null) ...{
-      'usage_id': usageId,
-      'concept_id': cardId,
-    } else ...{
-      'card_id': cardId,
-      'variant_id': variantId,
-    },
+    'usage_id': ?(usageId ?? compromise.firstOrNull?.usageId),
+    'concept_id': ?(cardId ?? compromise.firstOrNull?.conceptId),
     'inverted': inverted,
     'mutual_abandon': mutualAbandon,
     'compromise': [for (final card in compromise) card.toJson()],
@@ -451,7 +426,7 @@ final class NetworkFinalResolutionDto {
         retainedPlayerId: json['retained_player_id'] as String?,
         initialWinnerPlayerId: json['initial_winner_player_id'] as String?,
         finalWinnerPlayerId: json['final_winner_player_id'] as String?,
-        cardId: (json['concept_id'] ?? json['card_id']) as String?,
+        cardId: json['concept_id'] as String?,
         usageId: json['usage_id'] as String?,
         variantId: json['variant_id'] as String?,
         inverted: json['inverted']! as bool,
@@ -664,6 +639,11 @@ abstract interface class NetworkGameRepository {
 
   Future<NetworkGameRoundStateDto> getCurrentRound({required String sessionId});
 
+  Future<NetworkGameRoundStateDto> getRound({
+    required String sessionId,
+    required String roundId,
+  });
+
   Future<NetworkGameRoundStateDto> submitCommit({
     required NetworkCommandDto command,
     required ChoiceCommitmentDto commitment,
@@ -700,7 +680,7 @@ abstract interface class NetworkGameRepository {
   Future<NetworkGameRoundStateDto> submitCorruptionOffer({
     required NetworkCommandDto command,
     required CorruptionObjective objective,
-    required List<ActionPromise> actions,
+    required List<NetworkCorruptionActionDto> actions,
   });
 
   Future<NetworkGameRoundStateDto> respondCorruption({
@@ -710,7 +690,7 @@ abstract interface class NetworkGameRepository {
 
   Future<NetworkGameRoundStateDto> resolveCorruption({
     required NetworkCommandDto command,
-    required List<ActionPromise> actions,
+    required List<NetworkCorruptionActionDto> actions,
   });
 
   Future<NetworkGameRoundStateDto> skipCorruption({
@@ -776,7 +756,7 @@ abstract interface class NetworkSessionFlowRepository {
   Future<NetworkGameRoundStateDto> continueDeckCycle({
     required NetworkCommandDto command,
     required DeckExhaustionChoice choice,
-    Map<int, int> deckAdjustment = const {},
+    required int expectedCycle,
   });
 }
 

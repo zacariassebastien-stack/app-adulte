@@ -15,6 +15,13 @@ scénarios SQL préparés mais non exécutés. Les parcours secondaires restent 
 le Lot 6 avant bascule coordonnée. Voir le [planning](docs/concept_cards_transition.md).
 Les descriptions historiques ci-dessous ne font pas autorité sur le nouveau contrat.
 
+Le [Lot 6 — parcours secondaires](docs/concept_secondary_integration.md) raccorde
+les offres/réponses aux snapshots natifs, réservations et engagements idempotents.
+L'apprentissage attend les deux Terminé et conserve un reçu privé avec son agrégat.
+137 contrôles purs et 21 contrôles structurels SQL passent. Le cycle partagé
+renouvelle les deux checkpoints ; les validations Flutter/SQL/deux clients ne sont pas
+réalisées. Voir aussi l'[inventaire des consommateurs hérités](docs/concept_legacy_consumers.json).
+
 Phases 0 à 4.5 et premier squelette visuel de partie. Projet Android/iOS,
 domaine, stockage Drift/SQLite et moteurs de jeu purs compatibles Windows.
 

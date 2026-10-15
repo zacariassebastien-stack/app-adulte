@@ -1,21 +1,5 @@
 import '../../domain/game/game_models.dart';
 
-final class DeckShortage {
-  DeckShortage({
-    required this.requestedSpice,
-    required this.requestedCount,
-    required this.availableCount,
-    required this.missingCount,
-    required Map<int, int> replacementsBySpice,
-  }) : replacementsBySpice = Map.unmodifiable(replacementsBySpice);
-
-  final int requestedSpice;
-  final int requestedCount;
-  final int availableCount;
-  final int missingCount;
-  final Map<int, int> replacementsBySpice;
-}
-
 enum HybridDeckOrientation { faceToFace, distance }
 
 enum DeckExhaustionChoice {

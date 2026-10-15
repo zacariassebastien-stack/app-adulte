@@ -19,6 +19,8 @@ final class LearningCardDescriptor {
     required this.spiceLevel,
     List<String> primaryPreferenceIds = const [],
     this.occurrenceId,
+    this.usageId,
+    this.conceptIdentity,
   }) : assert(spiceLevel >= 1 && spiceLevel <= 5),
        tags = List.unmodifiable(tags),
        primaryPreferenceIds = List.unmodifiable(primaryPreferenceIds);
@@ -29,8 +31,11 @@ final class LearningCardDescriptor {
   final int spiceLevel;
   final List<String> primaryPreferenceIds;
   final String? occurrenceId;
+  final String? usageId;
+  final String? conceptIdentity;
 
-  String get identity => occurrenceId ?? '$cardId|$variantId';
+  String get identity =>
+      usageId ?? conceptIdentity ?? occurrenceId ?? '$cardId|$variantId';
 }
 
 final class HandLearningEvent {

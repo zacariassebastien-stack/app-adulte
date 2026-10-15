@@ -1,3 +1,4 @@
+import '../support/native_usage_fixture.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -32,6 +33,83 @@ void main() {
       ],
     );
   });
+
+  test(
+    'shared canonical cycle resets the non-exhausted peer and retries once',
+    () async {
+      final setup = await _setup(session, catalog);
+      addTearDown(setup.dispose);
+      await _playUnequal(setup);
+      final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+      await loser.acceptInitialResult();
+      await _settle();
+      final oldUsages = setup.alice.usageCheckpoint.usagesByIntent.values
+          .map((usage) => usage.usageId)
+          .toSet();
+      expect(setup.alice.hand, isNotEmpty);
+      final repository =
+          setup.backend.repository('bob') as NetworkSessionFlowRepository;
+      final command = NetworkCommandDto(
+        sessionId: session.id,
+        type: 'CONTINUE_CYCLE',
+        payload: {'round_id': setup.backend.round.id},
+        playerId: 'bob',
+        commandId: 'cycle-bob',
+      );
+      await repository.continueDeckCycle(
+        command: command,
+        choice: DeckExhaustionChoice.continueSpicier,
+        expectedCycle: 1,
+      );
+      await _settle();
+      expect(setup.alice.usageCheckpoint.cycle, 2);
+      expect(setup.bob.usageCheckpoint.cycle, 2);
+      expect(setup.alice.usageCheckpoint.usagesByIntent, isEmpty);
+      for (final entry in setup.alice.usageCheckpoint.stock.capacity.entries) {
+        expect(
+          setup.alice.usageCheckpoint.stock.remainingFor(entry.key),
+          entry.value,
+        );
+      }
+      expect(
+        setup.alice.hand.map((c) => c.id).toSet().length,
+        setup.alice.hand.length,
+      );
+      final saved = (await setup.alice.privateStore.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      expect(saved.deckCycle, 2);
+      expect(
+        saved.priorCheckpoints
+            .expand((c) => c.usagesByIntent.values)
+            .map((u) => u.usageId)
+            .toSet(),
+        containsAll(oldUsages),
+      );
+      final checkpoint = setup.alice.usageCheckpoint.encode();
+      await repository.continueDeckCycle(
+        command: command,
+        choice: DeckExhaustionChoice.continueSpicier,
+        expectedCycle: 1,
+      );
+      await (setup.backend.repository('alice') as NetworkSessionFlowRepository)
+          .continueDeckCycle(
+            command: NetworkCommandDto(
+              sessionId: session.id,
+              type: 'CONTINUE_CYCLE',
+              payload: {'round_id': setup.backend.round.id},
+              playerId: 'alice',
+              commandId: 'cycle-concurrent',
+            ),
+            choice: DeckExhaustionChoice.infinite,
+            expectedCycle: 1,
+          );
+      await _settle();
+      expect(setup.backend.deckCycle, 2);
+      expect(setup.alice.usageCheckpoint.encode(), checkpoint);
+    },
+  );
 
   test(
     'concept reservation can be cancelled before engagement without quota loss',
@@ -188,6 +266,91 @@ void main() {
     },
   );
 
+  test(
+    'learning waits for both done acknowledgements and applies once',
+    () async {
+      final setup = await _setup(session, catalog);
+      addTearDown(setup.dispose);
+      await _playUnequal(setup);
+      final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+      await loser.acceptInitialResult();
+      await _settle();
+      await setup.alice.readyForNextRound();
+      expect((await setup.alice.learning.state()).entries, isEmpty);
+      final waiting = (await setup.alice.privateStore.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      expect(waiting.pendingLearning, isNotNull);
+      await setup.bob.readyForNextRound();
+      await _settle();
+      final learned = (await setup.alice.learning.state()).toJson();
+      expect(
+        (await setup.alice.learning.state()).appliedRoundEvents,
+        hasLength(1),
+      );
+      await setup.alice.retryCurrentAction();
+      await _settle();
+      expect((await setup.alice.learning.state()).toJson(), learned);
+    },
+  );
+
+  test(
+    'reconnect replays the reserved Recovery command then engages once on acceptance',
+    () async {
+      final setup = await _setup(session, catalog);
+      await _playUnequal(setup);
+      final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+      await loser.acceptInitialResult();
+      await _settle();
+      setup.backend.points['alice'] = 10;
+      setup.backend.round.phase = NetworkGamePhase.recovery;
+      setup.backend.notify();
+      await _settle();
+      final card = setup.alice.recoveryCards.first;
+      final before = setup.alice.usageCheckpoint.stock.remainingFor(card.id);
+      setup.backend.failNextRecovery = true;
+      await setup.alice.recoverWith(card.identity);
+      final saved = (await setup.alice.privateStore.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      expect(saved.pendingSecondaryCommand, isNotNull);
+      expect(
+        jsonEncode(saved.pendingSecondaryCommand),
+        isNot(contains('snapshot_value')),
+      );
+      final planned = saved.reservedChoices.values.single.usageId;
+      expect(saved.conceptCheckpoint!.stock.remainingFor(card.id), before);
+      setup.alice.dispose();
+      final alice = _controller(
+        setup.backend,
+        session,
+        catalog,
+        'alice',
+        setup.alice.privateStore,
+      );
+      addTearDown(alice.dispose);
+      addTearDown(setup.bob.dispose);
+      await alice.start();
+      await _settle();
+      expect(alice.pendingRecovery!.usageId, planned);
+      expect(alice.usageCheckpoint.stock.remainingFor(card.id), before);
+      await setup.bob.respondToRecovery(RecoveryResponse.ACCEPT);
+      await _settle();
+      expect(alice.usageCheckpoint.stock.remainingFor(card.id), before - 1);
+      expect(
+        alice.usageCheckpoint.usagesByIntent.values.where(
+          (u) => u.usageId == planned,
+        ),
+        hasLength(1),
+      );
+      await alice.retryCurrentAction();
+      await _settle();
+      expect(alice.usageCheckpoint.stock.remainingFor(card.id), before - 1);
+    },
+  );
+
   test('network DTO round-trips without private hand, lock or profile', () {
     final state = _Backend().state('alice');
     final encoded = jsonEncode(state.toJson());
@@ -224,12 +387,10 @@ void main() {
       cards: const [
         CardRuntimeState(cardId: 'card.hug', zone: CardZone.HAND, locked: true),
       ],
-      history: const {'card.hug': CardHistoryState.seenUnplayed},
       activeReveal: reveal,
     );
     final decoded = NetworkPrivateGameState.fromJson(state.toJson());
     expect(decoded.cards.single.locked, isTrue);
-    expect(decoded.history['card.hug'], CardHistoryState.seenUnplayed);
     expect(decoded.activeReveal!.nonce, 'private-nonce');
     expect(
       jsonEncode(_Backend().state('bob').toJson()),
@@ -638,8 +799,10 @@ void main() {
       await setup.alice.readyForNextRound();
       expect(setup.alice.lockedCardId, isNot(target.identity));
       expect(
-        setup.alice.history[target.id],
-        CardHistoryState.playedOrDiscarded,
+        setup.alice.usageCheckpoint.usagesByIntent.values.any(
+          (u) => u.conceptId == target.id,
+        ),
+        isTrue,
       );
       setup.dispose();
     },
@@ -905,7 +1068,7 @@ void main() {
   );
 
   test(
-    'corruption refusal is public, idempotent and leaves discard untouched',
+    'corruption refusal releases its reservation and preserves concept quota',
     () async {
       final setup = await _setup(session, catalog);
       await _reachSecondResolved(setup);
@@ -914,11 +1077,8 @@ void main() {
       await _settle();
       final actor = setup.alice.isCorruptionActor ? setup.alice : setup.bob;
       final partner = identical(actor, setup.alice) ? setup.bob : setup.alice;
-      final card = actor.corruptionCards.single;
-      final before = actor.runtime.singleWhere(
-        (item) => item.occurrenceId == card.identity,
-      );
-      expect(before.zone, CardZone.DISCARD);
+      final card = actor.corruptionCards.first;
+      final before = actor.usageCheckpoint.stock.remainingFor(card.id);
 
       await actor.proposeCorruption(
         card.identity,
@@ -943,18 +1103,14 @@ void main() {
       await partner.respondToCorruption(accepted: false);
       await _settle();
       expect(setup.backend.phase, NetworkGamePhase.recovery);
-      expect(
-        actor.runtime
-            .singleWhere((item) => item.occurrenceId == card.identity)
-            .zone,
-        CardZone.DISCARD,
-      );
+      expect(actor.usageCheckpoint.stock.remainingFor(card.id), before);
+      expect(actor.usageCheckpoint.reservationsByIntent, isEmpty);
       setup.dispose();
     },
   );
 
   test(
-    'accepted corruption exhausts only the completed proposed discard once',
+    'accepted corruption consumes one linked use and completion consumes nothing more',
     () async {
       final setup = await _setup(session, catalog);
       await _reachSecondResolved(setup);
@@ -963,10 +1119,8 @@ void main() {
       await _settle();
       final actor = setup.alice.isCorruptionActor ? setup.alice : setup.bob;
       final partner = identical(actor, setup.alice) ? setup.bob : setup.alice;
-      final offered = actor.corruptionCards.single;
-      final unrelated = actor.runtime
-          .where((item) => item.zone == CardZone.HAND)
-          .first;
+      final offered = actor.corruptionCards.first;
+      final quotaBefore = actor.usageCheckpoint.stock.remainingFor(offered.id);
 
       await actor.proposeCorruption(
         offered.identity,
@@ -980,17 +1134,19 @@ void main() {
       await actor.completeCorruption(completed: true);
       await _settle();
 
+      final replay = actor.usageCheckpoint.usagesByIntent.values.singleWhere(
+        (u) => u.sourceUsageId == offered.identity,
+      );
+      expect(replay.usageId, isNot(offered.identity));
       expect(
-        actor.runtime
-            .singleWhere((item) => item.occurrenceId == offered.identity)
-            .zone,
-        CardZone.EXHAUSTED,
+        actor.usageCheckpoint.stock.remainingFor(offered.id),
+        quotaBefore - 1,
       );
       expect(
-        actor.runtime
-            .singleWhere((item) => item.occurrenceId == unrelated.occurrenceId)
-            .zone,
-        CardZone.HAND,
+        actor.usageCheckpoint.usagesByIntent.values.where(
+          (u) => u.sourceUsageId == offered.identity,
+        ),
+        hasLength(1),
       );
       expect(setup.backend.phase, NetworkGamePhase.recovery);
       setup.dispose();
@@ -1011,12 +1167,13 @@ void main() {
       setup.backend.notify();
       await _settle();
 
-      final playedCardId = setup.alice.runtime
-          .singleWhere((item) => item.zone == CardZone.DISCARD)
-          .cardId;
+      final playedCardId =
+          setup.alice.usageCheckpoint.usagesByIntent.values.first.conceptId;
       expect(
-        setup.alice.history[playedCardId],
-        CardHistoryState.playedOrDiscarded,
+        setup.alice.usageCheckpoint.usagesByIntent.values.any(
+          (u) => u.conceptId == playedCardId,
+        ),
+        isTrue,
       );
       expect(setup.alice.recoveryAvailable, isTrue);
       expect(setup.bob.recoveryAvailable, isFalse);
@@ -1031,11 +1188,11 @@ void main() {
       await setup.bob.respondToRecovery(RecoveryResponse.ACCEPT);
       await _settle();
       expect(setup.alice.viewState, NetworkGameViewState.recoveryExecution);
-      final resolvedOption = setup.alice.recoveryCards.singleWhere(
-        (card) => card.identity == option.identity,
-      );
-      expect(resolvedOption.role, option.role);
-      expect(resolvedOption.personalValue, option.personalValue);
+      final proposal = setup.backend.round.recoveries['alice']!;
+      final engaged = setup.alice.usageCheckpoint.usagesByIntent.values
+          .singleWhere((u) => u.usageId == proposal.usageId);
+      expect(engaged.action.direction.name, option.nativeDirection.name);
+      expect(engaged.action.personalValues.single.value, option.personalValue);
       await setup.alice.completeRecovery(completed: true);
       await setup.alice.completeRecovery(completed: true);
       await _settle();
@@ -1106,15 +1263,15 @@ void main() {
         corruption: NetworkCorruptionDto(
           offeredBy: 'alice',
           objective: CorruptionObjective.OWN_INITIAL_ACTION,
-          actions: const [
-            ActionPromise(cardId: 'shown-card', source: CardZone.DISCARD),
+          actions: [
+            NetworkCorruptionActionDto.fromUsage(
+              nativeUsageFixture(conceptId: 'shown-card'),
+            ),
           ],
         ),
-        recoveryByPlayer: const {
-          'alice': NetworkRecoveryDto(
-            playerId: 'alice',
-            cardId: 'recovery-card',
-            variantId: 'variant',
+        recoveryByPlayer: {
+          'alice': NetworkRecoveryDto.fromUsage(
+            nativeUsageFixture(conceptId: 'recovery-card'),
             source: RecoverySource.CATALOG,
             completed: true,
             gain: 8,
@@ -1127,7 +1284,7 @@ void main() {
       expect(encoded, isNot(contains('private_hand')));
       expect(encoded, isNot(contains('locked')));
       expect(encoded, isNot(contains('profile')));
-      expect(encoded, isNot(contains('preference')));
+      expect(encoded, isNot(contains('private_preferences')));
       expect(encoded, isNot(contains('draw_history')));
       expect(encoded, isNot(contains('nonce')));
     },
@@ -1247,6 +1404,8 @@ Future<void> _playUnequal(
   String? forceAliceCard,
   bool requireInvertibleWinner = false,
   bool requireNonInvertibleWinner = false,
+  bool requireRepeatable = false,
+  String? avoidBobCard,
 }) async {
   final pairs = [
     for (final a in setup.alice.hand)
@@ -1255,7 +1414,11 @@ Future<void> _playUnequal(
   final pair = pairs.firstWhere((pair) {
     final aWins = pair.$1.personalValue > pair.$2.personalValue;
     final winner = aWins ? pair.$1 : pair.$2;
-    return pair.$1.personalValue != pair.$2.personalValue &&
+    return (!requireRepeatable ||
+            (setup.alice.usageCheckpoint.stock.capacity[pair.$1.id]! > 1 &&
+                setup.bob.usageCheckpoint.stock.capacity[pair.$2.id]! > 1)) &&
+        (avoidBobCard == null || pair.$2.identity != avoidBobCard) &&
+        pair.$1.personalValue != pair.$2.personalValue &&
         (avoidAliceCard == null || pair.$1.identity != avoidAliceCard) &&
         (forceAliceCard == null || pair.$1.identity == forceAliceCard) &&
         (!requireInvertibleWinner || winner.variant.invertible) &&
@@ -1281,14 +1444,18 @@ Future<void> _chooseUnequalPartner(
 }
 
 Future<void> _reachSecondResolved(_Setup setup) async {
-  await _playUnequal(setup);
+  await _playUnequal(setup, requireRepeatable: true);
+  final firstAlice =
+      setup.alice.usageCheckpoint.usagesByIntent.values.single.conceptId;
+  final firstBob =
+      setup.bob.usageCheckpoint.usagesByIntent.values.single.conceptId;
   final firstLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
   await firstLoser.acceptInitialResult();
   await _settle();
   await setup.alice.readyForNextRound();
   await setup.bob.readyForNextRound();
   await _settle();
-  await _playUnequal(setup);
+  await _playUnequal(setup, avoidAliceCard: firstAlice, avoidBobCard: firstBob);
   final secondLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
   await secondLoser.acceptInitialResult();
   await _settle();
@@ -1338,14 +1505,12 @@ Future<void> _primeTie(_Backend backend) async {
   );
 }
 
-ChoicePayload _choice(String player, int value) => ChoicePayload(
-  cardId: 'card.$player',
-  variantId: 'variant.$player',
-  parameters: {
-    'role': 'FAIRE',
-    'personal_value': value,
-    'committed_at': '2026-09-30T12:00:00.000Z',
-  },
+ChoicePayload _choice(String player, int value) => ChoicePayload.fromUsage(
+  nativeUsageFixture(
+    owner: player,
+    value: value,
+    usageId: 'test-$player-$value',
+  ),
 );
 
 NetworkCommandDto _command(
@@ -1387,11 +1552,16 @@ final class _RoundRecord {
 
 final class _Backend {
   bool failNextCommit = false;
+  bool failNextRecovery = false;
   bool failNextCancellation = false;
   final rounds = <int, _RoundRecord>{1: _RoundRecord(1)};
   final points = <String, int>{'alice': 100, 'bob': 100};
   final commands = <String>{};
   final changes = StreamController<void>.broadcast();
+  int deckCycle = 1;
+  PlayerStyle deckStyle = PlayerStyle.SOFT;
+  bool infiniteMode = false;
+  HybridDeckOrientation orientation = HybridDeckOrientation.faceToFace;
   int currentRound = 1;
   int roundCreations = 1;
   int initialApplications = 0;
@@ -1404,6 +1574,10 @@ final class _Backend {
 
   NetworkGameRoundStateDto state(String player) => NetworkGameRoundStateDto(
     usageContractVersion: 1,
+    deckCycle: deckCycle,
+    deckStyle: deckStyle,
+    infiniteMode: infiniteMode,
+    hybridOrientation: orientation,
     roundId: round.id,
     sessionId: 'session-multi',
     sessionRound: 'session-multi.round-${round.number}',
@@ -1445,10 +1619,45 @@ final class _Repository
     implements
         NetworkGameRepository,
         NetworkCommitCancellationRepository,
-        NetworkSessionClosureRepository {
+        NetworkSessionClosureRepository,
+        NetworkSessionFlowRepository {
   _Repository(this.backend, this.player);
   final _Backend backend;
   final String player;
+
+  @override
+  Future<NetworkGameRoundStateDto> setHybridOrientation({
+    required NetworkCommandDto command,
+    required HybridDeckOrientation orientation,
+  }) async {
+    if (_accept(command)) backend.orientation = orientation;
+    _notify();
+    return backend.state(player);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> continueDeckCycle({
+    required NetworkCommandDto command,
+    required DeckExhaustionChoice choice,
+    required int expectedCycle,
+  }) async {
+    if (_accept(command) && expectedCycle == backend.deckCycle) {
+      if (choice == DeckExhaustionChoice.finish ||
+          choice == DeckExhaustionChoice.newCustomizedGame) {
+        backend.round.phase = NetworkGamePhase.sessionClosed;
+      } else {
+        final next = DeckCycleState(
+          style: backend.deckStyle,
+          infinite: backend.infiniteMode,
+        ).next(choice);
+        backend.deckCycle++;
+        backend.deckStyle = next.style;
+        backend.infiniteMode = backend.infiniteMode || next.infinite;
+      }
+    }
+    _notify();
+    return backend.state(player);
+  }
 
   bool _accept(NetworkCommandDto command) =>
       backend.commands.add(command.commandId);
@@ -1466,6 +1675,20 @@ final class _Repository
   Future<NetworkGameRoundStateDto> getCurrentRound({
     required String sessionId,
   }) async => backend.state(player);
+
+  @override
+  Future<NetworkGameRoundStateDto> getRound({
+    required String sessionId,
+    required String roundId,
+  }) async {
+    final record = backend.rounds.values.singleWhere((r) => r.id == roundId);
+    final json = backend.state(player).toJson();
+    json['round_id'] = record.id;
+    json['round_number'] = record.number;
+    json['phase'] = record.phase.name.toUpperCase();
+    json['ready_next'] = {for (final id in record.ready) id: true};
+    return NetworkGameRoundStateDto.fromJson(json);
+  }
 
   @override
   Future<NetworkGameRoundStateDto> submitCommit({
@@ -1663,6 +1886,13 @@ final class _Repository
       retainedPlayerId: retained,
       cardId: choice.cardId,
       variantId: choice.variantId,
+      usageId: choice.usageId,
+      compromise: [
+        NetworkCompromiseCardDto.fromUsage(
+          choice.usage!.resolved(inverted: inverted),
+          origin: NetworkCompromiseOrigin.INITIAL_DUEL,
+        ),
+      ],
       inverted: inverted,
     );
   }
@@ -1698,7 +1928,7 @@ final class _Repository
   Future<NetworkGameRoundStateDto> submitCorruptionOffer({
     required NetworkCommandDto command,
     required CorruptionObjective objective,
-    required List<ActionPromise> actions,
+    required List<NetworkCorruptionActionDto> actions,
   }) async {
     if (!_accept(command)) return backend.state(player);
     if (backend.phase != NetworkGamePhase.corruptionDecision ||
@@ -1738,7 +1968,7 @@ final class _Repository
   @override
   Future<NetworkGameRoundStateDto> resolveCorruption({
     required NetworkCommandDto command,
-    required List<ActionPromise> actions,
+    required List<NetworkCorruptionActionDto> actions,
   }) async {
     if (!_accept(command)) return backend.state(player);
     final offer = backend.round.corruption!;
@@ -1768,6 +1998,10 @@ final class _Repository
     required NetworkCommandDto command,
     required NetworkRecoveryDto recovery,
   }) async {
+    if (backend.failNextRecovery) {
+      backend.failNextRecovery = false;
+      throw const NetworkRoundException('TEST_CONNECTION_LOST_BEFORE_RECOVERY');
+    }
     if (!_accept(command)) return backend.state(player);
     if (backend.phase != NetworkGamePhase.recovery ||
         backend.round.recoveryDone.contains(player) ||
@@ -1790,15 +2024,12 @@ final class _Repository
       (item) => !backend.round.recoveryDone.contains(item.key),
     );
     final proposal = entry.value;
-    backend.round.recoveries[entry.key] = NetworkRecoveryDto(
-      playerId: proposal.playerId,
-      cardId: proposal.cardId,
-      variantId: proposal.variantId,
+    backend.round.recoveries[entry.key] = NetworkRecoveryDto.fromUsage(
+      proposal.usage,
       source: proposal.source,
       completed: false,
       gain: proposal.gain,
       response: response,
-      occurrenceId: proposal.occurrenceId,
     );
     if (response == RecoveryResponse.REFUSE) {
       backend.round.recoveryDone.add(entry.key);

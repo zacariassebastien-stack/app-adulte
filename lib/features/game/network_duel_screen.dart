@@ -7,7 +7,7 @@ import '../../domain/game/game_models.dart';
 import '../../domain/profile/adaptive_profile.dart';
 import '../../engines/auction/auction_engine.dart';
 import '../../engines/corruption/corruption_engine.dart';
-import '../../engines/deck/session_deck_builder.dart';
+import '../../engines/deck/deck_cycle_state.dart';
 import '../../engines/recovery/recovery_engine.dart';
 import '../../sync/rounds/network_game.dart';
 import '../lobby/lobby_models.dart';
@@ -319,15 +319,23 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
 
   void _openDiscard() {
     final now = DateTime.now();
-    final cards = controller.visibleDiscardCards;
+    final cards = controller.visibleDiscardUsages;
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => DiscardGalleryScreen(
           cards: [
             for (var index = 0; index < cards.length; index++)
               DiscardGalleryItem(
-                id: cards[index].identity,
-                definition: _handItem(cards[index]).definition,
+                id: cards[index].usageId,
+                definition: CardRenderDefinition(
+                  cardId: cards[index].conceptId,
+                  title: controller.titleFor(cards[index].conceptId),
+                  action: cards[index].resolvedAction['action_text']! as String,
+                  spice: cards[index].resolvedAction['effective_chili']! as int,
+                  direction:
+                      cards[index].resolvedAction['direction']! as String,
+                  personalPa: cards[index].snapshotValue,
+                ),
                 playedAt: now.subtract(Duration(seconds: index)),
               ),
           ],
@@ -476,7 +484,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           if (offer.inversionRequested)
             const Text('• Inversion de la carte initiale'),
           if (offer.directPa > 0) Text('• ${offer.directPa} PA personnels'),
-          for (final card in offer.cards) Text('• ${_title(card.cardId)}'),
+          for (final card in offer.cards)
+            Text(
+              '${card.usage.resolvedAction['action_text']} · 🌶️${card.usage.resolvedAction['effective_chili']}',
+            ),
           const SizedBox(height: 12),
           FilledButton(
             key: const Key('validate-negotiation'),
@@ -635,9 +646,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               ListTile(
                 title: Text(_title(card.cardId)),
                 subtitle: Text(
-                  card.usage == null
-                      ? '${card.effectiveDirection.name} · ${card.origin.name}'
-                      : '${card.usage!.resolvedAction['action_text']} · 🌶️${card.usage!.resolvedAction['effective_chili']}',
+                  '${card.usage.resolvedAction['action_text']} · 🌶️${card.usage.resolvedAction['effective_chili']}',
                 ),
               ),
           ] else if (result.cardId != null) ...[
@@ -652,7 +661,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             'Cycle de cartes terminé',
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          if (controller.deckShortages.isNotEmpty) _deckAdjustmentMessage(),
           if (controller.postGameProfileChoice == null) ...[
             const Text('Pour la suite de ton profil privé :'),
             TextButton(
@@ -732,7 +740,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           ListTile(
             key: Key('corruption-card-${card.id}'),
             title: Text(card.title),
-            subtitle: const Text('Carte de la défausse'),
+            subtitle: Text(
+              '${card.definition.actionText} · 🌶️${card.chiliLevel}',
+            ),
             trailing: FilledButton.tonal(
               onPressed: () => controller.proposeCorruption(
                 card.identity,
@@ -761,7 +771,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         for (final action in offer.actions)
-          Text('Carte : ${_title(action.cardId)}'),
+          Text(
+            '${action.usage.resolvedAction['action_text']} · 🌶️${action.usage.resolvedAction['effective_chili']}',
+          ),
         const SizedBox(height: 16),
         if (offer.offeredBy == controller.playerId)
           _waitingCard('En attente de la réponse du partenaire…')
@@ -827,7 +839,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               ),
               trailing: FilledButton.tonal(
                 key: Key('recover-with-${card.identity}'),
-                onPressed: () => controller.recoverWith(card.identity),
+                onPressed: () => _proposeRecovery(card),
                 child: const Text('Recovery'),
               ),
             ),
@@ -856,7 +868,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           'Proposition Recovery',
           style: Theme.of(context).textTheme.headlineSmall,
         ),
-        Text('Carte : ${_title(proposal.cardId)}'),
+        Text(
+          '${proposal.usage.resolvedAction['action_text']} · 🌶️${proposal.usage.resolvedAction['effective_chili']}',
+        ),
         if (proposal.playerId == controller.playerId)
           _waitingCard('En attente du consentement du partenaire…')
         else ...[
@@ -1015,31 +1029,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     child: Text(
       message,
       style: TextStyle(color: Theme.of(context).colorScheme.error),
-    ),
-  );
-
-  Widget _deckAdjustmentMessage() => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Répartition ajustée',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 6),
-          for (final shortage in controller.deckShortages)
-            Text(
-              '• ${shortage.missingCount} carte${shortage.missingCount > 1 ? 's' : ''} '
-              '${List.filled(shortage.requestedSpice, '🌶️').join()} manquante${shortage.missingCount > 1 ? 's' : ''}',
-            ),
-          const SizedBox(height: 6),
-          const Text(
-            'Des cartes d’intensité proche ont été utilisées afin de préserver la variété du deck.',
-          ),
-        ],
-      ),
     ),
   );
 
@@ -1205,6 +1194,38 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     }
   }
 
+  Future<ConceptActionOption?> _chooseSecondary(
+    String conceptId, {
+    bool recovery = false,
+  }) async {
+    final choices = recovery
+        ? controller.recoveryChoicesFor(conceptId)
+        : controller.choicesFor(conceptId);
+    if (choices.isEmpty) return null;
+    if (choices.length == 1) return choices.single;
+    return showDialog<ConceptActionOption>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: const Text('Choisir l’action'),
+        children: [
+          for (final option in choices)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext, option),
+              child: Text('${option.title} · 🌶️${option.choice.chili}'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _proposeRecovery(NetworkDuelCard card) async {
+    final option = card.identity == card.id
+        ? await _chooseSecondary(card.id, recovery: true)
+        : null;
+    if (!mounted || (card.identity == card.id && option == null)) return;
+    await controller.recoverWith(card.identity, option: option);
+  }
+
   Future<void> _submitNegotiation({required bool adaptation}) async {
     final amount = auctionForm.counterAmount.text.trim().isEmpty
         ? 0
@@ -1213,6 +1234,17 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       setState(() => actionError = 'Montant invalide.');
       return;
     }
+    final actionChoices = <String, ConceptActionOption>{};
+    final selectedIds =
+        adaptation && !controller.negotiation!.response!.acceptAuction
+        ? <String>{}
+        : Set<String>.of(_negotiationCards);
+    for (final id in selectedIds) {
+      if (!controller.heldConcepts.any((c) => c.id == id)) continue;
+      final option = await _chooseSecondary(id);
+      if (!mounted || option == null) return;
+      actionChoices[id] = option;
+    }
     try {
       if (adaptation) {
         final response = controller.negotiation!.response!;
@@ -1220,12 +1252,14 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           inversion: response.acceptInversion && _requestInversion,
           directPa: response.acceptAuction ? amount : 0,
           cardIds: response.acceptAuction ? _negotiationCards : const {},
+          actionChoices: actionChoices,
         );
       } else {
         await controller.proposeNegotiation(
           inversion: _requestInversion,
           directPa: amount,
           cardIds: _negotiationCards,
+          actionChoices: actionChoices,
         );
       }
       if (mounted) setState(() => actionError = null);

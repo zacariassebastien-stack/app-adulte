@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../engines/auction/auction_engine.dart';
 import '../../engines/corruption/corruption_engine.dart';
-import '../../engines/deck/session_deck_builder.dart';
+import '../../engines/deck/deck_cycle_state.dart';
 import '../../engines/recovery/recovery_engine.dart';
 import '../../sync/sync.dart';
 
@@ -43,6 +43,22 @@ final class SupabaseNetworkGameRepository
       'p_session_id': sessionId,
       'p_player_id': playerId,
     });
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> getRound({
+    required String sessionId,
+    required String roundId,
+  }) async {
+    final identity = await _identity();
+    final round = await _call('network_round_json', {
+      'p_round_id': roundId,
+      'p_requester': identity,
+    });
+    if (round.sessionId != sessionId) {
+      throw const NetworkRoundException('ROUND_NOT_FOUND');
+    }
+    return round;
   }
 
   @override
@@ -152,7 +168,7 @@ final class SupabaseNetworkGameRepository
   Future<NetworkGameRoundStateDto> continueDeckCycle({
     required NetworkCommandDto command,
     required DeckExhaustionChoice choice,
-    Map<int, int> deckAdjustment = const {},
+    required int expectedCycle,
   }) => _rpc(
     'continue_network_deck_cycle',
     command,
@@ -164,10 +180,7 @@ final class SupabaseNetworkGameRepository
         DeckExhaustionChoice.newCustomizedGame => 'NEW_GAME',
         DeckExhaustionChoice.finish => 'FINISH',
       },
-      'p_adjustment': {
-        for (final entry in deckAdjustment.entries)
-          entry.key.toString(): entry.value,
-      },
+      'p_adjustment': {'expected_cycle': expectedCycle},
     },
   );
 
@@ -218,16 +231,13 @@ final class SupabaseNetworkGameRepository
   Future<NetworkGameRoundStateDto> submitCorruptionOffer({
     required NetworkCommandDto command,
     required CorruptionObjective objective,
-    required List<ActionPromise> actions,
+    required List<NetworkCorruptionActionDto> actions,
   }) => _rpc(
     'submit_network_corruption_offer',
     command,
     extra: {
       'p_objective': objective.name,
-      'p_card_ids': [
-        for (final action in actions)
-          {'card_id': action.cardId, 'occurrence_id': action.identity},
-      ],
+      'p_card_ids': [for (final action in actions) action.usage.toJson()],
     },
   );
 
@@ -244,20 +254,12 @@ final class SupabaseNetworkGameRepository
   @override
   Future<NetworkGameRoundStateDto> resolveCorruption({
     required NetworkCommandDto command,
-    required List<ActionPromise> actions,
+    required List<NetworkCorruptionActionDto> actions,
   }) => _rpc(
     'resolve_network_corruption',
     command,
     extra: {
-      'p_actions': [
-        for (final action in actions)
-          {
-            'card_id': action.cardId,
-            'source': action.source.name,
-            'status': action.status.name,
-            'visibility': action.visibility.name,
-          },
-      ],
+      'p_actions': [for (final action in actions) action.toJson()],
     },
   );
 

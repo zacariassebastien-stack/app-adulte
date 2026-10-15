@@ -32,6 +32,7 @@ final class ConceptActionOptions {
     required PlayerGameProfile partner,
     required ProfileHierarchy hierarchy,
     bool mediaSendRequired = false,
+    bool recovery = false,
   }) {
     final result = <String, List<ConceptActionOption>>{};
     final eligibility = ConceptDeckEligibility(
@@ -52,7 +53,7 @@ final class ConceptActionOptions {
         initialClothing: context.clothesByPlayer[actor.playerId] ?? 0,
       ),
       eligibility: eligibility,
-      globalChili: context.chiliActive,
+      globalChili: recovery ? 4 : context.chiliActive,
       style: PlayerStyle.SOFT,
     );
     bool allowed(EngineVariant variant) {
@@ -64,6 +65,7 @@ final class ConceptActionOptions {
             partner: partner,
             hierarchy: hierarchy,
             requirePersonalValue: true,
+            recovery: recovery,
           )
           .eligibleVariants
           .isNotEmpty;
@@ -195,7 +197,7 @@ final class ConceptActionOptions {
       '065',
     };
     final joker = catalog.definitions['024'];
-    if (joker != null && context.chiliActive >= 3) {
+    if (joker != null && (recovery || context.chiliActive >= 3)) {
       final borrowed = <ConceptActionOption>[];
       for (final entry in result.entries.where(
         (e) => intimate.contains(e.key),
