@@ -23,6 +23,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/catalog/concepts/active.fr.json
+    - assets/catalog/concepts/runtime_rules.fr.json
     - assets/catalog/source/cards.v2.fr.json
     - assets/catalog/source/profile_elements.v1.fr.json
     - assets/catalog/source/tags.v1.json

@@ -19,6 +19,7 @@ import 'network_duel_controller.dart' show NetworkDuelCard;
 import 'network_auction_form_controller.dart';
 import 'network_game_controller.dart';
 import 'network_profile_learning.dart';
+import '../../engines/eligibility/concept_action_options.dart';
 import 'ui/card_hand_surface.dart';
 import 'ui/discard_gallery_screen.dart';
 import 'ui/gameplay_hud.dart';
@@ -185,7 +186,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
 
   Widget _choosing() => CardHandSurface(
     key: const Key('network-game-hand'),
-    cards: [for (final card in controller.hand) _handItem(card)],
+    cards: _conceptHandItems(),
     onStageChanged: (stage) {
       if (mounted) setState(() => _handStage = stage);
     },
@@ -194,9 +195,68 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     onPlay: (item) async {
       if (controller.viewState != NetworkGameViewState.choosing) return;
       controller.selectCard(item.id);
-      await controller.confirmSelection();
+      await controller.reserveSelection();
+      final choices = controller.choicesFor(item.id);
+      if (!mounted) return;
+      ConceptActionOption? choice;
+      if (choices.length == 1) {
+        choice = choices.single;
+      } else {
+        choice = await showDialog<ConceptActionOption>(
+          context: context,
+          builder: (dialogContext) => SimpleDialog(
+            title: const Text('Choisir l’action'),
+            children: [
+              for (final option in choices)
+                SimpleDialogOption(
+                  onPressed: () => Navigator.pop(dialogContext, option),
+                  child: Text('${option.title} · 🌶️${option.choice.chili}'),
+                ),
+            ],
+          ),
+        );
+      }
+      if (choice == null) {
+        await controller.cancelPendingSelection();
+        return;
+      }
+      try {
+        controller.chooseAction(choice);
+        await controller.confirmSelection();
+      } catch (error) {
+        await controller.cancelPendingSelection();
+        if (mounted) {
+          setState(() => actionError = 'Ce choix n’est plus disponible.');
+        }
+      }
     },
   );
+
+  List<CardHandItem> _conceptHandItems() {
+    final available = {for (final card in controller.hand) card.id: card};
+    return [
+      for (final concept in controller.heldConcepts)
+        if (available[concept.id] case final card?)
+          _handItem(card)
+        else
+          CardHandItem(
+            id: concept.id,
+            available: false,
+            locked: controller.lockedCardId == concept.id,
+            definition: CardRenderDefinition(
+              cardId: concept.id,
+              title: concept.title,
+              action: 'Indisponible dans le contexte actuel.',
+              spice:
+                  concept.intrinsicChili ??
+                  [
+                    ...concept.stages.map((s) => s.chili),
+                    ...concept.variants.map((v) => v.chili).nonNulls,
+                  ].reduce((a, b) => a < b ? a : b),
+            ),
+          ),
+    ];
+  }
 
   Widget _waiting() {
     final card = controller.selectedCard;
@@ -575,7 +635,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               ListTile(
                 title: Text(_title(card.cardId)),
                 subtitle: Text(
-                  '${card.effectiveDirection.name} · ${card.origin.name}',
+                  card.usage == null
+                      ? '${card.effectiveDirection.name} · ${card.origin.name}'
+                      : '${card.usage!.resolvedAction['action_text']} · 🌶️${card.usage!.resolvedAction['effective_chili']}',
                 ),
               ),
           ] else if (result.cardId != null) ...[
@@ -649,7 +711,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         ] else
           FilledButton(
             key: const Key('ready-next-round'),
-            onPressed: controller.readyForNextRound,
+            onPressed: _readyForNextRound,
             child: const Text('Tour suivant'),
           ),
       ],
@@ -845,6 +907,47 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     key: const Key('waiting-next-round'),
   );
 
+  Future<void> _readyForNextRound() async {
+    final usageId = controller.pendingClothingObservationUsageId;
+    if (usageId != null) {
+      final input = TextEditingController(
+        text: '${controller.currentClothingCount}',
+      );
+      final count = await showDialog<int>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Ta nouvelle tenue'),
+          content: TextField(
+            controller: input,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Nombre de vêtements portés maintenant',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Annuler'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final value = int.tryParse(input.text);
+                if (value != null && value >= 0) {
+                  Navigator.pop(dialogContext, value);
+                }
+              },
+              child: const Text('Confirmer'),
+            ),
+          ],
+        ),
+      );
+      input.dispose();
+      if (count == null || !mounted) return;
+      await controller.recordClothingCount(usageId, count);
+    }
+    await controller.readyForNextRound();
+  }
+
   Widget _initialResult(NetworkInitialResolutionDto initial) => Card(
     child: Padding(
       padding: const EdgeInsets.all(16),
@@ -891,9 +994,20 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     ),
   );
 
-  Widget _error() => _centerMessage(
-    'Impossible de poursuivre la partie.\n${controller.errorMessage ?? ''}',
+  Widget _error() => Center(
     key: const Key('network-game-error'),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Impossible de poursuivre la partie.\n${controller.errorMessage ?? ''}',
+        ),
+        TextButton(
+          onPressed: controller.retryCurrentAction,
+          child: const Text('Réessayer'),
+        ),
+      ],
+    ),
   );
 
   Widget _errorText(String message) => Padding(
@@ -1135,10 +1249,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   String _title(String cardId) {
-    final card = widget.catalog.cards.firstWhere(
-      (item) => item.stableId == cardId,
-    );
-    return card.title ?? card.titleKey ?? cardId;
+    return controller.titleFor(cardId);
   }
 
   String _chilies(int level) => List.filled(level, '🌶️').join();

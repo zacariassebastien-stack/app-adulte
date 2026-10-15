@@ -1,20 +1,19 @@
 # Couple Cards — domaine et stockage local Flutter / Dart
 
-**Refonte conceptuelle — Lots 1 à 4 :** le [contrat catalogue](docs/catalog/concept_contract.md)
-définit les 56 concepts actifs, les réserves et les suppressions de la
-[spécification consolidée](docs/specs/consolidated_concepts.fr.txt).
-Les [23 contrôles purs](tool/check_concept_catalog.dart) passent avec Dart seul.
-Le [moteur de deck conceptuel pur](docs/concept_deck_engine.md) passe ses
-[31 contrôles](tool/check_concept_deck.dart), sans raccordement au runtime.
-Le [contrat d'usage et checkpoint local](docs/concept_usage_persistence.md) passe
-[28 contrôles](tool/check_concept_usage.dart), sans modification SQL ou réseau.
-Le [Lot 4 — contrat serveur](docs/concept_usage_server.md) ajoute une migration
-JSONB **non déployée**, sans table nouvelle. Codec partagé : 13 contrôles réussis ;
-scénarios PostgreSQL préparés, exécution bloquée faute de moteur local.
-Voir le [planning actualisé](docs/concept_cards_transition.md) et
-l'[inspection de la pondération hybride](docs/hybrid_weighting_review.md).
-Le runtime reste branché à l'ancien catalogue jusqu'aux lots de raccordement ;
-les descriptions historiques ci-dessous ne font pas autorité sur le nouveau contrat.
+**Refonte conceptuelle — Lots 1 à 5 :** le [contrat catalogue](docs/catalog/concept_contract.md)
+définit les 56 concepts actifs de la [spécification consolidée](docs/specs/consolidated_concepts.fr.txt).
+Le [raccordement ciblé](docs/concept_runtime_integration.md) adapte le contrôleur
+réseau existant au deck conceptuel, aux choix dynamiques et aux usages immuables.
+123 contrôles purs passent : catalogue 23, deck 31, usage 34, projection réseau 13,
+raccordement pur 22. Les tests Flutter du contrôleur restent non exécutés avec
+les dépendances locales actuelles ; ce checkpoint n'est pas une validation de
+partie complète à deux clients. Les concepts sextoys 049–052 attendent un inventaire
+concret portant les tags ; aucun fallback permissif n'est activé.
+Le [contrat serveur](docs/concept_usage_server.md) prépare une migration JSONB
+**non déployée**, sans nouvelle table ; 16 contrôles structurels passent,
+scénarios SQL préparés mais non exécutés. Les parcours secondaires restent pour
+le Lot 6 avant bascule coordonnée. Voir le [planning](docs/concept_cards_transition.md).
+Les descriptions historiques ci-dessous ne font pas autorité sur le nouveau contrat.
 
 Phases 0 à 4.5 et premier squelette visuel de partie. Projet Android/iOS,
 domaine, stockage Drift/SQLite et moteurs de jeu purs compatibles Windows.

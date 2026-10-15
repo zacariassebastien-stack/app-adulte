@@ -3,7 +3,6 @@ export 'analytics/analytics_engine.dart';
 export 'analytics/session_telemetry.dart';
 export 'corruption/corruption_engine.dart';
 export 'draw/draw_engine.dart';
-export 'draw/hybrid_draw_weighting.dart';
 export 'deck/session_deck_builder.dart';
 export 'deck/concept_deck_engine.dart';
 export 'usage/concept_usage_checkpoint.dart';

@@ -8,6 +8,7 @@ import '../../domain/session/session_state.dart';
 import '../commit_reveal/commit_reveal.dart';
 import '../protocol/idempotency.dart';
 import '../protocol/network_dtos.dart';
+import '../protocol/network_usage_projection.dart';
 
 // Wire enum names intentionally match the stable SQL/JSON protocol.
 // ignore_for_file: constant_identifier_names
@@ -57,6 +58,7 @@ final class NetworkCompromiseCardDto {
     required this.origin,
     required this.snapshotValue,
     this.logicalOrder,
+    this.usage,
   });
 
   final String occurrenceId;
@@ -68,6 +70,9 @@ final class NetworkCompromiseCardDto {
   final NetworkCompromiseOrigin origin;
   final int snapshotValue;
   final int? logicalOrder;
+
+  /// Native projection is retained losslessly; old fields serve Lot 6 consumers.
+  final NetworkUsageProjection? usage;
 
   NetworkCompromiseCardDto copyWith({
     NetworkCardDirection? effectiveDirection,
@@ -82,38 +87,71 @@ final class NetworkCompromiseCardDto {
     origin: origin,
     snapshotValue: snapshotValue,
     logicalOrder: logicalOrder ?? this.logicalOrder,
+    usage: usage,
   );
 
-  Map<String, Object?> toJson() => {
-    'occurrence_id': occurrenceId,
-    'card_id': cardId,
-    'variant_id': variantId,
-    'owner_player_id': ownerPlayerId,
-    'native_direction': nativeDirection.name,
-    'effective_direction': effectiveDirection.name,
-    'origin': origin.name,
-    'snapshot_value': snapshotValue,
-    'logical_order': logicalOrder,
-  };
+  Map<String, Object?> toJson() => usage != null
+      ? {
+          ...usage!.toJson(),
+          'origin': origin.name,
+          if (logicalOrder != null) 'logical_order': logicalOrder,
+        }
+      : {
+          'occurrence_id': occurrenceId,
+          'card_id': cardId,
+          'variant_id': variantId,
+          'owner_player_id': ownerPlayerId,
+          'native_direction': nativeDirection.name,
+          'effective_direction': effectiveDirection.name,
+          'origin': origin.name,
+          'snapshot_value': snapshotValue,
+          'logical_order': logicalOrder,
+        };
 
-  factory NetworkCompromiseCardDto.fromJson(Map<String, Object?> json) =>
-      NetworkCompromiseCardDto(
-        occurrenceId: json['occurrence_id']! as String,
-        cardId: json['card_id']! as String,
-        variantId: json['variant_id']! as String,
-        ownerPlayerId: json['owner_player_id']! as String,
+  factory NetworkCompromiseCardDto.fromJson(Map<String, Object?> json) {
+    if (json.containsKey('usage_id')) {
+      final native = Map<String, Object?>.from(json)
+        ..remove('origin')
+        ..remove('logical_order');
+      final usage = NetworkUsageProjection.fromJson(native);
+      return NetworkCompromiseCardDto(
+        usage: usage,
+        occurrenceId: usage.usageId,
+        cardId: usage.conceptId,
+        variantId:
+            (usage.resolvedAction['stage_id'] ??
+                    usage.resolvedAction['variant_id'])!
+                as String,
+        ownerPlayerId: native['owner_player_id']! as String,
         nativeDirection: NetworkCardDirection.values.byName(
-          json['native_direction']! as String,
+          native['native_direction']! as String,
         ),
         effectiveDirection: NetworkCardDirection.values.byName(
-          json['effective_direction']! as String,
+          native['effective_direction']! as String,
         ),
         origin: NetworkCompromiseOrigin.values.byName(
           json['origin']! as String,
         ),
-        snapshotValue: json['snapshot_value']! as int,
+        snapshotValue: usage.snapshotValue!,
         logicalOrder: json['logical_order'] as int?,
       );
+    }
+    return NetworkCompromiseCardDto(
+      occurrenceId: json['occurrence_id']! as String,
+      cardId: json['card_id']! as String,
+      variantId: json['variant_id']! as String,
+      ownerPlayerId: json['owner_player_id']! as String,
+      nativeDirection: NetworkCardDirection.values.byName(
+        json['native_direction']! as String,
+      ),
+      effectiveDirection: NetworkCardDirection.values.byName(
+        json['effective_direction']! as String,
+      ),
+      origin: NetworkCompromiseOrigin.values.byName(json['origin']! as String),
+      snapshotValue: json['snapshot_value']! as int,
+      logicalOrder: json['logical_order'] as int?,
+    );
+  }
 }
 
 final class NetworkNegotiationOfferDto {
@@ -376,6 +414,7 @@ final class NetworkFinalResolutionDto {
     this.finalWinnerPlayerId,
     this.cardId,
     this.variantId,
+    this.usageId,
     this.inverted = false,
     this.mutualAbandon = false,
     this.compromise = const [],
@@ -386,6 +425,7 @@ final class NetworkFinalResolutionDto {
   final String? finalWinnerPlayerId;
   final String? cardId;
   final String? variantId;
+  final String? usageId;
   final bool inverted;
   final bool mutualAbandon;
   final List<NetworkCompromiseCardDto> compromise;
@@ -394,8 +434,13 @@ final class NetworkFinalResolutionDto {
     'retained_player_id': retainedPlayerId,
     'initial_winner_player_id': initialWinnerPlayerId,
     'final_winner_player_id': finalWinnerPlayerId,
-    'card_id': cardId,
-    'variant_id': variantId,
+    if (usageId != null) ...{
+      'usage_id': usageId,
+      'concept_id': cardId,
+    } else ...{
+      'card_id': cardId,
+      'variant_id': variantId,
+    },
     'inverted': inverted,
     'mutual_abandon': mutualAbandon,
     'compromise': [for (final card in compromise) card.toJson()],
@@ -406,7 +451,8 @@ final class NetworkFinalResolutionDto {
         retainedPlayerId: json['retained_player_id'] as String?,
         initialWinnerPlayerId: json['initial_winner_player_id'] as String?,
         finalWinnerPlayerId: json['final_winner_player_id'] as String?,
-        cardId: json['card_id'] as String?,
+        cardId: (json['concept_id'] ?? json['card_id']) as String?,
+        usageId: json['usage_id'] as String?,
         variantId: json['variant_id'] as String?,
         inverted: json['inverted']! as bool,
         mutualAbandon: json['mutual_abandon']! as bool,
@@ -421,6 +467,7 @@ final class NetworkFinalResolutionDto {
 
 final class NetworkGameRoundStateDto {
   NetworkGameRoundStateDto({
+    this.usageContractVersion,
     required this.roundId,
     required this.sessionId,
     required this.sessionRound,
@@ -459,6 +506,7 @@ final class NetworkGameRoundStateDto {
        recoveryHistory = List.unmodifiable(recoveryHistory ?? const []);
 
   final String roundId;
+  final int? usageContractVersion;
   final String sessionId;
   final String sessionRound;
   final int roundNumber;
@@ -490,6 +538,7 @@ final class NetworkGameRoundStateDto {
 
   Map<String, Object?> toJson() => {
     'schema_version': networkSchemaVersion,
+    'usage_contract_version': ?usageContractVersion,
     'round_id': roundId,
     'session_id': sessionId,
     'session_round': sessionRound,
@@ -550,6 +599,7 @@ final class NetworkGameRoundStateDto {
     return NetworkGameRoundStateDto(
       roundId: json['round_id']! as String,
       sessionId: json['session_id']! as String,
+      usageContractVersion: json['usage_contract_version'] as int?,
       sessionRound: json['session_round']! as String,
       roundNumber: json['round_number']! as int,
       phase: _phaseFromWire(json['phase']! as String),

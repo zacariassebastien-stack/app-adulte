@@ -1,206 +1,155 @@
-# Lot 5 — raccordement ciblé, première tranche
+# Lot 5 — raccordement ciblé du runtime V4
 
-État : **en cours, raccordement principal non réalisé**. La décision utilisateur
-autorise une correspondance explicite avec les règles V4 pertinentes, puis demande
-une proposition détaillée des associations sans équivalent avant raccordement.
-Ce document présente cette proposition ; ses compositions ne sont pas actives.
+État : parcours principal raccordé dans le code, contrôles purs réussis ; exécution
+Flutter et validation à deux clients non réalisées. Migration du Lot 4 toujours
+créée et non déployée. Ce checkpoint ne constitue pas une bascule de production.
 
-## Ce qui est déjà implémenté
+## Base conservée et parcours raccordés
 
-Le checkpoint du Lot 3 est complété par `reservations`, un dictionnaire privé
-intention → concept. Il reste dans le même modèle ; aucun stockage ni service
-supplémentaire n'est créé. Ce champ est facultatif à la lecture d'un checkpoint
-du Lot 3, vide lorsque absent, et toujours sérialisé dans les nouveaux checkpoints.
+`NetworkGameController` et `NetworkDuelScreen` restent les contrôleur et écran
+existants. Les phases, subscriptions, commandes, calculs PA et moteurs de duel
+restent leur base. Aucun contrôleur concurrent ni stockage Drift n'est ajouté.
 
-- `reserve` immobilise une capacité, sans changer le quota restant.
-- Le même intent/concept réserve une seule fois ; un intent ne change pas de concept.
-- `availableFor` retire les capacités réservées du quota encore disponible.
-- `releaseReservation` libère seulement une intention non engagée.
-- `engage` remplace la réservation par un usage figé et une consommation définitive.
-  Il ne peut pas prendre une capacité réservée par une autre intention.
-- Reconnexion et retry conservent l'intention, l'usage et les compteurs.
-- Une annulation après engagement ne restitue rien.
-
-Ces opérations sont testées, **pas encore appelées par le contrôleur V4**.
-Les flows actuels restent inchangés en attendant les correspondances ci-dessous.
-
-## Points de contact identifiés, contrôleurs conservés
-
-| Point existant | Adaptation ciblée prévue |
+| Point existant | Adaptation réalisée |
 | --- | --- |
-| `NetworkGameController._buildDeckCycle` / `_refill` | Quota initial du checkpoint + `ConceptDeckEngine.prepare`, exclusion des concepts déjà en main/réservés, tirage classe puis concept uniforme |
-| `_runtime` / `hand` / `_networkCard` | Identité conceptuelle en main, aucun stade fixé par la pioche ; choix disponibles recalculés avec le contexte courant |
-| `selectCard` / `confirmSelection` | Réservation persistée, résolution du choix, engagement idempotent avant émission, `NetworkUsageProjection` |
-| `_restoreOrCreatePrivateState` / `_persist` | Ajouter le checkpoint dans `NetworkPrivateGameState`, le stockage privé/local existant ; aucun déplacement vers Drift |
-| `_commitment` | Reconstruire depuis la projection figée du reveal, sans relire les règles actuelles du catalogue |
-| `ChoicePayload` / commit-reveal | Faire transporter le document natif d'usage, conserver le calcul canonique du digest et le nonce persisté |
-| `NetworkDuelScreen` | Main avec un concept, sélecteur des stades/variantes/zones disponibles ; pas de refonte de l'écran |
-| `_prepareNextRound` | Clôturer l'usage engagé, conserver les quotas ; supprimer le schéma première/deuxième occurrence pour le parcours principal |
+| `_buildDeckCycle` / `_refill` | Stock conceptuel et capacités 006/007 ; candidats actuels ; classe dynamique puis concept uniforme ; exclusion des concepts déjà en main/engagés ; aucun biais HYBRID |
+| Main / `_networkCard` | Identité conceptuelle sans variante fixée au tirage ; choix réévalués selon plafond, profils, contexte et prérequis |
+| Sélection | Réservation persistée, dialogue des actions/stades/zones/techniques admissibles, piment réel affiché |
+| `confirmSelection` | Engagement par intention stable, snapshot figé, consommation définitive unique ; projection et nonce persistés avant émission |
+| `_commitment` | Reconstruction depuis la projection engagée, sans recalcul depuis le profil/catalogue courant |
+| Retry / restauration | Même usage, snapshot, nonce et commande ; un commit absent est rejoué ; intention d'annulation persistée et reprise après interruption |
+| Manche suivante | Retrait de l'usage engagé et refill selon quota restant ; pas de seconde occurrence artificielle DISCARD/EXHAUSTED |
+| Changement d'orientation | Orientation canonique du round appliquée au contexte avant éligibilité ; aucun paquet préfiltré |
 
-Les moteurs PA/duel, le suivi des phases, les subscriptions, les commandes
-idempotentes, la continuation et la clôture restent la base. Le vieux contrôleur
-`NetworkDuelController` est un prototype distinct : l'écran jouable instancie
-`NetworkGameController`. Le contrôleur local est aussi utilisé par les fixtures
-et démonstrations ; ne pas le prendre pour le runtime réseau V4.
+Une annulation avant engagement libère la réservation. Une annulation après
+engagement ne rembourse aucun quota. Chaque nouveau cycle archive le checkpoint
+précédent ; les capacités vestimentaires partent du nombre initial, conservé,
+et ne sont pas recréées depuis les vêtements modifiés pendant la partie.
+Les concepts déjà en main devenus inadmissibles restent identifiés en main et
+indisponibles ; un nouveau stade se débloque sans remplacer le concept.
 
-Les parcours secondaires lisent encore `CardRuntimeState`, `NetworkCompromiseCardDto`,
-`NetworkCorruptionDto`, `NetworkRecoveryDto` et les descripteurs d'apprentissage.
-Leur migration ne doit pas être cachée derrière un pont global ancien/nouveau.
-Leur contrat nécessaire au parcours principal sera adapté au minimum, avec dette
-précise pour le Lot 6. Aucun ancien constructeur de deck n'est supprimé dans cette
-tranche : ses consommateurs n'ont pas encore été raccordés.
+`applyResolvedContext` accepte les réglages déjà résolus par les mécanismes
+existants. Le Lot 5 ne crée pas de protocole d'accord sur les réglages. Le
+producteur réseau des variations de piment/capacités n'est pas ajouté ici.
+Les usages engagés restent indépendants des variations ultérieures.
 
-## Correspondance : règle générale proposée
+## Catalogue et correspondances validées P1–P6
 
-L'inventaire `catalog/concept_runtime_correspondence_draft.json` couvre les 56
-concepts avec les sources candidates réellement présentes. Ce sont des pistes
-d'inspection, **pas une validation de toutes les variantes historiques**.
+`assets/catalog/concepts/active.fr.json` reste la seule référence pour les 56
+identités actives, actions, stades, zones, textes, quotas et piments.
+`assets/catalog/concepts/runtime_rules.fr.json` nomme explicitement les sources
+V4 dont les préférences, directions et prérequis pertinents sont repris.
+`ConceptRuntimeCatalog` exprime ces règles dans les types de définition déjà
+consommés par les moteurs V4. Aucun poids ni quota de l'ancien catalogue ne
+participe au nouveau tirage. Le brouillon de correspondances est retiré.
 
-Les concepts, textes, IDs de stades/variantes, zones, piments et capacités viennent
-exclusivement de `active.fr.json`. Ne pas reprendre `baseEngagementLevel`,
-`chili_level`, fréquence, répétabilité ou activation des anciennes cartes pour
-déterminer la pioche ou le quota.
+| Groupe validé | Règles appliquées et différence avec les sources V4 |
+| --- | --- |
+| P1 — 022 | Source `card.anal_manual`, variante interne : PENETRER + DOIGTS ; zone VAGINAL remplace ANAL ; FAIRE/RECEVOIR ; distance exclue ; aucun matériel obligatoire ; piments intrinsèques 3/4/4 |
+| P2 — 065 | Source `card.masturbate_partner` : MASTURBATION ; PIEDS sémantique sans PA propre ; FAIRE/RECEVOIR ; distance exclue ; piment 3 |
+| P3 — 045/047 | Sources photo/vidéo explicites du fichier de correspondances ; participation MUTUEL ; PHOTO/VIDEO + ETRE_REGARDE ; stades 1/2/4 ; ENVOYER et capacités de transfert uniquement si un envoi est requis ; aucune pratique sexuelle implicite ajoutée au stade explicite |
+| P4 — 049–052 | Sources `card.v3.sextoy_play` et `card.v3.remote_toy_control` ; externe/phallus SEXTOY, piment 3 ; insertions SEXTOY + PENETRER et zone VAGINAL/ANAL, piment 4 ; 050 ajoute MASTURBATION et SOLO (direction SOI existante) ; 052 conserve VIBRANT + CONTROLE_DISTANCE + CONTROLE |
+| P5 — 044/046 | Sources photo/vidéo ; contradiction DISTANCE_EXCLUE retirée ; trois contextes autorisés si capacités médias nécessaires satisfaites |
+| P6 — 004 | Sources oral/analingus : technique LECHER ou SUCER choisie explicitement ; FAIRE/RECEVOIR ; distance exclue ; zone sémantique et piment base 1 + modificateur ; aucune préférence sexuelle génitale/anale héritée automatiquement |
+| P6 — 024 | Le joker propose une pratique intime existante compatible ; emprunte ses règles mais conserve concept/usage/quota 024 ; pratique et action choisies figées ; pas de contournement du plafond ni des exclusions |
+| P6 — 013 | Source `card.v3.costume_and_light_outfit` ; TENUE et SOLO uniquement, trois contextes ; aucun ETRE_REGARDE/DEGUISEMENT/TENUE_LEGERE ajouté ; résultat vestimentaire réel enregistré séparément du snapshot engagé |
 
-Pour les équivalents directs, reprendre les préférences atomiques, directions et
-prérequis techniques pertinents. Garder les calculs PA et les exclusions existants ;
-ne créer ni score de remplacement, ni acceptation automatique. Ne pas attribuer
-de PA aux tags ZONE/MATERIEL. Les tags utilisés sont déjà dans la taxonomie V3.
+Le résolveur de 024 considère explicitement les pratiques 019, 020, 021, 022,
+023, 025, 026, 027, 028, 029, 030, 031, 049, 050, 051, 052 et 065. Les accessoires restent absents des choix
+tant que leur inventaire compatible n'existe pas. Les préférences requises
+FAIRE/RECEVOIR doivent toutes permettre une même direction cohérente.
+La formule PA existante est conservée, sans nouvelle règle de combinaison.
 
-## Compositions proposées, à valider avant raccordement
+## Accessoires : données manquantes identifiées
 
-### P1 — 022 Doigter vaginal
+Inspection : `EngineSessionContext.accessories` contient des IDs, avec des flags
+comme `hasSextoy`. `PlayerGameProfile.preferences` porte les préférences par
+élément ; `LocalProfile` porte identité et dates. Aucun champ caché ou producteur
+d'inventaire concret portant les tags validés n'a été trouvé. Ces modèles de
+profil et leurs stockages ne sont pas modifiés dans ce lot.
 
-Proposition : reprendre de `variant.anal_manual.internal` les préférences
-`PENETRER` + `DOIGTS`, la réversibilité FAIRE/RECEVOIR et l'exclusion de la distance,
-avec la zone sémantique `VAGINAL` à la place d'`ANAL`. Ne pas prendre les règles
-de pénétration avec le sexe. Le stade choisi impose exclusivement 3/4/4.
+Le contrat pur `accessory_compatibility.dart` prépare : ANAL, VAGINAL, BUCCAL,
+PHALLUS, EXTERNE, VIBRANT ; tous les tags requis sur le même accessoire ; clé de
+préférence pour l'ensemble exact de tags ; aucun filtre de cible par propriétaire.
+052 ajoute VIBRANT aux tags de l'usage et conserve les exigences de contrôle.
+Aucun tag n'est déduit d'un ID, nom ou booléen.
 
-Cette composition est nouvelle : aucune définition vaginale avec les doigts
-équivalente n'est présente dans le catalogue chargé. Les règles de profil
-existantes s'appliqueraient à ces deux préférences ; aucun nouveau calcul PA.
+**049–052 restent indisponibles dans le runtime** tant que les données concrètes
+et leur producteur ne sont pas implémentés. La sélection de l'accessoire concret,
+sa préférence, ses tags figés et le choix FAIRE/RECEVOIR ou MUTUEL de 051 devront
+être raccordés sur ces données. Aucun inventaire ou fallback permissif n'est créé.
 
-### P2 — 065 Footjob
+## Identité, persistance et compatibilité temporaire
 
-Proposition : préférence `MASTURBATION` reprise de `card.masturbate_partner`,
-zone sémantique `PIEDS`, direction réversible FAIRE/RECEVOIR et distance exclue.
-Piment réel 3, aucun supplément de zone sur cette pratique intrinsèque.
-`card.feet_play` décrit un massage des pieds : sa préférence MASSER ne convient
-pas à ce concept. Ne pas inventer une préférence FOOTJOB et ne pas noter PIEDS.
+Le checkpoint privé/local existant stocke usages + quotas + intentions/réservations,
+cycles précédents et révélation active. Pas de nouveau stockage ni de migration
+Drift. `usage_id` est canonique dès l'engagement ; le payload principal natif
+n'émet pas d'alias `occurrence_id`. `ChoicePayload.fromUsage` transporte la
+projection du Lot 4 ; le calcul canonique du digest reste inchangé.
+Le DTO du compromis initial conserve l'action native complète et son usage,
+y compris après sérialisation ; l'affichage engagé relit le snapshot figé.
 
-À valider : MASTURBATION seule ou une autre combinaison des préférences existantes.
-Cette décision change l'éligibilité et la valeur personnelle, pas seulement le nom.
+Restes temporaires à traiter au Lot 6 :
 
-### P3 — 045 / 047 Photo et vidéo mutuelles
+- `CardRuntimeState` et cache privé utilisent encore des noms `card_id`,
+  `variant_id`, `occurrence_id`. Pour un usage engagé principal, cette dernière
+  valeur est le vrai usageId. Le checkpoint reste la source canonique.
+- `ChoicePayload` conserve son ancien constructeur pour les prototypes et les
+  consommateurs secondaires ; il n'est pas utilisé pour engager le parcours principal.
+- Les propositions/adaptations de compromis, inversions de DTO, offres de
+  corruption, conditions Recovery, lifecycle secondaire et apprentissage doivent
+  migrer vers les usages et données figées. Leurs parcours ne sont pas déclarés
+  fonctionnellement validés par ce lot.
+- Les effets figés existent, mais leur application et synchronisation complète
+  entre clients restent à vérifier au Lot 6. Pour 013, le compte réel est saisi
+  et enregistré localement une fois par usage ; le partage des résultats
+  vestimentaires et leur réconciliation entre clients restent à raccorder.
+- Les anciens compteurs de paquets exposés à l'UI représentent désormais le
+  même nombre de concepts admissibles ; `DeckShortage` et états de cycle ont
+  encore des consommateurs DTO/UI. Nettoyer ces noms/consommateurs ensemble.
 
-Proposition : direction MUTUEL pour la participation à l'action, sans inversion
-directionnelle ni tirage FAIRE/RECEVOIR. La spécification permet une image des deux
-joueurs, y compris pendant une pratique sexuelle : **cela ne signifie pas que
-chacun doit produire puis envoyer un fichier**. Ne pas ajouter ce double échange.
-Les capacités de capture/envoi/réception existantes s'appliquent aux rôles médias
-effectivement résolus. Chaque client utilise ses propres préférences ; pas de
-fusion des profils ni de valeur privée du partenaire inventée.
+Un ancien checkpoint de développement sans checkpoint conceptuel est refusé
+explicitement et demande une nouvelle session ; aucune conversion approximative
+ni second moteur n'est maintenu. Un serveur sans `usage_contract_version: 1`
+est refusé avant engagement. Cette garde ne constitue pas un déploiement.
 
-- Photo : `PHOTO` ; vidéo : `VIDEO`. Reprendre `ENVOYER` si le parcours résolu
-  implique un envoi. `SOUS_VETEMENTS` uniquement lorsque le choix le demande.
-- Proposer `ETRE_REGARDE` pour les participants représentés, plutôt que dépendre
-  de sa présence inégale dans les anciennes variantes. Cette association affecte
-  la valeur personnelle et doit être validée.
-- Piments et stades restent ceux du nouveau catalogue : **1/2/4 pour les deux**.
-- Une pratique sexuelle effectivement choisie au dernier stade ne peut pas
-  contourner ses exclusions : figer son choix/règles pertinents avec l'action
-  média. Ne pas créer un autre usage/quota ou une pratique par défaut par déduction.
+## Suppressions réalisées et consommateurs restants
 
-À valider : PHOTO/VIDEO + ETRE_REGARDE, avec ENVOYER seulement si l'envoi est
-effectivement requis ; participation MUTUEL sans double capture/envoi obligatoire.
-Le mode concret des photos mutuelles à distance reste à préciser : ne pas
-supposer une présence physique commune, ni inventer un montage.
+Retirés : `SessionDeckBuilderV3`, `SessionDeckBuildResult`, `DeckCandidateV3`,
+`DeckSubstitution`, `HybridSessionDecks` et `_compose`/`_repeatTo`,
+`SessionDeckRuntime.draw`, `_targetBySpice`, `HybridDrawWeighting`, son export
+et ses tests ; les deux paquets privés, la duplication miroir, l'évitement récent
+et les tests figant ces anciens mécanismes ont aussi été retirés.
 
-### P4 — 049–052 Sextoys et variantes d'usage
+`session_deck_builder.dart` ne conserve que `DeckShortage`, les orientations et
+les choix/états de cycle encore consommés. `DrawEngine` reste consommé par
+`LocalGameController`, `NetworkDuelController` (prototype) et `simulation/runner`.
+Il n'est plus appelé par le contrôleur réseau principal. Les sources V4 restent
+consommées par les correspondances de règles, les outils et ces prototypes ;
+leur suppression globale doit suivre la migration de ces consommateurs.
 
-Les sources existantes ne portent que SEXTOY et, pour le contrôle distant,
-VIBRANT + CONTROLE_DISTANCE + CONTROLE. Elles ne distinguent pas les quatre
-usages externe/phallus/insertion vaginale/insertion anale du nouveau catalogue.
+## Vérifications et déploiement
 
-Proposition de préférences par usage :
+123 contrôles purs réussis : catalogue 23, deck 31, usage 34, projection réseau 13,
+raccordement pur 22. Audit migration : 16 contrôles structurels réussis, dont
+les 11 migrations historiques inchangées octet pour octet. Cet audit ne remplace
+pas l'exécution PostgreSQL des scénarios SQL préparés.
 
-| Usage | Préférences proposées | Piment réel |
-| --- | --- | --- |
-| Externe | SEXTOY | 3 |
-| Phallus | SEXTOY | 3 |
-| Insertion vaginale | SEXTOY + PENETRER, zone VAGINAL | 4 |
-| Insertion anale | SEXTOY + PENETRER, zone ANAL | 4 |
+Analyse Dart ciblée des composants et tests modifiés : aucun problème.
+Analyse explicite du stockage privé : six erreurs liées à la dépendance locale
+`shared_preferences` absente (URI + cinq références), limitation conservée.
+Le runner standard n'a exécuté aucun test : résolution du package `test` bloquée
+par une erreur réseau vers pub.dev. Les limites Flutter/Drift précédentes ne
+sont pas déclarées résolues. Aucune dépendance n'a été modifiée ; seules deux
+entrées d'assets ont été ajoutées au manifeste.
 
-Pour 052, ajouter les préférences VIBRANT + CONTROLE_DISTANCE + CONTROLE déjà
-présentes sur `card.v3.remote_toy_control`. Conserver ses trois prérequis de
-session : sextoy, fonction vibrante et contrôle distant.
+Cinq scénarios contrôleur sont préparés : réservation/annulation avant engagement,
+reprise du snapshot, changement de contexte sans remplacement de main/capacités,
+retry d'un commit non enregistré, reprise d'une annulation interrompue. Leur
+analyse passe, mais ils ne sont pas exécutés avec le runner Flutter.
 
-Directions proposées : 049 FAIRE/RECEVOIR ; 050 SOLO ; 051 choix FAIRE/RECEVOIR
-ou MUTUEL conforme à l'option réellement jouée ; 052 FAIRE/RECEVOIR pour le rôle
-de contrôle. Le choix MUTUEL de 051 doit être figé avant engagement, sans quota
-supplémentaire ni duplication du concept.
-
-La résolution devra sélectionner un accessoire concret compatible avec l'usage
-et figer son identifiant, libellé et tags utiles. Le catalogue actuel ne contient
-pas de matrice de compatibilité accessoire/usage : ne pas déduire qu'un booléen
-`hasSextoy` autorise toutes les insertions. Réutiliser les données d'accessoires
-existantes si elles le permettent ; sinon présenter ce manque avant branchement.
-Ne pas ajouter arbitrairement lubrifiant/protection comme nouveau prérequis.
-
-À valider : composition des préférences d'insertion, direction de 051 et règle
-pour rejeter les accessoires dont la compatibilité d'usage n'est pas renseignée.
-
-## P5 — Contradictions médias à trancher
-
-- Photo nue : `DISTANCE_EXCLUE=true` coexiste avec une liste de modes incluant
-  distance. En V4 l'intersection bloque la distance. Proposition : le média
-  photo reste admissible à distance si capture/envoi/réception le permettent.
-- Vidéo nue : modes historiques distance/hybrid ET `DISTANCE_EXCLUE=true` ;
-  en contexte strict distance ou présentiel, ces contraintes se contredisent.
-  Proposition : même règle média que ci-dessus, sans exclusion de distance
-  liée à la nudité. **À valider**, pas corrigé par cette inspection.
-## P6 — Autres correspondances nécessitant une précision
-
-- 004 Jeu de bouche : les sources lécher/sucer imposent des zones intimes.
-  Il faut sélectionner la technique/préférence pertinente sans imposer ce tag
-  à toutes les nouvelles zones. Ne pas copier une ancienne action intime sur
-  chaque zone du nouveau concept.
-- 024 Jeu intime est un joker. L'ancienne source `manual_intimate` documente
-  elle-même une ambiguïté CARESSER/MASTURBATION/PENETRER+DOIGTS et ne suffit pas
-  à définir ses pratiques autorisées. La pratique effectivement choisie doit
-  résoudre les règles avant engagement ; pas de joker contournant les exclusions.
-- 013 Changement complet de tenue : l'ancienne carte costume/tenue légère
-  n'est qu'une piste. Elle ne définit pas sans ambiguïté le nouveau changement
-  complet ni ses conséquences vestimentaires.
-
-Ces cas concernent des données de gameplay, pas une raison de réécrire le runtime.
-
-## HYBRID : inspection du défaut et correction prévue
-
-`NetworkGameController` initialise `_context` en `face_to_face`/`TOGETHER`.
-`switchOrientation` transmet au serveur mais `_apply` ne met pas ce contexte à
-jour. `_buildDeckCycle` filtre avant de créer les deux anciens paquets : changer
-seulement `_context.mode` ne récupère donc pas les concepts déjà éliminés.
-De plus, `_networkCard(variantId: ...)` contourne la réévaluation d'éligibilité.
-
-La correction doit donc accompagner `_refill` et le calcul dynamique des choix :
-orientation canonique du round → contexte courant → éligibilité → pool conceptuel.
-Aucun paquet figé et aucune pondération 70/30 dans ce parcours. Pas de nouvelle
-décision d'orientation proposée. **Le défaut reste présent dans le runtime actuel** ;
-aucune correction partielle n'est présentée comme un raccordement réussi.
-
-## Validation de cette tranche et suite
-
-34 contrôles purs d'usage passent, dont six nouveaux sur réservation, annulation,
-transfert à l'engagement, absence de double consommation, protection des autres
-réservations et reprise sérialisée. Analyse Dart ciblée sans problème.
-Les limites Flutter/shared_preferences/Drift antérieures restent inchangées ;
-aucune dépendance ni architecture n'est modifiée pour les contourner.
-
-Après validation des correspondances : raccorder le parcours principal aux
-méthodes du tableau, vérifier la sélection dynamique/UI et supprimer les anciens
-constructeurs dès que leur dernier consommateur a migré. Pas de double pioche
-activée pour contourner les cas non renseignés.
-
-La migration du Lot 4 reste créée/non déployée. Déploiement seulement après
-raccordement de tous les payloads nécessaires (dont Lot 6), scénarios SQL et
-validation coordonnée à deux clients. Cette tranche ne rend pas la bascule sûre.
+Migration `202610150001_concept_usage_contract.sql` toujours inchangée et non
+déployée. Bascule recommandée seulement après Lot 6, raccordement des accessoires
+ou périmètre explicitement accepté sans eux, exécution des scénarios SQL et
+validation coordonnée à deux clients du nouveau contrat. Ne pas déployer ce
+checkpoint seul sur le runtime distant actuel.

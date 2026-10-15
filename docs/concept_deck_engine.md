@@ -114,7 +114,12 @@ dans les checkpoints des Lots 0 et 1. Elles ne sont pas déclarées résolues ;
 aucun nouveau contournement de dépendances ni modification d'environnement
 Flutter n'est réalisé dans ce lot.
 
-## Structures techniquement remplaçables, suppressions différées
+## État historique au Lot 2 — suppressions alors différées
+
+Mise à jour Lot 5 : le constructeur, les deux paquets, le biais HYBRID et leurs
+consommateurs principaux ont été retirés. `DrawEngine` conserve des consommateurs
+locaux/prototypes/simulation. Voir le [bilan actuel](concept_runtime_integration.md).
+Le tableau suivant conserve le constat du Lot 2.
 
 Recherche effectuée dans `lib/`, `test/` et `tool/` avant de décider des retraits.
 La nouvelle logique peut remplacer les responsabilités suivantes, mais son
@@ -141,9 +146,12 @@ elles servent encore les parcours de corruption/Recovery et requièrent le Lot 6
 L'éligibilité, les directions, les snapshots, PA et effets existants ne sont pas
 techniquement remplacés par ce seul moteur de deck.
 
-## Point à traiter au raccordement réseau
+## Défaut consigné au Lot 2, corrigé au Lot 5
 
 `NetworkGameController` initialise encore `_context` en `SessionMode.face_to_face`.
 `switchOrientation` met à jour l'orientation sans modifier ce contexte. Il faudra
 faire produire l'admissibilité à partir du contexte/orientation réel avant
 d'appeler le moteur nouveau. Ce problème est consigné et n'est pas corrigé au Lot 2.
+
+Au Lot 5, le contrôleur applique désormais l’orientation canonique au contexte
+avant calcul de l’admissibilité ; le constat ci-dessus décrit le code antérieur.

@@ -28,8 +28,7 @@ conservées jusqu'au raccordement ; leur liste et leurs dépendances sont tracé
 
 Le [Lot 3 — usages et checkpoint](concept_usage_persistence.md) introduit le
 snapshot immuable, le retry par intention et la sérialisation locale du stock
-avec ses usages. Aucun SQL ni contrat réseau n'est modifié. Le choix du stockage
-canonique du runtime et du futur contrat réseau reste à valider avant raccordement.
+avec ses usages. Aucun SQL ni contrat réseau n'est modifié. Ces choix ont ensuite été validés pour les Lots 4 et 5 ci-dessous.
 
 Décisions désormais validées : stockage canonique privé/local existant (pas de
 bascule Drift), usageId canonique, réservation distincte de l'engagement.
@@ -37,18 +36,28 @@ Le [Lot 4 — contrat serveur](concept_usage_server.md) prépare une migration J
 sans table nouvelle, non déployée. Les scénarios SQL attendent un PostgreSQL local ;
 le raccordement des clients et la bascule coordonnée restent obligatoires.
 
-Le [Lot 5 — raccordement ciblé](concept_runtime_integration.md) est en cours :
-réservation ajoutée au checkpoint existant et 34 contrôles purs d'usage réussis.
-Le runtime principal n'est pas encore raccordé. La reprise explicite des règles
-V4 est autorisée ; les compositions sans équivalent exact sont proposées pour
-validation avant branchement. Aucun ancien moteur encore consommé n'est supprimé.
+Le [Lot 5 — raccordement ciblé](concept_runtime_integration.md) adapte le
+contrôleur et l'écran existants : main conceptuelle, choix dynamiques, nouveau
+refill, engagement natif et reprise privée. P1–P6 sont validées et appliquées ;
+les accessoires 049–052 restent indisponibles faute d'inventaire concret portant
+les tags. L'ancien constructeur de deck et le biais HYBRID sont supprimés ;
+l'orientation canonique alimente désormais le contexte d'éligibilité.
+123 contrôles purs et 16 contrôles SQL structurels passent. Les scénarios du
+contrôleur Flutter et SQL ne sont pas exécutés ; ce n'est pas une validation
+complète à deux clients. Les limites de dépendances restent documentées.
+
+Prochain lot : migrer les consommateurs secondaires vers les usages figés
+(compromis, corruption, Recovery, apprentissage et effets partagés), puis nettoyer
+leurs derniers champs temporaires. Préparer séparément les données d'accessoires.
+La migration distante reste non déployée jusqu'à cette intégration et aux
+validations SQL/deux clients. Voir le bilan du Lot 5 pour les dettes précises.
 
 Le besoin de convertir d'anciennes sessions ne justifie pas de conserver deux
 moteurs pour des sessions de développement sans valeur. Les limitations locales
 des tests ne doivent provoquer aucun changement d'architecture ou de dépendances
 sans validation préalable.
 
-## État de ce lot
+## Audit historique du Lot 0
 
 Lot 0 : inspection et préparation uniquement. Aucun comportement du jeu,
 catalogue chargé ou format de session n'a été modifié. Point de départ Git :

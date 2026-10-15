@@ -4,29 +4,63 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
 import '../protocol/network_dtos.dart';
+import '../protocol/network_usage_projection.dart';
 
 final class ChoicePayload {
   ChoicePayload({
     required this.cardId,
     required this.variantId,
     required Map<String, Object?> parameters,
-  }) : parameters = Map.unmodifiable(parameters);
+  }) : usage = null,
+       parameters = Map.unmodifiable(parameters);
+
+  ChoicePayload.fromUsage(NetworkUsageProjection projection)
+    : usage = projection,
+      cardId = projection.conceptId,
+      variantId =
+          (projection.resolvedAction['stage_id'] ??
+                  projection.resolvedAction['variant_id'])!
+              as String,
+      parameters = Map.unmodifiable({
+        ...projection.resolvedAction['parameters']! as Map<String, Object?>,
+        'role': switch (projection.resolvedAction['direction']) {
+          'FAIRE' => 'FAIRE',
+          'RECEVOIR' => 'RECEVOIR',
+          _ => 'GENERAL',
+        },
+        'personal_value': projection.snapshotValue,
+        'opposite_personal_value':
+            (projection.toJson()['inverted_resolution']
+                as Map?)?['snapshot_value'],
+        'native_direction': projection.toJson()['native_direction'],
+        'effective_direction': projection.toJson()['effective_direction'],
+        'usage_id': projection.usageId,
+      });
+
+  /// Legacy constructor remains only for secondary/prototype consumers (Lot 6).
+  final NetworkUsageProjection? usage;
+  String? get usageId => usage?.usageId;
 
   final String cardId;
   final String variantId;
   final Map<String, Object?> parameters;
 
-  Map<String, Object?> toJson() => {
-    'card_id': cardId,
-    'parameters': _canonicalObject(parameters),
-    'variant_id': variantId,
-  };
+  Map<String, Object?> toJson() =>
+      usage?.toJson() ??
+      {
+        'card_id': cardId,
+        'parameters': _canonicalObject(parameters),
+        'variant_id': variantId,
+      };
 
-  factory ChoicePayload.fromJson(Map<String, Object?> json) => ChoicePayload(
-    cardId: json['card_id']! as String,
-    variantId: json['variant_id']! as String,
-    parameters: Map<String, Object?>.from(json['parameters']! as Map),
-  );
+  factory ChoicePayload.fromJson(Map<String, Object?> json) =>
+      json.containsKey('usage_id')
+      ? ChoicePayload.fromUsage(NetworkUsageProjection.fromJson(json))
+      : ChoicePayload(
+          cardId: json['card_id']! as String,
+          variantId: json['variant_id']! as String,
+          parameters: Map<String, Object?>.from(json['parameters']! as Map),
+        );
 
   String canonicalJson() => jsonEncode(_canonicalObject(toJson()));
 }

@@ -52,9 +52,12 @@ Une proposition exige un franchissement de catégorie, 10 occurrences équivalen
 
 Le moteur stocke une estimation décimale, mais ne propose rien tant qu’elle reste dans la catégorie actuelle. L’acceptation devient la nouvelle référence ; elle n’efface pas l’historique agrégé.
 
-## Pondération hybride
+## Pondération hybride retirée
 
-Le composant pur `HybridDrawWeighting` répartit le poids sur le pool réellement éligible. En orientation distance, les groupes visent 70 % sans `DISTANCE_EXCLUE` et 30 % avec ; en orientation face à face, 30 % et 70 %. Chaque carte reçoit `part du groupe / taille du groupe`. Si un groupe est vide, le groupe restant reçoit uniformément tout le poids. Une carte `DISTANCE_EXCLUE` reste donc autorisée en hybride.
+Le biais historique 70/30 et `HybridDrawWeighting` ont été supprimés au Lot 5.
+L'orientation détermine uniquement l'admissibilité ; le tirage choisit une classe
+puis uniformément un concept. Voir le [raccordement actuel](concept_runtime_integration.md).
+
 # Intégration au parcours réseau
 
 `NetworkProfileLearningCoordinator` alimente le moteur existant sans créer de

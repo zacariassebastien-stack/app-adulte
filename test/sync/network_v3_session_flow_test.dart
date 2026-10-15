@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:couple_cards/engines/engines.dart';
 import 'package:couple_cards/domain/domain.dart';
@@ -150,77 +149,6 @@ void main() {
     expect(state.actionPoints, {'a': 95, 'b': 100});
   });
 
-  test(
-    'private hybrid decks survive reconstruction without public leakage',
-    () {
-      const candidate = DeckCandidateV3(
-        cardId: 'card.a',
-        variantId: 'variant.a',
-        spiceLevel: 3,
-        distanceExcluded: true,
-      );
-      final state = NetworkPrivateGameState(
-        roundNumber: 2,
-        cards: const [],
-        history: const {},
-        faceToFaceDeck: const [candidate],
-        distanceDeck: const [candidate],
-        deckCycle: 3,
-        infiniteMode: true,
-        publicDiscards: const [
-          NetworkPlayedCardRecord(
-            cardId: 'card.public',
-            variantId: 'variant.public',
-            occurrenceId: 'public#2',
-            roundNumber: 2,
-          ),
-        ],
-      );
-      final decoded = NetworkPrivateGameState.fromJson(state.toJson());
-      expect(
-        decoded.faceToFaceDeck.single.occurrenceKey,
-        candidate.occurrenceKey,
-      );
-      expect(
-        decoded.distanceDeck.single.occurrenceKey,
-        candidate.occurrenceKey,
-      );
-      expect(decoded.deckCycle, 3);
-      expect(decoded.infiniteMode, isTrue);
-      expect(decoded.publicDiscards.single.occurrenceId, 'public#2');
-      final encoded = jsonEncode(state.toJson());
-      expect(encoded, isNot(contains('preference')));
-      expect(encoded, isNot(contains('owner_player_id')));
-    },
-  );
-
-  test('mirror draw consumes one matching occurrence only', () {
-    const a1 = DeckCandidateV3(
-      cardId: 'a',
-      variantId: 'v',
-      spiceLevel: 2,
-      distanceExcluded: false,
-      occurrenceId: 'a::v::1',
-    );
-    const a2 = DeckCandidateV3(
-      cardId: 'a',
-      variantId: 'v',
-      spiceLevel: 2,
-      distanceExcluded: false,
-      occurrenceId: 'a::v::2',
-    );
-    final runtime = SessionDeckRuntime(
-      faceToFace: const [a1, a2],
-      distance: const [a1, a2],
-      random: Random(1),
-    );
-    final drawn = runtime.draw(HybridDeckOrientation.faceToFace)!;
-    expect(runtime.faceToFace, hasLength(1));
-    expect(runtime.distance, hasLength(1));
-    expect(runtime.distance.single.occurrenceId, isNot(drawn.occurrenceId));
-    expect(runtime.distance.single.cardId, drawn.cardId);
-  });
-
   test('playing one duplicate occurrence leaves the other copy intact', () {
     const engine = LifecycleEngine();
     final cards = const [
@@ -265,7 +193,6 @@ void main() {
         deckCycle: 3,
         infiniteMode: true,
         deckStyle: PlayerStyle.INTENABLE,
-        recentCardIds: const ['card.recent'],
         deckShortages: [
           DeckShortage(
             requestedSpice: 4,
@@ -283,32 +210,8 @@ void main() {
       expect(restored.infiniteMode, isTrue);
       expect(restored.deckCycle, 3);
       expect(restored.deckShortages.single.missingCount, 5);
-      expect(restored.recentCardIds, ['card.recent']);
     },
   );
-
-  test('legacy duplicate decks receive distinct occurrence ids', () {
-    final restored = NetworkPrivateGameState.fromJson({
-      'round_number': 1,
-      'cards': <Object?>[],
-      'history': <String, Object?>{},
-      'next_round_prepared': false,
-      'face_to_face_deck': [
-        for (var index = 0; index < 2; index++)
-          {
-            'card_id': 'same',
-            'variant_id': 'v',
-            'spice_level': 2,
-            'distance_excluded': false,
-          },
-      ],
-      'distance_deck': <Object?>[],
-    });
-    expect(
-      restored.faceToFaceDeck.map((card) => card.occurrenceId).toSet(),
-      hasLength(2),
-    );
-  });
 
   test('cycle progression keeps intensity in infinite mode', () {
     const soft = DeckCycleState(style: PlayerStyle.SOFT);
@@ -321,93 +224,6 @@ void main() {
     expect(stillIntense.style, PlayerStyle.INTENABLE);
     expect(infinite.style, PlayerStyle.INTENABLE);
     expect(infinite.infinite, isTrue);
-  });
-
-  test('deck builder tracks neutral shortages and style fallback order', () {
-    const candidates = [
-      DeckCandidateV3(
-        cardId: 'low',
-        variantId: 'v',
-        spiceLevel: 1,
-        distanceExcluded: false,
-      ),
-      DeckCandidateV3(
-        cardId: 'high',
-        variantId: 'v',
-        spiceLevel: 4,
-        distanceExcluded: false,
-      ),
-    ];
-    const builder = SessionDeckBuilderV3();
-    final soft = builder.build(
-      eligible: candidates,
-      targetBySpice: const {2: 3},
-      style: PlayerStyle.SOFT,
-    );
-    final epice = builder.build(
-      eligible: candidates,
-      targetBySpice: const {2: 3},
-      style: PlayerStyle.EPICE,
-    );
-    expect(soft.cards.first.spiceLevel, 1);
-    expect(epice.cards.first.spiceLevel, 4);
-    expect(soft.shortages.single.requestedSpice, 2);
-    expect(soft.shortages.single.requestedCount, 3);
-    expect(soft.shortages.single.availableCount, 0);
-    expect(soft.shortages.single.missingCount, 3);
-    expect(soft.shortages.single.replacementsBySpice, containsPair(1, 1));
-  });
-
-  test('anti-repeat draw avoids recent content while alternatives exist', () {
-    const recent = DeckCandidateV3(
-      cardId: 'recent',
-      variantId: 'v',
-      spiceLevel: 2,
-      distanceExcluded: false,
-      occurrenceId: 'recent#1',
-    );
-    const fresh = DeckCandidateV3(
-      cardId: 'fresh',
-      variantId: 'v',
-      spiceLevel: 2,
-      distanceExcluded: false,
-      occurrenceId: 'fresh#1',
-    );
-    final runtime = SessionDeckRuntime(
-      faceToFace: const [recent, fresh],
-      distance: const [recent, fresh],
-      random: Random(0),
-    );
-    expect(
-      runtime
-          .draw(
-            HybridDeckOrientation.faceToFace,
-            avoidCardIds: const {'recent'},
-          )!
-          .cardId,
-      'fresh',
-    );
-  });
-
-  test('hybrid draw falls back when only the other virtual deck remains', () {
-    const remaining = DeckCandidateV3(
-      cardId: 'remaining',
-      variantId: 'v',
-      spiceLevel: 3,
-      distanceExcluded: true,
-      occurrenceId: 'remaining#1',
-    );
-    final runtime = SessionDeckRuntime(
-      faceToFace: const [],
-      distance: const [remaining],
-      random: Random(0),
-    );
-    expect(
-      runtime.draw(HybridDeckOrientation.faceToFace)?.occurrenceId,
-      'remaining#1',
-    );
-    expect(runtime.faceToFace, isEmpty);
-    expect(runtime.distance, isEmpty);
   });
 
   test('post-game profile choice remains private and changeable', () async {

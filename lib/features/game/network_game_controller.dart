@@ -11,6 +11,8 @@ import '../lobby/lobby_models.dart';
 import 'network_duel_controller.dart' show NetworkDuelCard;
 import 'network_duel_secret_store.dart';
 import 'network_profile_learning.dart';
+import '../../engines/eligibility/concept_runtime_catalog.dart';
+import '../../engines/eligibility/concept_action_options.dart';
 
 enum NetworkGameViewState {
   loading,
@@ -49,12 +51,12 @@ final class NetworkGameController extends ChangeNotifier {
     this.auctionEngine = const AuctionEngine(),
     this.negotiationEngine = const NegotiationEngineV3(),
     this.lifecycleEngine = const LifecycleEngine(),
-    this.drawEngine = const DrawEngine(),
     this.corruptionEngine = const CorruptionEngine(),
     this.recoveryEngine = const RecoveryEngine(),
     NetworkProfileLearningStore? learningStore,
     PostGameProfileChoiceStore? profileChoiceStore,
     PlayerGameProfile? privateProfile,
+    EngineSessionContext? initialContext,
     DateTime Function()? clock,
     String Function()? nonceFactory,
   }) : _catalog = catalog,
@@ -66,23 +68,37 @@ final class NetworkGameController extends ChangeNotifier {
       throw ArgumentError('A ready lobby membership is required');
     }
     playerIds = List.unmodifiable(ids);
-    _definitions = {for (final card in catalog.cards) card.stableId: card};
+    if (catalog.concepts == null || catalog.conceptRules == null) {
+      throw ArgumentError(
+        'Concept catalogue and validated runtime bindings are required',
+      );
+    }
+    _conceptCatalog = ConceptRuntimeCatalog(
+      concepts: catalog.concepts!,
+      source: catalog,
+      rules: catalog.conceptRules!,
+    );
+    _definitions = _conceptCatalog.definitions;
     _engineCards = {
-      for (final card in catalog.cards)
+      for (final card in _definitions.values)
         card.stableId: const CatalogEngineAdapter.v3().card(card),
     };
     _hierarchy = ProfileHierarchy({
       for (final element in catalog.profileElements)
         element.stableId: element.parentId,
     });
-    _context = EngineSessionContext(
-      mode: SessionMode.face_to_face,
-      proximity: ProximityState.TOGETHER,
-      chiliActive: 2,
-      chiliUnlocked: 2,
-      physicalStateByPlayer: {for (final id in playerIds) id: 'available'},
-      clothesByPlayer: {for (final id in playerIds) id: 5},
-    );
+    _context =
+        initialContext ??
+        EngineSessionContext(
+          mode: SessionMode.face_to_face,
+          proximity: ProximityState.TOGETHER,
+          chiliActive: 2,
+          chiliUnlocked: 2,
+          physicalStateByPlayer: {for (final id in playerIds) id: 'available'},
+          clothesByPlayer: {for (final id in playerIds) id: 5},
+        );
+    _initialClothing = _context.clothesByPlayer[playerId] ?? 0;
+    _buildDeckCycle();
     learning = NetworkProfileLearningCoordinator(
       playerId: playerId,
       store:
@@ -104,7 +120,6 @@ final class NetworkGameController extends ChangeNotifier {
   final AuctionEngine auctionEngine;
   final NegotiationEngineV3 negotiationEngine;
   final LifecycleEngine lifecycleEngine;
-  final DrawEngine drawEngine;
   final CorruptionEngine corruptionEngine;
   final RecoveryEngine recoveryEngine;
   final DateTime Function() clock;
@@ -112,12 +127,21 @@ final class NetworkGameController extends ChangeNotifier {
   late final NetworkProfileLearningCoordinator learning;
   late final PostGameProfileChoiceStore _profileChoiceStore;
   final Catalog _catalog;
+  late final ConceptRuntimeCatalog _conceptCatalog;
+  late ConceptUsageCheckpoint _usageCheckpoint;
+  bool _cycleInitialized = false;
+  bool _privateStateReady = false;
+  List<ConceptUsageCheckpoint> _priorCheckpoints = [];
+  Map<String, int> _clothingObservations = {};
+  ConceptActionOption? _selectedOption;
+  String get _intentId => '${round?.roundId ?? 'opening'}:v$_choiceVersion';
   final PlayerGameProfile? _privateProfile;
   late final List<String> playerIds;
   late final Map<String, CardDefinition> _definitions;
   late final Map<String, EngineCard> _engineCards;
   late final ProfileHierarchy _hierarchy;
   late EngineSessionContext _context;
+  late int _initialClothing;
 
   NetworkGameViewState viewState = NetworkGameViewState.loading;
   NetworkGameRoundStateDto? round;
@@ -128,19 +152,18 @@ final class NetworkGameController extends ChangeNotifier {
   List<CardRuntimeState> _runtime = const [];
   Map<String, CardHistoryState> _history = {};
   Set<int> _learningRecordedRounds = {};
-  List<DeckCandidateV3> _faceToFaceDeck = [];
-  List<DeckCandidateV3> _distanceDeck = [];
   int _deckCycle = 1;
   int _choiceVersion = 0;
   bool _infiniteMode = false;
   PlayerStyle _deckStyle = PlayerStyle.SOFT;
   List<DeckShortage> _deckShortages = [];
-  List<String> _recentCardIds = [];
   List<NetworkPlayedCardRecord> _publicDiscards = [];
   ChoiceRevealDto? _activeReveal;
   bool _nextRoundPrepared = false;
   StreamSubscription<NetworkGameRoundStateDto>? _subscription;
   bool _committing = false;
+  bool _cancelling = false;
+  bool _cancelCommitRequested = false;
   bool _revealing = false;
   bool _resolving = false;
   bool _transitioning = false;
@@ -174,7 +197,75 @@ final class NetworkGameController extends ChangeNotifier {
   HybridDeckOrientation get orientation =>
       round?.hybridOrientation ?? HybridDeckOrientation.faceToFace;
   int get activeSpice => _context.chiliActive;
-  bool get decksEmpty => _faceToFaceDeck.isEmpty && _distanceDeck.isEmpty;
+  String titleFor(String conceptId) =>
+      _definitions[conceptId]?.title ?? conceptId;
+  ConceptUsageCheckpoint get usageCheckpoint => _usageCheckpoint;
+  int get currentClothingCount => _context.clothesByPlayer[playerId] ?? 0;
+  String? get pendingClothingObservationUsageId {
+    for (final card
+        in finalResolution?.compromise ?? <NetworkCompromiseCardDto>[]) {
+      if (card.cardId == '013' &&
+          card.usage != null &&
+          (card.usage!.resolvedAction['actor_player_ids']! as List).contains(
+            playerId,
+          ) &&
+          !_clothingObservations.containsKey(card.usage!.usageId)) {
+        return card.usage!.usageId;
+      }
+    }
+    return null;
+  }
+
+  Future<void> recordClothingCount(String usageId, int count) async {
+    RangeError.checkNotNegative(count, 'count');
+    if (_clothingObservations.containsKey(usageId)) {
+      if (_clothingObservations[usageId] != count) {
+        throw StateError('Clothing outcome already recorded');
+      }
+      return;
+    }
+    if (usageId != pendingClothingObservationUsageId) {
+      throw StateError('No clothing outcome expected');
+    }
+    _clothingObservations = {..._clothingObservations, usageId: count};
+    _context = _context.copyWith(
+      clothesByPlayer: {..._context.clothesByPlayer, playerId: count},
+    );
+    // Outcome is separate from the immutable engaged action and frozen capacities.
+    await _persist();
+    notifyListeners();
+  }
+
+  /// Accepts already resolved session settings; does not replace agreement/PA rules.
+  Future<void> applyResolvedContext(EngineSessionContext context) async {
+    RangeError.checkValueInInterval(context.chiliActive, 1, 4, 'chiliActive');
+    _context = context;
+    _followOrientation(orientation);
+    if (selectedCard != null && _activeReveal == null) {
+      final current = choicesFor(
+        selectedCard!.id,
+      ).where((o) => o.key == _selectedOption?.key).firstOrNull;
+      _selectedOption = current;
+      if (current == null) await cancelPendingSelection();
+    }
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> retryCurrentAction() async {
+    if (!_privateStateReady) {
+      await start();
+      return;
+    }
+    try {
+      await _persist();
+      await _apply(await repository.getCurrentRound(sessionId: session.id));
+    } catch (error) {
+      _fail(error);
+    }
+  }
+
+  bool get decksEmpty => _conceptPool(excludeHeld: true).isEmpty;
   bool get deckExhausted =>
       decksEmpty && !_runtime.any((card) => card.zone == CardZone.HAND);
   PlayerStyle get deckStyle => _deckStyle;
@@ -184,9 +275,12 @@ final class NetworkGameController extends ChangeNotifier {
         player.userId == playerId && player.role == LobbyPlayerRole.player1,
   );
   List<DeckShortage> get deckShortages => List.unmodifiable(_deckShortages);
-  int get faceToFaceDeckRemaining => _faceToFaceDeck.length;
-  int get distanceDeckRemaining => _distanceDeck.length;
+  int get faceToFaceDeckRemaining =>
+      _conceptPool(excludeHeld: true).classes.values.expand((v) => v).length;
+  int get distanceDeckRemaining => faceToFaceDeckRemaining;
   bool get canCancelSelection =>
+      !_cancelling &&
+      !_cancelCommitRequested &&
       repository is NetworkCommitCancellationRepository &&
       viewState == NetworkGameViewState.waitingForPartner &&
       round?.phase == NetworkGamePhase.commit &&
@@ -202,15 +296,24 @@ final class NetworkGameController extends ChangeNotifier {
       ),
   ];
 
+  List<CardConcept> get heldConcepts => [
+    for (final state in _runtime.where((c) => c.zone == CardZone.HAND))
+      _conceptCatalog.concepts.concepts.singleWhere(
+        (c) => c.id == state.cardId,
+      ),
+  ];
+
   List<NetworkDuelCard> get visibleDiscardCards {
     final cards = <NetworkDuelCard>[];
     final seen = <String>{};
     for (final item in _publicDiscards.reversed) {
-      final card = _networkCard(
-        item.cardId,
-        occurrenceId: item.occurrenceId,
-        variantId: item.variantId,
-      );
+      final card = item.usage != null
+          ? _cardFromUsage(item.usage!)
+          : _networkCard(
+              item.cardId,
+              occurrenceId: item.occurrenceId,
+              variantId: item.variantId,
+            );
       if (card != null && seen.add(card.identity)) cards.add(card);
     }
     for (final item in _runtime.where(
@@ -230,8 +333,7 @@ final class NetworkGameController extends ChangeNotifier {
   List<NetworkDuelCard> get auctionCards => [
     for (final item in _runtime)
       if ((item.zone == CardZone.HAND || item.zone == CardZone.DISCARD) &&
-          item.occurrenceId !=
-              _activeReveal?.choice.parameters['occurrence_id'])
+          item.occurrenceId != _activeReveal?.choice.usageId)
         ?_networkCard(
           item.cardId,
           occurrenceId: item.occurrenceId,
@@ -282,7 +384,12 @@ final class NetworkGameController extends ChangeNotifier {
       final current = await repository.openCurrentRound(
         command: _command('OPEN', roundId: null, roundNumber: 0),
       );
+      if (current.usageContractVersion != 1) {
+        throw const NetworkRoundException('USAGE_CONTRACT_NOT_DEPLOYED');
+      }
+      _followOrientation(current.hybridOrientation);
       await _restoreOrCreatePrivateState(current);
+      _privateStateReady = true;
       await _switchRound(current);
     } catch (error) {
       _fail(error);
@@ -342,7 +449,6 @@ final class NetworkGameController extends ChangeNotifier {
       final cycle = DeckCycleState(
         style: _deckStyle,
         infinite: _infiniteMode,
-        recentOccurrenceKeys: _recentCardIds,
       ).next(choice);
       _deckCycle++;
       _infiniteMode = cycle.infinite;
@@ -394,7 +500,98 @@ final class NetworkGameController extends ChangeNotifier {
     selectedCard = hand
         .where((card) => card.identity == occurrenceId)
         .firstOrNull;
+    _selectedOption = selectedCard == null
+        ? null
+        : choicesFor(selectedCard!.id).firstOrNull;
     notifyListeners();
+  }
+
+  List<ConceptActionOption> choicesFor(String conceptId) =>
+      _currentOptions()[conceptId] ?? const [];
+
+  Future<void> reserveSelection() async {
+    final card = selectedCard;
+    if (card == null) return;
+    _usageCheckpoint = _usageCheckpoint
+        .releaseReservation(_intentId)
+        .reserve(intentId: _intentId, conceptId: card.id);
+    await _persist();
+  }
+
+  Future<void> cancelPendingSelection() async {
+    if (_usageCheckpoint.usageForIntent(_intentId) != null) return;
+    _usageCheckpoint = _usageCheckpoint.releaseReservation(_intentId);
+    _selectedOption = null;
+    selectedCard = null;
+    await _persist();
+    notifyListeners();
+  }
+
+  void chooseAction(ConceptActionOption option) {
+    final card = selectedCard;
+    if (card == null) return;
+    final current = choicesFor(
+      card.id,
+    ).where((v) => v.key == option.key).firstOrNull;
+    if (current == null) throw StateError('Choice is no longer eligible');
+    _selectedOption = current;
+    selectedCard = _networkCard(
+      card.id,
+      occurrenceId: card.id,
+      option: current,
+    );
+    notifyListeners();
+  }
+
+  Map<String, List<ConceptActionOption>> _currentOptions() =>
+      const ConceptActionOptions().evaluate(
+        catalog: _conceptCatalog,
+        context: _context,
+        actor: _profile(playerId),
+        partner: _profile(opponentId),
+        hierarchy: _hierarchy,
+        mediaSendRequired: _context.flags['mediaSendRequired'] == true,
+      );
+
+  ConceptDeckPool _conceptPool({bool excludeHeld = false}) {
+    final options = _currentOptions();
+    return const ConceptDeckEngine().prepare(
+      catalog: _conceptCatalog.concepts,
+      stock: _usageCheckpoint.stock,
+      globalChili: _context.chiliActive,
+      style: _deckStyle,
+      unavailableConceptIds: {
+        for (final entry in _usageCheckpoint.stock.remaining.entries)
+          if (_usageCheckpoint.availableFor(entry.key) == 0) entry.key,
+        if (excludeHeld)
+          ..._runtime
+              .where(
+                (c) => c.zone == CardZone.HAND || c.zone == CardZone.ENGAGED,
+              )
+              .map((c) => c.cardId),
+      },
+      eligibility: ConceptDeckEligibility(
+        actionIdsByConcept: {
+          for (final entry in options.entries)
+            entry.key: entry.value.map((o) => o.choice.actionId).toSet(),
+        },
+        zoneIdsByConcept: {
+          for (final entry in options.entries)
+            entry.key: entry.value.map((o) => o.choice.zoneId).nonNulls.toSet(),
+        },
+      ),
+    );
+  }
+
+  void _followOrientation(HybridDeckOrientation value) {
+    _context = _context.copyWith(
+      mode: value == HybridDeckOrientation.distance
+          ? SessionMode.distance
+          : SessionMode.face_to_face,
+      proximity: value == HybridDeckOrientation.distance
+          ? ProximityState.SEPARATED
+          : ProximityState.TOGETHER,
+    );
   }
 
   Future<void> confirmSelection() async {
@@ -410,27 +607,64 @@ final class NetworkGameController extends ChangeNotifier {
     viewState = NetworkGameViewState.committing;
     notifyListeners();
     try {
-      final choice = ChoicePayload(
-        cardId: card.id,
-        variantId: card.variant.id,
-        parameters: {
-          'role': card.role.name,
-          'personal_value': card.personalValue,
-          'opposite_personal_value': card.oppositePersonalValue,
-          'native_direction': card.nativeDirection.name,
-          'effective_direction': card.effectiveDirection.name,
-          'occurrence_id': card.identity,
-          'committed_at': clock().toUtc().toIso8601String(),
-        },
+      await reserveSelection();
+      final option = choicesFor(
+        card.id,
+      ).where((o) => o.key == _selectedOption?.key).firstOrNull;
+      if (option == null) {
+        throw StateError('Selected action is no longer eligible');
+      }
+      final engagedAt = clock().toUtc();
+      final engagedCheckpoint = _usageCheckpoint.engage(
+        intentId: _intentId,
+        conceptId: card.id,
+        resolveAction: () => _freezeAction(card, option, engagedAt),
+        resolveInvertedAction: card.oppositePersonalValue == null
+            ? null
+            : () => _freezeAction(card, option, engagedAt, inverted: true),
+        clock: () => engagedAt,
       );
-      final reveal = ChoiceRevealDto(
-        sessionRound: current.sessionRound,
-        playerId: playerId,
-        choice: choice,
-        nonce: '${nonceFactory()}:v$_choiceVersion',
+      final usage = engagedCheckpoint.usageForIntent(_intentId)!;
+      final choice = ChoicePayload.fromUsage(
+        NetworkUsageProjection.fromSnapshot(
+          usage,
+          sharedParameterKeys: const {
+            'committed_at',
+            'technique',
+            'practice_concept_id',
+            'practice_action_id',
+            'practice_chili',
+            'practice_zone_id',
+            'media_capture_player_id',
+            'media_send',
+          },
+          sharedEffectIds: usage.action.effects.map((e) => e.effectId).toSet(),
+          includePersonalValue: true,
+        ),
       );
+      final reveal =
+          _activeReveal ??
+          ChoiceRevealDto(
+            sessionRound: current.sessionRound,
+            playerId: playerId,
+            choice: choice,
+            nonce: '${nonceFactory()}:v$_choiceVersion',
+          );
+      _usageCheckpoint = engagedCheckpoint;
       _activeReveal = reveal;
-      _runtime = lifecycleEngine.engage(_runtime, card.identity);
+      _runtime = [
+        for (final item in _runtime)
+          if (item.cardId == card.id && item.zone == CardZone.HAND)
+            CardRuntimeState(
+              cardId: card.id,
+              occurrenceId: usage.usageId,
+              variantId: usage.action.stageId ?? usage.action.variantId,
+              zone: CardZone.ENGAGED,
+              nativeDirection: usage.action.direction,
+            )
+          else
+            item,
+      ];
       await _persist();
       await _apply(
         await repository.submitCommit(
@@ -438,7 +672,7 @@ final class NetworkGameController extends ChangeNotifier {
           commitment: contract.commit(
             sessionRound: current.sessionRound,
             playerId: playerId,
-            choice: choice,
+            choice: reveal.choice,
             nonce: reveal.nonce,
           ),
         ),
@@ -452,18 +686,23 @@ final class NetworkGameController extends ChangeNotifier {
 
   Future<bool> cancelSelection() async {
     final cancellable = repository;
-    if (!canCancelSelection ||
+    if ((!canCancelSelection && !_cancelCommitRequested) ||
         round == null ||
         cancellable is! NetworkCommitCancellationRepository) {
       return false;
     }
+    if (_cancelling) return false;
+    _cancelling = true;
     try {
+      _cancelCommitRequested = true;
+      await _persist();
       final updated = await (cancellable as NetworkCommitCancellationRepository)
           .cancelCommit(
             command: _command('CANCEL_COMMIT', choiceVersion: _choiceVersion),
           );
       _restoreCancelledChoice();
       _choiceVersion++;
+      _cancelCommitRequested = false;
       await privateStore.clear(sessionId: session.id, playerId: playerId);
       await _persist();
       await _apply(updated);
@@ -471,11 +710,84 @@ final class NetworkGameController extends ChangeNotifier {
     } on NetworkRoundException catch (error) {
       if (error.code != 'ROUND_CANCEL_CLOSED' &&
           error.code != 'ROUND_COMMIT_CLOSED') {
-        rethrow;
+        _fail(error);
+        return false;
       }
+      _cancelCommitRequested = false;
+      await _persist();
       await _apply(await repository.getCurrentRound(sessionId: session.id));
       return false;
+    } catch (error) {
+      _fail(error);
+      return false;
+    } finally {
+      _cancelling = false;
     }
+  }
+
+  ResolvedConceptAction _freezeAction(
+    NetworkDuelCard card,
+    ConceptActionOption option,
+    DateTime at, {
+    bool inverted = false,
+  }) {
+    final direction = inverted
+        ? const CardDirectionEngine().invert(card.nativeDirection)
+        : card.nativeDirection;
+    final role = _profileRole(direction, fallback: ProfileRole.GENERAL);
+    final actor = direction == CardOccurrenceDirection.RECEVOIR
+        ? opponentId
+        : playerId;
+    final mutual =
+        direction == CardOccurrenceDirection.MUTUEL ||
+        direction == CardOccurrenceDirection.SIMULTANE;
+    final concept = _conceptCatalog.concepts.concepts.singleWhere(
+      (c) => c.id == card.id,
+    );
+    return ResolvedConceptAction.fromJson({
+      'concept_id': card.id,
+      'catalog_version':
+          _conceptCatalog.concepts.reader.json['catalog_version'],
+      'locale': _conceptCatalog.concepts.reader.json['locale'],
+      if (concept.stages.isNotEmpty)
+        'stage_id': option.choice.actionId
+      else
+        'variant_id': option.choice.actionId,
+      if (option.choice.zoneId != null) 'zone_id': option.choice.zoneId,
+      'effective_chili': option.choice.chili,
+      'direction': direction.name,
+      'actor_player_ids': mutual ? playerIds : [actor],
+      'target_player_ids': mutual
+          ? playerIds
+          : direction == CardOccurrenceDirection.SOLO
+          ? <String>[]
+          : [actor == playerId ? opponentId : playerId],
+      'parameters': {
+        ...option.parameters,
+        'committed_at': at.toIso8601String(),
+        'clothes_at_engagement': _context.clothesByPlayer,
+      },
+      'accessories': <Object?>[],
+      'tags': option.variant.tags.toList(),
+      'primary_preference_ids': option.variant.tags
+          .where((t) => t.startsWith('v3.preference.'))
+          .toList(),
+      'personal_values': [
+        {
+          'player_id': playerId,
+          'role': role.name,
+          'value': inverted ? card.oppositePersonalValue! : card.personalValue,
+        },
+      ],
+      'effects': [
+        for (var i = 0; i < option.variant.effects.length; i++)
+          {
+            'effect_id': '${card.id}:$i',
+            'parameters': option.variant.effects[i].toJson(),
+          },
+      ],
+      'action_text': '${concept.actionText} · ${option.title}',
+    });
   }
 
   Future<void> closeSession() async {
@@ -491,19 +803,14 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   void _restoreCancelledChoice() {
-    final occurrence =
-        _activeReveal?.choice.parameters['occurrence_id'] as String?;
-    if (occurrence != null) {
-      _runtime = [
-        for (final card in _runtime)
-          if (card.occurrenceId == occurrence && card.zone == CardZone.ENGAGED)
-            card.copyWith(zone: CardZone.HAND, locked: false)
-          else
-            card,
-      ];
-    }
+    final usageId = _activeReveal?.choice.usageId;
+    _runtime = _runtime.where((card) => card.occurrenceId != usageId).toList();
     _activeReveal = null;
     selectedCard = null;
+    _selectedOption = null;
+    // Engagement is definitive, including when a server commit is cancelled.
+    // Refill may draw the concept again only if its remaining quota allows it.
+    _refill(roundNumber);
   }
 
   Future<void> proposeNegotiation({
@@ -931,11 +1238,16 @@ final class NetworkGameController extends ChangeNotifier {
 
   Future<void> _apply(NetworkGameRoundStateDto value) async {
     if (_disposed) return;
+    if (value.usageContractVersion != 1) {
+      _fail(const NetworkRoundException('USAGE_CONTRACT_NOT_DEPLOYED'));
+      return;
+    }
     if (value.sessionId != session.id) {
       _fail(const NetworkRoundException('ROUND_NOT_FOUND'));
       return;
     }
     final publicCycleAdvanced = value.deckCycle > _deckCycle;
+    _followOrientation(value.hybridOrientation);
     _deckStyle = value.deckStyle;
     _deckCycle = value.deckCycle;
     _infiniteMode = value.infiniteMode;
@@ -956,6 +1268,10 @@ final class NetworkGameController extends ChangeNotifier {
     if (_disposed) return;
     switch (value.phase) {
       case NetworkGamePhase.commit:
+        if (_cancelCommitRequested) {
+          if (!_cancelling) await cancelSelection();
+          return;
+        }
         if (value.ownCommitRecorded) {
           if (_activeReveal == null) {
             _fail(const NetworkRoundException('ROUND_LOCAL_SECRET_MISSING'));
@@ -963,12 +1279,31 @@ final class NetworkGameController extends ChangeNotifier {
             viewState = NetworkGameViewState.waitingForPartner;
           }
         } else {
-          // The round stream can emit its pre-command snapshot while the local
-          // commit RPC is still in flight. Only reconcile a missing server
-          // commit once that operation has completed.
-          if (_activeReveal != null && !_committing) {
-            _restoreCancelledChoice();
-            await _persist();
+          // Missing remote commit is not evidence of cancellation. Replay the
+          // persisted projection and nonce; never engage or consume again.
+          if (_activeReveal != null) {
+            if (!_committing) {
+              _committing = true;
+              try {
+                await _persist();
+                final reveal = _activeReveal!;
+                final updated = await repository.submitCommit(
+                  command: _command('COMMIT', choiceVersion: _choiceVersion),
+                  commitment: contract.commit(
+                    sessionRound: reveal.sessionRound,
+                    playerId: playerId,
+                    choice: reveal.choice,
+                    nonce: reveal.nonce,
+                  ),
+                );
+                await _apply(updated);
+              } catch (error) {
+                _fail(error);
+              } finally {
+                _committing = false;
+              }
+            }
+            return;
           }
           viewState = NetworkGameViewState.choosing;
         }
@@ -1057,11 +1392,10 @@ final class NetworkGameController extends ChangeNotifier {
         .map((card) => card.cardId)
         .toList();
     if (played.isEmpty) return;
-    _runtime = lifecycleEngine.closeRound(_runtime);
+    _runtime = _runtime.where((c) => c.zone != CardZone.ENGAGED).toList();
     for (final id in played) {
       _history[id] = CardHistoryState.playedOrDiscarded;
     }
-    _rememberRecent(played);
     await _persist();
   }
 
@@ -1248,48 +1582,25 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   DuelCommitment _commitment(ChoiceRevealDto reveal) {
-    final card = _definitions[reveal.choice.cardId];
-    final variant = card?.variants
-        .where((item) => item.stableId == reveal.choice.variantId)
-        .firstOrNull;
-    if (card == null || variant == null) throw StateError('Unknown reveal');
+    final projection = reveal.choice.usage;
+    if (projection == null) throw StateError('Native usage reveal required');
     final role = ProfileRole.values.byName(
       reveal.choice.parameters['role']! as String,
     );
-    final value = reveal.choice.parameters['personal_value']! as int;
-    final nativeName = reveal.choice.parameters['native_direction'] as String?;
-    final effectiveName =
-        reveal.choice.parameters['effective_direction'] as String?;
-    final native = nativeName == null
-        ? _fixedDirection(card, variant)
-        : CardOccurrenceDirection.values.byName(nativeName);
-    final effective = effectiveName == null
-        ? native
-        : CardOccurrenceDirection.values.byName(effectiveName);
-    final expectedRole = _profileRole(
-      effective,
-      fallback: _roleFor(card, variant),
-    );
-    final opposite = reveal.choice.parameters['opposite_personal_value'];
-    final reversible = _isReversible(card, variant);
-    if (role != expectedRole ||
-        effective != native ||
-        value < 1 ||
-        value > 20 ||
-        (opposite != null &&
-            (opposite is! int || opposite < 1 || opposite > 20))) {
-      throw StateError('Invalid revealed snapshot');
-    }
     return duelEngine.commit(
       playerId: reveal.playerId,
-      cardId: card.stableId,
-      variantId: variant.stableId,
+      cardId: projection.conceptId,
+      variantId: reveal.choice.variantId,
       voluntaryRole: role,
-      preference: _preference('network.snapshot', role, value),
+      preference: _preference(
+        'network.snapshot',
+        role,
+        projection.snapshotValue!,
+      ),
       committedAt: DateTime.parse(
         reveal.choice.parameters['committed_at']! as String,
       ),
-      cardInvertible: reversible && opposite is int,
+      cardInvertible: projection.toJson()['inverted_resolution'] != null,
     );
   }
 
@@ -1300,6 +1611,11 @@ final class NetworkGameController extends ChangeNotifier {
       sessionId: session.id,
       playerId: playerId,
     );
+    if (saved != null && saved.conceptCheckpoint == null) {
+      throw const NetworkRoundException(
+        'LEGACY_DEVELOPMENT_SESSION_REQUIRES_NEW_SESSION',
+      );
+    }
     if (saved != null &&
         (saved.roundNumber == current.roundNumber ||
             saved.roundNumber == current.roundNumber + 1)) {
@@ -1308,20 +1624,33 @@ final class NetworkGameController extends ChangeNotifier {
       _activeReveal = saved.activeReveal;
       _nextRoundPrepared = saved.nextRoundPrepared;
       _learningRecordedRounds = Set.of(saved.learningRecordedRounds);
-      _faceToFaceDeck = List.of(saved.faceToFaceDeck);
-      _distanceDeck = List.of(saved.distanceDeck);
       _deckCycle = saved.deckCycle;
       _infiniteMode = saved.infiniteMode;
       _deckStyle = saved.deckStyle;
       _deckShortages = List.of(saved.deckShortages);
-      _recentCardIds = List.of(saved.recentCardIds);
       _publicDiscards = List.of(saved.publicDiscards);
       _choiceVersion = saved.choiceVersion;
-      if (_faceToFaceDeck.isEmpty &&
-          _distanceDeck.isEmpty &&
-          saved.cards.isEmpty) {
-        _buildDeckCycle();
+      _cancelCommitRequested = saved.cancelCommitRequested;
+      _usageCheckpoint = saved.conceptCheckpoint!;
+      _initialClothing = saved.initialClothing;
+      _priorCheckpoints = List.of(saved.priorCheckpoints);
+      _clothingObservations = Map.of(saved.clothingObservations);
+      if (_usageCheckpoint.sessionId != session.id ||
+          _usageCheckpoint.ownerPlayerId != playerId ||
+          _usageCheckpoint.cycle != _deckCycle) {
+        throw const NetworkRoundException('PRIVATE_CHECKPOINT_SCOPE_MISMATCH');
       }
+      _context = _context.copyWith(
+        chiliActive: saved.activeChili,
+        chiliUnlocked: saved.activeChili,
+        clothesByPlayer: saved.clothesByPlayer.isEmpty
+            ? null
+            : saved.clothesByPlayer,
+      );
+      final restoredUsage = _activeReveal?.choice.usage;
+      selectedCard = restoredUsage == null
+          ? null
+          : _cardFromUsage(restoredUsage);
       if (_nextRoundPrepared && saved.roundNumber == current.roundNumber) {
         _nextRoundPrepared = false;
         await _persist(roundNumber: current.roundNumber);
@@ -1333,6 +1662,9 @@ final class NetworkGameController extends ChangeNotifier {
     _publicDiscards = [];
     _choiceVersion = 0;
     _learningRecordedRounds = {};
+    _deckCycle = current.deckCycle;
+    _deckStyle = current.deckStyle;
+    _infiniteMode = current.infiniteMode;
     _buildDeckCycle();
     _refill(current.roundNumber);
     await _persist(roundNumber: current.roundNumber);
@@ -1344,11 +1676,10 @@ final class NetworkGameController extends ChangeNotifier {
         .where((card) => card.zone == CardZone.ENGAGED)
         .map((card) => card.cardId)
         .toList();
-    _runtime = lifecycleEngine.closeRound(_runtime);
+    _runtime = _runtime.where((c) => c.zone != CardZone.ENGAGED).toList();
     for (final id in played) {
       _history[id] = CardHistoryState.playedOrDiscarded;
     }
-    _rememberRecent(played);
     _refill(roundNumber + 1);
     _activeReveal = null;
     selectedCard = null;
@@ -1386,7 +1717,7 @@ final class NetworkGameController extends ChangeNotifier {
       cards: visibleHand,
       played: {
         if (reveal != null)
-          (reveal.choice.parameters['occurrence_id'] as String?) ??
+          (reveal.choice.usageId) ??
               '${reveal.choice.cardId}|${reveal.choice.variantId}',
         for (final card in result.compromise)
           if (card.ownerPlayerId == playerId &&
@@ -1593,138 +1924,183 @@ final class NetworkGameController extends ChangeNotifier {
   void _refill(int targetRound) {
     var needed =
         const BalanceConfig().handSize -
-        _runtime.where((card) => card.zone == CardZone.HAND).length;
+        _runtime.where((c) => c.zone == CardZone.HAND).length;
     if (needed <= 0) return;
-    if (decksEmpty && _infiniteMode) {
+    if (decksEmpty &&
+        _infiniteMode &&
+        !_runtime.any(
+          (c) => c.zone == CardZone.HAND || c.zone == CardZone.ENGAGED,
+        )) {
       _deckCycle++;
       _buildDeckCycle();
     }
-    final deck = SessionDeckRuntime(
-      faceToFace: _faceToFaceDeck,
-      distance: _distanceDeck,
-      random: Random(_stableHash('$playerId/$targetRound/$_deckCycle')),
-    );
+    final random = Random(_stableHash('$playerId/$targetRound/$_deckCycle'));
     while (needed > 0) {
-      final drawn = deck.draw(
-        orientation,
-        avoidCardIds: _recentCardIds.toSet(),
-      );
-      if (drawn == null) break;
-      final alreadyActive = _runtime.any(
-        (card) => card.occurrenceId == drawn.occurrenceId,
-      );
-      if (alreadyActive) continue;
-      final selection = _directionFor(drawn);
-      if (selection == null) continue;
+      final concept = _conceptPool(excludeHeld: true).draw(random);
+      if (concept == null) break;
       _runtime = [
         ..._runtime,
-        CardRuntimeState(
-          cardId: drawn.cardId,
-          occurrenceId: drawn.occurrenceId,
-          variantId: drawn.variantId,
-          zone: CardZone.HAND,
-          nativeDirection: selection.nativeDirection,
-          effectiveDirection: selection.effectiveDirection,
-        ),
+        CardRuntimeState(cardId: concept.concept.id, zone: CardZone.HAND),
       ];
-      _history[drawn.cardId] = CardHistoryState.seenUnplayed;
+      _history[concept.concept.id] = CardHistoryState.seenUnplayed;
       needed--;
     }
-    _faceToFaceDeck = List.of(deck.faceToFace);
-    _distanceDeck = List.of(deck.distance);
-    if (needed < const BalanceConfig().handSize) _recentCardIds = [];
   }
 
   void _buildDeckCycle() {
-    final source = <DeckCandidateV3>[];
-    for (final definition in _definitions.values) {
-      final card = _networkCard(
-        definition.stableId,
-        context: _context.copyWith(chiliActive: 5, chiliUnlocked: 5),
-      );
-      if (card == null) continue;
-      source.add(
-        DeckCandidateV3(
-          cardId: card.id,
-          variantId: card.variant.id,
-          spiceLevel: card.chiliLevel,
-          distanceExcluded: card.variant.tags.contains(
-            'v3.technique.distance_exclue',
-          ),
-        ),
-      );
+    if (_cycleInitialized) {
+      if (_usageCheckpoint.cycle == _deckCycle) return;
+      _priorCheckpoints = [..._priorCheckpoints, _usageCheckpoint];
     }
-    final build = const SessionDeckBuilderV3().build(
-      eligible: source,
-      targetBySpice: _targetBySpice(source.length, _deckStyle),
-      style: _deckStyle,
+    _usageCheckpoint = ConceptUsageCheckpoint.startCycle(
+      sessionId: session.id,
+      ownerPlayerId: playerId,
+      cycle: _deckCycle,
+      catalog: _conceptCatalog.concepts,
+      initialClothing: _initialClothing,
     );
-    final decks = HybridSessionDecks(source: build.cards);
-    _faceToFaceDeck = List.of(decks.faceToFace);
-    _distanceDeck = List.of(decks.distance);
-    _deckShortages = List.of(build.shortages);
+    _cycleInitialized = true;
+    _deckShortages = [];
   }
 
   NetworkDuelCard? _networkCard(
     String cardId, {
     String? occurrenceId,
     String? variantId,
-    EngineSessionContext? context,
+    ConceptActionOption? option,
   }) {
+    for (final checkpoint in [_usageCheckpoint, ..._priorCheckpoints]) {
+      for (final usage in checkpoint.usagesByIntent.values) {
+        if (usage.usageId == occurrenceId) {
+          return _cardFromUsage(
+            NetworkUsageProjection.fromSnapshot(
+              usage,
+              sharedParameterKeys: const {},
+              sharedEffectIds: const {},
+              includePersonalValue: true,
+            ),
+          );
+        }
+      }
+    }
     final definition = _definitions[cardId];
-    final engine = _engineCards[cardId];
-    if (definition == null || engine == null) return null;
-    final eligible = variantId == null
-        ? const EligibilityEngine()
-              .evaluate(
-                card: engine,
-                context: context ?? _context,
-                actor: _profile(playerId),
-                partner: _profile(opponentId),
-                hierarchy: _hierarchy,
-                requirePersonalValue: true,
-              )
-              .eligibleVariants
-              .firstOrNull
-        : engine.variants.where((item) => item.id == variantId).firstOrNull;
-    if (eligible == null) return null;
+    if (definition == null) return null;
+    final options = choicesFor(cardId);
+    final selected =
+        option ??
+        options
+            .where((o) => variantId == null || o.choice.actionId == variantId)
+            .firstOrNull;
+    if (selected == null) return null;
+    final eligible = selected.variant;
     final variant = definition.variants.firstWhere(
-      (item) => item.stableId == eligible.id,
+      (v) => v.stableId == eligible.id,
     );
-    final occurrence = occurrenceId == null
-        ? null
-        : _runtime
-              .where((item) => item.occurrenceId == occurrenceId)
-              .firstOrNull;
+    final preferenceIds = eligible.tags
+        .where((t) => t.startsWith('v3.preference.'))
+        .toList();
+    if (preferenceIds.isEmpty) return null;
+    bool allows(ProfileRole role) => preferenceIds.every((id) {
+      final value = _profile(playerId).preference(id);
+      return value.status == PreferenceStatus.ACCEPTED &&
+          value.valueFor(role) != null;
+    });
+    final reversible =
+        eligible.invertible &&
+        eligible.tags.contains('v3.direction.faire') &&
+        eligible.tags.contains('v3.direction.recevoir');
+    final fixed = eligible.tags.contains('v3.direction.mutuel')
+        ? CardOccurrenceDirection.MUTUEL
+        : eligible.tags.contains('v3.direction.solo')
+        ? CardOccurrenceDirection.SOLO
+        : _fixedDirection(definition, variant);
+    CardDirectionSelection direction;
+    try {
+      direction = const CardDirectionEngine().select(
+        reversible: reversible,
+        fixedDirection: fixed,
+        faireAllowed: allows(ProfileRole.FAIRE),
+        recevoirAllowed: allows(ProfileRole.RECEVOIR),
+        chooseFaire: Random(
+          _stableHash('${session.id}/$playerId/$_deckCycle/$cardId/direction'),
+        ).nextBool(),
+      );
+    } on StateError {
+      return null;
+    }
     final role = _profileRole(
-      occurrence?.effectiveDirection ?? _fixedDirection(definition, variant),
-      fallback: _roleFor(definition, variant),
+      direction.effectiveDirection,
+      fallback: ProfileRole.GENERAL,
     );
-    final elementId =
-        eligible.tags
-            .where((tag) => tag.startsWith('v3.preference.'))
-            .firstOrNull ??
-        _legacyElementId(definition, variant, role);
-    final activeValue = _privateValue(elementId, role);
-    if (activeValue == null) return null;
+    if (!allows(role)) return null;
+    final elementId = preferenceIds.first;
+    final value = _privateValue(elementId, role);
+    if (value == null) return null;
     return NetworkDuelCard(
       definition: definition,
-      engine: engine,
+      engine: EngineCard(id: cardId, variants: [eligible]),
       variant: eligible,
       role: role,
       preference: _preference(
         elementId,
         role,
-        activeValue,
-        faire: _privateValue(elementId, ProfileRole.FAIRE),
-        recevoir: _privateValue(elementId, ProfileRole.RECEVOIR),
+        value,
+        faire: allows(ProfileRole.FAIRE)
+            ? _privateValue(elementId, ProfileRole.FAIRE)
+            : null,
+        recevoir: allows(ProfileRole.RECEVOIR)
+            ? _privateValue(elementId, ProfileRole.RECEVOIR)
+            : null,
       ),
-      occurrenceId: occurrenceId,
-      nativeDirection:
-          occurrence?.nativeDirection ?? _fixedDirection(definition, variant),
-      effectiveDirection:
-          occurrence?.effectiveDirection ??
-          _fixedDirection(definition, variant),
+      occurrenceId: occurrenceId ?? cardId,
+      nativeDirection: direction.nativeDirection,
+      effectiveDirection: direction.effectiveDirection,
+    );
+  }
+
+  NetworkDuelCard _cardFromUsage(NetworkUsageProjection usage) {
+    final action = usage.resolvedAction;
+    final actionId = (action['stage_id'] ?? action['variant_id'])! as String;
+    final template = _definitions[usage.conceptId] ?? _definitions.values.first;
+    final variant = CardVariantDefinition.fromJson({
+      ...template.variants.first.reader.json,
+      'stable_id': actionId,
+      'card_id': usage.conceptId,
+      'action_text': action['action_text'],
+      'details_text': null,
+      'chili_level': action['effective_chili'],
+    });
+    final definition = CardDefinition.fromJson({
+      ...template.reader.json,
+      'stable_id': usage.conceptId,
+      'title': _definitions[usage.conceptId]?.title ?? usage.conceptId,
+      'action_text': action['action_text'],
+      'variants': [variant.toJson()],
+    });
+    final direction = CardOccurrenceDirection.values.byName(
+      action['direction']! as String,
+    );
+    final role = _profileRole(direction, fallback: ProfileRole.GENERAL);
+    final engine = EngineVariant(
+      id: actionId,
+      chiliLevel: action['effective_chili']! as int,
+      tags: (action['tags']! as List).cast<String>().toSet(),
+    );
+    return NetworkDuelCard(
+      definition: definition,
+      engine: EngineCard(id: usage.conceptId, variants: [engine]),
+      variant: engine,
+      role: role,
+      preference: _preference(
+        'historical.snapshot',
+        role,
+        usage.snapshotValue!,
+      ),
+      occurrenceId: usage.usageId,
+      nativeDirection: CardOccurrenceDirection.values.byName(
+        usage.toJson()['native_direction']! as String,
+      ),
+      effectiveDirection: direction,
     );
   }
 
@@ -1987,22 +2363,31 @@ final class NetworkGameController extends ChangeNotifier {
       activeReveal: _activeReveal,
       nextRoundPrepared: _nextRoundPrepared,
       learningRecordedRounds: _learningRecordedRounds,
-      faceToFaceDeck: _faceToFaceDeck,
-      distanceDeck: _distanceDeck,
       deckCycle: _deckCycle,
       infiniteMode: _infiniteMode,
       deckStyle: _deckStyle,
       deckShortages: _deckShortages,
-      recentCardIds: _recentCardIds,
       publicDiscards: _publicDiscards,
       choiceVersion: _choiceVersion,
+      cancelCommitRequested: _cancelCommitRequested,
+      conceptCheckpoint: _usageCheckpoint,
+      priorCheckpoints: _priorCheckpoints,
+      activeChili: _context.chiliActive,
+      initialClothing: _initialClothing,
+      clothesByPlayer: _context.clothesByPlayer,
+      clothingObservations: _clothingObservations,
     ),
   );
 
   void _capturePublicDiscards(NetworkGameRoundStateDto value) {
     if (value.finalResolution == null) return;
     final known = _publicDiscards.map((card) => card.occurrenceId).toSet();
-    void add(String cardId, String variantId, String occurrenceId) {
+    void add(
+      String cardId,
+      String variantId,
+      String occurrenceId, [
+      NetworkUsageProjection? usage,
+    ]) {
       if (!known.add(occurrenceId)) return;
       _publicDiscards = [
         ..._publicDiscards,
@@ -2011,51 +2396,23 @@ final class NetworkGameController extends ChangeNotifier {
           variantId: variantId,
           occurrenceId: occurrenceId,
           roundNumber: value.roundNumber,
+          usage: usage,
         ),
       ];
     }
 
+    for (final card in value.finalResolution!.compromise) {
+      add(card.cardId, card.variantId, card.occurrenceId, card.usage);
+    }
     for (final reveal in [value.ownReveal, value.opponentReveal]) {
       if (reveal == null) continue;
       add(
         reveal.choice.cardId,
         reveal.choice.variantId,
-        (reveal.choice.parameters['occurrence_id'] as String?) ??
-            '${value.roundId}:${reveal.playerId}',
+        (reveal.choice.usageId) ?? '${value.roundId}:${reveal.playerId}',
+        reveal.choice.usage,
       );
     }
-    for (final card in value.finalResolution!.compromise) {
-      add(card.cardId, card.variantId, card.occurrenceId);
-    }
-  }
-
-  void _rememberRecent(Iterable<String> cardIds) {
-    _recentCardIds = [
-      ..._recentCardIds,
-      ...cardIds,
-    ].reversed.toSet().take(4).toList().reversed.toList();
-  }
-
-  static Map<int, int> _targetBySpice(int size, PlayerStyle style) {
-    if (size <= 0) return const {};
-    final weights = const BalanceConfig().styleDistributions[style]!;
-    final total = weights.values.fold<double>(0, (sum, value) => sum + value);
-    final targets = <int, int>{};
-    var assigned = 0;
-    for (var level = 1; level <= 5; level++) {
-      final count = (size * weights[level]! / total).floor();
-      targets[level] = count;
-      assigned += count;
-    }
-    var level = style == PlayerStyle.SOFT ? 1 : 5;
-    while (assigned < size) {
-      targets[level] = (targets[level] ?? 0) + 1;
-      assigned++;
-      level = style == PlayerStyle.SOFT
-          ? (level == 5 ? 1 : level + 1)
-          : (level == 1 ? 5 : level - 1);
-    }
-    return targets;
   }
 
   NetworkCommandDto _command(
@@ -2124,51 +2481,6 @@ final class NetworkGameController extends ChangeNotifier {
     'source': PreferenceSource.ONBOARDING.name,
   });
 
-  CardDirectionSelection? _directionFor(DeckCandidateV3 candidate) {
-    final definition = _definitions[candidate.cardId];
-    final variant = definition?.variants
-        .where((item) => item.stableId == candidate.variantId)
-        .firstOrNull;
-    if (definition == null || variant == null) return null;
-    final fixed = _fixedDirection(definition, variant);
-    final reversible = _isReversible(definition, variant);
-    final preferenceIds =
-        (variant.v3?.tags ?? definition.v3?.tags ?? const <String>[])
-            .where((tag) => tag.startsWith('v3.preference.'))
-            .toList();
-    if (preferenceIds.isEmpty) {
-      preferenceIds.add(
-        _legacyElementId(definition, variant, ProfileRole.GENERAL),
-      );
-    }
-    final profile = _profile(playerId);
-    final faireAllowed = preferenceIds.every((elementId) {
-      final preference = profile.preference(elementId);
-      return preference.status == PreferenceStatus.ACCEPTED &&
-          preference.faire != null;
-    });
-    final recevoirAllowed = preferenceIds.every((elementId) {
-      final preference = profile.preference(elementId);
-      return preference.status == PreferenceStatus.ACCEPTED &&
-          preference.recevoir != null;
-    });
-    try {
-      return const CardDirectionEngine().select(
-        reversible: reversible,
-        fixedDirection: fixed,
-        faireAllowed: faireAllowed,
-        recevoirAllowed: recevoirAllowed,
-        chooseFaire: Random(
-          _stableHash(
-            '${session.id}/$playerId/${candidate.occurrenceId}/direction',
-          ),
-        ).nextBool(),
-      );
-    } on StateError {
-      return null;
-    }
-  }
-
   static ProfileRole _profileRole(
     CardOccurrenceDirection direction, {
     required ProfileRole fallback,
@@ -2197,17 +2509,6 @@ final class NetworkGameController extends ChangeNotifier {
       return CardOccurrenceDirection.FAIRE;
     }
     return CardOccurrenceDirection.GENERAL;
-  }
-
-  static bool _isReversible(
-    CardDefinition card,
-    CardVariantDefinition variant,
-  ) {
-    final direction = _fixedDirection(card, variant);
-    return (variant.inversionOverride ?? card.inversionPolicy) ==
-            InversionPolicy.SWAP_ACTOR_TARGET &&
-        (direction == CardOccurrenceDirection.FAIRE ||
-            direction == CardOccurrenceDirection.RECEVOIR);
   }
 
   int _fixtureValue(String id, String element, ProfileRole role) =>

@@ -1,5 +1,6 @@
 import '../../core/json.dart';
 import 'definitions.dart';
+import 'concept_catalog.dart';
 
 /// Parsed data, not proof of referential validity. Use CatalogValidator before
 /// passing it to a future engine. Source documents are preserved without loss.
@@ -8,9 +9,14 @@ final class Catalog {
     required JsonMap cardsDocument,
     required JsonMap profilesDocument,
     required JsonMap tagsDocument,
+    this.concepts,
+    JsonMap? conceptRules,
   }) : cardsDocument = freezeJson(cardsDocument)! as JsonMap,
        profilesDocument = freezeJson(profilesDocument)! as JsonMap,
-       tagsDocument = freezeJson(tagsDocument)! as JsonMap {
+       tagsDocument = freezeJson(tagsDocument)! as JsonMap,
+       conceptRules = conceptRules == null
+           ? null
+           : freezeJson(conceptRules)! as JsonMap {
     final cr = JsonReader(this.cardsDocument, 'Catalog', ownerId: 'cards');
     final pr = JsonReader(
       this.profilesDocument,
@@ -36,6 +42,8 @@ final class Catalog {
   final JsonMap cardsDocument;
   final JsonMap profilesDocument;
   final JsonMap tagsDocument;
+  final ConceptCatalog? concepts;
+  final JsonMap? conceptRules;
   int get schemaVersion => 1;
   late final int catalogVersion;
   late final int profileVersion;

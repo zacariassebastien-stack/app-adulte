@@ -1,0 +1,349 @@
+{
+  "schema_version": 1,
+  "source": "V4 correspondence, P1-P6 validated 2026-10-15; source metadata only, never legacy draw weights",
+  "bindings": [
+    {
+      "concept_id": "001",
+      "source_card_ids": [
+        "card.hug"
+      ]
+    },
+    {
+      "concept_id": "002",
+      "source_card_ids": [
+        "card.kiss_me",
+        "card.neck_kisses"
+      ]
+    },
+    {
+      "concept_id": "003",
+      "source_card_ids": [
+        "card.kiss_me",
+        "card.deep_kiss"
+      ]
+    },
+    {
+      "concept_id": "004",
+      "source_card_ids": [
+        "card.oral_give",
+        "card.anal_oral"
+      ]
+    },
+    {
+      "concept_id": "005",
+      "source_card_ids": [
+        "card.caress"
+      ]
+    },
+    {
+      "concept_id": "006",
+      "source_card_ids": [
+        "card.remove_one_clothing"
+      ]
+    },
+    {
+      "concept_id": "007",
+      "source_card_ids": [
+        "card.remove_two_clothing"
+      ]
+    },
+    {
+      "concept_id": "008",
+      "source_card_ids": [
+        "card.underwear_only"
+      ]
+    },
+    {
+      "concept_id": "009",
+      "source_card_ids": [
+        "card.nudity"
+      ]
+    },
+    {
+      "concept_id": "010",
+      "source_card_ids": [
+        "card.striptease"
+      ]
+    },
+    {
+      "concept_id": "012",
+      "source_card_ids": [
+        "card.choose_outfit"
+      ]
+    },
+    {
+      "concept_id": "013",
+      "source_card_ids": [
+        "card.v3.costume_and_light_outfit"
+      ]
+    },
+    {
+      "concept_id": "016",
+      "source_card_ids": [
+        "card.imposed_position"
+      ]
+    },
+    {
+      "concept_id": "018",
+      "source_card_ids": [
+        "card.simulate_act"
+      ]
+    },
+    {
+      "concept_id": "019",
+      "source_card_ids": [
+        "card.masturbate_partner"
+      ]
+    },
+    {
+      "concept_id": "020",
+      "source_card_ids": [
+        "card.mutual_masturbation"
+      ]
+    },
+    {
+      "concept_id": "021",
+      "source_card_ids": [
+        "card.masturbation"
+      ]
+    },
+    {
+      "concept_id": "022",
+      "source_card_ids": [
+        "card.anal_manual"
+      ]
+    },
+    {
+      "concept_id": "023",
+      "source_card_ids": [
+        "card.anal_manual"
+      ]
+    },
+    {
+      "concept_id": "024",
+      "source_card_ids": [
+        "card.manual_intimate"
+      ]
+    },
+    {
+      "concept_id": "025",
+      "source_card_ids": [
+        "card.oral_give"
+      ]
+    },
+    {
+      "concept_id": "026",
+      "source_card_ids": [
+        "card.sixty_nine"
+      ]
+    },
+    {
+      "concept_id": "027",
+      "source_card_ids": [
+        "card.vaginal_penetration"
+      ]
+    },
+    {
+      "concept_id": "028",
+      "source_card_ids": [
+        "card.anal_oral"
+      ]
+    },
+    {
+      "concept_id": "029",
+      "source_card_ids": [
+        "card.choose_sex_position"
+      ]
+    },
+    {
+      "concept_id": "030",
+      "source_card_ids": [
+        "card.facesitting"
+      ]
+    },
+    {
+      "concept_id": "031",
+      "source_card_ids": [
+        "card.genital_rubbing"
+      ]
+    },
+    {
+      "concept_id": "032",
+      "source_card_ids": [
+        "card.give_order"
+      ]
+    },
+    {
+      "concept_id": "033",
+      "source_card_ids": [
+        "card.no_touch"
+      ]
+    },
+    {
+      "concept_id": "034",
+      "source_card_ids": [
+        "card.tie_me"
+      ]
+    },
+    {
+      "concept_id": "035",
+      "source_card_ids": [
+        "card.blindfold"
+      ]
+    },
+    {
+      "concept_id": "037",
+      "source_card_ids": [
+        "card.spanking"
+      ]
+    },
+    {
+      "concept_id": "038",
+      "source_card_ids": [
+        "card.dance_for_me"
+      ]
+    },
+    {
+      "concept_id": "039",
+      "source_card_ids": [
+        "card.pose"
+      ]
+    },
+    {
+      "concept_id": "042",
+      "source_card_ids": [
+        "card.sexting"
+      ]
+    },
+    {
+      "concept_id": "043",
+      "source_card_ids": [
+        "card.flirty_message"
+      ]
+    },
+    {
+      "concept_id": "044",
+      "source_card_ids": [
+        "card.suggestive_photo",
+        "card.underwear_photo",
+        "card.nude_photo"
+      ]
+    },
+    {
+      "concept_id": "045",
+      "source_card_ids": [
+        "card.suggestive_photo",
+        "card.underwear_photo",
+        "card.nude_photo"
+      ]
+    },
+    {
+      "concept_id": "046",
+      "source_card_ids": [
+        "card.intimate_video"
+      ]
+    },
+    {
+      "concept_id": "047",
+      "source_card_ids": [
+        "card.intimate_video"
+      ]
+    },
+    {
+      "concept_id": "048",
+      "source_card_ids": [
+        "card.v3.roleplay_scene"
+      ]
+    },
+    {
+      "concept_id": "049",
+      "source_card_ids": [
+        "card.v3.sextoy_play"
+      ]
+    },
+    {
+      "concept_id": "050",
+      "source_card_ids": [
+        "card.v3.sextoy_play"
+      ]
+    },
+    {
+      "concept_id": "051",
+      "source_card_ids": [
+        "card.v3.sextoy_play"
+      ]
+    },
+    {
+      "concept_id": "052",
+      "source_card_ids": [
+        "card.v3.remote_toy_control"
+      ]
+    },
+    {
+      "concept_id": "053",
+      "source_card_ids": [
+        "card.v3.shared_adult_content"
+      ]
+    },
+    {
+      "concept_id": "054",
+      "source_card_ids": [
+        "card.v3.exposed_setting"
+      ]
+    },
+    {
+      "concept_id": "055",
+      "source_card_ids": [
+        "card.v3.ejaculation_choice"
+      ]
+    },
+    {
+      "concept_id": "056",
+      "source_card_ids": [
+        "card.v3.degrading_words"
+      ]
+    },
+    {
+      "concept_id": "057",
+      "source_card_ids": [
+        "card.v3.beg_for_it"
+      ]
+    },
+    {
+      "concept_id": "058",
+      "source_card_ids": [
+        "card.v3.unusual_private_place"
+      ]
+    },
+    {
+      "concept_id": "060",
+      "source_card_ids": [
+        "card.v3.auditory_deprivation"
+      ]
+    },
+    {
+      "concept_id": "061",
+      "source_card_ids": [
+        "card.v3.silence_rule"
+      ]
+    },
+    {
+      "concept_id": "062",
+      "source_card_ids": [
+        "card.v3.neck_hold"
+      ]
+    },
+    {
+      "concept_id": "063",
+      "source_card_ids": [
+        "card.v3.gentle_pull"
+      ]
+    },
+    {
+      "concept_id": "065",
+      "source_card_ids": [
+        "card.masturbate_partner"
+      ]
+    }
+  ]
+}

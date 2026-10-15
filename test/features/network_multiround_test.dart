@@ -19,6 +19,7 @@ void main() {
   setUpAll(() async {
     catalog = await const CatalogLoader().load(
       (path) => File(path).readAsString(),
+      includeConcepts: true,
     );
     session = LobbySession(
       id: 'session-multi',
@@ -31,6 +32,161 @@ void main() {
       ],
     );
   });
+
+  test(
+    'concept reservation can be cancelled before engagement without quota loss',
+    () async {
+      final setup = await _setup(session, catalog);
+      addTearDown(setup.dispose);
+      final card = setup.alice.hand.first;
+      final before = setup.alice.usageCheckpoint.stock.remainingFor(card.id);
+      setup.alice.selectCard(card.identity);
+      await setup.alice.reserveSelection();
+      expect(setup.alice.usageCheckpoint.availableFor(card.id), before - 1);
+      expect(setup.alice.usageCheckpoint.stock.remainingFor(card.id), before);
+      await setup.alice.cancelPendingSelection();
+      expect(setup.alice.usageCheckpoint.availableFor(card.id), before);
+      expect(setup.alice.usageCheckpoint.usagesByIntent, isEmpty);
+      expect(setup.backend.round.commits, isEmpty);
+    },
+  );
+
+  test(
+    'native usage and quota survive retry and controller reconstruction',
+    () async {
+      final backend = _Backend();
+      final store = MemoryNetworkDuelSecretStore();
+      var controller = _controller(backend, session, catalog, 'alice', store);
+      await controller.start();
+      final card = controller.hand.first;
+      controller.selectCard(card.identity);
+      await controller.reserveSelection();
+      controller.chooseAction(controller.choicesFor(card.id).first);
+      await controller.confirmSelection();
+      final saved = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      final encoded = saved.conceptCheckpoint!.encode();
+      final usage = saved.activeReveal!.choice.usageId;
+      expect(usage, startsWith('usage:v1:'));
+      expect(
+        saved.activeReveal!.choice.toJson(),
+        isNot(contains('occurrence_id')),
+      );
+      await controller.retryCurrentAction();
+      expect(controller.usageCheckpoint.encode(), encoded);
+      controller.dispose();
+      controller = _controller(backend, session, catalog, 'alice', store);
+      addTearDown(controller.dispose);
+      await controller.start();
+      expect(controller.usageCheckpoint.encode(), encoded);
+      expect(controller.selectedCard!.identity, usage);
+      expect(
+        controller.selectedCard!.chiliLevel,
+        saved.activeReveal!.choice.usage!.resolvedAction['effective_chili'],
+      );
+    },
+  );
+
+  test(
+    'resolved context changes eligibility without replacing held concepts or capacities',
+    () async {
+      final setup = await _setup(session, catalog);
+      addTearDown(setup.dispose);
+      final held = setup.alice.heldConcepts.map((c) => c.id).toList();
+      final capacity = setup.alice.usageCheckpoint.stock.capacity;
+      await setup.alice.applyResolvedContext(
+        EngineSessionContext(
+          mode: SessionMode.face_to_face,
+          proximity: ProximityState.TOGETHER,
+          chiliActive: 4,
+          chiliUnlocked: 4,
+          clothesByPlayer: const {'alice': 0, 'bob': 0},
+          mediaCapabilitiesByPlayer: {
+            for (final id in ['alice', 'bob'])
+              id: MediaCapability.values.toSet(),
+          },
+        ),
+      );
+      expect(setup.alice.heldConcepts.map((c) => c.id), held);
+      expect(setup.alice.usageCheckpoint.stock.capacity, capacity);
+      expect(setup.alice.choicesFor('045').map((o) => o.choice.chili), [
+        1,
+        2,
+        4,
+      ]);
+    },
+  );
+
+  test(
+    'retry after an unrecorded commit reuses the persisted usage nonce and quota',
+    () async {
+      final backend = _Backend();
+      final store = MemoryNetworkDuelSecretStore();
+      final controller = _controller(backend, session, catalog, 'alice', store);
+      addTearDown(controller.dispose);
+      await controller.start();
+      controller.selectCard(controller.hand.first.identity);
+      backend.failNextCommit = true;
+      await controller.confirmSelection();
+      expect(controller.viewState, NetworkGameViewState.error);
+      final saved = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      expect(backend.round.commits, isEmpty);
+      await controller.retryCurrentAction();
+      final retried = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      expect(retried.activeReveal!.nonce, saved.activeReveal!.nonce);
+      expect(
+        retried.activeReveal!.choice.usageId,
+        saved.activeReveal!.choice.usageId,
+      );
+      expect(
+        retried.conceptCheckpoint!.encode(),
+        saved.conceptCheckpoint!.encode(),
+      );
+      expect(backend.round.commits, contains('alice'));
+    },
+  );
+
+  test(
+    'reconnection resumes a persisted cancellation without refunding quota',
+    () async {
+      final backend = _Backend();
+      final store = MemoryNetworkDuelSecretStore();
+      var controller = _controller(backend, session, catalog, 'alice', store);
+      await controller.start();
+      final card = controller.hand.first;
+      controller.selectCard(card.identity);
+      await controller.confirmSelection();
+      final checkpoint = controller.usageCheckpoint.encode();
+      backend.failNextCancellation = true;
+      expect(await controller.cancelSelection(), isFalse);
+      final saved = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      expect(saved.cancelCommitRequested, isTrue);
+      expect(backend.round.commits, contains('alice'));
+      controller.dispose();
+      controller = _controller(backend, session, catalog, 'alice', store);
+      addTearDown(controller.dispose);
+      await controller.start();
+      expect(backend.round.commits, isNot(contains('alice')));
+      expect(controller.usageCheckpoint.encode(), checkpoint);
+      final resumed = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      expect(resumed.cancelCommitRequested, isFalse);
+      expect(resumed.activeReveal, isNull);
+    },
+  );
 
   test('network DTO round-trips without private hand, lock or profile', () {
     final state = _Backend().state('alice');
@@ -159,7 +315,10 @@ void main() {
       await setup.alice.confirmSelection();
       expect(
         setup.alice.runtime
-            .singleWhere((card) => card.occurrenceId == selected.identity)
+            .singleWhere(
+              (card) =>
+                  card.cardId == selected.id && card.zone == CardZone.ENGAGED,
+            )
             .zone,
         CardZone.ENGAGED,
       );
@@ -205,11 +364,11 @@ void main() {
     addTearDown(receiving.dispose);
     await receiving.start();
     expect(
-      receiving.runtime.map((card) => card.nativeDirection),
+      receiving.hand.map((card) => card.nativeDirection),
       isNot(contains(CardOccurrenceDirection.FAIRE)),
     );
     expect(
-      receiving.runtime.map((card) => card.nativeDirection),
+      receiving.hand.map((card) => card.nativeDirection),
       contains(CardOccurrenceDirection.RECEVOIR),
     );
     expect(
@@ -234,7 +393,7 @@ void main() {
     addTearDown(excluded.dispose);
     await excluded.start();
     expect(
-      excluded.runtime.map((card) => card.nativeDirection),
+      excluded.hand.map((card) => card.nativeDirection),
       isNot(
         contains(
           anyOf(
@@ -247,7 +406,7 @@ void main() {
   });
 
   test(
-    'committed choice can be cancelled exactly once before reveal',
+    'server commit cancellation retains the definitively consumed conceptual use',
     () async {
       final setup = await _setup(session, catalog);
       addTearDown(setup.dispose);
@@ -263,14 +422,15 @@ void main() {
       await _settle();
 
       expect(setup.backend.round.commits, isNot(contains('alice')));
+      expect(setup.alice.usageCheckpoint.usagesByIntent, hasLength(1));
       expect(
-        setup.alice.hand.where((item) => item.identity == card.identity),
-        hasLength(1),
+        setup.alice.usageCheckpoint.stock.remainingFor(card.id),
+        setup.alice.usageCheckpoint.stock.capacity[card.id]! - 1,
       );
       expect(setup.alice.lockedCardId, isNull);
       expect(setup.alice.viewState, NetworkGameViewState.choosing);
 
-      setup.alice.selectCard(card.identity);
+      setup.alice.selectCard(setup.alice.hand.first.identity);
       await setup.alice.confirmSelection();
       expect(setup.backend.round.commits, contains('alice'));
     },
@@ -407,14 +567,15 @@ void main() {
       addTearDown(controller.dispose);
       await controller.start();
       expect(controller.viewState, NetworkGameViewState.choosing);
+      expect(controller.usageCheckpoint.usagesByIntent, hasLength(1));
       expect(
-        controller.hand.where((item) => item.identity == card.identity),
-        hasLength(1),
+        controller.usageCheckpoint.stock.remainingFor(card.id),
+        controller.usageCheckpoint.stock.capacity[card.id]! - 1,
       );
       expect((await learning.load('alice'))?.entries ?? const {}, isEmpty);
       expect(backend.points, {'alice': 100, 'bob': 100});
 
-      controller.selectCard(card.identity);
+      controller.selectCard(controller.hand.first.identity);
       await controller.confirmSelection();
       final newNonce = (await store.loadGame(
         sessionId: session.id,
@@ -1225,6 +1386,8 @@ final class _RoundRecord {
 }
 
 final class _Backend {
+  bool failNextCommit = false;
+  bool failNextCancellation = false;
   final rounds = <int, _RoundRecord>{1: _RoundRecord(1)};
   final points = <String, int>{'alice': 100, 'bob': 100};
   final commands = <String>{};
@@ -1240,6 +1403,7 @@ final class _Backend {
   NetworkGameRepository repository(String player) => _Repository(this, player);
 
   NetworkGameRoundStateDto state(String player) => NetworkGameRoundStateDto(
+    usageContractVersion: 1,
     roundId: round.id,
     sessionId: 'session-multi',
     sessionRound: 'session-multi.round-${round.number}',
@@ -1308,6 +1472,10 @@ final class _Repository
     required NetworkCommandDto command,
     required ChoiceCommitmentDto commitment,
   }) async {
+    if (backend.failNextCommit) {
+      backend.failNextCommit = false;
+      throw const NetworkRoundException('TEST_CONNECTION_LOST_BEFORE_COMMIT');
+    }
     if (!_accept(command)) return backend.state(player);
     if (backend.phase != NetworkGamePhase.commit) {
       throw const NetworkRoundException('ROUND_COMMIT_CLOSED');
@@ -1347,6 +1515,10 @@ final class _Repository
   Future<NetworkGameRoundStateDto> cancelCommit({
     required NetworkCommandDto command,
   }) async {
+    if (backend.failNextCancellation) {
+      backend.failNextCancellation = false;
+      throw const NetworkRoundException('TEST_CONNECTION_LOST_BEFORE_CANCEL');
+    }
     if (!backend.commands.add(command.commandId)) return backend.state(player);
     if (backend.phase != NetworkGamePhase.commit) {
       throw const NetworkRoundException('ROUND_CANCEL_CLOSED');

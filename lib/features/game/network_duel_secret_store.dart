@@ -7,6 +7,8 @@ import '../../domain/session/session_state.dart';
 import '../../engines/draw/draw_engine.dart';
 import '../../engines/deck/session_deck_builder.dart';
 import '../../sync/commit_reveal/commit_reveal.dart';
+import '../../engines/usage/concept_usage_checkpoint.dart';
+import '../../sync/protocol/network_usage_projection.dart';
 
 final class NetworkPlayedCardRecord {
   const NetworkPlayedCardRecord({
@@ -14,16 +16,19 @@ final class NetworkPlayedCardRecord {
     required this.variantId,
     required this.occurrenceId,
     required this.roundNumber,
+    this.usage,
   });
 
   final String cardId, variantId, occurrenceId;
   final int roundNumber;
+  final NetworkUsageProjection? usage;
 
   Map<String, Object?> toJson() => {
     'card_id': cardId,
     'variant_id': variantId,
     'occurrence_id': occurrenceId,
     'round_number': roundNumber,
+    'usage': usage?.toJson(),
   };
 
   factory NetworkPlayedCardRecord.fromJson(Map<String, Object?> json) =>
@@ -32,6 +37,11 @@ final class NetworkPlayedCardRecord {
         variantId: json['variant_id']! as String,
         occurrenceId: json['occurrence_id']! as String,
         roundNumber: json['round_number']! as int,
+        usage: json['usage'] == null
+            ? null
+            : NetworkUsageProjection.fromJson(
+                Map<String, Object?>.from(json['usage']! as Map),
+              ),
       );
 }
 
@@ -43,23 +53,27 @@ final class NetworkPrivateGameState {
     this.activeReveal,
     this.nextRoundPrepared = false,
     Set<int> learningRecordedRounds = const {},
-    List<DeckCandidateV3> faceToFaceDeck = const [],
-    List<DeckCandidateV3> distanceDeck = const [],
     this.deckCycle = 1,
     this.infiniteMode = false,
     this.deckStyle = PlayerStyle.SOFT,
     List<DeckShortage> deckShortages = const [],
-    List<String> recentCardIds = const [],
     List<NetworkPlayedCardRecord> publicDiscards = const [],
     this.choiceVersion = 0,
+    this.cancelCommitRequested = false,
+    this.conceptCheckpoint,
+    this.activeChili = 2,
+    this.initialClothing = 5,
+    List<ConceptUsageCheckpoint> priorCheckpoints = const [],
+    Map<String, int> clothesByPlayer = const {},
+    Map<String, int> clothingObservations = const {},
   }) : cards = List.unmodifiable(cards),
        history = Map.unmodifiable(history),
        learningRecordedRounds = Set.unmodifiable(learningRecordedRounds),
-       faceToFaceDeck = List.unmodifiable(faceToFaceDeck),
-       distanceDeck = List.unmodifiable(distanceDeck),
        deckShortages = List.unmodifiable(deckShortages),
-       recentCardIds = List.unmodifiable(recentCardIds),
-       publicDiscards = List.unmodifiable(publicDiscards);
+       publicDiscards = List.unmodifiable(publicDiscards),
+       clothesByPlayer = Map.unmodifiable(clothesByPlayer),
+       priorCheckpoints = List.unmodifiable(priorCheckpoints),
+       clothingObservations = Map.unmodifiable(clothingObservations);
 
   final int roundNumber;
   final List<CardRuntimeState> cards;
@@ -67,15 +81,19 @@ final class NetworkPrivateGameState {
   final ChoiceRevealDto? activeReveal;
   final bool nextRoundPrepared;
   final Set<int> learningRecordedRounds;
-  final List<DeckCandidateV3> faceToFaceDeck;
-  final List<DeckCandidateV3> distanceDeck;
   final int deckCycle;
   final bool infiniteMode;
   final PlayerStyle deckStyle;
   final List<DeckShortage> deckShortages;
-  final List<String> recentCardIds;
   final List<NetworkPlayedCardRecord> publicDiscards;
   final int choiceVersion;
+  final bool cancelCommitRequested;
+  final ConceptUsageCheckpoint? conceptCheckpoint;
+  final int activeChili;
+  final int initialClothing;
+  final List<ConceptUsageCheckpoint> priorCheckpoints;
+  final Map<String, int> clothesByPlayer;
+  final Map<String, int> clothingObservations;
 
   Map<String, Object?> toJson() => {
     'round_number': roundNumber,
@@ -97,8 +115,6 @@ final class NetworkPrivateGameState {
     'active_reveal': activeReveal?.toJson(),
     'next_round_prepared': nextRoundPrepared,
     'learning_recorded_rounds': learningRecordedRounds.toList()..sort(),
-    'face_to_face_deck': [for (final card in faceToFaceDeck) _deckJson(card)],
-    'distance_deck': [for (final card in distanceDeck) _deckJson(card)],
     'deck_cycle': deckCycle,
     'infinite_mode': infiniteMode,
     'deck_style': deckStyle.name,
@@ -115,9 +131,17 @@ final class NetworkPrivateGameState {
           },
         },
     ],
-    'recent_card_ids': recentCardIds,
     'public_discards': [for (final card in publicDiscards) card.toJson()],
     'choice_version': choiceVersion,
+    'cancel_commit_requested': cancelCommitRequested,
+    'concept_checkpoint': conceptCheckpoint?.toJson(),
+    'active_chili': activeChili,
+    'initial_clothing': initialClothing,
+    'prior_checkpoints': [
+      for (final checkpoint in priorCheckpoints) checkpoint.toJson(),
+    ],
+    'clothes_by_player': clothesByPlayer,
+    'clothing_observations': clothingObservations,
   };
 
   factory NetworkPrivateGameState.fromJson(Map<String, Object?> json) =>
@@ -158,8 +182,6 @@ final class NetworkPrivateGameState {
             ((json['learning_recorded_rounds'] as List?) ?? const [])
                 .cast<int>()
                 .toSet(),
-        faceToFaceDeck: _deckList(json['face_to_face_deck']),
-        distanceDeck: _deckList(json['distance_deck']),
         deckCycle: (json['deck_cycle'] as int?) ?? 1,
         infiniteMode: (json['infinite_mode'] as bool?) ?? false,
         deckStyle: PlayerStyle.values.byName(
@@ -181,8 +203,6 @@ final class NetworkPrivateGameState {
                 },
               ),
         ],
-        recentCardIds: ((json['recent_card_ids'] as List?) ?? const [])
-            .cast<String>(),
         publicDiscards: [
           for (final raw in (json['public_discards'] as List?) ?? const [])
             NetworkPlayedCardRecord.fromJson(
@@ -190,43 +210,28 @@ final class NetworkPrivateGameState {
             ),
         ],
         choiceVersion: (json['choice_version'] as int?) ?? 0,
-      );
-
-  static Map<String, Object?> _deckJson(DeckCandidateV3 card) => {
-    'card_id': card.cardId,
-    'variant_id': card.variantId,
-    'spice_level': card.spiceLevel,
-    'distance_excluded': card.distanceExcluded,
-    'occurrence_id': card.occurrenceId,
-  };
-
-  static List<DeckCandidateV3> _deckList(Object? value) {
-    final result = <DeckCandidateV3>[];
-    final legacyOrdinals = <String, int>{};
-    for (final raw in (value as List?) ?? const []) {
-      final card = Map<String, Object?>.from(raw! as Map);
-      final cardId = card['card_id']! as String;
-      final variantId = card['variant_id']! as String;
-      final contentKey = '$cardId::$variantId';
-      final legacyOrdinal = legacyOrdinals.update(
-        contentKey,
-        (value) => value + 1,
-        ifAbsent: () => 1,
-      );
-      result.add(
-        DeckCandidateV3(
-          cardId: cardId,
-          variantId: variantId,
-          spiceLevel: card['spice_level']! as int,
-          distanceExcluded: card['distance_excluded']! as bool,
-          occurrenceId:
-              card['occurrence_id'] as String? ??
-              '$contentKey::legacy-$legacyOrdinal',
+        cancelCommitRequested:
+            (json['cancel_commit_requested'] as bool?) ?? false,
+        conceptCheckpoint: json['concept_checkpoint'] == null
+            ? null
+            : ConceptUsageCheckpoint.fromJson(
+                Map<String, Object?>.from(json['concept_checkpoint']! as Map),
+              ),
+        activeChili: (json['active_chili'] as int?) ?? 2,
+        initialClothing: (json['initial_clothing'] as int?) ?? 5,
+        priorCheckpoints: [
+          for (final value in (json['prior_checkpoints'] as List?) ?? [])
+            ConceptUsageCheckpoint.fromJson(
+              Map<String, Object?>.from(value as Map),
+            ),
+        ],
+        clothesByPlayer: Map<String, int>.from(
+          (json['clothes_by_player'] as Map?) ?? {},
+        ),
+        clothingObservations: Map<String, int>.from(
+          (json['clothing_observations'] as Map?) ?? {},
         ),
       );
-    }
-    return result;
-  }
 }
 
 abstract interface class NetworkDuelSecretStore {

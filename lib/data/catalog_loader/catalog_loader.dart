@@ -65,6 +65,7 @@ final class CatalogLoader {
   Future<Catalog> load(
     CatalogTextReader read, {
     String basePath = 'assets/catalog/source',
+    bool includeConcepts = false,
   }) async {
     Future<String> readFile(String name) async {
       final path = '$basePath/$name';
@@ -88,10 +89,24 @@ final class CatalogLoader {
       readFile('profile_elements.v1.fr.json'),
       readFile('tags.v1.json'),
     ]);
-    return loadJson(
+    final catalog = loadJson(
       cardsJson: sources[0],
       profilesJson: sources[1],
       tagsJson: sources[2],
+    );
+    if (!includeConcepts) return catalog;
+    final conceptDocuments = await Future.wait([
+      read('assets/catalog/concepts/active.fr.json'),
+      read('assets/catalog/concepts/runtime_rules.fr.json'),
+    ]);
+    return Catalog(
+      cardsDocument: catalog.cardsDocument,
+      profilesDocument: catalog.profilesDocument,
+      tagsDocument: catalog.tagsDocument,
+      concepts: ConceptCatalog.fromJson(
+        jsonDecode(conceptDocuments[0]) as JsonMap,
+      ),
+      conceptRules: jsonDecode(conceptDocuments[1]) as JsonMap,
     );
   }
 }

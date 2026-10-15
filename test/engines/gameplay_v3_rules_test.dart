@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -158,76 +157,6 @@ void main() {
       state = engine.validate(state, accepted: true);
       expect(state.finalWinnerId, 'A');
       expect(state.actionPoints, {'A': 95, 'B': 100});
-    });
-  });
-
-  group('session deck V3', () {
-    DeckCandidateV3 card(String id, int spice, {bool physical = false}) =>
-        DeckCandidateV3(
-          cardId: id,
-          variantId: '$id.v',
-          spiceLevel: spice,
-          distanceExcluded: physical,
-        );
-
-    test('distinct cards have priority and no card reaches half a group', () {
-      final result = const SessionDeckBuilderV3().build(
-        eligible: [card('a', 3), card('b', 3), card('c', 3)],
-        targetBySpice: const {3: 6},
-        style: PlayerStyle.EPICE,
-      );
-      final counts = <String, int>{};
-      for (final item in result.cards) {
-        counts[item.cardId] = (counts[item.cardId] ?? 0) + 1;
-      }
-      expect(result.cards, hasLength(6));
-      expect(counts.values.every((count) => count * 2 < 6), isTrue);
-    });
-
-    test('soft substitutes downward while spicy substitutes upward', () {
-      final pool = [card('low', 2), card('high', 4)];
-      final soft = const SessionDeckBuilderV3().build(
-        eligible: pool,
-        targetBySpice: const {3: 1},
-        style: PlayerStyle.SOFT,
-      );
-      final spicy = const SessionDeckBuilderV3().build(
-        eligible: pool,
-        targetBySpice: const {3: 1},
-        style: PlayerStyle.EPICE,
-      );
-      expect(soft.cards.single.spiceLevel, 2);
-      expect(spicy.cards.single.spiceLevel, 4);
-      expect(soft.adjusted, isTrue);
-    });
-
-    test('hybrid draw removes one mirrored occurrence only', () {
-      final a = card('a', 2, physical: true);
-      final b = card('b', 2);
-      final runtime = SessionDeckRuntime(
-        faceToFace: [a, a, a, b],
-        distance: [a, a],
-        random: Random(1),
-      );
-      expect(runtime.draw(HybridDeckOrientation.distance)!.cardId, 'a');
-      expect(
-        runtime.distance.where((item) => item.cardId == 'a'),
-        hasLength(1),
-      );
-      expect(
-        runtime.faceToFace.where((item) => item.cardId == 'a'),
-        hasLength(2),
-      );
-    });
-
-    test('orientation composition approximates complementary 70/30 decks', () {
-      final source = [
-        for (var i = 0; i < 5; i++) card('p$i', 2, physical: true),
-        for (var i = 0; i < 5; i++) card('r$i', 2),
-      ];
-      final decks = HybridSessionDecks(source: source);
-      expect(decks.faceToFace.where((c) => c.distanceExcluded), hasLength(7));
-      expect(decks.distance.where((c) => c.distanceExcluded), hasLength(3));
     });
   });
 }

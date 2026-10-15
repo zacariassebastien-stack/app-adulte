@@ -8,6 +8,7 @@ Future<Catalog> loadAssetCatalog({
   String assetPrefix = '',
 }) => const CatalogLoader().load(
   (path) => (bundle ?? rootBundle).loadString('$assetPrefix$path'),
+  includeConcepts: true,
 );
 
 Future<RoleplayScenarioLibrary> loadAssetRoleplayScenarios({
