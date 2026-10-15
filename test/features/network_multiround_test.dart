@@ -2346,6 +2346,59 @@ void main() {
     expect(sql, contains("set cycle_exhausted=exists("));
   });
 
+  group('low PA Recovery routing migration', () {
+    late String sql;
+    late String compactSql;
+
+    setUpAll(() {
+      sql = File(
+        'supabase/migrations/'
+        '202610100016_route_low_pa_to_recovery.sql',
+      ).readAsStringSync();
+      compactSql = sql.replaceAll(RegExp(r'\s+'), ' ');
+    });
+
+    test('two completions with balances above 10 reach WAITING_NEXT', () {
+      expect(compactSql, contains("then 'RECOVERY' else 'WAITING_NEXT' end"));
+    });
+
+    test('two completions with a 4 PA balance reach RECOVERY', () {
+      expect(sql, contains('jsonb_each_text(state.action_points) balance'));
+      expect(sql, contains('balance.value::integer <= 10'));
+      expect(compactSql, contains("then 'RECOVERY'"));
+    });
+
+    test('the 10 PA threshold is inclusive', () {
+      expect(sql, contains('balance.value::integer <= 10'));
+      expect(sql, isNot(contains('balance.value::integer < 10')));
+    });
+
+    test('one completion cannot transition the round', () {
+      final playerBarrier = compactSql.indexOf(
+        'and not exists( select 1 from public.session_players participant '
+        'where participant.session_id = p_session_id '
+        'and not (v_ready ? participant.user_id::text) ) then case',
+      );
+      final recoveryDecision = compactSql.indexOf(
+        'jsonb_each_text(state.action_points) balance',
+      );
+
+      expect(playerBarrier, greaterThanOrEqualTo(0));
+      expect(recoveryDecision, greaterThan(playerBarrier));
+    });
+
+    test('clothing and HYBRID barriers remain in the redefined RPC', () {
+      expect(sql, contains('required_clothing_player_ids'));
+      expect(sql, contains('v4_clothing_resynced'));
+      expect(
+        sql,
+        contains("raise exception 'ROUND_HYBRID_AVAILABILITY_PENDING'"),
+      );
+      expect(sql, contains("raise exception 'ROUND_HYBRID_SWITCH_REQUIRED'"));
+      expect(sql, contains('hybrid_availability_generation'));
+    });
+  });
+
   test('network boundary SQL waits for both player reports', () {
     final sql = File(
       'supabase/migrations/202610080001_v4_action_completion.sql',
@@ -4201,10 +4254,9 @@ void main() {
       await setup.alice.completeRecovery(completed: true);
       await _settle();
       await setup.alice.skipRecovery();
+      setup.backend.cycleExhausted = true;
       await setup.bob.skipRecovery();
       await _settle();
-      setup.backend.cycleExhausted = true;
-      await _completeResolvedAction(setup);
 
       expect(setup.backend.phase, NetworkGamePhase.waitingNext);
       expect(_totalAcceptance(aliceLearning, 'alice'), greaterThan(0));
@@ -4261,9 +4313,9 @@ void main() {
         await _settle();
       }
       await setup.alice.skipRecovery();
+      setup.backend.cycleExhausted = true;
       await setup.bob.skipRecovery();
       await _settle();
-      await _completeResolvedAction(setup);
 
       expect(_totalAcceptance(aliceLearning, 'alice'), 0);
     });
@@ -4389,11 +4441,8 @@ void main() {
             : CardZone.DISCARD,
       );
       await alice.skipRecovery();
+      expect(setup.backend.phase, NetworkGamePhase.recovery);
       await setup.bob.skipRecovery();
-      await _settle();
-      expect(setup.backend.phase, NetworkGamePhase.finalResolved);
-      await alice.completeAction();
-      await setup.bob.completeAction();
       await _settle();
       expect(setup.backend.currentRound, 2);
       expect(setup.backend.phase, NetworkGamePhase.commit);
@@ -4401,6 +4450,131 @@ void main() {
       setup.bob.dispose();
     },
   );
+
+  test(
+    'the second Recovery exit closes once and advances without FINAL_RESOLVED',
+    () async {
+      final backend = _Backend();
+      _setProjectedAction(
+        backend,
+        cards: [
+          _projectedCard(
+            occurrenceId: 'effect-occurrence',
+            cardId: 'card.v4.034',
+            variantId: 'variant.v4.034.s1',
+          ),
+        ],
+      );
+      const auctionCard = NetworkCompromiseCardDto(
+        occurrenceId: 'auction-occurrence',
+        cardId: 'card.v4.025',
+        variantId: 'variant.v4.025.base',
+        ownerPlayerId: 'alice',
+        nativeDirection: NetworkCardDirection.FAIRE,
+        effectiveDirection: NetworkCardDirection.FAIRE,
+        origin: NetworkCompromiseOrigin.AUCTION,
+        snapshotValue: 12,
+      );
+      backend.round
+        ..phase = NetworkGamePhase.recovery
+        ..ready.addAll(const {'alice', 'bob'})
+        ..negotiation = const NetworkNegotiationDto(
+          response: NetworkNegotiationResponseDto(accepted: true),
+        )
+        ..finalResolution = const NetworkFinalResolutionDto(
+          retainedPlayerId: 'alice',
+          initialWinnerPlayerId: 'bob',
+          finalWinnerPlayerId: 'bob',
+          cardId: 'card.v4.025',
+          variantId: 'variant.v4.025.base',
+          compromise: [auctionCard],
+        )
+        ..recoveryHistory.add(
+          const NetworkRecoveryDto(
+            playerId: 'alice',
+            cardId: 'card.v4.001',
+            variantId: 'variant.v4.001.base',
+            source: RecoverySource.CATALOG,
+            completed: true,
+            gain: 30,
+            response: RecoveryResponse.ACCEPT,
+            occurrenceId: 'recovery-occurrence',
+          ),
+        );
+      backend.points['alice'] = 37;
+      final alice = backend.repository('alice');
+      final bob = backend.repository('bob');
+      final aliceExit = _command(
+        'recovery-exit-alice',
+        'alice',
+        'RECOVERY_SKIP',
+        backend.round.id,
+      );
+      final bobExit = _command(
+        'recovery-exit-bob',
+        'bob',
+        'RECOVERY_SKIP',
+        backend.round.id,
+      );
+
+      final stillRecovering = await alice.skipRecovery(command: aliceExit);
+      expect(stillRecovering.phase, NetworkGamePhase.recovery);
+      expect(backend.persistentEffectTransitions, 0);
+      expect(
+        backend.consumedCompromiseOccurrences['alice'],
+        isNot(contains(auctionCard.occurrenceId)),
+      );
+
+      final waiting = await bob.skipRecovery(command: bobExit);
+      expect(waiting.phase, NetworkGamePhase.waitingNext);
+      expect(waiting.phase, isNot(NetworkGamePhase.finalResolved));
+      expect(backend.points['alice'], 37);
+      expect(backend.round.recoveryHistory, hasLength(1));
+      expect(backend.persistentEffectTransitions, 1);
+      expect(backend.persistentEffects.single.remainingActions, 3);
+      expect(
+        backend.consumedCompromiseOccurrences['alice'],
+        contains(auctionCard.occurrenceId),
+      );
+
+      final retried = await bob.skipRecovery(command: bobExit);
+      expect(retried.phase, NetworkGamePhase.waitingNext);
+      expect(backend.points['alice'], 37);
+      expect(backend.round.recoveryHistory, hasLength(1));
+      expect(backend.persistentEffectTransitions, 1);
+      expect(
+        backend.consumedCompromiseOccurrences['alice']!.where(
+          (id) => id == auctionCard.occurrenceId,
+        ),
+        hasLength(1),
+      );
+
+      final next = await alice.readyNextRound(
+        command: _command(
+          'start-after-recovery',
+          'alice',
+          'START_NEXT_ROUND',
+          backend.round.id,
+        ),
+      );
+      expect(next.roundNumber, 2);
+      expect(next.phase, NetworkGamePhase.commit);
+    },
+  );
+
+  test('Recovery completion migration preserves canonical close hooks', () {
+    final sql = File(
+      'supabase/migrations/'
+      '202610100017_complete_recovery_to_waiting_next.sql',
+    ).readAsStringSync();
+
+    expect(sql, contains("then 'WAITING_NEXT'"));
+    expect(sql, isNot(contains("then 'FINAL_RESOLVED'")));
+    expect(sql, contains("old.phase in ('FINAL_RESOLVED','RECOVERY')"));
+    expect(sql, contains('v4_consumed_occurrences=jsonb_set('));
+    expect(sql, contains('v4_advance_persistent_effects('));
+    expect(sql, contains("v_command.kind<>'RECOVERY_SKIP'"));
+  });
 
   test(
     'network Recovery exposes and preserves a never-distributed CATALOG occurrence',
@@ -5730,7 +5904,8 @@ class _Repository
     if (!_accept(command)) return backend.state(player);
     backend.round.recoveryDone.add(player);
     if (backend.round.recoveryDone.length == 2) {
-      backend.round.phase = NetworkGamePhase.finalResolved;
+      _closeExecutedAction();
+      backend.round.phase = NetworkGamePhase.waitingNext;
     }
     _notify();
     return backend.state(player);
@@ -5782,33 +5957,7 @@ class _Repository
     backend.round.ready.add(player);
     if (!closesBoundary) {
       if (backend.round.ready.length == 2) {
-        backend.persistentEffects = _advancePersistentEffects(
-          backend.persistentEffects,
-          backend.round.actionProjection?.cards ?? const [],
-        );
-        backend.persistentEffectTransitions++;
-        final corruption = backend.round.corruption;
-        if (corruption?.accepted == true) {
-          backend.round.corruption = NetworkCorruptionDto(
-            offeredBy: corruption!.offeredBy,
-            objective: corruption.objective,
-            accepted: true,
-            actions: [
-              for (final action in corruption.actions)
-                action.copyWith(status: ActionExecutionStatus.COMPLETED),
-            ],
-          );
-        }
-        final negotiation = backend.round.negotiation;
-        if (negotiation?.response?.accepted == true) {
-          for (final card in backend.round.finalResolution!.compromise.where(
-            (card) => card.origin == NetworkCompromiseOrigin.AUCTION,
-          )) {
-            backend.consumedCompromiseOccurrences[card.ownerPlayerId]!.add(
-              card.occurrenceId,
-            );
-          }
-        }
+        _closeExecutedAction();
         backend.round.phase = NetworkGamePhase.waitingNext;
       }
     } else {
@@ -5839,6 +5988,36 @@ class _Repository
     }
     _notify();
     return backend.state(player);
+  }
+
+  void _closeExecutedAction() {
+    backend.persistentEffects = _advancePersistentEffects(
+      backend.persistentEffects,
+      backend.round.actionProjection?.cards ?? const [],
+    );
+    backend.persistentEffectTransitions++;
+    final corruption = backend.round.corruption;
+    if (corruption?.accepted == true) {
+      backend.round.corruption = NetworkCorruptionDto(
+        offeredBy: corruption!.offeredBy,
+        objective: corruption.objective,
+        accepted: true,
+        actions: [
+          for (final action in corruption.actions)
+            action.copyWith(status: ActionExecutionStatus.COMPLETED),
+        ],
+      );
+    }
+    final negotiation = backend.round.negotiation;
+    if (negotiation?.response?.accepted == true) {
+      for (final card in backend.round.finalResolution!.compromise.where(
+        (card) => card.origin == NetworkCompromiseOrigin.AUCTION,
+      )) {
+        backend.consumedCompromiseOccurrences[card.ownerPlayerId]!.add(
+          card.occurrenceId,
+        );
+      }
+    }
   }
 
   @override
