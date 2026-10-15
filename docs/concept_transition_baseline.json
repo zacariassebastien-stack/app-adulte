@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-15",
+  "starting_commit": "0aba154",
+  "scope": "Preparation only; no game, catalogue or migration changes",
+  "catalog": {
+    "path": "assets/catalog/source/cards.v2.fr.json",
+    "raw_cards": 120,
+    "raw_variants": 237,
+    "v3_adapter_cards": 96,
+    "v3_adapter_variants": 141,
+    "target_active_concepts": 56,
+    "target_editorial_details_available": false
+  },
+  "verification": {
+    "status": "blocked_before_test_execution",
+    "suites": [
+      "test/engines/gameplay_v3_rules_test.dart",
+      "test/sync/network_v3_session_flow_test.dart",
+      "test/storage/session_repository_test.dart",
+      "test/storage/migration_test.dart"
+    ],
+    "result": "0 executed; 4 suite loading failures",
+    "causes": [
+      "Flutter test listener connection to 127.0.0.1 failed (socket errno 10057)",
+      "Package resolution failed for shared_preferences and drift"
+    ],
+    "local_log": ".tooling/concept-baseline-tests.log",
+    "note": "Initial attempt also encountered telemetry/temp permissions; analytics suppression and project-local temp allowed the retry to expose the errors above. No gameplay failure established."
+  },
+  "historical_supabase_migrations": [
+    {
+      "path": "supabase/migrations/202609290001_two_phone_lobby.sql",
+      "sha256": "2773655fa51012674ee9b6490133e2ca493248c2147f812b8cf402339b4024ff"
+    },
+    {
+      "path": "supabase/migrations/202609290002_network_duel_round.sql",
+      "sha256": "70346f71de36221bd549eb3376ea825774f4815a5848c5b40b57c26c548cf5a3"
+    },
+    {
+      "path": "supabase/migrations/202609290003_fix_network_reveal_digest.sql",
+      "sha256": "016f9428f38fe1fbce316e5eecb955857d99ee62c102113ab2ec16ca36eb1ae2"
+    },
+    {
+      "path": "supabase/migrations/202609300001_network_multiround_auction.sql",
+      "sha256": "f1079d5e2eb57afed0e0bb4e3d80cad0a97bf818f67500516196cb362dfc23b9"
+    },
+    {
+      "path": "supabase/migrations/202609300002_network_corruption_recovery.sql",
+      "sha256": "5b658979917fec51d7a8cbb15ef332bbde70d1eb20f51f58793996ab3f6d7ade"
+    },
+    {
+      "path": "supabase/migrations/202609300003_recovery_proposal_privacy.sql",
+      "sha256": "041adf39e0b0d2c1344bd0496cf86e1dde41ea7201ddcd7d280caea7803c1cc1"
+    },
+    {
+      "path": "supabase/migrations/202610010001_gameplay_v3_recovery.sql",
+      "sha256": "2f52d377c7accab11e51d80bb1b3677fc76654050ba35ea12bd4e641d3322927"
+    },
+    {
+      "path": "supabase/migrations/202610010002_network_v3_aba.sql",
+      "sha256": "bcbdf68b8d8ca479ff755628437ef1d6993ff3c5ff04c3189c214a6631ea1b7e"
+    },
+    {
+      "path": "supabase/migrations/202610020001_network_v3_occurrences_cycles.sql",
+      "sha256": "3efae5083a3a2cc479a03218c39640b82d817274093b28835b26ef206ad489c3"
+    },
+    {
+      "path": "supabase/migrations/202610020002_safe_commit_cancel_and_session_close.sql",
+      "sha256": "cccbb3dbc07c75a6c3974bc69a4305125b02702afc902e5b43137f51a4119690"
+    },
+    {
+      "path": "supabase/migrations/202610030001_directional_occurrence_pa.sql",
+      "sha256": "dce481e3f864628748c619b03f5b705217961574a3610d5dc6a02cd0e8f97268"
+    }
+  ]
+}

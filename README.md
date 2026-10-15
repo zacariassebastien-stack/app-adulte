@@ -1,5 +1,10 @@
 # Couple Cards — domaine et stockage local Flutter / Dart
 
+**Reprise du 15 octobre 2026 :** le [mini-planning et l'inspection du dépôt](docs/concept_cards_transition.md)
+préparent le passage aux 56 concepts dynamiques validés. Le catalogue chargé
+reste antérieur à cette validation ; les descriptions historiques ci-dessous
+ne constituent pas la nouvelle référence éditoriale.
+
 Phases 0 à 4.5 et premier squelette visuel de partie. Projet Android/iOS,
 domaine, stockage Drift/SQLite et moteurs de jeu purs compatibles Windows.
 
