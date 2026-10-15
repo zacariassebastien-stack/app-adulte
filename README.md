@@ -1,6 +1,6 @@
 # Couple Cards — domaine et stockage local Flutter / Dart
 
-**Refonte conceptuelle — Lots 1 à 3 :** le [contrat catalogue](docs/catalog/concept_contract.md)
+**Refonte conceptuelle — Lots 1 à 4 :** le [contrat catalogue](docs/catalog/concept_contract.md)
 définit les 56 concepts actifs, les réserves et les suppressions de la
 [spécification consolidée](docs/specs/consolidated_concepts.fr.txt).
 Les [23 contrôles purs](tool/check_concept_catalog.dart) passent avec Dart seul.
@@ -8,6 +8,9 @@ Le [moteur de deck conceptuel pur](docs/concept_deck_engine.md) passe ses
 [31 contrôles](tool/check_concept_deck.dart), sans raccordement au runtime.
 Le [contrat d'usage et checkpoint local](docs/concept_usage_persistence.md) passe
 [28 contrôles](tool/check_concept_usage.dart), sans modification SQL ou réseau.
+Le [Lot 4 — contrat serveur](docs/concept_usage_server.md) ajoute une migration
+JSONB **non déployée**, sans table nouvelle. Codec partagé : 13 contrôles réussis ;
+scénarios PostgreSQL préparés, exécution bloquée faute de moteur local.
 Voir le [planning actualisé](docs/concept_cards_transition.md) et
 l'[inspection de la pondération hybride](docs/hybrid_weighting_review.md).
 Le runtime reste branché à l'ancien catalogue jusqu'aux lots de raccordement ;

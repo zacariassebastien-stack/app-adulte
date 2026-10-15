@@ -1,0 +1,35 @@
+{
+  "lot": 4,
+  "baseline_commit": "e3ffbcd",
+  "migration": "supabase/migrations/202610150001_concept_usage_contract.sql",
+  "migration_sha256": "81454f3daf37abb72758e8c76f47b3a73956efb3b263b2a919e89eaf4f9266c0",
+  "state": "created_not_deployed",
+  "new_tables": 0,
+  "new_columns": 0,
+  "replaced_functions": 10,
+  "internal_helpers": 3,
+  "pure_checks": {
+    "network_usage_projection": 13,
+    "catalog": 23,
+    "deck": 31,
+    "usage": 28
+  },
+  "structural_checks": 16,
+  "historical_migration_hashes_verified": 11,
+  "targeted_dart_analysis": "no_issues",
+  "powershell_runner_ast": "valid",
+  "sql_integration": {
+    "executed": false,
+    "reason": "psql/PostgreSQL, Supabase CLI and Docker not found locally; runner stopped at Get-Command psql before any connection",
+    "scenarios": "supabase/tests/concept_usage_contract.sql"
+  },
+  "runtime_connected": false,
+  "temporary_compatibility": "Legacy occurrence_id consumers remain in current runtime; native server JSON rejects legacy action payloads",
+  "deployment_gates": [
+    "Execute PostgreSQL/Supabase integration scenarios",
+    "Connect official client flows and private checkpoint reservation/engagement",
+    "Validate two-client retry and reconnect",
+    "Coordinate server/client cutover and incompatible session handling"
+  ],
+  "remote_access": false
+}

@@ -31,6 +31,12 @@ snapshot immuable, le retry par intention et la sérialisation locale du stock
 avec ses usages. Aucun SQL ni contrat réseau n'est modifié. Le choix du stockage
 canonique du runtime et du futur contrat réseau reste à valider avant raccordement.
 
+Décisions désormais validées : stockage canonique privé/local existant (pas de
+bascule Drift), usageId canonique, réservation distincte de l'engagement.
+Le [Lot 4 — contrat serveur](concept_usage_server.md) prépare une migration JSONB
+sans table nouvelle, non déployée. Les scénarios SQL attendent un PostgreSQL local ;
+le raccordement des clients et la bascule coordonnée restent obligatoires.
+
 Le besoin de convertir d'anciennes sessions ne justifie pas de conserver deux
 moteurs pour des sessions de développement sans valeur. Les limitations locales
 des tests ne doivent provoquer aucun changement d'architecture ou de dépendances

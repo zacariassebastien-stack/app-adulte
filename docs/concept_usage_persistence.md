@@ -1,5 +1,12 @@
 # Lot 3 — identité d'usage et checkpoint local
 
+Décisions utilisateur validées après ce lot : usageId canonique partagé lorsque
+nécessaire ; stockage canonique dans l'état privé/local existant, sans migration
+vers Drift ; réservation sans consommation, libération avant engagement et
+consommation définitive idempotente à l'engagement. Le codec Drift facultatif
+ci-dessous reste un constat du Lot 3 et ne sera pas raccordé comme source
+canonique. Voir [le contrat serveur du Lot 4](concept_usage_server.md).
+
 Point de départ : `7af6cc6`. Aucun SQL, contrat réseau, écran, règle d'enchère,
 compromis, corruption, Recovery ou correction HYBRID n'est modifié dans ce lot.
 
