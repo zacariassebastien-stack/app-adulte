@@ -20,4 +20,5 @@ export 'profile/preferences.dart';
 export 'profile/adaptive_profile.dart';
 export 'profile/profile_state.dart';
 export 'round/combat_value_snapshot.dart';
+export 'round/concept_usage_snapshot.dart';
 export 'session/session_state.dart';

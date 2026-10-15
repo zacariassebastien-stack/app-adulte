@@ -6,6 +6,7 @@ export 'draw/draw_engine.dart';
 export 'draw/hybrid_draw_weighting.dart';
 export 'deck/session_deck_builder.dart';
 export 'deck/concept_deck_engine.dart';
+export 'usage/concept_usage_checkpoint.dart';
 export 'deck/card_direction_engine.dart';
 export 'duel/duel_engine.dart';
 export 'eligibility/catalog_engine_adapter.dart';

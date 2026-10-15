@@ -26,6 +26,11 @@ Le [Lot 2 — moteur pur](concept_deck_engine.md) est livré sans raccordement a
 runtime, à l'UI ou au réseau. Les structures anciennes encore consommées sont
 conservées jusqu'au raccordement ; leur liste et leurs dépendances sont tracées.
 
+Le [Lot 3 — usages et checkpoint](concept_usage_persistence.md) introduit le
+snapshot immuable, le retry par intention et la sérialisation locale du stock
+avec ses usages. Aucun SQL ni contrat réseau n'est modifié. Le choix du stockage
+canonique du runtime et du futur contrat réseau reste à valider avant raccordement.
+
 Le besoin de convertir d'anciennes sessions ne justifie pas de conserver deux
 moteurs pour des sessions de développement sans valeur. Les limitations locales
 des tests ne doivent provoquer aucun changement d'architecture ou de dépendances

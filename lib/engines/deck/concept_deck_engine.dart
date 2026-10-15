@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../../core/json.dart';
 import '../../domain/catalog/concept_catalog.dart';
 import '../../domain/game/game_models.dart' show PlayerStyle;
 
@@ -55,8 +56,46 @@ final class ConceptDeckStock {
     return ConceptDeckStock._(capacity, capacity);
   }
 
+  /// Restore the saved cycle capacities, never recalculate from current clothes.
+  factory ConceptDeckStock.fromJson(JsonMap json) {
+    final reader = JsonReader(json, 'ConceptDeckStock');
+    reader.only({'schema_version', 'capacity', 'remaining'});
+    reader.integer('schema_version', min: 1, max: 1);
+    final capacities = reader.child(
+      json['capacity'],
+      'capacity',
+      'ConceptDeckStock',
+    );
+    final remaining = reader.child(
+      json['remaining'],
+      'remaining',
+      'ConceptDeckStock',
+    );
+    if (capacities.json.length != remaining.json.length ||
+        !capacities.json.keys.toSet().containsAll(remaining.json.keys)) {
+      reader.fail(
+        'remaining',
+        'Remaining counters must match capacity identities',
+      );
+    }
+    final capacity = <String, int>{};
+    final available = <String, int>{};
+    for (final id in capacities.json.keys) {
+      if (id.trim().isEmpty) reader.fail('capacity', 'Empty concept identity');
+      capacity[id] = capacities.integer(id, min: 0);
+      available[id] = remaining.integer(id, min: 0, max: capacity[id]);
+    }
+    return ConceptDeckStock._(capacity, available);
+  }
+
   final Map<String, int> capacity;
   final Map<String, int> remaining;
+
+  JsonMap toJson() => {
+    'schema_version': 1,
+    'capacity': capacity,
+    'remaining': remaining,
+  };
 
   int remainingFor(String conceptId) {
     final value = remaining[conceptId];

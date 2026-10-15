@@ -1,0 +1,47 @@
+{
+  "lot": 3,
+  "starting_commit": "7af6cc6",
+  "scope": "Immutable concept usages and local JSON checkpoint; no live runtime, UI, SQL, network DTO/RPC or gameplay-rule modifications",
+  "usage_model": "lib/domain/round/concept_usage_snapshot.dart",
+  "identity": "usage:v1:base64url(JSON([sessionId,ownerPlayerId,cycle,intentId]))",
+  "checkpoint": "lib/engines/usage/concept_usage_checkpoint.dart",
+  "local_adapter": {
+    "path": "lib/data/repositories/concept_usage_checkpoint_codec.dart",
+    "field": "PersistedRoundState.state / existing rounds.state_json",
+    "key": "concept_usage_v1",
+    "status": "Temporary opt-in codec; no current runtime producer connected",
+    "removal": "Retire when canonical runtime checkpoint owns usage state directly"
+  },
+  "targeted_checks": {
+    "usage": {
+      "entrypoint": "tool/check_concept_usage.dart",
+      "passed": 28,
+      "failed": 0
+    },
+    "deck": {
+      "entrypoint": "tool/check_concept_deck.dart",
+      "passed": 31,
+      "failed": 0
+    },
+    "catalogue": {
+      "entrypoint": "tool/check_concept_catalog.dart",
+      "passed": 23,
+      "failed": 0
+    },
+    "analysis": "No issues found",
+    "actual_file_reopen_check": true,
+    "round_state_json_roundtrip": true,
+    "drift_integration": "Not executed; prior dependency/runner limitations remain",
+    "shared_preferences_integration": "Not connected or executed"
+  },
+  "sql_migrations_added": 0,
+  "historical_migrations_unchanged": 11,
+  "legacy_components_removed": [],
+  "occurrence_inventory": "docs/concept_usage_persistence.md",
+  "pending_decisions": [
+    "Explicit network usage identity/projection contract",
+    "Canonical runtime local store and coherent save boundary",
+    "Mapping existing cancellation/reservation to actual engagement"
+  ],
+  "hybrid_context_issue": "Deferred to network integration, unchanged"
+}
