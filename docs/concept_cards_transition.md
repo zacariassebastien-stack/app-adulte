@@ -37,6 +37,12 @@ Le [Lot 4 — contrat serveur](concept_usage_server.md) prépare une migration J
 sans table nouvelle, non déployée. Les scénarios SQL attendent un PostgreSQL local ;
 le raccordement des clients et la bascule coordonnée restent obligatoires.
 
+Le [Lot 5 — raccordement ciblé](concept_runtime_integration.md) est en cours :
+réservation ajoutée au checkpoint existant et 34 contrôles purs d'usage réussis.
+Le runtime principal n'est pas encore raccordé. La reprise explicite des règles
+V4 est autorisée ; les compositions sans équivalent exact sont proposées pour
+validation avant branchement. Aucun ancien moteur encore consommé n'est supprimé.
+
 Le besoin de convertir d'anciennes sessions ne justifie pas de conserver deux
 moteurs pour des sessions de développement sans valeur. Les limitations locales
 des tests ne doivent provoquer aucun changement d'architecture ou de dépendances

@@ -109,6 +109,92 @@ ConceptUsageCheckpoint _engage(
 );
 
 Map<String, void Function()> conceptUsageChecks() => {
+  'reservation holds capacity without consuming quota and retries are stable':
+      () {
+        final initial = _start();
+        final reserved = initial.reserve(intentId: 'pending', conceptId: '019');
+        _check(
+          reserved.stock.remainingFor('019') == 3,
+          'Reservation spent quota',
+        );
+        _check(reserved.availableFor('019') == 2, 'Capacity not held');
+        _check(
+          identical(
+            reserved,
+            reserved.reserve(intentId: 'pending', conceptId: '019'),
+          ),
+          'Reservation duplicated',
+        );
+        _throws<StateError>(
+          () => reserved.reserve(intentId: 'pending', conceptId: '003'),
+        );
+      },
+  'cancelling pending reservation frees capacity with no usage': () {
+    final released = _start()
+        .reserve(intentId: 'pending', conceptId: '019')
+        .releaseReservation('pending');
+    _check(
+      released.availableFor('019') == 3 && released.usagesByIntent.isEmpty,
+      'Cancellation must not consume an action',
+    );
+  },
+  'engagement replaces reservation and retry never refunds or spends twice':
+      () {
+        final reserved = _start().reserve(
+          intentId: 'pending',
+          conceptId: '019',
+        );
+        final engaged = _engage(reserved, 'pending');
+        _check(
+          engaged.stock.remainingFor('019') == 2 &&
+              engaged.reservationsByIntent.isEmpty,
+          'Engagement did not transfer capacity',
+        );
+        _check(
+          identical(_engage(engaged, 'pending'), engaged),
+          'Retry mutated checkpoint',
+        );
+        _check(
+          identical(engaged.releaseReservation('pending'), engaged),
+          'Engaged usage refunded',
+        );
+      },
+  'reservation cannot be stolen by an unreserved engagement': () {
+    var reserved = _start();
+    for (final id in ['a', 'b', 'c']) {
+      reserved = reserved.reserve(intentId: id, conceptId: '019');
+    }
+    _throws<StateError>(
+      () => reserved.reserve(intentId: 'd', conceptId: '019'),
+    );
+    _throws<StateError>(() => _engage(reserved, 'd'));
+    _check(
+      _engage(reserved, 'a').availableFor('019') == 0,
+      'Lost another reservation',
+    );
+  },
+  'reservation reconnect restores intention and engages exactly once': () {
+    final saved = _start().reserve(intentId: 'pending', conceptId: '019');
+    final restored = ConceptUsageCheckpoint.fromJson(_decode(saved.encode()));
+    _check(
+      restored.encode() == saved.encode(),
+      'Reservation roundtrip changed',
+    );
+    final engaged = _engage(restored, 'pending');
+    _check(
+      engaged.usagesByIntent.length == 1,
+      'Reconnect created multiple usages',
+    );
+    _throws<UnsupportedError>(() => restored.reservationsByIntent['x'] = '019');
+  },
+  'restoration rejects reservations over quota or sharing engaged intentions':
+      () {
+        final bad = _decode(_engage(_start(), 'done').encode());
+        bad['reservations'] = {'done': '019'};
+        _throws<CatalogException>(() => ConceptUsageCheckpoint.fromJson(bad));
+        bad['reservations'] = {'a': '019', 'b': '019', 'c': '019'};
+        _throws<CatalogException>(() => ConceptUsageCheckpoint.fromJson(bad));
+      },
   'two engaged uses of the same concept receive distinct stable identities':
       () {
         final checkpoint = _engage(_engage(_start(), 'first'), 'second');

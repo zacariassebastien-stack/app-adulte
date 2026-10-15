@@ -1,0 +1,19 @@
+{
+  "lot": "5a",
+  "baseline_commit": "3f442ef",
+  "status": "reservation_ready_metadata_proposal_pending_validation",
+  "main_runtime_connected": false,
+  "modified_runtime_controllers": 0,
+  "legacy_deck_structures_deleted": 0,
+  "usage_checks": 34,
+  "new_reservation_checks": 6,
+  "targeted_dart_analysis": "no_issues",
+  "correspondence_concepts": 56,
+  "correspondence_source_cards": "existing source/cards.v2.fr.json; candidates only, not active runtime bindings",
+  "pending_rules": "docs/concept_runtime_integration.md P1-P6",
+  "hybrid": "inspected; current bug still present; orientation must feed eligibility during conceptual refill and choice recalculation",
+  "migration": "202610150001 created_not_deployed unchanged",
+  "sql_scenarios": "prepared_not_executed",
+  "dependency_changes": false,
+  "flutter_runner_limitations": "existing local shared_preferences/Drift/Flutter limitations retained; no workaround introduced"
+}

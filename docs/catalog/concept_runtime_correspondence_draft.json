@@ -1,0 +1,855 @@
+{
+  "scope": "Lot 5 metadata correspondence inspection",
+  "policy": "New active catalogue exclusively defines concepts, actions, zones, chili and quotas. Historical sources here are evidence for rules only, never active deck units.",
+  "active_concepts": 56,
+  "entries": [
+    {
+      "concept_id": "001",
+      "title": "Câlin",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.hug",
+          "title": "Câlin",
+          "source_variant_ids_to_inspect": [
+            "variant.hug.base",
+            "variant.hug.long"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "002",
+      "title": "Embrasser",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.kiss_me",
+          "title": "Embrasser",
+          "source_variant_ids_to_inspect": [
+            "variant.kiss_me.base",
+            "variant.kiss_me.lingering"
+          ]
+        },
+        {
+          "source_card_id": "card.neck_kisses",
+          "title": "Embrasser dans le cou",
+          "source_variant_ids_to_inspect": [
+            "variant.neck_kisses.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "003",
+      "title": "S’embrasser",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.kiss_me",
+          "title": "Embrasser",
+          "source_variant_ids_to_inspect": [
+            "variant.kiss_me.base",
+            "variant.kiss_me.lingering"
+          ]
+        },
+        {
+          "source_card_id": "card.deep_kiss",
+          "title": "Baiser langoureux",
+          "source_variant_ids_to_inspect": [
+            "variant.deep_kiss.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "004",
+      "title": "Jeu de bouche",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.oral_give",
+          "title": "Sexe oral",
+          "source_variant_ids_to_inspect": [
+            "variant.oral_give.base",
+            "variant.oral_give.suck"
+          ]
+        },
+        {
+          "source_card_id": "card.anal_oral",
+          "title": "Sexe oral anal",
+          "source_variant_ids_to_inspect": [
+            "variant.anal_oral.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "005",
+      "title": "Jeu de main",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.caress",
+          "title": "Caresse",
+          "source_variant_ids_to_inspect": [
+            "variant.caress.base",
+            "variant.caress.sensual",
+            "variant.caress.intimate",
+            "variant.v3.caress.bras_give",
+            "variant.v3.caress.cuisses_give",
+            "variant.v3.caress.ventre_give"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "006",
+      "title": "Retirer un vêtement",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.remove_one_clothing",
+          "title": "Retirer un vêtement",
+          "source_variant_ids_to_inspect": [
+            "variant.remove_one_clothing.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "007",
+      "title": "Retirer deux vêtements",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.remove_two_clothing",
+          "title": "Retirer deux vêtements",
+          "source_variant_ids_to_inspect": [
+            "variant.remove_two_clothing.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "008",
+      "title": "Être en sous-vêtements",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.underwear_only",
+          "title": "Reste en sous-vêtements",
+          "source_variant_ids_to_inspect": [
+            "variant.underwear_only.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "009",
+      "title": "Nu",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.nudity",
+          "title": "Déshabille-toi complètement",
+          "source_variant_ids_to_inspect": [
+            "variant.nudity.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "010",
+      "title": "Strip-tease",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.striptease",
+          "title": "Strip-tease",
+          "source_variant_ids_to_inspect": [
+            "variant.striptease.underwear",
+            "variant.striptease.full"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "012",
+      "title": "Choix de tenue",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.choose_outfit",
+          "title": "Choix de tenue",
+          "source_variant_ids_to_inspect": [
+            "variant.choose_outfit.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "013",
+      "title": "Changement complet de tenue",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.costume_and_light_outfit",
+          "title": "Change de tenue",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.costume_and_light_outfit.costume",
+            "variant.v3.costume_and_light_outfit.light"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "016",
+      "title": "Imposer une posture",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.imposed_position",
+          "title": "Imposer une posture",
+          "source_variant_ids_to_inspect": [
+            "variant.imposed_position.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "018",
+      "title": "Simulation",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.simulate_act",
+          "title": "Simulation d’un acte sexuel",
+          "source_variant_ids_to_inspect": [
+            "variant.simulate_act.base",
+            "variant.simulate_act.guided"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "019",
+      "title": "Masturbation",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.masturbate_partner",
+          "title": "Masturbation du partenaire",
+          "source_variant_ids_to_inspect": [
+            "variant.masturbate_partner.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "020",
+      "title": "Masturbation mutuelle",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.mutual_masturbation",
+          "title": "Masturbation mutuelle",
+          "source_variant_ids_to_inspect": [
+            "variant.mutual_masturbation.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "021",
+      "title": "Masturbation solo",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.masturbation",
+          "title": "Masturbation",
+          "source_variant_ids_to_inspect": [
+            "variant.masturbation.self",
+            "variant.masturbation.visible"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "022",
+      "title": "Doigter vaginal",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": []
+    },
+    {
+      "concept_id": "023",
+      "title": "Doigter anal",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.anal_manual",
+          "title": "Stimulation anale manuelle",
+          "source_variant_ids_to_inspect": [
+            "variant.anal_manual.base",
+            "variant.anal_manual.internal"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "024",
+      "title": "Jeu intime",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.manual_intimate",
+          "title": "Jeu manuel intime",
+          "source_variant_ids_to_inspect": [
+            "variant.manual_intimate.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "025",
+      "title": "Sexe oral",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.oral_give",
+          "title": "Sexe oral",
+          "source_variant_ids_to_inspect": [
+            "variant.oral_give.base",
+            "variant.oral_give.suck"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "026",
+      "title": "69",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.sixty_nine",
+          "title": "69",
+          "source_variant_ids_to_inspect": [
+            "variant.sixty_nine.base",
+            "variant.sixty_nine.suck"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "027",
+      "title": "Pénétration vaginale",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.vaginal_penetration",
+          "title": "Pénétration vaginale",
+          "source_variant_ids_to_inspect": [
+            "variant.vaginal_penetration.base",
+            "variant.v3.vaginal_penetration.sex_give"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "028",
+      "title": "Sexe oral anal",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.anal_oral",
+          "title": "Sexe oral anal",
+          "source_variant_ids_to_inspect": [
+            "variant.anal_oral.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "029",
+      "title": "Choisir une position sexuelle",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.choose_sex_position",
+          "title": "Choisir une position sexuelle",
+          "source_variant_ids_to_inspect": [
+            "variant.choose_sex_position.base",
+            "variant.v3.choose_sex_position.s",
+            "variant.v3.choose_sex_position.a",
+            "variant.v3.choose_sex_position.e"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "030",
+      "title": "Facesitting",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.facesitting",
+          "title": "Facesitting",
+          "source_variant_ids_to_inspect": [
+            "variant.facesitting.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "031",
+      "title": "Frottement génital",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.genital_rubbing",
+          "title": "Frottement génital",
+          "source_variant_ids_to_inspect": [
+            "variant.genital_rubbing.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "032",
+      "title": "Ordre",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.give_order",
+          "title": "Ordre",
+          "source_variant_ids_to_inspect": [
+            "variant.give_order.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "033",
+      "title": "Interdiction de toucher",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.no_touch",
+          "title": "Interdiction de toucher",
+          "source_variant_ids_to_inspect": [
+            "variant.no_touch.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "034",
+      "title": "Entrave",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.tie_me",
+          "title": "Attacher",
+          "source_variant_ids_to_inspect": [
+            "variant.tie_me.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "035",
+      "title": "Privation visuelle",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.blindfold",
+          "title": "Bandeau sur les yeux",
+          "source_variant_ids_to_inspect": [
+            "variant.blindfold.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "037",
+      "title": "Fessée",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.spanking",
+          "title": "Fessée",
+          "source_variant_ids_to_inspect": [
+            "variant.spanking.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "038",
+      "title": "Danser",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.dance_for_me",
+          "title": "Danse pour moi",
+          "source_variant_ids_to_inspect": [
+            "variant.dance_for_me.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "039",
+      "title": "Prendre une pose",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.pose",
+          "title": "Prends la pose",
+          "source_variant_ids_to_inspect": [
+            "variant.pose.partner_choice"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "042",
+      "title": "Sexting",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.sexting",
+          "title": "Messages coquins",
+          "source_variant_ids_to_inspect": [
+            "variant.sexting.base",
+            "variant.sexting.guided"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "043",
+      "title": "Message coquin",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.flirty_message",
+          "title": "Message coquin",
+          "source_variant_ids_to_inspect": [
+            "variant.flirty_message.base",
+            "variant.v3.flirty_message.voice_send",
+            "variant.v3.flirty_message.voice_receive"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "044",
+      "title": "Photo",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.suggestive_photo",
+          "title": "Envoie une photo suggestive",
+          "source_variant_ids_to_inspect": [
+            "variant.suggestive_photo.base",
+            "variant.suggestive_photo.partner_pose"
+          ]
+        },
+        {
+          "source_card_id": "card.underwear_photo",
+          "title": "Envoie une photo en sous-vêtements",
+          "source_variant_ids_to_inspect": [
+            "variant.underwear_photo.base"
+          ]
+        },
+        {
+          "source_card_id": "card.nude_photo",
+          "title": "Envoie une photo nue",
+          "source_variant_ids_to_inspect": [
+            "variant.nude_photo.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "045",
+      "title": "Photo mutuelle",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.suggestive_photo",
+          "title": "Envoie une photo suggestive",
+          "source_variant_ids_to_inspect": [
+            "variant.suggestive_photo.base",
+            "variant.suggestive_photo.partner_pose"
+          ]
+        },
+        {
+          "source_card_id": "card.underwear_photo",
+          "title": "Envoie une photo en sous-vêtements",
+          "source_variant_ids_to_inspect": [
+            "variant.underwear_photo.base"
+          ]
+        },
+        {
+          "source_card_id": "card.nude_photo",
+          "title": "Envoie une photo nue",
+          "source_variant_ids_to_inspect": [
+            "variant.nude_photo.base"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "046",
+      "title": "Vidéo intime",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.intimate_video",
+          "title": "Envoie une vidéo intime",
+          "source_variant_ids_to_inspect": [
+            "variant.intimate_video.base",
+            "variant.intimate_video.suggestive",
+            "variant.intimate_video.nude"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "047",
+      "title": "Vidéo mutuelle",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.intimate_video",
+          "title": "Envoie une vidéo intime",
+          "source_variant_ids_to_inspect": [
+            "variant.intimate_video.base",
+            "variant.intimate_video.suggestive",
+            "variant.intimate_video.nude"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "048",
+      "title": "Jeu de rôle",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.roleplay_scene",
+          "title": "Jeu de rôle",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.roleplay_scene.mutual",
+            "variant.v3.roleplay_scene.guided"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "049",
+      "title": "Sextoy sur partenaire",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.sextoy_play",
+          "title": "Jeu avec un sextoy",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.sextoy_play.give"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "050",
+      "title": "Masturbation avec sextoy sur soi",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.sextoy_play",
+          "title": "Jeu avec un sextoy",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.sextoy_play.give"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "051",
+      "title": "Sextoy sur l’autre / mutuel",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.sextoy_play",
+          "title": "Jeu avec un sextoy",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.sextoy_play.give"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "052",
+      "title": "Sextoy contrôlé à distance",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.remote_toy_control",
+          "title": "Contrôle du jouet à distance",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.remote_toy_control.give"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "053",
+      "title": "Contenu adulte partagé",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.shared_adult_content",
+          "title": "Contenu adulte partagé",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.shared_adult_content.together",
+            "variant.v3.shared_adult_content.partner_choice"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "054",
+      "title": "Exposition / sensation",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.exposed_setting",
+          "title": "Sensation d’exposition",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.exposed_setting.mutual"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "055",
+      "title": "Choix de l’éjaculation",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.ejaculation_choice",
+          "title": "Choix d’éjaculation",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.ejaculation_choice.give"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "056",
+      "title": "Paroles dégradantes",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.degrading_words",
+          "title": "Paroles dégradantes consenties",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.degrading_words.give"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "057",
+      "title": "Supplier",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.beg_for_it",
+          "title": "Supplier",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.beg_for_it.perform"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "058",
+      "title": "Ailleurs en privé",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.unusual_private_place",
+          "title": "Ailleurs, en privé",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.unusual_private_place.mutual"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "060",
+      "title": "Privation auditive",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.auditory_deprivation",
+          "title": "Privation auditive",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.auditory_deprivation.give"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "061",
+      "title": "Silence",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.silence_rule",
+          "title": "Règle de silence",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.silence_rule.give"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "062",
+      "title": "Prise au cou",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.neck_hold",
+          "title": "Maintien du cou",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.neck_hold.give"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "063",
+      "title": "Tirage des cheveux",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": [
+        {
+          "source_card_id": "card.v3.gentle_pull",
+          "title": "Tirer doucement",
+          "source_variant_ids_to_inspect": [
+            "variant.v3.gentle_pull.give"
+          ]
+        }
+      ]
+    },
+    {
+      "concept_id": "065",
+      "title": "Footjob",
+      "state": "inspection_only_not_runtime_binding",
+      "candidate_sources": []
+    }
+  ]
+}

@@ -13,7 +13,9 @@ final class ConceptUsageCheckpoint {
     required this.cycle,
     required this.stock,
     required Map<String, ConceptUsageSnapshot> usagesByIntent,
-  }) : usagesByIntent = Map.unmodifiable(usagesByIntent);
+    Map<String, String> reservationsByIntent = const {},
+  }) : usagesByIntent = Map.unmodifiable(usagesByIntent),
+       reservationsByIntent = Map.unmodifiable(reservationsByIntent);
 
   factory ConceptUsageCheckpoint.startCycle({
     required String sessionId,
@@ -49,6 +51,7 @@ final class ConceptUsageCheckpoint {
       'cycle',
       'stock',
       'usages',
+      'reservations',
     });
     reader.integer('schema_version', min: 1, max: 1);
     final sessionId = reader.string('session_id');
@@ -85,12 +88,35 @@ final class ConceptUsageCheckpoint {
         reader.fail('stock', 'Usage journal and remaining quota disagree');
       }
     }
+    final reservations = <String, String>{};
+    final reservedCounts = <String, int>{};
+    if (json.containsKey('reservations')) {
+      final saved = reader.child(
+        json['reservations'],
+        'reservations',
+        'ConceptReservations',
+      );
+      for (final intent in saved.json.keys) {
+        ConceptUsageSnapshot.identityFor(sessionId, owner, cycle, intent);
+        final concept = saved.string(intent);
+        if (byIntent.containsKey(intent) ||
+            !stock.capacity.containsKey(concept)) {
+          reader.fail('reservations', 'Invalid reserved intention');
+        }
+        reservations[intent] = concept;
+        reservedCounts.update(concept, (n) => n + 1, ifAbsent: () => 1);
+        if (reservedCounts[concept]! > stock.remainingFor(concept)) {
+          reader.fail('reservations', 'Reservations exceed remaining quota');
+        }
+      }
+    }
     return ConceptUsageCheckpoint._(
       sessionId: sessionId,
       ownerPlayerId: owner,
       cycle: cycle,
       stock: stock,
       usagesByIntent: byIntent,
+      reservationsByIntent: reservations,
     );
   }
 
@@ -99,6 +125,50 @@ final class ConceptUsageCheckpoint {
   final int cycle;
   final ConceptDeckStock stock;
   final Map<String, ConceptUsageSnapshot> usagesByIntent;
+  final Map<String, String> reservationsByIntent;
+
+  int availableFor(String conceptId) =>
+      stock.remainingFor(conceptId) -
+      reservationsByIntent.values.where((id) => id == conceptId).length;
+
+  ConceptUsageCheckpoint reserve({
+    required String intentId,
+    required String conceptId,
+  }) {
+    ConceptUsageSnapshot.identityFor(sessionId, ownerPlayerId, cycle, intentId);
+    final existing =
+        usagesByIntent[intentId]?.conceptId ?? reservationsByIntent[intentId];
+    if (existing != null) {
+      if (existing != conceptId) {
+        throw StateError('Intent refers to a different concept');
+      }
+      return this;
+    }
+    if (availableFor(conceptId) == 0) {
+      throw StateError('Concept has no unreserved capacity: $conceptId');
+    }
+    return ConceptUsageCheckpoint._(
+      sessionId: sessionId,
+      ownerPlayerId: ownerPlayerId,
+      cycle: cycle,
+      stock: stock,
+      usagesByIntent: usagesByIntent,
+      reservationsByIntent: {...reservationsByIntent, intentId: conceptId},
+    );
+  }
+
+  /// Only a pending reservation is released; engaged quota is never refunded.
+  ConceptUsageCheckpoint releaseReservation(String intentId) {
+    if (!reservationsByIntent.containsKey(intentId)) return this;
+    return ConceptUsageCheckpoint._(
+      sessionId: sessionId,
+      ownerPlayerId: ownerPlayerId,
+      cycle: cycle,
+      stock: stock,
+      usagesByIntent: usagesByIntent,
+      reservationsByIntent: {...reservationsByIntent}..remove(intentId),
+    );
+  }
 
   ConceptUsageSnapshot? usageForIntent(String intentId) =>
       usagesByIntent[intentId];
@@ -121,7 +191,12 @@ final class ConceptUsageCheckpoint {
       }
       return this;
     }
-    if (stock.remainingFor(conceptId) == 0) {
+    final reserved = reservationsByIntent[intentId];
+    if (reserved != null && reserved != conceptId) {
+      throw StateError('Reserved intent refers to a different concept');
+    }
+    if ((reserved == null && availableFor(conceptId) == 0) ||
+        stock.remainingFor(conceptId) == 0) {
       throw StateError('Concept quota exhausted: $conceptId');
     }
     final action = resolveAction();
@@ -144,6 +219,7 @@ final class ConceptUsageCheckpoint {
       cycle: cycle,
       stock: stock.consume(conceptId),
       usagesByIntent: {...usagesByIntent, intentId: usage},
+      reservationsByIntent: {...reservationsByIntent}..remove(intentId),
     );
   }
 
@@ -154,6 +230,7 @@ final class ConceptUsageCheckpoint {
             'owner_player_id': ownerPlayerId,
             'cycle': cycle,
             'stock': stock.toJson(),
+            'reservations': reservationsByIntent,
             'usages': [
               for (final usage in usagesByIntent.values) usage.toJson(),
             ],
