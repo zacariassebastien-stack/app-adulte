@@ -20,7 +20,7 @@
   "powershell_runner_ast": "valid",
   "sql_integration": {
     "executed": false,
-    "reason": "psql/PostgreSQL, Supabase CLI and Docker not found locally; runner stopped at Get-Command psql before any connection",
+    "reason": "No local PostgreSQL engine identified and psql/Docker unavailable; existing Supabase CLI found in user TEMP but version check blocked by telemetry write permission; no remote database command run",
     "scenarios": "supabase/tests/concept_usage_contract.sql"
   },
   "runtime_connected": false,
@@ -31,5 +31,12 @@
     "Validate two-client retry and reconnect",
     "Coordinate server/client cutover and incompatible session handling"
   ],
-  "remote_access": false
+  "remote_access": false,
+  "existing_supabase_cli": {
+    "path": "C:/Users/sebas/AppData/Local/Temp/supabase-cli/supabase.exe",
+    "reported_version": "2.120.0 (user supplied)",
+    "version_probe": "blocked by telemetry write EPERM outside workspace",
+    "remote_link": "user reported, not queried",
+    "additional_installations": false
+  }
 }

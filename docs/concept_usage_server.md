@@ -3,8 +3,8 @@
 Référence de départ : `e3ffbcd`. Migration nouvelle :
 `supabase/migrations/202610150001_concept_usage_contract.sql`.
 
-**Créée, non déployée. Exécution PostgreSQL locale bloquée : psql/PostgreSQL,
-Supabase CLI et Docker non trouvés.** Les tests SQL sont livrés mais ne sont pas
+**Créée, non déployée. Exécution PostgreSQL locale indisponible : aucun moteur
+PostgreSQL local identifié, ni psql/Docker disponible.** Les tests SQL sont livrés mais ne sont pas
 déclarés réussis. Le codec Dart est vérifié séparément. Aucun accès distant,
 installation de dépendance ou modification des migrations historiques.
 
@@ -213,3 +213,16 @@ Le déploiement devient sûr seulement après :
 
 Aucun déploiement distant dans ce lot. Le problème HYBRID « contexte réseau
 initialisé en présentiel » reste consigné et inchangé.
+
+## Précision d'environnement après checkpoint
+
+La CLI existante a été retrouvée dans
+`C:/Users/sebas/AppData/Local/Temp/supabase-cli/supabase.exe`.
+La version 2.120.0 et la liaison distante sont indiquées par l'utilisateur.
+L'appel local `--version` a échoué sur une écriture de télémétrie interdite
+dans `C:/Users/sebas/.supabase` ; aucune commande de base distante n'a été lancée.
+Le TEMP de l'environnement isolé diffère du TEMP utilisateur, ce qui expliquait
+la recherche initiale infructueuse. La CLI seule ne fournit pas le moteur local
+nécessaire aux scénarios SQL. Conformément à la décision utilisateur : aucune
+installation supplémentaire, aucun déploiement, aucun contrôle distant nécessaire.
+Les tests SQL restent préparés/non exécutés jusqu'au raccordement approprié.
