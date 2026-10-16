@@ -4,7 +4,11 @@ import 'package:flutter/material.dart';
 
 import '../../app/asset_catalog.dart';
 import '../../domain/catalog/catalog.dart';
+import '../../domain/catalog/v4_catalog.dart';
+import '../../sync/rounds/network_game.dart';
 import '../game/network_duel_screen.dart';
+import '../game/network_profile_learning.dart';
+import 'v4_session_setup_screen.dart';
 import 'active_session_store.dart';
 import 'lobby_controller.dart';
 import 'lobby_repository.dart';
@@ -225,20 +229,57 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
       final results = await Future.wait<Object>([
         repository.currentPlayerId(),
         loadAssetCatalog(),
+        loadAssetV4ScoringCatalog(),
       ]);
       if (!mounted) return;
-      await Navigator.of(context).push(
-        MaterialPageRoute<void>(
+      final playerId = results[0] as String;
+      final profileState =
+          await const SharedPreferencesNetworkProfileLearningStore().load(
+            playerId,
+          );
+      final v4Profile = await const SharedPreferencesV4ProfileStore().load(
+        playerId,
+      );
+      if (!mounted) return;
+      final gameRepository = repository.gameRepository;
+      if (gameRepository is! NetworkSessionSetupRepository) {
+        throw StateError('V4 session setup is unavailable');
+      }
+      final setupRepository = gameRepository as NetworkSessionSetupRepository;
+      final setup = await Navigator.of(context).push<V4SessionSetupDto>(
+        MaterialPageRoute(
+          builder: (_) => V4SessionSetupScreen(
+            session: controller.session!,
+            playerId: playerId,
+            repository: setupRepository,
+            profile: v4Profile,
+          ),
+        ),
+      );
+      if (!mounted || setup == null || !setup.complete) return;
+      final exit = await Navigator.of(context).push<NetworkDuelExit>(
+        MaterialPageRoute<NetworkDuelExit>(
           builder: (_) => NetworkDuelScreen(
             session: controller.session!,
-            playerId: results[0] as String,
-            repository: repository.gameRepository,
+            playerId: playerId,
+            repository: gameRepository,
             catalog: results[1] as Catalog,
+            scoringCatalog: results[2] as V4ScoringCatalog,
+            v4Profile: v4Profile,
+            sessionMode: setup.mode!,
+            initialClothingCounts: setup.clothingCounts,
+            profileAccessories: setup.accessories,
+            privateProfile: profileState == null
+                ? null
+                : playerGameProfileFromLearningState(profileState),
             activeSessionStore: widget.activeSessionStore,
             historyStore: widget.historyStore,
           ),
         ),
       );
+      if (exit != null) {
+        await controller.clearActiveSession();
+      }
     } catch (_) {
       if (mounted) {
         setState(() {

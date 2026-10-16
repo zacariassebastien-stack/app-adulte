@@ -1,3 +1,6 @@
+-- PREPARED / NOT EXECUTED: requires local PostgreSQL.
+-- Reconciled with stabilized V4: single compromise decision, normal corruption
+-- completion barrier, Recovery exit directly to WAITING_NEXT.
 -- Run after all migrations, only in the disposable local test database.
 -- Fixtures and temporary test functions are rolled back. No remote deployment.
 begin;
@@ -51,8 +54,8 @@ begin
   insert into public.game_sessions(id,join_code,status,host_user_id) values(s,'ABCDEF','ready',a);
   insert into public.session_players(session_id,user_id,role,join_command_id)
     values(s,a,'PLAYER_1','fixture-join-a'),(s,b,'PLAYER_2','fixture-join-b');
-  insert into public.network_game_states(session_id,current_round_number,action_points)
-    values(s,2,jsonb_build_object(a::text,100,b::text,100));
+  insert into public.network_game_states(session_id,current_round_number,action_points,v4_unlocked_spice)
+    values(s,2,jsonb_build_object(a::text,100,b::text,100),4);
   insert into public.network_rounds(id,session_id,round_number,round_key,phase)
     values(prior,s,1,'fixture-round-1','CLOSED'),(current_round,s,2,'fixture-round-2','COMMIT'),
       (tied,s,3,'fixture-round-3','TIE_DECISION');
@@ -99,29 +102,40 @@ begin
   select count(*) into n from public.network_round_reveals where round_id=current_round;
   perform pg_temp.assert_true(n=2 and state#>>'{own_reveal,choice,usage_id}'='usage-a','reveal retry/reconnect identity');
 
-  perform public.submit_network_initial_resolution(s,current_round,a,jsonb_build_object(
-    'tied',false,'winner_player_id',a,'loser_player_id',b,'gap',2,'gap_cost',2,
-    'high_value',9,'action_points',jsonb_build_object(a::text,100,b::text,100),'inversion_allowed',true),'initial');
-  bid1:=pg_temp.make_usage('bid-1','045',1,b,5)||jsonb_build_object('origin','AUCTION','logical_order',1);
-  bid2:=pg_temp.make_usage('bid-2','045',2,b,6)||jsonb_build_object('origin','AUCTION','logical_order',2);
+  state:=public.resolve_network_initial_private(s,current_round,a,'initial');
+  perform pg_temp.assert_true(state->>'phase'='COUNTER_DECISION','private initial resolution retains V4 counter flow');
+  perform set_config('request.jwt.claim.sub',b::text,true);
+  state:=public.submit_network_counter_decision(s,current_round,b,'ACCEPT',0,null,'accept-initial');
+  perform pg_temp.assert_true(state->>'phase'='CORRUPTION_DECISION','unified post-duel choice');
+  -- Only earlier discarded usages can be proposed as compromise arguments.
+  update public.network_rounds set recovery_history=jsonb_build_array(
+    pg_temp.make_usage('prior-bid-1','045',1,b,5)||jsonb_build_object('response','ACCEPT'),
+    pg_temp.make_usage('prior-bid-2','045',2,b,6)||jsonb_build_object('response','ACCEPT')) where id=prior;
+  bid1:=pg_temp.make_usage('bid-1','045',1,b,5)||jsonb_build_object('origin','AUCTION','logical_order',1,'source_usage_id','prior-bid-1');
+  bid2:=pg_temp.make_usage('bid-2','045',2,b,6)||jsonb_build_object('origin','AUCTION','logical_order',2,'source_usage_id','prior-bid-2');
   offer:=jsonb_build_object('inversion_requested',false,'direct_pa',0,'cards',jsonb_build_array(bid1,bid2));
   perform set_config('request.jwt.claim.sub',b::text,true);
   perform public.submit_network_negotiation_proposal(s,current_round,b,offer,'proposal');
   perform set_config('request.jwt.claim.sub',a::text,true);
-  perform public.respond_network_negotiation(s,current_round,a,
-    jsonb_build_object('accept_inversion',false,'accept_auction',true),'response');
-  perform set_config('request.jwt.claim.sub',b::text,true);
-  perform public.adapt_network_negotiation(s,current_round,b,offer,'adapt');
-  perform set_config('request.jwt.claim.sub',a::text,true);
-  state:=public.validate_network_negotiation(s,current_round,a,true,'validate');
+  state:=public.respond_network_negotiation(s,current_round,a,
+    jsonb_build_object('accepted',true),'response');
   saved:=state->'final_resolution';
   perform pg_temp.assert_true(saved->>'usage_id'='usage-b'
     and saved#>'{compromise,0,resolved_action}'=ub->'resolved_action','initial compromise preserves resolved action');
+  perform pg_temp.assert_true(saved->>'final_winner_player_id'=a::text,'compromise preserves the duel winner');
   perform pg_temp.assert_true(jsonb_array_length(saved->'compromise')=3
     and saved#>>'{compromise,1,usage_id}'='bid-1'
     and saved#>>'{compromise,2,usage_id}'='bid-2','same concept distinct auction usages');
-  state:=public.validate_network_negotiation(s,current_round,a,true,'validate');
-  perform pg_temp.assert_true(state->'final_resolution'=saved,'validation retry cannot rebuild snapshot');
+  state:=public.respond_network_negotiation(s,current_round,a,
+    jsonb_build_object('accepted',true),'response');
+  perform pg_temp.assert_true(state->'final_resolution'=saved,'response retry cannot rebuild snapshot');
+  -- Separate canonical corruption fixture: a is the final loser, b the winner.
+  update public.network_rounds set phase='CORRUPTION_DECISION',negotiation=null,
+    final_resolution=jsonb_build_object('retained_player_id',b,'final_winner_player_id',b,'final_loser_player_id',a,
+      'inverted',false,'usage_id','usage-b','concept_id','045','compromise',jsonb_build_array(
+        public.network_usage_resolution(ub,false)||jsonb_build_object('origin','INITIAL_DUEL','logical_order',0)))
+    where id=current_round;
+  perform set_config('request.jwt.claim.sub',a::text,true);
 
   -- Earlier discarded source: provenance uses source_usage_id, not the new ID.
   insert into public.network_round_commands(command_id,session_id,round_id,player_id,kind)
@@ -129,23 +143,24 @@ begin
   insert into public.network_round_reveals(round_id,player_id,choice_payload,nonce,command_id)
     values(prior,a,pg_temp.make_usage('prior-a','019',1,a,7),'prior-nonce','prior-reveal');
   c1:=(pg_temp.make_usage('corruption-1','019',1,a,7)-'snapshot_value')||jsonb_build_object('source_usage_id','prior-a');
-  c2:=(pg_temp.make_usage('corruption-2','019',2,a,7)-'snapshot_value')||jsonb_build_object('source_usage_id','prior-a');
+  c2:=(pg_temp.make_usage('corruption-2','019',1,a,7)-'snapshot_value')||jsonb_build_object('source_usage_id','prior-a');
   state:=public.submit_network_corruption_offer(s,current_round,a,'OWN_INITIAL_ACTION',jsonb_build_array(c1,c2),'corruption-offer');
   perform pg_temp.assert_true(state#>'{corruption,actions,0,resolved_action}'=c1->'resolved_action','corruption offer keeps snapshot');
   perform set_config('request.jwt.claim.sub',b::text,true);
-  perform public.respond_network_corruption(s,current_round,b,true,'corruption-accept');
+  state:=public.respond_network_corruption(s,current_round,b,true,'corruption-accept');
+  perform pg_temp.assert_true(state->>'phase'='FINAL_RESOLVED','corruption uses normal action completion');
   perform set_config('request.jwt.claim.sub',a::text,true);
-  statuses:=jsonb_build_array(
-    jsonb_build_object('usage_id','corruption-2','source','DISCARD','status','SKIPPED','visibility','VISIBLE'),
-    jsonb_build_object('usage_id','corruption-1','source','DISCARD','status','COMPLETED','visibility','VISIBLE'));
-  state:=public.resolve_network_corruption(s,current_round,a,statuses,'corruption-resolve');
-  saved:=state->'corruption';
-  perform pg_temp.assert_true(saved#>>'{actions,0,usage_id}'='corruption-1'
-    and saved#>>'{actions,0,status}'='COMPLETED'
-    and saved#>'{actions,0,resolved_action}'=c1->'resolved_action'
-    and saved#>'{actions,1,resolved_action}'=c2->'resolved_action','corruption status join preserves snapshots and order');
-  state:=public.resolve_network_corruption(s,current_round,a,statuses,'corruption-resolve');
-  perform pg_temp.assert_true(state->'corruption'=saved,'corruption retry');
+  select jsonb_build_object('cards',jsonb_agg(item-array['origin','logical_order','snapshot_value','inverted_resolution']),
+    'required_clothing_player_ids','[]'::jsonb) into statuses
+    from jsonb_array_elements(state#>'{final_resolution,compromise}') item;
+  perform public.publish_v4_action_projection(s,current_round,a,'publish-corruption',statuses);
+  update public.network_game_states set action_points=jsonb_build_object(a::text,8,b::text,100) where session_id=s;
+  state:=public.ready_network_next_round(s,current_round,a,'done-a');
+  perform pg_temp.assert_true(state->>'phase'='FINAL_RESOLVED','first completion waits for partner');
+  perform set_config('request.jwt.claim.sub',b::text,true);
+  state:=public.ready_network_next_round(s,current_round,b,'done-b');
+  perform pg_temp.assert_true(state->>'phase'='RECOVERY','low PA routes to Recovery after both completions');
+  perform set_config('request.jwt.claim.sub',a::text,true);
 
   -- Recovery refusals and completed uses of the same concept have distinct IDs.
   update public.network_game_states set action_points=jsonb_build_object(a::text,8,b::text,100) where session_id=s;
@@ -177,6 +192,13 @@ begin
   perform pg_temp.assert_true(state#>>array['action_points',a::text]='20'
     and jsonb_array_length(state->'recovery_history')=2,'Recovery retry must not duplicate gain/history');
 
+  perform public.skip_network_recovery(s,current_round,a,'skip-a');
+  perform set_config('request.jwt.claim.sub',b::text,true);
+  state:=public.skip_network_recovery(s,current_round,b,'skip-b');
+  perform pg_temp.assert_true(state->>'phase'='WAITING_NEXT','second Recovery exit closes directly without repeating FINAL_RESOLVED');
+  perform pg_temp.assert_true(state#>>'{corruption,actions,0,status}'='COMPLETED','canonical close finalizes corruption');
+  perform set_config('request.jwt.claim.sub',a::text,true);
+
   -- A prior Recovery usage is also a legitimate source, without a duel reveal.
   update public.network_rounds set recovery_history=jsonb_build_array(
     pg_temp.make_usage('prior-recovery-a','019',1,a,7)||jsonb_build_object(
@@ -201,6 +223,8 @@ begin
   state:=public.submit_network_tie_decision(s,tied,a,'CONCEDE','tie-concede');
   perform pg_temp.assert_true(state#>>'{final_resolution,usage_id}'='tie-b'
     and state#>>'{final_resolution,compromise,0,resolved_action,action_text}'='Frozen action text','tie resolved snapshot');
+  update public.network_rounds set phase='WAITING_NEXT' where id=current_round;
+  update public.network_game_states set cycle_exhausted=true where session_id=s;
   -- PLAYER_2 can trigger continuation; concurrent commands and retry renew once.
   perform set_config('request.jwt.claim.sub',b::text,true);
   select jsonb_build_object('expected_cycle',deck_cycle) into saved

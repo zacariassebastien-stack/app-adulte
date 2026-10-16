@@ -7,6 +7,7 @@ import '../../domain/game/game_models.dart';
 final class CatalogEngineAdapter {
   const CatalogEngineAdapter() : useV3 = false;
   const CatalogEngineAdapter.v3() : useV3 = true;
+  const CatalogEngineAdapter.v4() : useV3 = true;
 
   final bool useV3;
 
@@ -24,7 +25,11 @@ final class CatalogEngineAdapter {
           enabled: useV3 ? variant.v3DeckEnabled : variant.enabled,
           chiliLevel: variant.chiliLevel,
           consentRules: useV3 && (variant.v3 != null || card.v3 != null)
-              ? _v3Consent(variant.v3 ?? card.v3!)
+              ? card.v4 != null
+                    // V4 eligibility uses profile exclusions as its only
+                    // persistent veto. Legacy PracticeConsent data never gates.
+                    ? const []
+                    : _v3Consent(variant.v3 ?? card.v3!)
               : [
                   ...card.profileRequirements.map(_consent),
                   ...variant.profileRequirements.map(_consent),

@@ -15,7 +15,7 @@ void main() {
   late LobbySession session;
 
   setUpAll(() async {
-    catalog = await const CatalogLoader().load(
+    catalog = await const CatalogLoader().loadLegacyV3(
       (path) => File(path).readAsString(),
     );
     session = LobbySession(

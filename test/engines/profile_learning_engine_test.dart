@@ -22,7 +22,7 @@ void main() {
   const generalMassage = PreferenceLearningKey(preferenceId: massage);
 
   group('initialization and categories', () {
-    test('maps initial swipe to 3, 8, 20 and immutable exclusion', () {
+    test('maps new initialization to 5, 12, 20 and immutable exclusion', () {
       var state = engine.initialize(
         profileId: 'a',
         choices: const {
@@ -36,13 +36,13 @@ void main() {
         state
             .entry(const PreferenceLearningKey(preferenceId: 'love'))!
             .currentPa,
-        3,
+        5,
       );
       expect(
         state
             .entry(const PreferenceLearningKey(preferenceId: 'like'))!
             .currentPa,
-        8,
+        12,
       );
       expect(
         state

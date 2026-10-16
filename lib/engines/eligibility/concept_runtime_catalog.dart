@@ -2,9 +2,10 @@ import '../../core/json.dart';
 import '../../domain/catalog/catalog.dart';
 import '../../domain/catalog/concept_catalog.dart';
 import '../../domain/catalog/definitions.dart';
+import '../../domain/catalog/v4_catalog.dart';
 
-/// New concepts expressed in the existing V4 engine/view definition types.
-/// Source cards contribute rules only; their IDs, spice and stock are not used.
+/// V4 context/clothing/duration plus explicitly validated conceptual rules.
+/// No legacy catalogue or stage occurrence is consulted.
 final class ConceptRuntimeCatalog {
   ConceptRuntimeCatalog({
     required this.concepts,
@@ -12,172 +13,117 @@ final class ConceptRuntimeCatalog {
     required JsonMap rules,
   }) {
     final byId = {for (final card in source.cards) card.stableId: card};
-    final bindings = <String, List<String>>{};
-    for (final value in rules['bindings']! as List) {
-      final binding = value as JsonMap;
+    final bindings = <String, JsonMap>{};
+    for (final raw in rules['bindings']! as List) {
+      final binding = raw as JsonMap;
       final id = binding['concept_id']! as String;
-      if (bindings.containsKey(id)) {
+      if (bindings.containsKey(id))
         throw FormatException('Duplicate binding $id');
-      }
-      bindings[id] = (binding['source_card_ids']! as List).cast<String>();
+      bindings[id] = binding;
     }
-    if (bindings.length != concepts.concepts.length) {
+    if (bindings.length != concepts.concepts.length)
       throw const FormatException(
         'Every active concept needs one rule binding',
       );
-    }
     definitions = Map.unmodifiable({
       for (final concept in concepts.concepts)
-        concept.id: _definition(concept, [
-          for (final id in bindings[concept.id] ?? <String>[])
-            byId[id] ?? (throw FormatException('Unknown rule source $id')),
-        ]),
+        concept.id: _definition(concept, bindings[concept.id]!, byId),
+    });
+  }
+  final ConceptCatalog concepts;
+  late final Map<String, CardDefinition> definitions;
+  V4VariantRatingDefinition ratingFor(String conceptId, String actionId) {
+    final variant = definitions[conceptId]!.variants.singleWhere(
+      (v) => v.stableId == actionId,
+    );
+    return V4VariantRatingDefinition.fromJson({
+      ...variant.reader.json['v4']! as JsonMap,
+      'variant_id': actionId,
+      'stage': null,
+      'scope': 'concept',
     });
   }
 
-  final ConceptCatalog concepts;
-  late final Map<String, CardDefinition> definitions;
+  Set<String> vetoTags(String conceptId) => {
+    for (final variant in definitions[conceptId]!.variants) ...{
+      for (final tag in variant.v3!.tags) tag.split('.').last,
+      if (variant.reader.json['v4'] case final Map<String, Object?> rating) ...{
+        ...(rating['primary_preference_tags'] as List).cast<String>(),
+        ...(rating['secondary_preference_tags'] as List).cast<String>(),
+        ...(rating['non_preference_data'] as List).cast<String>(),
+      },
+    },
+    if (conceptId == '022') 'penetration_vaginale',
+    if (conceptId == '004') ...{'lecher', 'sucer'},
+    if (concepts.concepts.singleWhere((c) => c.id == conceptId).kind ==
+        ConceptKind.zones)
+      for (final zone in concepts.zones) zone.id,
+  };
 
   CardDefinition _definition(
     CardConcept concept,
-    List<CardDefinition> sources,
+    JsonMap binding,
+    Map<String, CardDefinition> sources,
   ) {
-    if (sources.isEmpty) {
-      throw FormatException('Missing rule source ${concept.id}');
-    }
-    final source = sources.first;
-    final actions = <JsonMap>[];
-    final definitions = [
+    final ids = (binding['source_card_ids']! as List).cast<String>();
+    if (ids.length != 1 || sources[ids.single] == null)
+      throw FormatException('Unknown V4 metadata source for ${concept.id}');
+    final source = sources[ids.single]!;
+    final actionRules = {
+      for (final raw in binding['actions']! as List)
+        (raw as JsonMap)['action_id']! as String: raw,
+    };
+    final actions = [
       for (final stage in concept.stages) (stage.id, stage.title, stage.chili),
       for (final variant in concept.variants)
         (variant.id, variant.title, variant.chili ?? concept.intrinsicChili!),
     ];
-    for (var index = 0; index < definitions.length; index++) {
-      final action = definitions[index];
-      final actionSource =
-          sources[index < sources.length ? index : sources.length - 1];
-      final sourceVariant = concept.id == '022' || concept.id == '023'
-          ? actionSource.variants.firstWhere(
-              (v) => v.stableId == 'variant.anal_manual.internal',
-            )
-          : actionSource.variants.first;
-      final editorial = <String, Object?>{
-        ...?(sourceVariant.reader.json['v3'] ?? source.reader.json['v3'])
-            as JsonMap?,
-      };
-      final tags = ((editorial['tags'] as List?) ?? <Object?>[])
-          .cast<String>()
-          .toSet();
-      final requirements = <String, Object?>{
-        ...?editorial['requirements'] as JsonMap?,
-      };
-      final technical = [
-        ...actionSource.technicalRequirements.map((r) => r.toJson()),
-        ...sourceVariant.technicalRequirements.map((r) => r.toJson()),
-      ];
-      void preferences(List<String> ids) {
-        tags.removeWhere((t) => t.startsWith('v3.preference.'));
-        tags.addAll(ids.map((id) => 'v3.preference.$id'));
-      }
-
-      void direction(List<String> ids) {
-        tags.removeWhere((t) => t.startsWith('v3.direction.'));
-        tags.addAll(ids.map((id) => 'v3.direction.$id'));
-      }
-
-      void modes({required bool distance}) {
-        requirements['DISTANCE_EXCLUE'] = !distance;
-        technical.removeWhere((r) => r['type'] == 'SESSION_MODE_IN');
-        technical.add({
-          'type': 'SESSION_MODE_IN',
-          'values': ['face_to_face', 'hybrid', if (distance) 'distance'],
-        });
-      }
-
-      switch (concept.id) {
-        case '022':
-          preferences(['penetrer', 'doigts']);
-          tags.removeWhere((t) => t.startsWith('v3.zone.'));
-          tags.add('v3.zone.vaginal');
-          direction(['faire', 'recevoir']);
-          modes(distance: false);
-        case '065':
-          preferences(['masturbation']);
-          tags.add('v3.zone.pieds');
-          direction(['faire', 'recevoir']);
-          modes(distance: false);
-        case '004':
-          // Technique is chosen later; do not inherit an intimate practice.
-          preferences([]);
-          tags.removeWhere((t) => t.startsWith('v3.zone.'));
-          direction(['faire', 'recevoir']);
-          modes(distance: false);
-        case '013':
-          preferences(['tenue']);
-          direction(['solo']);
-          modes(distance: true);
-        case '044' || '046':
-          modes(distance: true);
-        case '045' || '047':
-          preferences([
-            concept.id == '045' ? 'photo' : 'video',
-            'etre_regarde',
-          ]);
-          direction(['mutuel']);
-          modes(distance: true);
-        case '049' || '050' || '051' || '052':
-          preferences([
-            'sextoy',
-            if (concept.id == '050') 'masturbation',
-            if (action.$1.endsWith('vaginal_insertion') ||
-                action.$1.endsWith('anal_insertion'))
-              'penetrer',
-            if (concept.id == '052') ...[
-              'vibrant',
-              'controle_distance',
-              'controle',
-            ],
-          ]);
-          tags.removeWhere((t) => t.startsWith('v3.zone.'));
-          if (action.$1.endsWith('vaginal_insertion')) {
-            tags.add('v3.zone.vaginal');
-          }
-          if (action.$1.endsWith('anal_insertion')) tags.add('v3.zone.anal');
-          direction(concept.id == '050' ? ['solo'] : ['faire', 'recevoir']);
-          modes(distance: concept.id == '050' || concept.id == '052');
-      }
-      if (concept.kind == ConceptKind.zones) {
-        tags.removeWhere((t) => t.startsWith('v3.zone.'));
-      }
-      editorial['taxonomy_version'] = 1;
-      editorial['tags'] = tags.toList();
-      editorial['requirements'] = requirements;
-      editorial['baseEngagementLevel'] = action.$3;
-      actions.add({
-        ...sourceVariant.reader.json,
-        'stable_id': action.$1,
-        'card_id': concept.id,
-        'enabled': true,
-        'v3_deck_enabled': true,
-        'title': action.$2,
-        'action_text': concept.actionText,
-        'details_text': concept.detailsText,
-        'chili_level': action.$3,
-        'technical_requirements': technical,
-        'v3': editorial,
-      });
-    }
+    if (actionRules.length != actions.length)
+      throw FormatException('Action rules mismatch ${concept.id}');
     return CardDefinition.fromJson({
       ...source.reader.json,
+      'v4': {
+        ...?source.reader.json['v4'] as JsonMap?,
+        if (const {
+          '013',
+          '044',
+          '045',
+          '046',
+          '047',
+          '050',
+          '052',
+        }.contains(concept.id))
+          'presence': 'BOTH',
+      },
       'stable_id': concept.id,
       'enabled': true,
       'v3_deck_enabled': true,
       'title': concept.title,
       'action_text': concept.actionText,
       'details_text': concept.detailsText,
+      'inversion_policy': binding['inversion_policy'],
       'technical_requirements': <Object?>[],
-      'variants': actions,
-      'v3': actions.first['v3'],
+      'v3': actionRules[actions.first.$1]!['editorial'],
+      'variants': [
+        for (final action in actions)
+          {
+            ...source.variants.first.reader.json,
+            'stable_id': action.$1,
+            'card_id': concept.id,
+            'enabled': true,
+            'v3_deck_enabled': true,
+            'title': action.$2,
+            'action_text': concept.actionText,
+            'details_text': concept.detailsText,
+            'chili_level': action.$3,
+            'technical_requirements':
+                actionRules[action.$1]!['technical_requirements'],
+            'state_effects': actionRules[action.$1]!['state_effects'],
+            'inversion_override': actionRules[action.$1]!['inversion_override'],
+            'v3': actionRules[action.$1]!['editorial'],
+            'v4': actionRules[action.$1]!['rating'],
+          },
+      ],
     });
   }
 }

@@ -155,7 +155,7 @@ void main() {
   test(
     'editor definitions use canonical content for the first three cards',
     () async {
-      final catalog = await const CatalogLoader().load(
+      final catalog = await const CatalogLoader().loadLegacyV3(
         (path) => File(path).readAsString(),
       );
       final cards = {for (final card in catalog.cards) card.stableId: card};

@@ -14,3 +14,9 @@ export 'intensity/intensity_engine.dart';
 export 'lifecycle/lifecycle_engine.dart';
 export 'recovery/recovery_engine.dart';
 export 'profile/profile_learning_engine.dart';
+export 'profile/initial_questionnaire_engine.dart';
+export 'profile/v4_card_rating_engine.dart';
+export 'runtime/v4_runtime_engine.dart';
+
+export 'deck/concept_spice_progression.dart';
+export 'runtime/v4_clothing_engine.dart';

@@ -70,6 +70,39 @@ final class LifecycleEngine {
         card,
   ];
 
+  List<CardRuntimeState> reserve(
+    List<CardRuntimeState> cards,
+    String occurrenceId,
+  ) => [
+    for (final card in cards)
+      if (card.occurrenceId == occurrenceId && card.zone == CardZone.HAND)
+        card.copyWith(zone: CardZone.RESERVED, locked: false)
+      else
+        card,
+  ];
+
+  List<CardRuntimeState> engageReserved(
+    List<CardRuntimeState> cards,
+    String occurrenceId,
+  ) => [
+    for (final card in cards)
+      if (card.occurrenceId == occurrenceId && card.zone == CardZone.RESERVED)
+        card.copyWith(zone: CardZone.ENGAGED, locked: false)
+      else
+        card,
+  ];
+
+  List<CardRuntimeState> cancelReservation(
+    List<CardRuntimeState> cards,
+    String occurrenceId,
+  ) => [
+    for (final card in cards)
+      if (card.occurrenceId == occurrenceId && card.zone == CardZone.RESERVED)
+        card.copyWith(zone: CardZone.HAND, locked: false)
+      else
+        card,
+  ];
+
   List<CardRuntimeState> closeRound(List<CardRuntimeState> cards) => [
     for (final card in cards)
       if (card.zone == CardZone.ENGAGED)

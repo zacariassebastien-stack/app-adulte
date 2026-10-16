@@ -17,7 +17,9 @@ void main() {
     second: {Strategy.BALANCED},
   );
   setUpAll(() async {
-    catalog = await const CatalogLoader().load((p) => File(p).readAsString());
+    catalog = await const CatalogLoader().loadLegacyV3(
+      (p) => File(p).readAsString(),
+    );
   });
   SimulationMetrics run(
     int seed, {

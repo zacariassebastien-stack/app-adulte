@@ -200,21 +200,14 @@ final class ConceptDeckEngine {
           unavailableConceptIds.contains(concept.id)) {
         continue;
       }
-      final choices = _choices(concept, catalog, eligibility, globalChili);
-      if (choices.isEmpty) continue;
-      final maximum = choices.map((choice) => choice.chili).reduce(max);
-      final drawClass = concept.kind == ConceptKind.zones
-          ? max(1, maximum - 1)
-          : maximum;
-      classes
-          .putIfAbsent(drawClass, () => [])
-          .add(
-            ConceptDeckCandidate(
-              concept: concept,
-              drawClass: drawClass,
-              choices: choices,
-            ),
-          );
+      final candidate = candidateFor(
+        concept: concept,
+        catalog: catalog,
+        eligibility: eligibility,
+        globalChili: globalChili,
+      );
+      if (candidate != null)
+        classes.putIfAbsent(candidate.drawClass, () => []).add(candidate);
     }
     // Sort to keep probability intervals stable, independent of catalogue order.
     final ordered = {
@@ -231,6 +224,26 @@ final class ConceptDeckEngine {
       probabilities: {
         for (final level in ordered.keys) level: weights[level]! / total,
       },
+    );
+  }
+
+  /// Definition/context projection only. Does not create, reserve or spend stock.
+  ConceptDeckCandidate? candidateFor({
+    required CardConcept concept,
+    required ConceptCatalog catalog,
+    required ConceptDeckEligibility eligibility,
+    required int globalChili,
+  }) {
+    RangeError.checkValueInInterval(globalChili, 1, 4, 'globalChili');
+    final choices = _choices(concept, catalog, eligibility, globalChili);
+    if (choices.isEmpty) return null;
+    final maximum = choices.map((choice) => choice.chili).reduce(max);
+    return ConceptDeckCandidate(
+      concept: concept,
+      choices: choices,
+      drawClass: concept.kind == ConceptKind.zones
+          ? max(1, maximum - 1)
+          : maximum,
     );
   }
 

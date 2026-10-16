@@ -1,4 +1,5 @@
 import '../../engines/profile/profile_learning_engine.dart';
+import '../../domain/profile/adaptive_profile.dart';
 import '../protocol/network_usage_projection.dart';
 
 LearningCardDescriptor usageLearningDescriptor(NetworkUsageProjection usage) {
@@ -31,6 +32,9 @@ ResolvedLearningCard usageLearningOutcome(NetworkUsageProjection usage) {
       card: card,
       participation: ResolvedParticipation.solo,
       soloPlayerId: actors.single,
+      soloRole: (action['parameters'] as Map)['learning_role'] == 'soi'
+          ? LearningRole.soi
+          : LearningRole.solo,
     ),
     _ => ResolvedLearningCard(
       card: card,

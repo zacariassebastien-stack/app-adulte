@@ -1,3 +1,11 @@
+> **Réconciliation V4 : décisions finales.** P3 est corrigée : 045 utilise
+> PHOTO_MUTUELLE principale @ MUTUEL, 047 VIDEO_MUTUELLE principale @ MUTUEL ;
+> PHOTO/VIDEO sont des familles non notées et ETRE_REGARDE est absent de ces
+> deux concepts. Les formulations P3 antérieures ci-dessous sont historiques.
+> Pour 013 uniquement, TENUE@SOI utilise initialement TENUE@FAIRE (Q05 « Moi »).
+> Le questionnaire V4 reste intact hors adaptation de la valeur UNSURE à 18.
+> Voir `merge_origin_main_lot6.md` pour le raccordement définitif.
+
 # Lot 5 — raccordement ciblé du runtime V4
 
 Note de suivi : ce document décrit le checkpoint Lot 5. Le [Lot 6](concept_secondary_integration.md)

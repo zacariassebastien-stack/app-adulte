@@ -1,349 +1,5559 @@
 {
   "schema_version": 1,
-  "source": "V4 correspondence, P1-P6 validated 2026-10-15; source metadata only, never legacy draw weights",
+  "source": "Validated Lot 1–6 conceptual rules including P1–P6, retained with numbered V4 metadata for context/clothing/duration. Conceptual stages, spice, preferences and quota remain authoritative.",
   "bindings": [
     {
       "concept_id": "001",
       "source_card_ids": [
-        "card.hug"
-      ]
+        "card.v4.001"
+      ],
+      "actions": [
+        {
+          "action_id": "001.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.proximite_physique",
+              "v3.preference.calin",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "NONE",
+          "rating": {
+            "primary_preference_tags": [
+              "calin"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "MUTUEL"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "NONE"
     },
     {
       "concept_id": "002",
       "source_card_ids": [
-        "card.kiss_me",
-        "card.neck_kisses"
-      ]
+        "card.v4.002"
+      ],
+      "actions": [
+        {
+          "action_id": "002.zone.face_hair",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "002.zone.neck_nape",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "002.zone.arms_hands",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "002.zone.back_shoulders",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "002.zone.belly",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "002.zone.legs",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "002.zone.feet",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "002.zone.thighs",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "002.zone.buttocks",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "002.zone.chest",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "002.zone.penis",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "002.zone.vulva",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "002.zone.anus",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "002.zone.free",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "003",
       "source_card_ids": [
-        "card.kiss_me",
-        "card.deep_kiss"
-      ]
+        "card.v4.003"
+      ],
+      "actions": [
+        {
+          "action_id": "003.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "levres",
+              "langue",
+              "MUTUEL"
+            ]
+          }
+        },
+        {
+          "action_id": "003.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.preference.langue",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "levres",
+              "langue",
+              "MUTUEL"
+            ]
+          }
+        },
+        {
+          "action_id": "003.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.embrasser",
+              "v3.preference.langue",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "embrasser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "levres",
+              "langue",
+              "MUTUEL"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "004",
       "source_card_ids": [
-        "card.oral_give",
-        "card.anal_oral"
-      ]
+        "card.v4.004"
+      ],
+      "actions": [
+        {
+          "action_id": "004.zone.face_hair",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "004.zone.neck_nape",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "004.zone.arms_hands",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "004.zone.back_shoulders",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "004.zone.belly",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "004.zone.legs",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "004.zone.feet",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "004.zone.thighs",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "004.zone.buttocks",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "004.zone.chest",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "004.zone.penis",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "004.zone.vulva",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "004.zone.anus",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "004.zone.free",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.bouche"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "bouche"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "005",
       "source_card_ids": [
-        "card.caress"
-      ]
+        "card.v4.005"
+      ],
+      "actions": [
+        {
+          "action_id": "005.zone.face_hair",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "005.zone.neck_nape",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "005.zone.arms_hands",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "005.zone.back_shoulders",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "005.zone.belly",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "005.zone.legs",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "005.zone.feet",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "005.zone.thighs",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "005.zone.buttocks",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "005.zone.chest",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "005.zone.penis",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "005.zone.vulva",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "005.zone.anus",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "005.zone.free",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.caresser",
+              "v3.preference.main",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "main"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "006",
       "source_card_ids": [
-        "card.remove_one_clothing"
-      ]
+        "card.v4.006"
+      ],
+      "actions": [
+        {
+          "action_id": "006.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "minimumRemovableClothing": 1
+            },
+            "clothingDelta": -1
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            },
+            {
+              "type": "CLOTHES_AT_LEAST",
+              "target": "PARTNER",
+              "value": 1
+            }
+          ],
+          "state_effects": [
+            {
+              "type": "CLOTHES_DELTA",
+              "target": "PARTNER",
+              "delta": -1
+            }
+          ],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "enlever"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "007",
       "source_card_ids": [
-        "card.remove_two_clothing"
-      ]
+        "card.v4.007"
+      ],
+      "actions": [
+        {
+          "action_id": "007.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "minimumRemovableClothing": 2
+            },
+            "clothingDelta": -2
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            },
+            {
+              "type": "CLOTHES_AT_LEAST",
+              "target": "PARTNER",
+              "value": 2
+            }
+          ],
+          "state_effects": [
+            {
+              "type": "CLOTHES_DELTA",
+              "target": "PARTNER",
+              "delta": -2
+            }
+          ],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "enlever"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "008",
       "source_card_ids": [
-        "card.underwear_only"
-      ]
+        "card.v4.008"
+      ],
+      "actions": [
+        {
+          "action_id": "008.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sous_vetements",
+              "v3.preference.ordres",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "sous_vetements"
+            ],
+            "secondary_preference_tags": [
+              "ordres"
+            ],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "009",
       "source_card_ids": [
-        "card.nudity"
-      ]
+        "card.v4.009"
+      ],
+      "actions": [
+        {
+          "action_id": "009.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.preference.nudite",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {},
+            "clothingDelta": "ASK_PLAYER"
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "nudite"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "010",
       "source_card_ids": [
-        "card.striptease"
-      ]
+        "card.v4.010"
+      ],
+      "actions": [
+        {
+          "action_id": "010.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.danser",
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.preference.etre_regarde",
+              "v3.preference.striptease",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {},
+            "clothingDelta": "ASK_PLAYER"
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "striptease"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "010.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.danser",
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.preference.etre_regarde",
+              "v3.preference.striptease",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {},
+            "clothingDelta": "ASK_PLAYER"
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "striptease"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "010.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.danser",
+              "v3.preference.enlever",
+              "v3.preference.tenue",
+              "v3.preference.etre_regarde",
+              "v3.preference.striptease",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {},
+            "clothingDelta": "ASK_PLAYER"
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "striptease"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "012",
       "source_card_ids": [
-        "card.choose_outfit"
-      ]
+        "card.v4.012"
+      ],
+      "actions": [
+        {
+          "action_id": "012.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.tenue",
+              "v3.preference.controle",
+              "v3.preference.ordres",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "tenue"
+            ],
+            "secondary_preference_tags": [
+              "controle",
+              "ordres"
+            ],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "013",
       "source_card_ids": [
-        "card.v3.costume_and_light_outfit"
-      ]
+        "card.v4.013"
+      ],
+      "actions": [
+        {
+          "action_id": "013.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.tenue",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "tenue"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "016",
       "source_card_ids": [
-        "card.imposed_position"
-      ]
+        "card.v4.016"
+      ],
+      "actions": [
+        {
+          "action_id": "016.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "controle"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "018",
       "source_card_ids": [
-        "card.simulate_act"
-      ]
+        "card.v4.018"
+      ],
+      "actions": [
+        {
+          "action_id": "018.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "simuler"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "018.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "simuler"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "018.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.simuler",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "simuler"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "019",
       "source_card_ids": [
-        "card.masturbate_partner"
-      ]
+        "card.v4.019"
+      ],
+      "actions": [
+        {
+          "action_id": "019.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masturbation",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "masturbation"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "019.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masturbation",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "masturbation"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "019.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masturbation",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "masturbation"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "020",
       "source_card_ids": [
-        "card.mutual_masturbation"
-      ]
+        "card.v4.020"
+      ],
+      "actions": [
+        {
+          "action_id": "020.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masturbation",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "NONE",
+          "rating": {
+            "primary_preference_tags": [
+              "masturbation"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "NONE"
     },
     {
       "concept_id": "021",
       "source_card_ids": [
-        "card.masturbation"
-      ]
+        "card.v4.021"
+      ],
+      "actions": [
+        {
+          "action_id": "021.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masturbation",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "masturbation"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "022",
       "source_card_ids": [
-        "card.anal_manual"
-      ]
+        "card.v4.022"
+      ],
+      "actions": [
+        {
+          "action_id": "022.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.preference.doigts",
+              "v3.zone.vaginal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "penetrer"
+            ],
+            "secondary_preference_tags": [
+              "doigts"
+            ],
+            "non_preference_data": [
+              "vaginal"
+            ]
+          }
+        },
+        {
+          "action_id": "022.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.preference.doigts",
+              "v3.zone.vaginal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "penetrer"
+            ],
+            "secondary_preference_tags": [
+              "doigts"
+            ],
+            "non_preference_data": [
+              "vaginal"
+            ]
+          }
+        },
+        {
+          "action_id": "022.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.preference.doigts",
+              "v3.zone.vaginal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "penetrer"
+            ],
+            "secondary_preference_tags": [
+              "doigts"
+            ],
+            "non_preference_data": [
+              "vaginal"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "023",
       "source_card_ids": [
-        "card.anal_manual"
-      ]
+        "card.v4.023"
+      ],
+      "actions": [
+        {
+          "action_id": "023.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.preference.doigts",
+              "v3.zone.anal",
+              "v3.preference.anal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "doigts",
+              "anal"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "023.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.preference.doigts",
+              "v3.zone.anal",
+              "v3.preference.anal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "doigts",
+              "anal"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "023.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.preference.doigts",
+              "v3.zone.anal",
+              "v3.preference.anal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "doigts",
+              "anal"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "024",
       "source_card_ids": [
-        "card.manual_intimate"
-      ]
+        "card.v4.024"
+      ],
+      "actions": [
+        {
+          "action_id": "024.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.zone.parties_intimes",
+              "v3.direction.faire",
+              "v3.direction.recevoir",
+              "v3.preference.jeu_intime"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            },
+            "ambiguities": [
+              "Le texte ne permet pas de choisir entre CARESSER, MASTURBATION ou PENETRER avec les DOIGTS."
+            ]
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "jeu_intime"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "025",
       "source_card_ids": [
-        "card.oral_give"
-      ]
+        "card.v4.025"
+      ],
+      "actions": [
+        {
+          "action_id": "025.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.lecher",
+              "v3.zone.parties_intimes",
+              "v3.preference.oral",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "oral"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "025.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.lecher",
+              "v3.zone.parties_intimes",
+              "v3.preference.oral",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "oral"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "025.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.lecher",
+              "v3.zone.parties_intimes",
+              "v3.preference.oral",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "oral"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "026",
       "source_card_ids": [
-        "card.sixty_nine"
-      ]
+        "card.v4.026"
+      ],
+      "actions": [
+        {
+          "action_id": "026.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.lecher",
+              "v3.zone.parties_intimes",
+              "v3.preference.oral",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "NONE",
+          "rating": {
+            "primary_preference_tags": [
+              "oral"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "MUTUEL"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "NONE"
     },
     {
       "concept_id": "027",
       "source_card_ids": [
-        "card.vaginal_penetration"
-      ]
+        "card.v4.027"
+      ],
+      "actions": [
+        {
+          "action_id": "027.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.zone.vaginal",
+              "v3.preference.penetration_vaginale",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "penetration_vaginale"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "027.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.zone.vaginal",
+              "v3.preference.penetration_vaginale",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "penetration_vaginale"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "027.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.penetrer",
+              "v3.zone.vaginal",
+              "v3.preference.penetration_vaginale",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "penetration_vaginale"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "028",
       "source_card_ids": [
-        "card.anal_oral"
-      ]
+        "card.v4.028"
+      ],
+      "actions": [
+        {
+          "action_id": "028.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.lecher",
+              "v3.zone.anal",
+              "v3.preference.oral",
+              "v3.preference.anal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "oral",
+              "anal"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "029",
       "source_card_ids": [
-        "card.choose_sex_position"
-      ]
+        "card.v4.029"
+      ],
+      "actions": [
+        {
+          "action_id": "029.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.preference.position",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "position"
+            ],
+            "secondary_preference_tags": [
+              "controle"
+            ],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "030",
       "source_card_ids": [
-        "card.facesitting"
-      ]
+        "card.v4.030"
+      ],
+      "actions": [
+        {
+          "action_id": "030.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.proximite_physique",
+              "v3.zone.tete",
+              "v3.preference.facesitting",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "facesitting"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "030.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.proximite_physique",
+              "v3.zone.tete",
+              "v3.preference.facesitting",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "facesitting"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "030.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.proximite_physique",
+              "v3.zone.tete",
+              "v3.preference.facesitting",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "facesitting"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "031",
       "source_card_ids": [
-        "card.genital_rubbing"
-      ]
+        "card.v4.031"
+      ],
+      "actions": [
+        {
+          "action_id": "031.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.frotter",
+              "v3.zone.parties_intimes",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "frotter"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "MUTUEL"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "032",
       "source_card_ids": [
-        "card.give_order"
-      ]
+        "card.v4.032"
+      ],
+      "actions": [
+        {
+          "action_id": "032.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.ordres",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "ordres"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "033",
       "source_card_ids": [
-        "card.no_touch"
-      ]
+        "card.v4.033"
+      ],
+      "actions": [
+        {
+          "action_id": "033.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.controle",
+              "v3.preference.ordres",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "controle"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "034",
       "source_card_ids": [
-        "card.tie_me"
-      ]
+        "card.v4.034"
+      ],
+      "actions": [
+        {
+          "action_id": "034.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.attacher",
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "requiresConstraintAccessory": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "attacher"
+            ],
+            "secondary_preference_tags": [
+              "controle"
+            ],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "034.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.attacher",
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "requiresConstraintAccessory": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "attacher"
+            ],
+            "secondary_preference_tags": [
+              "controle"
+            ],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "034.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.attacher",
+              "v3.preference.immobiliser",
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true,
+              "requiresConstraintAccessory": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "immobiliser"
+            ],
+            "secondary_preference_tags": [
+              "attacher",
+              "controle"
+            ],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "035",
       "source_card_ids": [
-        "card.blindfold"
-      ]
+        "card.v4.035"
+      ],
+      "actions": [
+        {
+          "action_id": "035.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.yeux_bandes",
+              "v3.preference.privation_sensorielle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "privation_sensorielle"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "vue"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "037",
       "source_card_ids": [
-        "card.spanking"
-      ]
+        "card.v4.037"
+      ],
+      "actions": [
+        {
+          "action_id": "037.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.frapper",
+              "v3.zone.fesses",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "frapper"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "fesses"
+            ]
+          }
+        },
+        {
+          "action_id": "037.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.frapper",
+              "v3.zone.fesses",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "frapper"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "fesses"
+            ]
+          }
+        },
+        {
+          "action_id": "037.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.frapper",
+              "v3.zone.fesses",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "frapper"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "fesses"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "038",
       "source_card_ids": [
-        "card.dance_for_me"
-      ]
+        "card.v4.038"
+      ],
+      "actions": [
+        {
+          "action_id": "038.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.danser",
+              "v3.preference.etre_regarde",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "danser"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "039",
       "source_card_ids": [
-        "card.pose"
-      ]
+        "card.v4.039"
+      ],
+      "actions": [
+        {
+          "action_id": "039.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.etre_regarde",
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "etre_regarde"
+            ],
+            "secondary_preference_tags": [
+              "controle"
+            ],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "042",
       "source_card_ids": [
-        "card.sexting"
-      ]
+        "card.v4.042"
+      ],
+      "actions": [
+        {
+          "action_id": "042.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.paroles_coquines",
+              "v3.preference.envoyer",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "NONE",
+          "rating": {
+            "primary_preference_tags": [
+              "paroles_coquines"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "envoyer"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "NONE"
     },
     {
       "concept_id": "043",
       "source_card_ids": [
-        "card.flirty_message"
-      ]
+        "card.v4.043"
+      ],
+      "actions": [
+        {
+          "action_id": "043.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.paroles_coquines",
+              "v3.preference.envoyer",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "paroles_coquines"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "envoyer"
+            ]
+          }
+        },
+        {
+          "action_id": "043.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.paroles_coquines",
+              "v3.preference.envoyer",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "paroles_coquines"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "envoyer"
+            ]
+          }
+        },
+        {
+          "action_id": "043.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.paroles_coquines",
+              "v3.preference.envoyer",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "distance",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "paroles_coquines"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "envoyer"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "044",
       "source_card_ids": [
-        "card.suggestive_photo",
-        "card.underwear_photo",
-        "card.nude_photo"
-      ]
+        "card.v4.044"
+      ],
+      "actions": [
+        {
+          "action_id": "044.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.photo",
+              "v3.preference.envoyer",
+              "v3.preference.etre_regarde",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "photo"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "envoyer"
+            ]
+          }
+        },
+        {
+          "action_id": "044.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.photo",
+              "v3.preference.sous_vetements",
+              "v3.preference.envoyer",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "photo"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "envoyer"
+            ]
+          }
+        },
+        {
+          "action_id": "044.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.photo",
+              "v3.preference.envoyer",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "photo"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "envoyer"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "045",
       "source_card_ids": [
-        "card.suggestive_photo",
-        "card.underwear_photo",
-        "card.nude_photo"
-      ]
+        "card.v4.045"
+      ],
+      "actions": [
+        {
+          "action_id": "045.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.photo_mutuelle",
+              "v3.direction.mutuel",
+              "v3.family.photo"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "photo_mutuelle"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "photo",
+              "envoyer"
+            ]
+          }
+        },
+        {
+          "action_id": "045.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.photo_mutuelle",
+              "v3.direction.mutuel",
+              "v3.family.photo"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "photo_mutuelle"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "photo",
+              "envoyer"
+            ]
+          }
+        },
+        {
+          "action_id": "045.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.photo_mutuelle",
+              "v3.direction.mutuel",
+              "v3.family.photo"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "photo_mutuelle"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "photo",
+              "envoyer"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "046",
       "source_card_ids": [
-        "card.intimate_video"
-      ]
+        "card.v4.046"
+      ],
+      "actions": [
+        {
+          "action_id": "046.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.video",
+              "v3.preference.envoyer",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "video"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "envoyer"
+            ]
+          }
+        },
+        {
+          "action_id": "046.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.video",
+              "v3.preference.envoyer",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "video"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "envoyer"
+            ]
+          }
+        },
+        {
+          "action_id": "046.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.video",
+              "v3.preference.envoyer",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "video"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "envoyer"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "047",
       "source_card_ids": [
-        "card.intimate_video"
-      ]
+        "card.v4.047"
+      ],
+      "actions": [
+        {
+          "action_id": "047.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.video_mutuelle",
+              "v3.direction.mutuel",
+              "v3.family.video"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "video_mutuelle"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "video",
+              "envoyer"
+            ]
+          }
+        },
+        {
+          "action_id": "047.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.video_mutuelle",
+              "v3.direction.mutuel",
+              "v3.family.video"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "video_mutuelle"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "video",
+              "envoyer"
+            ]
+          }
+        },
+        {
+          "action_id": "047.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.video_mutuelle",
+              "v3.direction.mutuel",
+              "v3.family.video"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "video_mutuelle"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "video",
+              "envoyer"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "048",
       "source_card_ids": [
-        "card.v3.roleplay_scene"
-      ]
+        "card.v4.048"
+      ],
+      "actions": [
+        {
+          "action_id": "048.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.jeu_role",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "requiresRoleplay": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "jeu_role"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "049",
       "source_card_ids": [
-        "card.v3.sextoy_play"
-      ]
+        "card.v4.049"
+      ],
+      "actions": [
+        {
+          "action_id": "049.external",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        },
+        {
+          "action_id": "049.phallus",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        },
+        {
+          "action_id": "049.vaginal_insertion",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.penetrer",
+              "v3.zone.vaginal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        },
+        {
+          "action_id": "049.anal_insertion",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.penetrer",
+              "v3.zone.anal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "050",
       "source_card_ids": [
-        "card.v3.sextoy_play"
-      ]
+        "card.v4.050"
+      ],
+      "actions": [
+        {
+          "action_id": "050.external",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.masturbation",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        },
+        {
+          "action_id": "050.phallus",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.masturbation",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        },
+        {
+          "action_id": "050.vaginal_insertion",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.masturbation",
+              "v3.preference.penetrer",
+              "v3.zone.vaginal",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        },
+        {
+          "action_id": "050.anal_insertion",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.masturbation",
+              "v3.preference.penetrer",
+              "v3.zone.anal",
+              "v3.direction.solo"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "051",
       "source_card_ids": [
-        "card.v3.sextoy_play"
-      ]
+        "card.v4.051"
+      ],
+      "actions": [
+        {
+          "action_id": "051.external",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        },
+        {
+          "action_id": "051.phallus",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        },
+        {
+          "action_id": "051.vaginal_insertion",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.penetrer",
+              "v3.zone.vaginal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        },
+        {
+          "action_id": "051.anal_insertion",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.penetrer",
+              "v3.zone.anal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "requiresSextoy": true,
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "052",
       "source_card_ids": [
-        "card.v3.remote_toy_control"
-      ]
+        "card.v4.052"
+      ],
+      "actions": [
+        {
+          "action_id": "052.external",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.vibrant",
+              "v3.preference.controle_distance",
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "requiresSextoy": true,
+              "requiresVibratingToy": true,
+              "requiresRemoteControlToy": true,
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        },
+        {
+          "action_id": "052.phallus",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.vibrant",
+              "v3.preference.controle_distance",
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "requiresSextoy": true,
+              "requiresVibratingToy": true,
+              "requiresRemoteControlToy": true,
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        },
+        {
+          "action_id": "052.vaginal_insertion",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.penetrer",
+              "v3.preference.vibrant",
+              "v3.preference.controle_distance",
+              "v3.preference.controle",
+              "v3.zone.vaginal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "requiresSextoy": true,
+              "requiresVibratingToy": true,
+              "requiresRemoteControlToy": true,
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        },
+        {
+          "action_id": "052.anal_insertion",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.sextoy",
+              "v3.preference.penetrer",
+              "v3.preference.vibrant",
+              "v3.preference.controle_distance",
+              "v3.preference.controle",
+              "v3.zone.anal",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {
+              "requiresSextoy": true,
+              "requiresVibratingToy": true,
+              "requiresRemoteControlToy": true,
+              "DISTANCE_EXCLUE": false
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET"
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "053",
       "source_card_ids": [
-        "card.v3.shared_adult_content"
-      ]
+        "card.v4.053"
+      ],
+      "actions": [
+        {
+          "action_id": "053.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.contenu_adulte",
+              "v3.preference.regarder",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "contenu_adulte"
+            ],
+            "secondary_preference_tags": [
+              "regarder"
+            ],
+            "non_preference_data": [
+              "MUTUEL"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "054",
       "source_card_ids": [
-        "card.v3.exposed_setting"
-      ]
+        "card.v4.054"
+      ],
+      "actions": [
+        {
+          "action_id": "054.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.lieu_expose",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "lieu_expose"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "MUTUEL"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "055",
       "source_card_ids": [
-        "card.v3.ejaculation_choice"
-      ]
+        "card.v4.055"
+      ],
+      "actions": [
+        {
+          "action_id": "055.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.ejaculation",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "ejaculation"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "056",
       "source_card_ids": [
-        "card.v3.degrading_words"
-      ]
+        "card.v4.056"
+      ],
+      "actions": [
+        {
+          "action_id": "056.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.paroles_degradantes",
+              "v3.preference.degradant",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "degradant"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "parole"
+            ]
+          }
+        },
+        {
+          "action_id": "056.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.paroles_degradantes",
+              "v3.preference.degradant",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "degradant"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "parole"
+            ]
+          }
+        },
+        {
+          "action_id": "056.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.paroles_degradantes",
+              "v3.preference.degradant",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 4,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "degradant"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "parole"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "057",
       "source_card_ids": [
-        "card.v3.beg_for_it"
-      ]
+        "card.v4.057"
+      ],
+      "actions": [
+        {
+          "action_id": "057.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.supplier",
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "supplier"
+            ],
+            "secondary_preference_tags": [
+              "controle"
+            ],
+            "non_preference_data": [
+              "parole"
+            ]
+          }
+        },
+        {
+          "action_id": "057.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.supplier",
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "supplier"
+            ],
+            "secondary_preference_tags": [
+              "controle"
+            ],
+            "non_preference_data": [
+              "parole"
+            ]
+          }
+        },
+        {
+          "action_id": "057.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.supplier",
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "supplier"
+            ],
+            "secondary_preference_tags": [
+              "controle"
+            ],
+            "non_preference_data": [
+              "parole"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "058",
       "source_card_ids": [
-        "card.v3.unusual_private_place"
-      ]
+        "card.v4.058"
+      ],
+      "actions": [
+        {
+          "action_id": "058.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.lieu_inhabituel",
+              "v3.direction.mutuel"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "lieu_inhabituel"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "060",
       "source_card_ids": [
-        "card.v3.auditory_deprivation"
-      ]
+        "card.v4.060"
+      ],
+      "actions": [
+        {
+          "action_id": "060.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.privation_auditive",
+              "v3.preference.controle",
+              "v3.preference.privation_sensorielle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "requiresConstraintAccessory": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "privation_sensorielle"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "ouie"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "061",
       "source_card_ids": [
-        "card.v3.silence_rule"
-      ]
+        "card.v4.061"
+      ],
+      "actions": [
+        {
+          "action_id": "061.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.privation_parole",
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {}
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid",
+                "distance"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "privation_parole"
+            ],
+            "secondary_preference_tags": [
+              "controle"
+            ],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "062",
       "source_card_ids": [
-        "card.v3.neck_hold"
-      ]
+        "card.v4.062"
+      ],
+      "actions": [
+        {
+          "action_id": "062.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.maintien_cou",
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "maintien_cou"
+            ],
+            "secondary_preference_tags": [
+              "controle"
+            ],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "062.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.maintien_cou",
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "maintien_cou"
+            ],
+            "secondary_preference_tags": [
+              "controle"
+            ],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "062.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.maintien_cou",
+              "v3.preference.controle",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "maintien_cou"
+            ],
+            "secondary_preference_tags": [
+              "controle"
+            ],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "063",
       "source_card_ids": [
-        "card.v3.gentle_pull"
-      ]
+        "card.v4.063"
+      ],
+      "actions": [
+        {
+          "action_id": "063.stage.1",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.tirer",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 1,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "tirer"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "063.stage.2",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.tirer",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 2,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "tirer"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        },
+        {
+          "action_id": "063.stage.3",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.tirer",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "tirer"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": []
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     },
     {
       "concept_id": "065",
       "source_card_ids": [
-        "card.masturbate_partner"
-      ]
+        "card.v4.065"
+      ],
+      "actions": [
+        {
+          "action_id": "065.action",
+          "editorial": {
+            "taxonomy_version": 1,
+            "tags": [
+              "v3.preference.masturbation",
+              "v3.zone.pieds",
+              "v3.direction.faire",
+              "v3.direction.recevoir"
+            ],
+            "baseEngagementLevel": 3,
+            "requirements": {
+              "DISTANCE_EXCLUE": true
+            }
+          },
+          "technical_requirements": [
+            {
+              "type": "SESSION_MODE_IN",
+              "values": [
+                "face_to_face",
+                "hybrid"
+              ]
+            }
+          ],
+          "state_effects": [],
+          "inversion_override": "SWAP_ACTOR_TARGET",
+          "rating": {
+            "primary_preference_tags": [
+              "masturbation"
+            ],
+            "secondary_preference_tags": [],
+            "non_preference_data": [
+              "pieds"
+            ]
+          }
+        }
+      ],
+      "inversion_policy": "SWAP_ACTOR_TARGET"
     }
   ]
 }

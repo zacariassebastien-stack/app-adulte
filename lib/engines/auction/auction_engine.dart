@@ -129,8 +129,10 @@ final class AuctionEngine {
   }
 }
 
-/// Pure V3 bounded negotiation. The initial loser proposes, the initial winner
-/// answers each component, the loser adapts once, and the winner validates.
+/// Pure V3 bounded negotiation. New rounds use [decide] so the initial winner
+/// accepts the complete proposal or keeps the initial result in one decision.
+/// The legacy response/adaptation/validation methods remain available to
+/// restore negotiations persisted before that flow was simplified.
 enum NegotiationPhase { proposal, response, adaptation, validation, resolved }
 
 final class NegotiationOffer {
@@ -200,6 +202,27 @@ final class NegotiationEngineV3 {
     return _copy(state, phase: NegotiationPhase.response, proposal: offer);
   }
 
+  NegotiationState decide(NegotiationState state, {required bool accepted}) {
+    if (state.phase != NegotiationPhase.response || state.proposal == null) {
+      throw StateError('No proposal to answer');
+    }
+    final offer = state.proposal!;
+    if (!accepted) {
+      return _resolve(state, state.initialWinnerId, false, spendLoser: 0);
+    }
+    return _copy(
+      _resolve(
+        state,
+        state.initialWinnerId,
+        offer.inversionRequested,
+        spendLoser:
+            offer.personalPa +
+            (offer.inversionRequested ? state.initialHighValue : 0),
+      ),
+      finalOffer: offer,
+    );
+  }
+
   NegotiationState respond(
     NegotiationState state,
     NegotiationResponse response,
@@ -239,10 +262,9 @@ final class NegotiationEngineV3 {
       return _resolve(state, state.initialWinnerId, false, spendLoser: 0);
     }
     final offer = state.finalOffer!;
-    final loserWins = offer.inversionRequested || offer.totalPa > 0;
     return _resolve(
       state,
-      loserWins ? state.initialLoserId : state.initialWinnerId,
+      state.initialWinnerId,
       offer.inversionRequested,
       spendLoser:
           offer.personalPa +

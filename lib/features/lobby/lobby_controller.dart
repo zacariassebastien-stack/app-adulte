@@ -126,6 +126,14 @@ final class LobbyController extends ChangeNotifier {
     }
   }
 
+  Future<void> clearActiveSession() async {
+    await _subscription?.cancel();
+    _subscription = null;
+    await activeSessionStore?.clear();
+    _restoredSessionId = null;
+    _resetToMenu();
+  }
+
   Future<void> _setSession(LobbySession value, {bool persist = true}) async {
     if (!_isActive(value)) {
       await activeSessionStore?.clear();

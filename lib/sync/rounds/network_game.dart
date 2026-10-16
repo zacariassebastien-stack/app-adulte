@@ -3,6 +3,7 @@ import '../../engines/corruption/corruption_engine.dart';
 import '../../engines/deck/deck_cycle_state.dart';
 import '../../engines/lifecycle/lifecycle_engine.dart';
 import '../../engines/recovery/recovery_engine.dart';
+import '../../engines/runtime/v4_runtime_engine.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/session/session_state.dart';
 import '../commit_reveal/commit_reveal.dart';
@@ -36,9 +37,165 @@ enum NetworkGamePhase {
   sessionClosed,
 }
 
-enum NetworkCompromiseOrigin { INITIAL_DUEL, AUCTION, RECOVERY }
+enum NetworkCompromiseOrigin { INITIAL_DUEL, AUCTION, CORRUPTION, RECOVERY }
 
 enum NetworkCardDirection { GENERAL, FAIRE, RECEVOIR, MUTUEL, SOLO, SIMULTANE }
+
+final class NetworkResolvedActionCardDto {
+  NetworkResolvedActionCardDto.fromUsage(NetworkUsageProjection usage)
+    : usage = usage.withoutPersonalValues();
+  final NetworkUsageProjection usage;
+  String get usageId => usage.usageId;
+  String get cardId => usage.conceptId;
+  String get variantId =>
+      (usage.resolvedAction['stage_id'] ?? usage.resolvedAction['variant_id'])!
+          as String;
+  NetworkCardDirection get direction => NetworkCardDirection.values.byName(
+    usage.resolvedAction['direction']! as String,
+  );
+  List<String> get targetPlayerIds =>
+      (usage.resolvedAction['target_player_ids']! as List).cast<String>();
+  int get effectiveSpice => usage.resolvedAction['effective_chili']! as int;
+  String? get zoneId => usage.resolvedAction['zone_id'] as String?;
+  String? get accessoryId =>
+      ((usage.resolvedAction['accessories'] as List?)?.firstOrNull
+              as Map<Object?, Object?>?)?['accessory_id']
+          as String?;
+  Map<String, Object?> get parameters =>
+      Map<String, Object?>.from(usage.resolvedAction['parameters']! as Map);
+  List<V4PersistentEffect> get effects => [
+    for (final raw in usage.resolvedAction['effects']! as List)
+      if ((raw as Map<Object?, Object?>)['parameters']
+          case final Map<Object?, Object?> params)
+        if (params['remaining_actions'] != null)
+          V4PersistentEffect.fromJson(Map<String, Object?>.from(params)),
+  ];
+  Map<String, Object?> toJson() => usage.toJson();
+  factory NetworkResolvedActionCardDto.fromJson(Map<String, Object?> json) =>
+      NetworkResolvedActionCardDto.fromUsage(
+        NetworkUsageProjection.fromJson(json),
+      );
+}
+
+final class NetworkResolvedActionProjectionDto {
+  NetworkResolvedActionProjectionDto({
+    required List<NetworkResolvedActionCardDto> cards,
+    required Set<String> requiredClothingPlayerIds,
+  }) : cards = List.unmodifiable(cards),
+       requiredClothingPlayerIds = Set.unmodifiable(requiredClothingPlayerIds);
+
+  final List<NetworkResolvedActionCardDto> cards;
+  final Set<String> requiredClothingPlayerIds;
+
+  Map<String, Object?> toJson() => {
+    'cards': [for (final card in cards) card.toJson()],
+    'required_clothing_player_ids': requiredClothingPlayerIds.toList()..sort(),
+  };
+
+  factory NetworkResolvedActionProjectionDto.fromJson(
+    Map<String, Object?> json,
+  ) => NetworkResolvedActionProjectionDto(
+    cards: [
+      for (final raw in (json['cards'] as List?) ?? const [])
+        NetworkResolvedActionCardDto.fromJson(
+          Map<String, Object?>.from(raw! as Map),
+        ),
+    ],
+    requiredClothingPlayerIds:
+        ((json['required_clothing_player_ids'] as List?) ?? const [])
+            .cast<String>()
+            .toSet(),
+  );
+}
+
+final class NetworkActionCompletionGate {
+  const NetworkActionCompletionGate();
+
+  bool canClose({
+    required NetworkResolvedActionProjectionDto? projection,
+    required Set<String> resyncedPlayerIds,
+  }) =>
+      projection == null ||
+      projection.requiredClothingPlayerIds.every(resyncedPlayerIds.contains);
+
+  bool requiresPlayer({
+    required NetworkResolvedActionProjectionDto? projection,
+    required Set<String> resyncedPlayerIds,
+    required String playerId,
+  }) =>
+      projection?.requiredClothingPlayerIds.contains(playerId) == true &&
+      !resyncedPlayerIds.contains(playerId);
+}
+
+final class V4PlayerSessionSetupDto {
+  V4PlayerSessionSetupDto({
+    required this.playerId,
+    required this.clothingCount,
+    required List<V4Accessory> accessories,
+  }) : accessories = List.unmodifiable(accessories);
+
+  final String playerId;
+  final int clothingCount;
+  final List<V4Accessory> accessories;
+
+  Map<String, Object?> toJson() => {
+    'player_id': playerId,
+    'clothing_count': clothingCount,
+    'accessories': [for (final accessory in accessories) accessory.toJson()],
+  };
+
+  factory V4PlayerSessionSetupDto.fromJson(Map<String, Object?> json) =>
+      V4PlayerSessionSetupDto(
+        playerId: json['player_id']! as String,
+        clothingCount: json['clothing_count']! as int,
+        accessories: [
+          for (final raw in (json['accessories'] as List?) ?? const [])
+            V4Accessory.fromJson(Map<String, Object?>.from(raw! as Map)),
+        ],
+      );
+}
+
+final class V4SessionSetupDto {
+  V4SessionSetupDto({
+    required this.mode,
+    required List<V4PlayerSessionSetupDto> players,
+  }) : players = List.unmodifiable(players);
+
+  final V4SessionMode? mode;
+  final List<V4PlayerSessionSetupDto> players;
+  bool get complete => mode != null && players.length == 2;
+  Map<String, int> get clothingCounts => {
+    for (final player in players) player.playerId: player.clothingCount,
+  };
+  List<V4Accessory> get accessories => [
+    for (final player in players) ...player.accessories,
+  ];
+
+  factory V4SessionSetupDto.fromJson(Map<String, Object?> json) =>
+      V4SessionSetupDto(
+        mode: json['mode'] == null
+            ? null
+            : V4SessionMode.values.byName(json['mode']! as String),
+        players: [
+          for (final raw in (json['players'] as List?) ?? const [])
+            V4PlayerSessionSetupDto.fromJson(
+              Map<String, Object?>.from(raw! as Map),
+            ),
+        ],
+      );
+}
+
+abstract interface class NetworkSessionSetupRepository {
+  Future<V4SessionSetupDto> submitV4SessionSetup({
+    required String sessionId,
+    required String playerId,
+    required int clothingCount,
+    required List<V4Accessory> accessories,
+    V4SessionMode? mode,
+  });
+  Future<V4SessionSetupDto> getV4SessionSetup(String sessionId);
+  Stream<V4SessionSetupDto> watchV4SessionSetup(String sessionId);
+}
 
 NetworkCardDirection invertNetworkDirection(NetworkCardDirection direction) =>
     switch (direction) {
@@ -67,7 +224,12 @@ final class NetworkCompromiseCardDto {
       .byName(usage.toJson()['native_direction']! as String);
   NetworkCardDirection get effectiveDirection => NetworkCardDirection.values
       .byName(usage.resolvedAction['direction']! as String);
-  int get snapshotValue => usage.snapshotValue!;
+  int get snapshotValue => usage.snapshotValue ?? 0;
+  int get effectiveSpice => usage.resolvedAction['effective_chili']! as int;
+  V4ResolvedParameters get resolvedParameters => V4ResolvedParameters.fromJson({
+    ...usage.resolvedAction['parameters']! as Map<String, Object?>,
+    'zone_id': usage.resolvedAction['zone_id'],
+  });
   NetworkCompromiseCardDto copyWith({
     NetworkCardDirection? effectiveDirection,
     int? logicalOrder,
@@ -86,8 +248,8 @@ final class NetworkCompromiseCardDto {
     );
   }
 
-  Map<String, Object?> toJson() => {
-    ...usage.toJson(),
+  Map<String, Object?> toJson({bool includeSnapshotValue = false}) => {
+    ...(includeSnapshotValue ? usage : usage.withoutPersonalValues()).toJson(),
     'origin': origin.name,
     'logical_order': ?logicalOrder,
   };
@@ -116,10 +278,13 @@ final class NetworkNegotiationOfferDto {
   int get totalValue =>
       directPa + cards.fold(0, (sum, card) => sum + card.snapshotValue);
 
-  Map<String, Object?> toJson() => {
+  Map<String, Object?> toJson({bool includePrivateSnapshots = false}) => {
     'inversion_requested': inversionRequested,
     'direct_pa': directPa,
-    'cards': [for (final card in cards) card.toJson()],
+    'cards': [
+      for (final card in cards)
+        card.toJson(includeSnapshotValue: includePrivateSnapshots),
+    ],
   };
 
   factory NetworkNegotiationOfferDto.fromJson(Map<String, Object?> json) =>
@@ -137,19 +302,29 @@ final class NetworkNegotiationOfferDto {
 
 final class NetworkNegotiationResponseDto {
   const NetworkNegotiationResponseDto({
-    required this.acceptInversion,
-    required this.acceptAuction,
+    required this.accepted,
+    this.acceptInversion = false,
+    this.acceptAuction = false,
   });
+  final bool accepted;
+  // Kept for deserializing negotiations persisted with the former bounded
+  // adaptation flow.
   final bool acceptInversion;
   final bool acceptAuction;
   Map<String, Object?> toJson() => {
-    'accept_inversion': acceptInversion,
-    'accept_auction': acceptAuction,
+    'accepted': accepted,
+    if (acceptInversion) 'accept_inversion': true,
+    if (acceptAuction) 'accept_auction': true,
   };
+  Map<String, Object?> toCommandJson() => {'accepted': accepted};
   factory NetworkNegotiationResponseDto.fromJson(Map<String, Object?> json) =>
       NetworkNegotiationResponseDto(
-        acceptInversion: json['accept_inversion']! as bool,
-        acceptAuction: json['accept_auction']! as bool,
+        accepted:
+            json['accepted'] as bool? ??
+            ((json['accept_inversion'] as bool? ?? false) ||
+                (json['accept_auction'] as bool? ?? false)),
+        acceptInversion: json['accept_inversion'] as bool? ?? false,
+        acceptAuction: json['accept_auction'] as bool? ?? false,
       );
 }
 
@@ -199,6 +374,11 @@ final class NetworkCorruptionActionDto {
   final PromiseVisibility visibility;
   String get cardId => usage.conceptId;
   String get identity => usage.usageId;
+  String get usageId => usage.usageId;
+  String get variantId =>
+      (usage.resolvedAction['stage_id'] ?? usage.resolvedAction['variant_id'])!
+          as String;
+  int get effectiveSpice => usage.resolvedAction['effective_chili']! as int;
   NetworkCorruptionActionDto copyWith({ActionExecutionStatus? status}) =>
       NetworkCorruptionActionDto.fromUsage(
         usage,
@@ -338,13 +518,13 @@ final class NetworkInitialResolutionDto {
   final Map<String, int> actionPoints;
   final bool inversionAllowed;
 
-  Map<String, Object?> toJson() => {
+  Map<String, Object?> toJson({bool includePrivateMetrics = true}) => {
     'tied': tied,
     'winner_player_id': winnerPlayerId,
     'loser_player_id': loserPlayerId,
-    'gap': gap,
-    'gap_cost': gapCost,
-    'high_value': highValue,
+    if (includePrivateMetrics) 'gap': gap,
+    if (includePrivateMetrics) 'gap_cost': gapCost,
+    if (includePrivateMetrics) 'high_value': highValue,
     'action_points': actionPoints,
     'inversion_allowed': inversionAllowed,
   };
@@ -354,8 +534,8 @@ final class NetworkInitialResolutionDto {
         tied: json['tied']! as bool,
         winnerPlayerId: json['winner_player_id'] as String?,
         loserPlayerId: json['loser_player_id'] as String?,
-        gap: json['gap']! as int,
-        gapCost: json['gap_cost']! as int,
+        gap: (json['gap'] as int?) ?? 0,
+        gapCost: (json['gap_cost'] as int?) ?? 0,
         highValue: (json['high_value'] as int?) ?? 0,
         actionPoints: Map<String, int>.from(json['action_points']! as Map),
         inversionAllowed: json['inversion_allowed']! as bool,
@@ -440,6 +620,35 @@ final class NetworkFinalResolutionDto {
       );
 }
 
+final class NetworkHybridAvailabilityDto {
+  const NetworkHybridAvailabilityDto({
+    required this.orientation,
+    required this.hasPlayableCurrentOrientation,
+    required this.hasPlayableAlternateOrientation,
+  });
+
+  final HybridDeckOrientation orientation;
+  final bool hasPlayableCurrentOrientation;
+  final bool hasPlayableAlternateOrientation;
+
+  Map<String, Object?> toJson() => {
+    'orientation': orientation == HybridDeckOrientation.faceToFace
+        ? 'FACE_TO_FACE'
+        : 'DISTANCE',
+    'has_playable_current': hasPlayableCurrentOrientation,
+    'has_playable_alternate': hasPlayableAlternateOrientation,
+  };
+
+  factory NetworkHybridAvailabilityDto.fromJson(Map<String, Object?> json) =>
+      NetworkHybridAvailabilityDto(
+        orientation: json['orientation'] == 'DISTANCE'
+            ? HybridDeckOrientation.distance
+            : HybridDeckOrientation.faceToFace,
+        hasPlayableCurrentOrientation: json['has_playable_current'] == true,
+        hasPlayableAlternateOrientation: json['has_playable_alternate'] == true,
+      );
+}
+
 final class NetworkGameRoundStateDto {
   NetworkGameRoundStateDto({
     this.usageContractVersion,
@@ -449,14 +658,26 @@ final class NetworkGameRoundStateDto {
     required this.roundNumber,
     required this.phase,
     required this.playerId,
+    this.roundRevision,
     required Map<String, String> commits,
     required Map<String, int> actionPoints,
     required Set<String> readyNextPlayerIds,
     required Map<String, TieDecision> tieDecisions,
     this.hybridOrientation = HybridDeckOrientation.faceToFace,
     this.deckCycle = 1,
+    this.v4UnlockedSpice = 1,
+    Set<String>? v4ConsumedUsageIds,
+    List<V4PersistentEffect>? v4PersistentEffects,
+    this.hasCanonicalPersistentEffects = true,
     this.infiniteMode = false,
     this.deckStyle = PlayerStyle.SOFT,
+    this.cycleExhausted = false,
+    this.hybridAvailabilityOrientation,
+    this.hybridAvailabilityGeneration = 0,
+    Map<String, NetworkHybridAvailabilityDto>? hybridAvailabilityByPlayer,
+    this.actionProjection,
+    Map<String, int>? clothingCounts,
+    Set<String>? clothingResyncedPlayerIds,
     Map<String, int>? deckAdjustment,
     this.ownReveal,
     this.opponentReveal,
@@ -474,6 +695,15 @@ final class NetworkGameRoundStateDto {
        readyNextPlayerIds = Set.unmodifiable(readyNextPlayerIds),
        tieDecisions = Map.unmodifiable(tieDecisions),
        deckAdjustment = Map.unmodifiable(deckAdjustment ?? const {}),
+       clothingCounts = Map.unmodifiable(clothingCounts ?? const {}),
+       clothingResyncedPlayerIds = Set.unmodifiable(
+         clothingResyncedPlayerIds ?? const {},
+       ),
+       hybridAvailabilityByPlayer = Map.unmodifiable(
+         hybridAvailabilityByPlayer ?? const {},
+       ),
+       v4ConsumedUsageIds = Set.unmodifiable(v4ConsumedUsageIds ?? const {}),
+       v4PersistentEffects = List.unmodifiable(v4PersistentEffects ?? const []),
        recoveryByPlayer = Map.unmodifiable(recoveryByPlayer ?? const {}),
        recoveryDonePlayerIds = Set.unmodifiable(
          recoveryDonePlayerIds ?? const {},
@@ -487,14 +717,26 @@ final class NetworkGameRoundStateDto {
   final int roundNumber;
   final NetworkGamePhase phase;
   final String playerId;
+  final int? roundRevision;
   final Map<String, String> commits;
   final Map<String, int> actionPoints;
   final Set<String> readyNextPlayerIds;
   final Map<String, TieDecision> tieDecisions;
   final HybridDeckOrientation hybridOrientation;
   final int deckCycle;
+  final int v4UnlockedSpice;
+  final Set<String> v4ConsumedUsageIds;
+  final List<V4PersistentEffect> v4PersistentEffects;
+  final bool hasCanonicalPersistentEffects;
   final bool infiniteMode;
   final PlayerStyle deckStyle;
+  final bool cycleExhausted;
+  final HybridDeckOrientation? hybridAvailabilityOrientation;
+  final int hybridAvailabilityGeneration;
+  final Map<String, NetworkHybridAvailabilityDto> hybridAvailabilityByPlayer;
+  final NetworkResolvedActionProjectionDto? actionProjection;
+  final Map<String, int> clothingCounts;
+  final Set<String> clothingResyncedPlayerIds;
   final Map<String, int> deckAdjustment;
   final ChoiceRevealDto? ownReveal;
   final ChoiceRevealDto? opponentReveal;
@@ -520,6 +762,7 @@ final class NetworkGameRoundStateDto {
     'round_number': roundNumber,
     'phase': _phaseWire(phase),
     'player_id': playerId,
+    if (roundRevision != null) 'round_revision': roundRevision,
     'commits': commits,
     'action_points': actionPoints,
     'ready_next': {for (final id in readyNextPlayerIds) id: true},
@@ -530,12 +773,34 @@ final class NetworkGameRoundStateDto {
         ? 'FACE_TO_FACE'
         : 'DISTANCE',
     'deck_cycle': deckCycle,
+    'v4_unlocked_spice': v4UnlockedSpice,
+    'v4_consumed_usage_ids': v4ConsumedUsageIds.toList()..sort(),
+    if (hasCanonicalPersistentEffects)
+      'v4_persistent_effects': [
+        for (final effect in v4PersistentEffects) effect.toJson(),
+      ],
     'infinite_mode': infiniteMode,
     'deck_style': deckStyle.name,
+    'cycle_exhausted': cycleExhausted,
+    'hybrid_availability_orientation': switch (hybridAvailabilityOrientation) {
+      HybridDeckOrientation.faceToFace => 'FACE_TO_FACE',
+      HybridDeckOrientation.distance => 'DISTANCE',
+      null => null,
+    },
+    'hybrid_availability_generation': hybridAvailabilityGeneration,
+    'hybrid_availability': {
+      for (final entry in hybridAvailabilityByPlayer.entries)
+        entry.key: entry.value.toJson(),
+    },
+    'action_projection': actionProjection?.toJson(),
+    'clothing_counts': clothingCounts,
+    'clothing_resynced': {for (final id in clothingResyncedPlayerIds) id: true},
     'deck_adjustment': deckAdjustment,
     'own_reveal': ownReveal?.toJson(),
-    'opponent_reveal': opponentReveal?.toJson(),
-    'initial_resolution': initialResolution?.toJson(),
+    'opponent_reveal': null,
+    'initial_resolution': initialResolution?.toJson(
+      includePrivateMetrics: false,
+    ),
     'counter_bid': counterBid?.toJson(),
     'final_defense': finalDefense?.toJson(),
     'negotiation': negotiation?.toJson(),
@@ -560,16 +825,22 @@ final class NetworkGameRoundStateDto {
     ChoiceRevealDto? reveal(String key) =>
         optional(key, ChoiceRevealDto.fromJson);
     final ready = Map<String, Object?>.from(
-      (json['ready_next'] as Map?) ?? const {},
+      (json['ready_next'] as Map<Object?, Object?>?) ?? const {},
     );
     final ties = Map<String, Object?>.from(
-      (json['tie_decisions'] as Map?) ?? const {},
+      (json['tie_decisions'] as Map<Object?, Object?>?) ?? const {},
     );
     final recoveries = Map<String, Object?>.from(
-      (json['recovery_by_player'] as Map?) ?? const {},
+      (json['recovery_by_player'] as Map<Object?, Object?>?) ?? const {},
     );
     final recoveryDone = Map<String, Object?>.from(
-      (json['recovery_done'] as Map?) ?? const {},
+      (json['recovery_done'] as Map<Object?, Object?>?) ?? const {},
+    );
+    final clothingResynced = Map<String, Object?>.from(
+      (json['clothing_resynced'] as Map<Object?, Object?>?) ?? const {},
+    );
+    final hybridAvailability = Map<String, Object?>.from(
+      (json['hybrid_availability'] as Map<Object?, Object?>?) ?? const {},
     );
     return NetworkGameRoundStateDto(
       roundId: json['round_id']! as String,
@@ -579,6 +850,7 @@ final class NetworkGameRoundStateDto {
       roundNumber: json['round_number']! as int,
       phase: _phaseFromWire(json['phase']! as String),
       playerId: json['player_id']! as String,
+      roundRevision: json['round_revision'] as int?,
       commits: Map<String, String>.from(json['commits']! as Map),
       actionPoints: Map<String, int>.from(json['action_points']! as Map),
       readyNextPlayerIds: {
@@ -593,15 +865,52 @@ final class NetworkGameRoundStateDto {
           ? HybridDeckOrientation.distance
           : HybridDeckOrientation.faceToFace,
       deckCycle: (json['deck_cycle'] as int?) ?? 1,
+      v4UnlockedSpice: (json['v4_unlocked_spice'] as int?) ?? 1,
+      v4ConsumedUsageIds: ((json['v4_consumed_usage_ids'] as List?) ?? const [])
+          .cast<String>()
+          .toSet(),
+      v4PersistentEffects: [
+        for (final raw in (json['v4_persistent_effects'] as List?) ?? const [])
+          V4PersistentEffect.fromJson(Map<String, Object?>.from(raw! as Map)),
+      ],
+      hasCanonicalPersistentEffects: json.containsKey('v4_persistent_effects'),
       infiniteMode: (json['infinite_mode'] as bool?) ?? false,
       deckStyle: PlayerStyle.values.byName(
         (json['deck_style'] as String?) ?? PlayerStyle.SOFT.name,
       ),
+      cycleExhausted: (json['cycle_exhausted'] as bool?) ?? false,
+      hybridAvailabilityOrientation:
+          switch (json['hybrid_availability_orientation']) {
+            'FACE_TO_FACE' => HybridDeckOrientation.faceToFace,
+            'DISTANCE' => HybridDeckOrientation.distance,
+            _ => null,
+          },
+      hybridAvailabilityGeneration:
+          (json['hybrid_availability_generation'] as int?) ?? 0,
+      hybridAvailabilityByPlayer: {
+        for (final entry in hybridAvailability.entries)
+          entry.key: NetworkHybridAvailabilityDto.fromJson(
+            Map<String, Object?>.from(entry.value! as Map),
+          ),
+      },
+      actionProjection: optional(
+        'action_projection',
+        NetworkResolvedActionProjectionDto.fromJson,
+      ),
+      clothingCounts: Map<String, int>.from(
+        (json['clothing_counts'] as Map<Object?, Object?>?) ?? const {},
+      ),
+      clothingResyncedPlayerIds: {
+        for (final entry in clothingResynced.entries)
+          if (entry.value == true) entry.key,
+      },
       deckAdjustment: Map<String, int>.from(
-        (json['deck_adjustment'] as Map?) ?? const {},
+        (json['deck_adjustment'] as Map<Object?, Object?>?) ?? const {},
       ),
       ownReveal: reveal('own_reveal'),
-      opponentReveal: reveal('opponent_reveal'),
+      // An opponent reveal is server-private. Older payloads are deliberately
+      // ignored so a stale backend cannot hydrate private preference values.
+      opponentReveal: null,
       initialResolution: optional(
         'initial_resolution',
         NetworkInitialResolutionDto.fromJson,
@@ -630,6 +939,12 @@ final class NetworkGameRoundStateDto {
       ],
     );
   }
+
+  NetworkGameRoundStateDto withRoundRevision(int revision) =>
+      NetworkGameRoundStateDto.fromJson({
+        ...toJson(),
+        'round_revision': revision,
+      });
 }
 
 abstract interface class NetworkGameRepository {
@@ -718,11 +1033,31 @@ abstract interface class NetworkGameRepository {
 
   Future<NetworkGameRoundStateDto> readyNextRound({
     required NetworkCommandDto command,
+    bool noPlayableOccurrences = false,
+    bool hasPlayableAlternateOrientation = false,
+    int? clothingCount,
   });
 
   Stream<NetworkGameRoundStateDto> watchRound({
     required String sessionId,
     required String roundId,
+  });
+}
+
+abstract interface class NetworkV4ActionRepository {
+  Future<NetworkGameRoundStateDto> repairV4ActionParameters({
+    required NetworkCommandDto command,
+  });
+
+  Future<NetworkGameRoundStateDto> publishV4ActionProjection({
+    required NetworkCommandDto command,
+    required NetworkResolvedActionProjectionDto projection,
+  });
+}
+
+abstract interface class NetworkPrivateInitialResolutionRepository {
+  Future<NetworkGameRoundStateDto> resolveInitialPrivately({
+    required NetworkCommandDto command,
   });
 }
 
@@ -753,10 +1088,19 @@ abstract interface class NetworkSessionFlowRepository {
     required NetworkCommandDto command,
     required HybridDeckOrientation orientation,
   });
+  Future<NetworkGameRoundStateDto> reportHybridAvailability({
+    required NetworkCommandDto command,
+    required NetworkHybridAvailabilityDto availability,
+    required int generation,
+  });
   Future<NetworkGameRoundStateDto> continueDeckCycle({
     required NetworkCommandDto command,
     required DeckExhaustionChoice choice,
     required int expectedCycle,
+  });
+  Future<NetworkGameRoundStateDto> publishUnlockedSpice({
+    required NetworkCommandDto command,
+    required int unlockedSpice,
   });
 }
 

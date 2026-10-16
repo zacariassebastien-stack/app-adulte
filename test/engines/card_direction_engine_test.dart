@@ -136,7 +136,6 @@ void main() {
           effectiveDirection: CardOccurrenceDirection.FAIRE,
         ),
       ],
-      history: const {},
     );
     final restored = NetworkPrivateGameState.fromJson(state.toJson());
     expect(

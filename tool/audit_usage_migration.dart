@@ -27,18 +27,22 @@ void main() {
     'No table or column changes',
   );
   check(
-    !RegExp("'(occurrence_id|card_id)'", caseSensitive: false).hasMatch(sql),
-    'Native payload has no legacy identity aliases',
+    !RegExp("'occurrence_id'", caseSensitive: false).hasMatch(sql),
+    'Native action payload has no occurrence identity alias',
   );
   final definitions = RegExp(
     r'create(?: or replace)? function public\.(\w+)\([\s\S]*?\$\$;',
     caseSensitive: false,
   ).allMatches(sql).toList();
   check(
-    definitions.length == 14,
-    '14 definitions: 11 existing functions and 3 JSON helpers',
+    definitions.length == 24,
+    '24 native definitions cover stabilized V4 action boundaries',
   );
   const modified = {
+    'resolve_network_initial_private',
+    'respond_network_negotiation',
+    'respond_network_corruption',
+    'publish_v4_action_projection',
     'continue_network_deck_cycle',
     'network_round_json',
     'submit_network_round_reveal',
@@ -85,15 +89,15 @@ void main() {
   }
   check(
     sql.contains(
-          "historical.usage->>'usage_id'=proposed->>'source_usage_id'",
+          "historical.usage->>'usage_id'=v_usage->>'source_usage_id'",
         ) &&
-        sql.contains("historical.usage->>'concept_id'=proposed->>'concept_id'"),
+        sql.contains("historical.usage->>'concept_id'=v_usage->>'concept_id'"),
     'Corruption provenance joins a source usage and its concept, never concept alone',
   );
   check(
     sql.contains("coalesce(previous.final_resolution->'compromise'") &&
         sql.contains("coalesce(previous.corruption->'actions'") &&
-        sql.contains('jsonb_array_elements(previous.recovery_history)'),
+        sql.contains("coalesce(previous.recovery_history,'[]'::jsonb)"),
     'Canonical source history includes duel compromise corruption and Recovery usages',
   );
   final cycle = definitions
@@ -122,6 +126,28 @@ void main() {
     historical++;
   }
   check(historical == 11, 'All 11 historical migrations remain byte-identical');
+
+  // The second parent is pinned: no network or mutable remote state is consulted.
+  final historicalPaths = Process.runSync('git', ['-c', 'safe.directory=${Directory.current.path.replaceAll('\\', '/')}', 'ls-tree','-r','--name-only','e35cf6e470b8891cdb3f1de392af59f0375ef0a9','--','supabase/migrations']).stdout.toString().trim().split('\n');
+  var remoteHistorical = 0;
+  for(final raw in historicalPaths){
+    final path=raw.trim(); if(!path.endsWith('.sql')) continue;
+    final baseArgs=['-c','safe.directory=${Directory.current.path.replaceAll('\\','/')}'];
+    final expected=Process.runSync('git',[...baseArgs,'rev-parse','e35cf6e470b8891cdb3f1de392af59f0375ef0a9:$path']);
+    final actual=Process.runSync('git',[...baseArgs,'hash-object','--path=$path',path]);
+    check(expected.exitCode==0 && actual.exitCode==0 && expected.stdout.toString().trim()==actual.stdout.toString().trim(), 'Remote historical migration unchanged Git blob: $path');
+    remoteHistorical++;
+  }
+  check(remoteHistorical==30,'All 30 remote historical migrations are preserved');
+  String body(String name)=>definitions.singleWhere((m)=>m.group(1)==name).group(0)!;
+  check(!sql.contains('network_v4_persistent_effect_definitions') && !sql.contains("'{parameters,effective_spice}'"),'Native execution never reconstructs resolved action from a current catalogue');
+  check(body('v4_corruption_compromise').contains('previous.round_number<p_round_number') && body('v4_corruption_compromise').contains("v_source->'resolved_action' is distinct from v_usage->'resolved_action'"),'Discard provenance preserves frozen source action and excludes current round');
+  check(body('respond_network_negotiation').contains("'accepted'") && !body('respond_network_negotiation').contains("phase='NEGOTIATION_ADAPTATION'"),'Compromise retains the single final decision flow');
+  check(body('respond_network_corruption').contains("phase='FINAL_RESOLVED'") && body('respond_network_corruption').contains("'{compromise}',v_compromise"),'Accepted corruption replaces the normal executable action');
+  check(body('route_network_post_duel').contains("old.phase in ('FINAL_RESOLVED','RECOVERY')") && body('route_network_post_duel').contains("new.phase='WAITING_NEXT'"),'Recovery exit preserves the canonical close hooks');
+  check(body('resolve_network_recovery').contains("v_existing->>'usage_id' is distinct from p_recovery->>'usage_id'") && body('resolve_network_recovery').contains("p_recovery-array['gain','completed','response']"),'Recovery completion compares the same immutable reserved action');
+  check(body('v4_advance_persistent_effects').contains("'{resolved_action,parameters,duration_actions}'") && body('v4_advance_persistent_effects').contains("'{resolved_action,target_player_ids}'"),'Persistent effects use frozen duration and targets');
+
   stdout.writeln(
     '$checked structural checks passed; PostgreSQL execution is a separate check',
   );

@@ -131,6 +131,24 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
     if (item.available) widget.onPlay?.call(item);
   }
 
+  bool _isInHandInteractionZone(Offset position, BoxConstraints constraints) =>
+      position.dy >= constraints.maxHeight * (2 / 3) &&
+      position.dy <= constraints.maxHeight;
+
+  Rect _focusedCardBounds(BoxConstraints constraints) {
+    final width = math.min(constraints.maxWidth * .49, 230).toDouble();
+    final height = width / .68;
+    return Rect.fromLTWH(
+      (constraints.maxWidth - width) / 2,
+      math.max(
+        70.0,
+        constraints.maxHeight - height - constraints.maxHeight * .18,
+      ),
+      width,
+      height,
+    );
+  }
+
   void _pointerDown(PointerDownEvent event) {
     _start = event.localPosition;
     _dragging = false;
@@ -158,9 +176,7 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
     final trackingHand =
         _stage == CardHandStage.resting || delta.dx.abs() > delta.dy.abs();
     if (_dragging && _stage != CardHandStage.open && trackingHand) {
-      final handTop = constraints.maxHeight * .58;
-      if (event.localPosition.dy >= handTop &&
-          event.localPosition.dy <= constraints.maxHeight) {
+      if (_isInHandInteractionZone(event.localPosition, constraints)) {
         _focus(_indexAt(event.localPosition.dx, constraints.maxWidth));
       }
     }
@@ -187,7 +203,12 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
               end.dx < 0 ||
               end.dx > constraints.maxWidth)) {
         _rest();
-      } else if (!_dragging) {
+      } else if (!_dragging &&
+          _stage == CardHandStage.focused &&
+          _focused != null &&
+          _focusedCardBounds(constraints).contains(end)) {
+        setState(() => _setStage(CardHandStage.open));
+      } else if (!_dragging && _isInHandInteractionZone(end, constraints)) {
         final index = _indexAt(end.dx, constraints.maxWidth);
         if (_stage == CardHandStage.focused && _focused == index) {
           setState(() => _setStage(CardHandStage.open));
@@ -239,11 +260,12 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
     final selected = _focused == index;
     final open = selected && _stage == CardHandStage.open;
     final focused = selected && _stage == CardHandStage.focused;
+    final focusedBounds = _focusedCardBounds(box);
     final width =
         (open
                 ? math.min(box.maxWidth * .9, box.maxHeight * .9 * .68)
                 : focused
-                ? math.min(box.maxWidth * .49, 230)
+                ? focusedBounds.width
                 : math.min(box.maxWidth * .31, 150))
             .toDouble();
     final height = width / .68;
@@ -255,7 +277,7 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
     final left = open
         ? (box.maxWidth - width) / 2
         : focused
-        ? (box.maxWidth - width) / 2
+        ? focusedBounds.left
         : (box.maxWidth - (width + overlapStep * (count - 1))) / 2 +
               overlapStep * index +
               (_stage == CardHandStage.focused ? centerOffset * 7 : 0);
@@ -263,7 +285,7 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
         (open
                 ? math.max(56.0, (box.maxHeight - height) / 2)
                 : focused
-                ? math.max(70.0, box.maxHeight - height - box.maxHeight * .18)
+                ? focusedBounds.top
                 : box.maxHeight - height * .58 + centerOffset.abs() * 7)
             .toDouble();
     final angle = open

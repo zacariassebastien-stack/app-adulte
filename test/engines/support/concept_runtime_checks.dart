@@ -26,7 +26,7 @@ void _check(bool value, String message) {
 Map<String, void Function()> conceptRuntimeChecks() {
   final source = const CatalogLoader().loadJson(
     cardsJson: File(
-      'assets/catalog/source/cards.v2.fr.json',
+      'assets/catalog/source/cards.v4.fr.json',
     ).readAsStringSync(),
     profilesJson: File(
       'assets/catalog/source/profile_elements.v1.fr.json',
@@ -53,6 +53,20 @@ Map<String, void Function()> conceptRuntimeChecks() {
           recevoir: 12,
         ),
   };
+  for (final card in source.cards) {
+    for (final variant in card.variants) {
+      for (final tag in variant.v3?.tags ?? <String>[]) {
+        if (tag.startsWith('v3.preference.')) {
+          preferences[tag] = const PreferenceValue(
+            status: PreferenceStatus.ACCEPTED,
+            general: 10,
+            faire: 11,
+            recevoir: 12,
+          );
+        }
+      }
+    }
+  }
   PlayerGameProfile profile(
     String id, [
     Map<String, PreferenceValue> overrides = const {},
@@ -369,12 +383,13 @@ Map<String, void Function()> conceptRuntimeChecks() {
           _check(
             choice.variant.tags.containsAll({
               'v3.direction.mutuel',
-              'v3.preference.etre_regarde',
+              'v3.preference.${id == '045' ? 'photo_mutuelle' : 'video_mutuelle'}',
             }),
             'Not mutual',
           );
           _check(
-            !choice.variant.tags.contains('v3.preference.penetrer') &&
+            !choice.variant.tags.contains('v3.preference.etre_regarde') &&
+                !choice.variant.tags.contains('v3.preference.penetrer') &&
                 !choice.parameters.containsKey('practice_concept_id'),
             'Implicit practice',
           );

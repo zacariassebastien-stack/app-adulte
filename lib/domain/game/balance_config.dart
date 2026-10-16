@@ -53,9 +53,9 @@ final class BalanceConfig {
     this.drawWeights = const DrawWeights(),
     this.antiRepeatDecay = 0.5,
     this.styleDistributions = const {
-      PlayerStyle.SOFT: {1: 1.0, 2: 0.8, 3: 0.4, 4: 0.2, 5: 0.1},
-      PlayerStyle.EPICE: {1: 0.4, 2: 0.8, 3: 1.0, 4: 0.8, 5: 0.4},
-      PlayerStyle.INTENABLE: {1: 0.1, 2: 0.2, 3: 0.5, 4: 0.9, 5: 1.0},
+      PlayerStyle.SOFT: {1: 0.45, 2: 0.40, 3: 0.13, 4: 0.02},
+      PlayerStyle.EPICE: {1: 0.20, 2: 0.40, 3: 0.30, 4: 0.10},
+      PlayerStyle.INTENABLE: {1: 0.10, 2: 0.25, 3: 0.40, 4: 0.25},
     },
   });
   final int initialPa;

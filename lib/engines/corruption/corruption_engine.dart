@@ -13,11 +13,15 @@ final class ActionPromise {
     required this.cardId,
     required this.source,
     this.occurrenceId,
+    this.variantId,
+    this.effectiveSpice,
     this.status = ActionExecutionStatus.PROPOSED,
     this.visibility = PromiseVisibility.VISIBLE,
   });
   final String cardId;
   final String? occurrenceId;
+  final String? variantId;
+  final int? effectiveSpice;
   String get identity => occurrenceId ?? cardId;
   final CardZone source;
   final ActionExecutionStatus status;
@@ -25,6 +29,8 @@ final class ActionPromise {
   ActionPromise copyWith({ActionExecutionStatus? status}) => ActionPromise(
     cardId: cardId,
     occurrenceId: occurrenceId,
+    variantId: variantId,
+    effectiveSpice: effectiveSpice,
     source: source,
     status: status ?? this.status,
     visibility: visibility,
@@ -37,10 +43,17 @@ final class CorruptionOffer {
     required this.objective,
     required List<ActionPromise> actions,
   }) : actions = List.unmodifiable(actions) {
-    if (actions.any((action) => action.source == CardZone.ENGAGED)) {
+    if (actions.isEmpty) {
       throw ArgumentError(
-        'Initially engaged cards cannot be corruption actions',
+        'A corruption offer must contain at least one action',
       );
+    }
+    if (actions.any((action) => action.source != CardZone.DISCARD)) {
+      throw ArgumentError('Only discard cards can be corruption actions');
+    }
+    if (actions.map((action) => action.identity).toSet().length !=
+        actions.length) {
+      throw ArgumentError('A corruption occurrence can only be proposed once');
     }
   }
   final String offeredBy;

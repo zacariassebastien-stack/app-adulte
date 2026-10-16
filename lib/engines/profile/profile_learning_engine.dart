@@ -61,6 +61,7 @@ final class ResolvedLearningCard {
     this.performerPlayerId,
     this.receiverPlayerId,
     this.soloPlayerId,
+    this.soloRole = LearningRole.solo,
     List<String> participantPlayerIds = const [],
   }) : participantPlayerIds = List.unmodifiable(participantPlayerIds) {
     switch (participation) {
@@ -81,6 +82,7 @@ final class ResolvedLearningCard {
 
   final LearningCardDescriptor card;
   final ResolvedParticipation participation;
+  final LearningRole soloRole;
   final String? performerPlayerId;
   final String? receiverPlayerId;
   final String? soloPlayerId;
@@ -216,8 +218,8 @@ final class ProfileLearningEngine {
       final key = PreferenceLearningKey(preferenceId: choice.key);
       final excluded = choice.value == InitialSwipeChoice.excluded;
       final pa = switch (choice.value) {
-        InitialSwipeChoice.love => 3.0,
-        InitialSwipeChoice.like => 8.0,
+        InitialSwipeChoice.love => 5.0,
+        InitialSwipeChoice.like => 12.0,
         InitialSwipeChoice.unsure => 20.0,
         InitialSwipeChoice.excluded => null,
       };
@@ -301,7 +303,7 @@ final class ProfileLearningEngine {
             updated,
             resolved.soloPlayerId!,
             resolved.card,
-            LearningRole.solo,
+            resolved.soloRole,
           );
         case ResolvedParticipation.simultaneous:
           for (final playerId in resolved.participantPlayerIds.toSet()) {

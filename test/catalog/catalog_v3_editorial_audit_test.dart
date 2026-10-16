@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 void main() {
   final catalog =
       jsonDecode(
-            File('assets/catalog/source/cards.v2.fr.json').readAsStringSync(),
+            File('assets/catalog/legacy/cards.v2.fr.json').readAsStringSync(),
           )
           as Map<String, Object?>;
   final audit =

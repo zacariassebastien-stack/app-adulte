@@ -7,6 +7,7 @@ import '../../engines/auction/auction_engine.dart';
 import '../../engines/corruption/corruption_engine.dart';
 import '../../engines/deck/deck_cycle_state.dart';
 import '../../engines/recovery/recovery_engine.dart';
+import '../../engines/runtime/v4_runtime_engine.dart';
 import '../../sync/sync.dart';
 
 final class SupabaseNetworkGameRepository
@@ -14,6 +15,9 @@ final class SupabaseNetworkGameRepository
         NetworkGameRepository,
         NetworkNegotiationRepository,
         NetworkSessionFlowRepository,
+        NetworkSessionSetupRepository,
+        NetworkPrivateInitialResolutionRepository,
+        NetworkV4ActionRepository,
         NetworkCommitCancellationRepository,
         NetworkSessionClosureRepository {
   SupabaseNetworkGameRepository({required this.client});
@@ -35,14 +39,85 @@ final class SupabaseNetworkGameRepository
   }) => _rpc('open_network_game_round', command);
 
   @override
+  Future<V4SessionSetupDto> submitV4SessionSetup({
+    required String sessionId,
+    required String playerId,
+    required int clothingCount,
+    required List<V4Accessory> accessories,
+    V4SessionMode? mode,
+  }) async {
+    final identity = await _identity();
+    if (identity != playerId) {
+      throw const NetworkRoundException('ROUND_IDENTITY_MISMATCH');
+    }
+    try {
+      return _setupMap(
+        await client.rpc<Object?>(
+          'submit_v4_session_setup',
+          params: {
+            'p_session_id': sessionId,
+            'p_clothing_count': clothingCount,
+            'p_accessories': [for (final item in accessories) item.toJson()],
+            'p_mode': mode?.name,
+          },
+        ),
+      );
+    } on PostgrestException catch (error) {
+      throw NetworkRoundException(
+        _knownCode('${error.message} ${error.details ?? ''}'),
+      );
+    }
+  }
+
+  @override
+  Future<V4SessionSetupDto> getV4SessionSetup(String sessionId) async {
+    await _identity();
+    return _setupMap(
+      await client.rpc<Object?>(
+        'get_v4_session_setup',
+        params: {'p_session_id': sessionId},
+      ),
+    );
+  }
+
+  @override
+  Stream<V4SessionSetupDto> watchV4SessionSetup(String sessionId) async* {
+    yield await getV4SessionSetup(sessionId);
+    await for (final _
+        in client
+            .from('session_players')
+            .stream(primaryKey: ['session_id', 'user_id'])
+            .eq('session_id', sessionId)) {
+      yield await getV4SessionSetup(sessionId);
+    }
+  }
+
+  V4SessionSetupDto _setupMap(Object? value) {
+    if (value is Map<String, dynamic>) {
+      return V4SessionSetupDto.fromJson(value.cast<String, Object?>());
+    }
+    if (value is List && value.length == 1 && value.first is Map) {
+      return V4SessionSetupDto.fromJson(
+        Map<String, Object?>.from(value.first! as Map),
+      );
+    }
+    throw const FormatException('Invalid V4 session setup response');
+  }
+
+  @override
   Future<NetworkGameRoundStateDto> getCurrentRound({
     required String sessionId,
   }) async {
     final playerId = await _identity();
-    return _call('get_current_network_game_round', {
+    final current = await _call('get_current_network_game_round', {
       'p_session_id': sessionId,
       'p_player_id': playerId,
     });
+    return _refreshWithCanonicalRevision(
+      sessionId: sessionId,
+      playerId: playerId,
+      current: current,
+    );
   }
 
   @override
@@ -101,6 +176,11 @@ final class SupabaseNetworkGameRepository
   }) => _rpc('close_network_game_session', command);
 
   @override
+  Future<NetworkGameRoundStateDto> resolveInitialPrivately({
+    required NetworkCommandDto command,
+  }) => _rpc('resolve_network_initial_private', command);
+
+  @override
   Future<NetworkGameRoundStateDto> submitInitialResolution({
     required NetworkCommandDto command,
     required NetworkInitialResolutionDto resolution,
@@ -117,7 +197,7 @@ final class SupabaseNetworkGameRepository
   }) => _rpc(
     'submit_network_negotiation_proposal',
     command,
-    extra: {'p_offer': offer.toJson()},
+    extra: {'p_offer': offer.toJson(includePrivateSnapshots: true)},
   );
 
   @override
@@ -127,7 +207,7 @@ final class SupabaseNetworkGameRepository
   }) => _rpc(
     'respond_network_negotiation',
     command,
-    extra: {'p_response': response.toJson()},
+    extra: {'p_response': response.toCommandJson()},
   );
 
   @override
@@ -137,7 +217,7 @@ final class SupabaseNetworkGameRepository
   }) => _rpc(
     'adapt_network_negotiation',
     command,
-    extra: {'p_offer': offer.toJson()},
+    extra: {'p_offer': offer.toJson(includePrivateSnapshots: true)},
   );
 
   @override
@@ -165,6 +245,25 @@ final class SupabaseNetworkGameRepository
   );
 
   @override
+  Future<NetworkGameRoundStateDto> reportHybridAvailability({
+    required NetworkCommandDto command,
+    required NetworkHybridAvailabilityDto availability,
+    required int generation,
+  }) => _rpc(
+    'report_network_hybrid_availability',
+    command,
+    extra: {
+      'p_orientation':
+          availability.orientation == HybridDeckOrientation.faceToFace
+          ? 'FACE_TO_FACE'
+          : 'DISTANCE',
+      'p_generation': generation,
+      'p_has_playable_current': availability.hasPlayableCurrentOrientation,
+      'p_has_playable_alternate': availability.hasPlayableAlternateOrientation,
+    },
+  );
+
+  @override
   Future<NetworkGameRoundStateDto> continueDeckCycle({
     required NetworkCommandDto command,
     required DeckExhaustionChoice choice,
@@ -182,6 +281,16 @@ final class SupabaseNetworkGameRepository
       },
       'p_adjustment': {'expected_cycle': expectedCycle},
     },
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> publishUnlockedSpice({
+    required NetworkCommandDto command,
+    required int unlockedSpice,
+  }) => _rpc(
+    'publish_network_v4_unlocked_spice',
+    command,
+    extra: {'p_unlocked_spice': unlockedSpice},
   );
 
   @override
@@ -306,7 +415,33 @@ final class SupabaseNetworkGameRepository
   @override
   Future<NetworkGameRoundStateDto> readyNextRound({
     required NetworkCommandDto command,
-  }) => _rpc('ready_network_next_round', command);
+    bool noPlayableOccurrences = false,
+    bool hasPlayableAlternateOrientation = false,
+    int? clothingCount,
+  }) => _rpc(
+    'ready_network_next_round',
+    command,
+    extra: {
+      'p_no_playable_occurrences': noPlayableOccurrences,
+      'p_has_playable_alternate': hasPlayableAlternateOrientation,
+      'p_clothing_count': clothingCount,
+    },
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> repairV4ActionParameters({
+    required NetworkCommandDto command,
+  }) => _rpc('repair_v4_action_parameters', command);
+
+  @override
+  Future<NetworkGameRoundStateDto> publishV4ActionProjection({
+    required NetworkCommandDto command,
+    required NetworkResolvedActionProjectionDto projection,
+  }) => _rpc(
+    'publish_v4_action_projection',
+    command,
+    extra: {'p_projection': projection.toJson()},
+  );
 
   @override
   Stream<NetworkGameRoundStateDto> watchRound({
@@ -317,8 +452,8 @@ final class SupabaseNetworkGameRepository
     yield await getCurrentRound(sessionId: sessionId);
     await for (final _
         in client
-            .from('network_rounds')
-            .stream(primaryKey: ['id'])
+            .from('network_round_public_events')
+            .stream(primaryKey: ['round_id'])
             // A new round has a new ID. Watching the session also observes its
             // insertion, so clients waiting on the closed round can advance.
             .eq('session_id', sessionId)) {
@@ -334,13 +469,52 @@ final class SupabaseNetworkGameRepository
     final identity = await _identity();
     _matching(command, identity);
     final roundId = command.payload['round_id'] as String?;
-    return _call(function, {
+    final result = await _call(function, {
       'p_session_id': command.sessionId,
       'p_round_id': ?roundId,
       'p_player_id': command.playerId,
       'p_command_id': command.commandId,
       ...extra,
     });
+    return _refreshWithCanonicalRevision(
+      sessionId: command.sessionId,
+      playerId: identity,
+      current: result,
+    );
+  }
+
+  Future<NetworkGameRoundStateDto> _refreshWithCanonicalRevision({
+    required String sessionId,
+    required String playerId,
+    required NetworkGameRoundStateDto current,
+  }) async {
+    var candidate = current;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final revisionBefore = await _roundRevision(candidate.roundId);
+      final refreshed = await _call('get_current_network_game_round', {
+        'p_session_id': sessionId,
+        'p_player_id': playerId,
+      });
+      if (refreshed.roundId != candidate.roundId) {
+        candidate = refreshed;
+        continue;
+      }
+      final revisionAfter = await _roundRevision(candidate.roundId);
+      if (revisionBefore != null && revisionBefore == revisionAfter) {
+        return refreshed.withRoundRevision(revisionBefore);
+      }
+      candidate = refreshed;
+    }
+    return candidate;
+  }
+
+  Future<int?> _roundRevision(String roundId) async {
+    final event = await client
+        .from('network_round_public_events')
+        .select('revision')
+        .eq('round_id', roundId)
+        .maybeSingle();
+    return (event?['revision'] as num?)?.toInt();
   }
 
   Future<NetworkGameRoundStateDto> _call(
@@ -402,6 +576,8 @@ final class SupabaseNetworkGameRepository
       'ROUND_AUCTION_CARD_REUSED',
       'ROUND_NEGOTIATION_INVALID',
       'ROUND_RESOLUTION_MISMATCH',
+      'ROUND_DIRECTION_MISMATCH',
+      'ROUND_ACTION_IDENTITY_MISMATCH',
       'ROUND_CORRUPTION_FORBIDDEN',
       'ROUND_RECOVERY_NOT_ELIGIBLE',
       'ROUND_RECOVERY_PROPOSAL_PRIVATE',

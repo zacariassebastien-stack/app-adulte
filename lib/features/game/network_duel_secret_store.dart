@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/game/game_models.dart';
+import '../../domain/catalog/v4_catalog.dart';
+import '../../engines/runtime/v4_runtime_engine.dart';
 import '../../core/json.dart';
 import '../../domain/round/concept_usage_snapshot.dart';
 import '../../domain/session/session_state.dart';
@@ -52,7 +54,11 @@ final class NetworkPrivateGameState {
     Map<String, ConceptUsageSnapshot> reservedChoices = const {},
     JsonMap? pendingSecondaryCommand,
     JsonMap? pendingLearning,
-    this.activeChili = 2,
+    this.activeChili = 1,
+    this.sessionMode = V4SessionMode.presentiel,
+    this.presence = V4SessionPresence.presentiel,
+    List<V4PersistentEffect> persistentEffects = const [],
+    V4SessionAccessoryPool? accessoryPool,
     this.initialClothing = 5,
     List<ConceptUsageCheckpoint> priorCheckpoints = const [],
     Map<String, int> clothesByPlayer = const {},
@@ -69,7 +75,11 @@ final class NetworkPrivateGameState {
        publicDiscards = List.unmodifiable(publicDiscards),
        clothesByPlayer = Map.unmodifiable(clothesByPlayer),
        priorCheckpoints = List.unmodifiable(priorCheckpoints),
-       clothingObservations = Map.unmodifiable(clothingObservations);
+       clothingObservations = Map.unmodifiable(clothingObservations),
+       persistentEffects = List.unmodifiable(persistentEffects),
+       accessoryPool =
+           accessoryPool ??
+           V4SessionAccessoryPool(profileAccessories: const []);
 
   final int roundNumber;
   final List<CardRuntimeState> cards;
@@ -88,6 +98,10 @@ final class NetworkPrivateGameState {
   final JsonMap? pendingSecondaryCommand;
   final JsonMap? pendingLearning;
   final int activeChili;
+  final V4SessionMode sessionMode;
+  final V4SessionPresence presence;
+  final List<V4PersistentEffect> persistentEffects;
+  final V4SessionAccessoryPool accessoryPool;
   final int initialClothing;
   final List<ConceptUsageCheckpoint> priorCheckpoints;
   final Map<String, int> clothesByPlayer;
@@ -123,6 +137,10 @@ final class NetworkPrivateGameState {
     'pending_secondary_command': pendingSecondaryCommand,
     'pending_learning': pendingLearning,
     'active_chili': activeChili,
+    'session_mode': sessionMode.name,
+    'presence': presence.name,
+    'persistent_effects': [for (final e in persistentEffects) e.toJson()],
+    'accessory_pool': accessoryPool.toJson(),
     'initial_clothing': initialClothing,
     'prior_checkpoints': [
       for (final checkpoint in priorCheckpoints) checkpoint.toJson(),
@@ -192,7 +210,22 @@ final class NetworkPrivateGameState {
     pendingSecondaryCommand: json['pending_secondary_command'] == null
         ? null
         : Map<String, Object?>.from(json['pending_secondary_command'] as Map),
-    activeChili: (json['active_chili'] as int?) ?? 2,
+    activeChili: (json['active_chili'] as int?) ?? 1,
+    sessionMode: V4SessionMode.values.byName(
+      (json['session_mode'] as String?) ?? 'presentiel',
+    ),
+    presence: V4SessionPresence.values.byName(
+      (json['presence'] as String?) ?? 'presentiel',
+    ),
+    persistentEffects: [
+      for (final raw in (json['persistent_effects'] as List?) ?? const [])
+        V4PersistentEffect.fromJson(Map<String, Object?>.from(raw as Map)),
+    ],
+    accessoryPool: json['accessory_pool'] == null
+        ? null
+        : V4SessionAccessoryPool.fromJson(
+            Map<String, Object?>.from(json['accessory_pool'] as Map),
+          ),
     initialClothing: (json['initial_clothing'] as int?) ?? 5,
     priorCheckpoints: [
       for (final value in (json['prior_checkpoints'] as List?) ?? [])
@@ -233,6 +266,7 @@ abstract interface class NetworkDuelSecretStore {
     required String sessionId,
     required String playerId,
   });
+  Future<void> clearGame({required String sessionId, required String playerId});
 }
 
 final class SharedPreferencesNetworkDuelSecretStore
@@ -305,6 +339,15 @@ final class SharedPreferencesNetworkDuelSecretStore
             Map<String, Object?>.from(jsonDecode(encoded) as Map),
           );
   }
+
+  @override
+  Future<void> clearGame({
+    required String sessionId,
+    required String playerId,
+  }) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.remove(_gameKey(sessionId, playerId));
+  }
 }
 
 final class MemoryNetworkDuelSecretStore implements NetworkDuelSecretStore {
@@ -344,4 +387,11 @@ final class MemoryNetworkDuelSecretStore implements NetworkDuelSecretStore {
     required String sessionId,
     required String playerId,
   }) async => _games[_key(sessionId, playerId)];
+  @override
+  Future<void> clearGame({
+    required String sessionId,
+    required String playerId,
+  }) async {
+    _games.remove(_key(sessionId, playerId));
+  }
 }

@@ -5,14 +5,18 @@ import '../../domain/catalog/catalog.dart';
 import '../../domain/catalog/enums.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/profile/adaptive_profile.dart';
+import '../../domain/profile/v4_profile.dart';
+import '../../domain/catalog/v4_catalog.dart';
 import '../../engines/auction/auction_engine.dart';
 import '../../engines/corruption/corruption_engine.dart';
 import '../../engines/deck/deck_cycle_state.dart';
 import '../../engines/recovery/recovery_engine.dart';
+import '../../engines/runtime/v4_runtime_engine.dart';
 import '../../sync/rounds/network_game.dart';
 import '../lobby/lobby_models.dart';
 import '../lobby/active_session_store.dart';
 import '../lobby/game_history.dart';
+import '../profile/v4_accessory_profile_screen.dart';
 import 'game_preferences.dart';
 import 'network_duel_secret_store.dart';
 import 'network_duel_controller.dart' show NetworkDuelCard;
@@ -36,6 +40,12 @@ class NetworkDuelScreen extends StatefulWidget {
     this.historyStore = const SharedPreferencesGameHistoryStore(),
     this.preferences,
     this.privateProfile,
+    this.v4Profile,
+    this.scoringCatalog,
+    this.sessionMode = V4SessionMode.presentiel,
+    this.initialClothingCounts = const {},
+    this.profileAccessories = const [],
+    this.profileStore = const SharedPreferencesV4ProfileStore(),
     super.key,
   });
 
@@ -48,23 +58,35 @@ class NetworkDuelScreen extends StatefulWidget {
   final GameHistoryStore historyStore;
   final GamePreferencesController? preferences;
   final PlayerGameProfile? privateProfile;
+  final V4Profile? v4Profile;
+  final V4ScoringCatalog? scoringCatalog;
+  final V4SessionMode sessionMode;
+  final Map<String, int> initialClothingCounts;
+  final List<V4Accessory> profileAccessories;
+  final V4ProfileStore profileStore;
 
   @override
   State<NetworkDuelScreen> createState() => _NetworkDuelScreenState();
 }
 
+enum NetworkDuelExit { finished, newGame }
+
+enum _PostDuelChoice { compromise, corruption }
+
 class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   late final NetworkGameController controller;
   final auctionForm = NetworkAuctionFormController();
   final Set<String> _negotiationCards = {};
+  final Set<String> _corruptionCards = {};
+  _PostDuelChoice? _postDuelChoice;
   bool _requestInversion = false;
-  bool _acceptInversion = false;
-  bool _acceptAuction = false;
   String? actionError;
   CardHandStage _handStage = CardHandStage.resting;
   late final GamePreferencesController preferences;
   late final bool _ownsPreferences;
   bool _historyRecorded = false;
+  bool _leavingForNewGame = false;
+  int? _pendingClothingCount;
 
   @override
   void initState() {
@@ -80,6 +102,11 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       privateStore: widget.secretStore,
       catalog: widget.catalog,
       privateProfile: widget.privateProfile,
+      v4Profile: widget.v4Profile,
+      scoringCatalog: widget.scoringCatalog,
+      sessionMode: widget.sessionMode,
+      initialClothingCounts: widget.initialClothingCounts,
+      profileAccessories: widget.profileAccessories,
     )..addListener(_refresh);
     controller.start();
   }
@@ -91,9 +118,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       if (changedRound) {
         actionError = null;
         _negotiationCards.clear();
+        _corruptionCards.clear();
+        _postDuelChoice = null;
         _requestInversion = false;
-        _acceptInversion = false;
-        _acceptAuction = false;
+        _pendingClothingCount = null;
       }
     });
   }
@@ -127,7 +155,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               : _handStage,
           onSettings: _openSettings,
           animationsEnabled: preferences.value.animations,
-          onOrientationChanged: calm ? controller.switchOrientation : null,
+          onOrientationChanged:
+              controller.viewState == NetworkGameViewState.waitingNext
+              ? controller.switchOrientation
+              : null,
           discardVisible: calm && _handStage != CardHandStage.open,
           onDiscard: _openDiscard,
           child: Padding(
@@ -172,10 +203,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     NetworkGameViewState.counterDecision => _counterDecision(),
     NetworkGameViewState.finalDefenseDecision => _finalDefense(),
     NetworkGameViewState.tieDecision => _tieDecision(),
-    NetworkGameViewState.finalResult => _finalResult(),
+    NetworkGameViewState.actionInProgress => _actionInProgress(),
     NetworkGameViewState.corruptionDecision => _corruptionDecision(),
     NetworkGameViewState.corruptionResponse => _corruptionResponse(),
-    NetworkGameViewState.corruptionExecution => _corruptionExecution(),
+    NetworkGameViewState.corruptionExecution => _actionInProgress(),
     NetworkGameViewState.recovery => _recovery(),
     NetworkGameViewState.recoveryResponse => _recoveryResponse(),
     NetworkGameViewState.recoveryExecution => _recoveryExecution(),
@@ -294,6 +325,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     return CardHandItem(
       id: card.identity,
       locked: controller.lockedCardId == card.identity,
+      available: controller.isCardPlayable(card),
       definition: CardRenderDefinition(
         cardId: card.id,
         variantId: card.variant.id,
@@ -370,13 +402,17 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     required VoidCallback onSubmit,
     bool allowInversion = true,
     bool allowAuction = true,
+    bool? canEdit,
+    bool requireNonEmpty = false,
+    Widget? leading,
   }) => ListView(
     key: Key(title),
     padding: const EdgeInsets.all(16),
     children: [
       _initialResult(controller.initialResolution!),
       const SizedBox(height: 12),
-      if (!controller.isInitialLoser)
+      ?leading,
+      if (!(canEdit ?? controller.isInitialLoser))
         _waitingCard(waiting)
       else ...[
         Text(title, style: Theme.of(context).textTheme.headlineSmall),
@@ -391,6 +427,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           TextField(
             key: const Key('negotiation-direct-pa'),
             controller: auctionForm.counterAmount,
+            onChanged: (_) => setState(() {}),
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               labelText: 'PA personnels (facultatif)',
@@ -403,22 +440,28 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             CheckboxListTile(
               key: Key('negotiation-card-${card.identity}'),
               value: _negotiationCards.contains(card.identity),
-              onChanged: (selected) => setState(() {
-                if (selected == true) {
-                  _negotiationCards.add(card.identity);
-                } else {
-                  _negotiationCards.remove(card.identity);
-                }
-              }),
+              onChanged: controller.isAuctionCardPlayable(card)
+                  ? (selected) => setState(() {
+                      if (selected == true) {
+                        _negotiationCards.add(card.identity);
+                      } else {
+                        _negotiationCards.remove(card.identity);
+                      }
+                    })
+                  : null,
               title: Text(card.title),
               subtitle: Text(
-                '${card.role.name} · ${_chilies(card.chiliLevel)}',
+                controller.isAuctionCardPlayable(card)
+                    ? '${card.role.name} · ${_chilies(card.chiliLevel)}'
+                    : 'Indisponible au niveau 🌶️ actuel',
               ),
             ),
         ],
         FilledButton(
           key: const Key('submit-negotiation'),
-          onPressed: onSubmit,
+          onPressed: requireNonEmpty && !_hasNegotiationProposal
+              ? null
+              : onSubmit,
           child: Text(buttonLabel),
         ),
       ],
@@ -433,34 +476,25 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         _initialResult(controller.initialResolution!),
-        if (!controller.isInitialWinner)
+        if (!controller.isNegotiationResponder)
           _waitingCard('Ton partenaire répond à ta proposition…')
         else ...[
           Text(
-            'Répondre au compromis',
+            'Proposition de compromis',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
-          if (proposal.inversionRequested)
-            SwitchListTile(
-              key: const Key('accept-negotiation-inversion'),
-              value: _acceptInversion,
-              onChanged: (value) => setState(() => _acceptInversion = value),
-              title: const Text('Accepter l’inversion'),
-            ),
-          if (proposal.totalValue > 0)
-            SwitchListTile(
-              key: const Key('accept-negotiation-auction'),
-              value: _acceptAuction,
-              onChanged: (value) => setState(() => _acceptAuction = value),
-              title: Text('Accepter l’enchère (${proposal.totalValue})'),
-            ),
+          const SizedBox(height: 8),
+          NetworkNegotiationOfferSummary(offer: proposal, titleForCard: _title),
+          const SizedBox(height: 12),
           FilledButton(
-            key: const Key('respond-negotiation'),
-            onPressed: () => controller.respondNegotiation(
-              acceptInversion: _acceptInversion,
-              acceptAuction: _acceptAuction,
-            ),
-            child: const Text('Envoyer ma réponse'),
+            key: const Key('accept-negotiation'),
+            onPressed: () => controller.respondNegotiation(accepted: true),
+            child: const Text('Accepter le compromis'),
+          ),
+          OutlinedButton(
+            key: const Key('keep-initial-result'),
+            onPressed: () => controller.respondNegotiation(accepted: false),
+            child: const Text('Conserver le résultat initial'),
           ),
         ],
       ],
@@ -627,21 +661,24 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     ],
   );
 
-  Widget _finalResult() {
+  Widget _actionInProgress() {
     final result = controller.finalResolution!;
+    final projection = controller.actionProjection;
     final title = result.mutualAbandon
         ? 'Round abandonné mutuellement'
         : result.retainedPlayerId == controller.playerId
         ? 'Ton action est retenue'
         : 'Action du partenaire retenue';
     return ListView(
-      key: const Key('network-final-result'),
+      key: const Key('network-action-in-progress'),
       padding: const EdgeInsets.all(16),
       children: [
         Text(title, style: Theme.of(context).textTheme.headlineSmall),
         if (!result.mutualAbandon) ...[
           const SizedBox(height: 12),
-          if (result.compromise.isNotEmpty) ...[
+          if (projection != null && projection.cards.isNotEmpty) ...[
+            for (final card in projection.cards) _resolvedActionTile(card),
+          ] else if (result.compromise.isNotEmpty) ...[
             for (final card in result.compromise)
               ListTile(
                 title: Text(_title(card.cardId)),
@@ -655,110 +692,322 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             if (result.inverted) const Text('Rôles physiques inversés'),
           ],
         ],
+        if (controller.persistentEffects.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Text('Effets actifs', style: Theme.of(context).textTheme.titleMedium),
+          for (final effect in controller.persistentEffects)
+            Text(
+              '${_title(effect.cardId)} · ${effect.remainingActions} action(s) restante(s)',
+            ),
+        ],
+        if (controller.ownClothingResyncRequired &&
+            controller.ownClothingChangeIsDeterministic) ...[
+          const SizedBox(height: 12),
+          OutlinedButton(
+            key: const Key('adjust-deterministic-clothing-count'),
+            onPressed: _adjustClothingCount,
+            child: Text(
+              'Ajuster les vêtements (${_pendingClothingCount ?? controller.suggestedOwnClothingCount()})',
+            ),
+          ),
+        ],
         const SizedBox(height: 20),
-        if (controller.deckExhausted) ...[
-          Text(
-            'Cycle de cartes terminé',
-            style: Theme.of(context).textTheme.titleMedium,
+        FilledButton(
+          key: const Key('complete-network-action'),
+          onPressed: controller.actionCompletionSubmitted
+              ? null
+              : _completeAction,
+          child: Text(
+            controller.actionCompletionSubmitted &&
+                    controller.waitingForClothingResync
+                ? 'En attente de ton partenaire…'
+                : 'Terminé',
           ),
-          if (controller.postGameProfileChoice == null) ...[
-            const Text('Pour la suite de ton profil privé :'),
-            TextButton(
-              onPressed: () => controller.choosePostGameProfile(
-                PostGameProfileChoice.customize,
-              ),
-              child: const Text('Personnaliser mon profil'),
-            ),
-            TextButton(
-              onPressed: () => controller.choosePostGameProfile(
-                PostGameProfileChoice.trustGame,
-              ),
-              child: const Text('Faire confiance au jeu'),
-            ),
-            TextButton(
-              onPressed: () =>
-                  controller.choosePostGameProfile(PostGameProfileChoice.later),
-              child: const Text('Ne rien faire pour l’instant'),
-            ),
-          ],
-          if (controller.isCycleController) ...[
-            FilledButton(
-              key: const Key('continue-spicier'),
-              onPressed: () => controller.continueDeck(
-                controller.deckStyle == PlayerStyle.INTENABLE
-                    ? DeckExhaustionChoice.continueIntenable
-                    : DeckExhaustionChoice.continueSpicier,
-              ),
-              child: Text(
-                controller.deckStyle == PlayerStyle.SOFT
-                    ? 'Continuer en Épicé'
-                    : 'Continuer en Intenable',
-              ),
-            ),
-            OutlinedButton(
-              key: const Key('enable-infinite'),
-              onPressed: () =>
-                  controller.continueDeck(DeckExhaustionChoice.infinite),
-              child: const Text('Mode Infini'),
-            ),
-            OutlinedButton(
-              key: const Key('new-customized-game'),
-              onPressed: () => controller.continueDeck(
-                DeckExhaustionChoice.newCustomizedGame,
-              ),
-              child: const Text('Nouvelle partie'),
-            ),
-            TextButton(
-              key: const Key('finish-game'),
-              onPressed: () =>
-                  controller.continueDeck(DeckExhaustionChoice.finish),
-              child: const Text('Terminer'),
-            ),
-          ] else
-            _waitingCard('Ton partenaire choisit la suite de la partie…'),
-        ] else
-          FilledButton(
-            key: const Key('ready-next-round'),
-            onPressed: _readyForNextRound,
-            child: const Text('Tour suivant'),
-          ),
+        ),
       ],
     );
   }
 
-  Widget _corruptionDecision() => ListView(
-    key: const Key('network-corruption-decision'),
-    padding: const EdgeInsets.all(16),
-    children: [
-      Text('Corruption', style: Theme.of(context).textTheme.headlineSmall),
-      const Text('Seule la carte proposée est rendue publique.'),
-      const SizedBox(height: 16),
-      if (!controller.isCorruptionActor)
-        _waitingCard('Ton partenaire décide s’il propose une corruption.')
-      else ...[
-        for (final card in controller.corruptionCards)
-          ListTile(
-            key: Key('corruption-card-${card.id}'),
-            title: Text(card.title),
-            subtitle: Text(
-              '${card.definition.actionText} · 🌶️${card.chiliLevel}',
-            ),
-            trailing: FilledButton.tonal(
-              onPressed: () => controller.proposeCorruption(
-                card.identity,
-                CorruptionObjective.OWN_INITIAL_ACTION,
-              ),
-              child: const Text('Proposer'),
+  Future<void> _completeAction() async {
+    if (controller.ownClothingResyncRequired) {
+      final count = controller.ownClothingChangeIsDeterministic
+          ? _pendingClothingCount ?? controller.suggestedOwnClothingCount()
+          : await _requestClothingCount(controller.suggestedOwnClothingCount());
+      if (count == null) return;
+      await controller.updateOwnClothingCount(count);
+    }
+    await controller.completeAction();
+  }
+
+  Future<void> _adjustClothingCount() async {
+    final count = await _requestClothingCount(
+      _pendingClothingCount ?? controller.suggestedOwnClothingCount(),
+    );
+    if (count != null && mounted) setState(() => _pendingClothingCount = count);
+  }
+
+  Future<int?> _requestClothingCount(int initialCount) async {
+    final input = TextEditingController(text: '$initialCount');
+    final count = await showDialog<int>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Vêtements'),
+        content: TextField(
+          key: const Key('clothing-resync-count'),
+          controller: input,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Combien de vêtements portes-tu actuellement ?',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = int.tryParse(input.text);
+              if (value != null && value >= 0) Navigator.pop(context, value);
+            },
+            child: const Text('Valider'),
+          ),
+        ],
+      ),
+    );
+    input.dispose();
+    return count;
+  }
+
+  Widget _resolvedActionTile(NetworkResolvedActionCardDto card) {
+    final definition = widget.catalog.cards.firstWhere(
+      (item) => item.stableId == card.cardId,
+    );
+    final variant = definition.variants.firstWhere(
+      (item) => item.stableId == card.variantId,
+    );
+    final actionText =
+        variant.actionText ?? definition.actionText ?? _title(card.cardId);
+    final detailsText = variant.detailsText ?? definition.detailsText;
+    return ListTile(
+      title: Text(actionText),
+      subtitle: Text(
+        [
+          if (detailsText != null && detailsText.trim().isNotEmpty) detailsText,
+          card.direction.name,
+          'cible : ${card.targetPlayerIds.join(', ')}',
+          if (card.zoneId != null) 'zone : ${card.zoneId}',
+          if (card.accessoryId != null)
+            'accessoire : ${controller.accessoryName(card.accessoryId) ?? card.accessoryId}',
+          '🌶️ ${card.effectiveSpice}',
+        ].join(' · '),
+      ),
+    );
+  }
+
+  Widget _waitingNext() => Center(
+    key: const Key('network-round-boundary'),
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Action terminée'),
+          const SizedBox(height: 12),
+          if (controller.deckExhausted)
+            ..._cycleEndControls()
+          else if (controller.mustSwitchHybridContext)
+            const Text(
+              'Change le contexte hybride pour continuer : aucune carte '
+              'n’est jouable dans le contexte actuel.',
+              textAlign: TextAlign.center,
+            )
+          else
+            const Text('Préparation du prochain tour…'),
+        ],
+      ),
+    ),
+  );
+
+  List<Widget> _cycleEndControls() => [
+    Text(
+      'Cycle de cartes terminé',
+      style: Theme.of(context).textTheme.titleMedium,
+    ),
+    if (controller.postGameProfileChoice == null) ...[
+      const Text('Souhaitez-vous ajuster vos préférences après cette partie ?'),
+      TextButton(
+        onPressed: _openProfileCustomization,
+        child: const Text('Personnaliser mon profil'),
+      ),
+      TextButton(
+        onPressed: () =>
+            controller.choosePostGameProfile(PostGameProfileChoice.trustGame),
+        child: const Text('Faire confiance au jeu'),
+      ),
+      TextButton(
+        onPressed: () =>
+            controller.choosePostGameProfile(PostGameProfileChoice.later),
+        child: const Text('Ne rien faire pour l’instant'),
+      ),
+    ],
+    if (controller.isCycleController) ...[
+      FilledButton(
+        key: const Key('continue-spicier'),
+        onPressed: () => controller.continueDeck(
+          controller.deckStyle == PlayerStyle.INTENABLE
+              ? DeckExhaustionChoice.continueIntenable
+              : DeckExhaustionChoice.continueSpicier,
+        ),
+        child: Text(
+          controller.deckStyle == PlayerStyle.SOFT
+              ? 'Continuer en Épicé'
+              : 'Continuer en Intenable',
+        ),
+      ),
+      OutlinedButton(
+        key: const Key('enable-infinite'),
+        onPressed: () => controller.continueDeck(DeckExhaustionChoice.infinite),
+        child: const Text('Mode Infini'),
+      ),
+      OutlinedButton(
+        key: const Key('new-customized-game'),
+        onPressed: _startNewGame,
+        child: const Text('Nouvelle partie'),
+      ),
+      TextButton(
+        key: const Key('finish-game'),
+        onPressed: () => controller.continueDeck(DeckExhaustionChoice.finish),
+        child: const Text('Terminer'),
+      ),
+    ] else
+      _waitingCard('Ton partenaire choisit la suite de la partie…'),
+  ];
+
+  bool get _hasNegotiationProposal {
+    final directPa = int.tryParse(auctionForm.counterAmount.text.trim()) ?? 0;
+    return directPa > 0 || _requestInversion || _negotiationCards.isNotEmpty;
+  }
+
+  Widget _corruptionDecision() {
+    if (!controller.isCorruptionActor) {
+      return ListView(
+        key: const Key('network-post-duel-waiting'),
+        padding: const EdgeInsets.all(16),
+        children: [
+          _waitingCard('Ton partenaire choisit la suite de la résolution…'),
+        ],
+      );
+    }
+    if (_postDuelChoice == _PostDuelChoice.compromise) {
+      return _negotiationEditor(
+        title: 'Tenter un compromis',
+        waiting: 'Ton partenaire prépare une proposition…',
+        buttonLabel: 'Envoyer la proposition',
+        onSubmit: () => _submitNegotiation(adaptation: false),
+        canEdit: controller.isFinalLoser,
+        requireNonEmpty: true,
+        leading: Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            key: const Key('back-to-post-duel-choice'),
+            onPressed: () => setState(() => _postDuelChoice = null),
+            icon: const Icon(Icons.arrow_back),
+            label: const Text('Retour'),
+          ),
+        ),
+      );
+    }
+    if (_postDuelChoice == null) {
+      return ListView(
+        key: const Key('network-post-duel-choice'),
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(
+            'Choisis la suite',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 16),
+          FilledButton(
+            key: const Key('choose-negotiation'),
+            onPressed: () =>
+                setState(() => _postDuelChoice = _PostDuelChoice.compromise),
+            child: const Text('Tenter un compromis'),
+          ),
+          FilledButton.tonal(
+            key: const Key('choose-corruption'),
+            onPressed: () =>
+                setState(() => _postDuelChoice = _PostDuelChoice.corruption),
+            child: const Text('Proposer une corruption'),
+          ),
+          OutlinedButton(
+            key: const Key('accept-final-result'),
+            onPressed: controller.skipCorruption,
+            child: const Text('Accepter le résultat'),
+          ),
+        ],
+      );
+    }
+    return ListView(
+      key: const Key('network-corruption-decision'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text('Corruption', style: Theme.of(context).textTheme.headlineSmall),
+        const Text('Seules les cartes proposées sont rendues publiques.'),
+        const SizedBox(height: 16),
+        ...[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              key: const Key('back-to-post-duel-choice'),
+              onPressed: () => setState(() => _postDuelChoice = null),
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Retour'),
             ),
           ),
-        OutlinedButton(
-          key: const Key('skip-network-corruption'),
-          onPressed: controller.skipCorruption,
-          child: const Text('Continuer sans corruption'),
-        ),
+          for (final card in controller.corruptionCards)
+            CheckboxListTile(
+              key: Key('corruption-card-${card.identity}'),
+              title: Text(card.title),
+              subtitle: Text(
+                controller.isCorruptionCardPlayable(card)
+                    ? 'Carte de la défausse · 🌶️ ${card.chiliLevel}'
+                    : 'Indisponible au niveau 🌶️ actuel',
+              ),
+              value: _corruptionCards.contains(card.identity),
+              onChanged: controller.isCorruptionCardPlayable(card)
+                  ? (selected) => setState(() {
+                      if (selected ?? false) {
+                        _corruptionCards.add(card.identity);
+                      } else {
+                        _corruptionCards.remove(card.identity);
+                      }
+                    })
+                  : null,
+            ),
+          FilledButton(
+            key: const Key('propose-network-corruption'),
+            onPressed: _corruptionCards.isEmpty
+                ? null
+                : () async {
+                    await controller.proposeCorruption(
+                      Set<String>.from(_corruptionCards),
+                      CorruptionObjective.OWN_INITIAL_ACTION,
+                    );
+                    if (mounted) setState(_corruptionCards.clear);
+                  },
+            child: Text('Proposer le lot (${_corruptionCards.length})'),
+          ),
+          OutlinedButton(
+            key: const Key('skip-network-corruption'),
+            onPressed: controller.skipCorruption,
+            child: const Text('Continuer sans corruption'),
+          ),
+        ],
       ],
-    ],
-  );
+    );
+  }
 
   Widget _corruptionResponse() {
     final offer = controller.corruption!;
@@ -792,28 +1041,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       ],
     );
   }
-
-  Widget _corruptionExecution() => ListView(
-    key: const Key('network-corruption-execution'),
-    padding: const EdgeInsets.all(16),
-    children: [
-      const Text('Corruption acceptée'),
-      if (controller.corruption!.offeredBy != controller.playerId)
-        _waitingCard('Le partenaire exécute l’action convenue…')
-      else ...[
-        FilledButton(
-          key: const Key('complete-network-corruption'),
-          onPressed: () => controller.completeCorruption(completed: true),
-          child: const Text('Action exécutée'),
-        ),
-        OutlinedButton(
-          key: const Key('skip-network-corruption-action'),
-          onPressed: () => controller.completeCorruption(completed: false),
-          child: const Text('Action non exécutée'),
-        ),
-      ],
-    ],
-  );
 
   Widget _recovery() {
     final done = controller.round!.recoveryDonePlayerIds.contains(
@@ -916,52 +1143,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     );
   }
 
-  Widget _waitingNext() => _centerMessage(
-    'Prêt pour le prochain tour — En attente de ton partenaire…',
-    key: const Key('waiting-next-round'),
-  );
-
-  Future<void> _readyForNextRound() async {
-    final usageId = controller.pendingClothingObservationUsageId;
-    if (usageId != null) {
-      final input = TextEditingController(
-        text: '${controller.currentClothingCount}',
-      );
-      final count = await showDialog<int>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Ta nouvelle tenue'),
-          content: TextField(
-            controller: input,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Nombre de vêtements portés maintenant',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Annuler'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final value = int.tryParse(input.text);
-                if (value != null && value >= 0) {
-                  Navigator.pop(dialogContext, value);
-                }
-              },
-              child: const Text('Confirmer'),
-            ),
-          ],
-        ),
-      );
-      input.dispose();
-      if (count == null || !mounted) return;
-      await controller.recordClothingCount(usageId, count);
-    }
-    await controller.readyForNextRound();
-  }
-
   Widget _initialResult(NetworkInitialResolutionDto initial) => Card(
     child: Padding(
       padding: const EdgeInsets.all(16),
@@ -976,7 +1157,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             style: Theme.of(context).textTheme.titleLarge,
             textAlign: TextAlign.center,
           ),
-          Text('Écart : ${initial.gap} · Coût PA : ${initial.gapCost}'),
         ],
       ),
     ),
@@ -1089,6 +1269,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             if (controller.postGameProfileChoice ==
                 PostGameProfileChoice.customize) ...[
               const Divider(),
+              ListTile(
+                key: const Key('customize-v4-accessories'),
+                leading: const Icon(Icons.extension),
+                title: const Text('Gérer mes accessoires'),
+                onTap: _openAccessoryProfile,
+              ),
               const Text('Préférences rencontrées'),
               if (entries.isEmpty)
                 const Text(
@@ -1121,10 +1307,40 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     ),
   );
 
+  Future<void> _openProfileCustomization() async {
+    await controller.choosePostGameProfile(PostGameProfileChoice.customize);
+    await _openAccessoryProfile();
+  }
+
+  Future<void> _openAccessoryProfile() async {
+    final profile =
+        await widget.profileStore.load(widget.playerId) ?? widget.v4Profile;
+    if (profile == null || !mounted) return;
+    final temporary = [
+      for (final item in controller.sessionAccessories)
+        if (item.temporary && item.ownerPlayerId == widget.playerId)
+          V4ProfileAccessory(
+            id: item.id,
+            name: item.name,
+            ownerProfileId: widget.playerId,
+            tags: {for (final tag in item.tags) tag.name.toUpperCase()},
+          ),
+    ];
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => V4AccessoryProfileScreen(
+          profile: profile,
+          store: widget.profileStore,
+          temporaryAccessories: temporary,
+        ),
+      ),
+    );
+  }
+
   Future<void> _quitGame() async {
     try {
       await controller.closeSession();
-      await _finishLocally();
+      await _finishLocally(NetworkDuelExit.finished);
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1135,6 +1351,14 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     }
   }
 
+  Future<void> _startNewGame() async {
+    if (_leavingForNewGame) return;
+    _leavingForNewGame = true;
+    await controller.continueDeck(DeckExhaustionChoice.newCustomizedGame);
+    if (!mounted) return;
+    await _finishLocally(NetworkDuelExit.newGame);
+  }
+
   Widget _sessionEnded() => Center(
     child: Padding(
       padding: const EdgeInsets.all(24),
@@ -1142,14 +1366,14 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Partie terminée suite à une déconnexion.',
+            'Partie terminée',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 20),
           FilledButton(
             key: const Key('return-home-after-session-end'),
-            onPressed: _finishLocally,
+            onPressed: () => _finishLocally(NetworkDuelExit.finished),
             child: const Text('Retour à l’accueil'),
           ),
         ],
@@ -1157,7 +1381,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     ),
   );
 
-  Future<void> _finishLocally() async {
+  Future<void> _finishLocally(NetworkDuelExit exit) async {
+    await controller.clearLocalSessionState();
     await widget.activeSessionStore.clear();
     if (!_historyRecorded) {
       _historyRecorded = true;
@@ -1166,10 +1391,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       );
     }
     if (mounted) {
-      Navigator.of(
-        context,
-        rootNavigator: true,
-      ).popUntil((route) => route.isFirst);
+      Navigator.of(context, rootNavigator: true).pop(exit);
     }
   }
 
@@ -1287,4 +1509,54 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   String _chilies(int level) => List.filled(level, '🌶️').join();
+}
+
+class NetworkNegotiationOfferSummary extends StatelessWidget {
+  const NetworkNegotiationOfferSummary({
+    required this.offer,
+    required this.titleForCard,
+    super.key,
+  });
+
+  final NetworkNegotiationOfferDto offer;
+  final String Function(String cardId) titleForCard;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    key: const Key('negotiation-offer-summary'),
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      if (offer.inversionRequested)
+        const Text('• Inversion de la carte initiale'),
+      if (offer.directPa > 0) Text('• ${offer.directPa} PA personnels'),
+      if (offer.cards.isNotEmpty) ...[
+        const SizedBox(height: 8),
+        const Text('Cartes ajoutées'),
+        for (final card in offer.cards)
+          ListTile(
+            key: Key('proposed-card-${card.usageId}'),
+            contentPadding: EdgeInsets.zero,
+            title: Text(titleForCard(card.cardId)),
+            subtitle: Text(
+              [
+                _directionLabel(card.effectiveDirection),
+                if (card.usage.resolvedAction['effective_chili']
+                    case final int spice)
+                  List.filled(spice, '🌶️').join(),
+              ].join(' · '),
+            ),
+          ),
+      ],
+    ],
+  );
+
+  static String _directionLabel(NetworkCardDirection direction) =>
+      switch (direction) {
+        NetworkCardDirection.FAIRE => 'Faire',
+        NetworkCardDirection.RECEVOIR => 'Recevoir',
+        NetworkCardDirection.MUTUEL => 'Mutuel',
+        NetworkCardDirection.SOLO => 'Solo',
+        NetworkCardDirection.SIMULTANE => 'Simultané',
+        NetworkCardDirection.GENERAL => 'Général',
+      };
 }

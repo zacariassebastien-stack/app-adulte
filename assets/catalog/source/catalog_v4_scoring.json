@@ -1,0 +1,2397 @@
+{
+  "schema_version": 1,
+  "catalog_version": 4,
+  "source": "SPECIFICATION_CARTES_NOTATION_V1.md#8.2",
+  "cards": [
+    {
+      "card_id": "card.v4.001",
+      "number": "001",
+      "variants": [
+        {
+          "variant_id": "variant.v4.001.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "calin"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "MUTUEL"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.002",
+      "number": "002",
+      "variants": [
+        {
+          "variant_id": "variant.v4.002.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; toute zone compatible",
+          "primary_preference_tags": [
+            "embrasser"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.002.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; toute zone compatible",
+          "primary_preference_tags": [
+            "embrasser"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.002.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; toute zone compatible",
+          "primary_preference_tags": [
+            "embrasser"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.003",
+      "number": "003",
+      "variants": [
+        {
+          "variant_id": "variant.v4.003.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "embrasser"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "levres",
+            "langue",
+            "MUTUEL"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.003.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "embrasser"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "levres",
+            "langue",
+            "MUTUEL"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.003.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "embrasser"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "levres",
+            "langue",
+            "MUTUEL"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.004",
+      "number": "004",
+      "variants": [
+        {
+          "variant_id": "variant.v4.004.base",
+          "stage": null,
+          "scope": "chaque zone compatible",
+          "primary_preference_tags": [
+            "bouche"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.005",
+      "number": "005",
+      "variants": [
+        {
+          "variant_id": "variant.v4.005.base",
+          "stage": null,
+          "scope": "chaque zone compatible",
+          "primary_preference_tags": [
+            "main"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.006",
+      "number": "006",
+      "variants": [
+        {
+          "variant_id": "variant.v4.006.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "enlever"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.007",
+      "number": "007",
+      "variants": [
+        {
+          "variant_id": "variant.v4.007.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "enlever"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.008",
+      "number": "008",
+      "variants": [
+        {
+          "variant_id": "variant.v4.008.base",
+          "stage": null,
+          "scope": "état unique",
+          "primary_preference_tags": [
+            "sous_vetements"
+          ],
+          "secondary_preference_tags": [
+            "ordres"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.009",
+      "number": "009",
+      "variants": [
+        {
+          "variant_id": "variant.v4.009.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "nudite"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.010",
+      "number": "010",
+      "variants": [
+        {
+          "variant_id": "variant.v4.010.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "striptease"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.010.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "striptease"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.010.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "striptease"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.011",
+      "number": "011",
+      "variants": [
+        {
+          "variant_id": "variant.v4.011.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "striptease"
+          ],
+          "secondary_preference_tags": [
+            "nudite"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.012",
+      "number": "012",
+      "variants": [
+        {
+          "variant_id": "variant.v4.012.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "tenue"
+          ],
+          "secondary_preference_tags": [
+            "controle",
+            "ordres"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.013",
+      "number": "013",
+      "variants": [
+        {
+          "variant_id": "variant.v4.013.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "tenue"
+          ],
+          "secondary_preference_tags": [
+            "deguisement"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.014",
+      "number": "014",
+      "variants": [
+        {
+          "variant_id": "variant.v4.014.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "contact_corps"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "MUTUEL"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.015",
+      "number": "015",
+      "variants": [
+        {
+          "variant_id": "variant.v4.015.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "frotter"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "MUTUEL"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.016",
+      "number": "016",
+      "variants": [
+        {
+          "variant_id": "variant.v4.016.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "controle"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.017",
+      "number": "017",
+      "variants": [
+        {
+          "variant_id": "variant.v4.017.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "ordres"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.018",
+      "number": "018",
+      "variants": [
+        {
+          "variant_id": "variant.v4.018.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "simuler"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.018.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "simuler"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.018.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "simuler"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.019",
+      "number": "019",
+      "variants": [
+        {
+          "variant_id": "variant.v4.019.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "masturbation"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.019.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "masturbation"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.019.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "masturbation"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.020",
+      "number": "020",
+      "variants": [
+        {
+          "variant_id": "variant.v4.020.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "masturbation"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.021",
+      "number": "021",
+      "variants": [
+        {
+          "variant_id": "variant.v4.021.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "masturbation"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.022",
+      "number": "022",
+      "variants": [
+        {
+          "variant_id": "variant.v4.022.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "doigts",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.022.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "doigts",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.022.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "doigts",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.023",
+      "number": "023",
+      "variants": [
+        {
+          "variant_id": "variant.v4.023.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "doigts",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.023.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "doigts",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.023.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "doigts",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.024",
+      "number": "024",
+      "variants": [
+        {
+          "variant_id": "variant.v4.024.base",
+          "stage": null,
+          "scope": "chaque zone intime compatible",
+          "primary_preference_tags": [
+            "jeu_intime"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.025",
+      "number": "025",
+      "variants": [
+        {
+          "variant_id": "variant.v4.025.non_anal.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3 non anal",
+          "primary_preference_tags": [
+            "oral"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.025.non_anal.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3 non anal",
+          "primary_preference_tags": [
+            "oral"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.025.non_anal.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3 non anal",
+          "primary_preference_tags": [
+            "oral"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.025.anal.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3 variante anale",
+          "primary_preference_tags": [
+            "oral",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.025.anal.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3 variante anale",
+          "primary_preference_tags": [
+            "oral",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.025.anal.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3 variante anale",
+          "primary_preference_tags": [
+            "oral",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.026",
+      "number": "026",
+      "variants": [
+        {
+          "variant_id": "variant.v4.026.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "oral"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "MUTUEL"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.027",
+      "number": "027",
+      "variants": [
+        {
+          "variant_id": "variant.v4.027.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "penetration_vaginale"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.027.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "penetration_vaginale"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.027.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "penetration_vaginale"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.028",
+      "number": "028",
+      "variants": [
+        {
+          "variant_id": "variant.v4.028.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "oral",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.029",
+      "number": "029",
+      "variants": [
+        {
+          "variant_id": "variant.v4.029.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "position"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.030",
+      "number": "030",
+      "variants": [
+        {
+          "variant_id": "variant.v4.030.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "facesitting"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.030.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "facesitting"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.030.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "facesitting"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.031",
+      "number": "031",
+      "variants": [
+        {
+          "variant_id": "variant.v4.031.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "frotter"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "MUTUEL"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.032",
+      "number": "032",
+      "variants": [
+        {
+          "variant_id": "variant.v4.032.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "ordres"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.033",
+      "number": "033",
+      "variants": [
+        {
+          "variant_id": "variant.v4.033.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "controle"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.034",
+      "number": "034",
+      "variants": [
+        {
+          "variant_id": "variant.v4.034.s1",
+          "stage": 1,
+          "scope": "S1",
+          "primary_preference_tags": [
+            "attacher"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.034.s2",
+          "stage": 2,
+          "scope": "S2",
+          "primary_preference_tags": [
+            "attacher"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.034.s3",
+          "stage": 3,
+          "scope": "S3",
+          "primary_preference_tags": [
+            "immobiliser"
+          ],
+          "secondary_preference_tags": [
+            "attacher",
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.035",
+      "number": "035",
+      "variants": [
+        {
+          "variant_id": "variant.v4.035.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "privation_sensorielle"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "vue"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.035.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "privation_sensorielle"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "vue"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.035.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "privation_sensorielle"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "vue"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.036",
+      "number": "036",
+      "variants": [
+        {
+          "variant_id": "variant.v4.036.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; toute zone",
+          "primary_preference_tags": [
+            "temperature"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.036.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; toute zone",
+          "primary_preference_tags": [
+            "temperature"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.036.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; toute zone",
+          "primary_preference_tags": [
+            "temperature"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.037",
+      "number": "037",
+      "variants": [
+        {
+          "variant_id": "variant.v4.037.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "frapper"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "fesses"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.037.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "frapper"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "fesses"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.037.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "frapper"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "fesses"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.038",
+      "number": "038",
+      "variants": [
+        {
+          "variant_id": "variant.v4.038.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "danser"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.039",
+      "number": "039",
+      "variants": [
+        {
+          "variant_id": "variant.v4.039.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "etre_regarde"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.040",
+      "number": "040",
+      "variants": [
+        {
+          "variant_id": "variant.v4.040.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "douche_partagee"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "MUTUEL"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.041",
+      "number": "041",
+      "variants": [
+        {
+          "variant_id": "variant.v4.041.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "bain_partage"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "MUTUEL"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.042",
+      "number": "042",
+      "variants": [
+        {
+          "variant_id": "variant.v4.042.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "paroles_coquines"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "envoyer"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.043",
+      "number": "043",
+      "variants": [
+        {
+          "variant_id": "variant.v4.043.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "paroles_coquines"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "envoyer"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.043.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "paroles_coquines"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "envoyer"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.043.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "paroles_coquines"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "envoyer"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.044",
+      "number": "044",
+      "variants": [
+        {
+          "variant_id": "variant.v4.044.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "photo"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "envoyer"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.044.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "photo"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "envoyer"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.044.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "photo"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "envoyer"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.045",
+      "number": "045",
+      "variants": [
+        {
+          "variant_id": "variant.v4.045.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "photo_mutuelle"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "photo",
+            "envoyer"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.045.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "photo_mutuelle"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "photo",
+            "envoyer"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.045.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "photo_mutuelle"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "photo",
+            "envoyer"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.046",
+      "number": "046",
+      "variants": [
+        {
+          "variant_id": "variant.v4.046.sans_zone.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante avec ou sans zone",
+          "primary_preference_tags": [
+            "video"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "envoyer"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.046.sans_zone.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante avec ou sans zone",
+          "primary_preference_tags": [
+            "video"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "envoyer"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.046.sans_zone.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante avec ou sans zone",
+          "primary_preference_tags": [
+            "video"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "envoyer"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.046.avec_zone.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante avec ou sans zone",
+          "primary_preference_tags": [
+            "video"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "envoyer"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.046.avec_zone.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante avec ou sans zone",
+          "primary_preference_tags": [
+            "video"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "envoyer"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.046.avec_zone.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante avec ou sans zone",
+          "primary_preference_tags": [
+            "video"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "envoyer"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.047",
+      "number": "047",
+      "variants": [
+        {
+          "variant_id": "variant.v4.047.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "video_mutuelle"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "video",
+            "envoyer"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.047.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "video_mutuelle"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "video",
+            "envoyer"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.047.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "video_mutuelle"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "video",
+            "envoyer"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.048",
+      "number": "048",
+      "variants": [
+        {
+          "variant_id": "variant.v4.048.base",
+          "stage": null,
+          "scope": "chaque scénario",
+          "primary_preference_tags": [
+            "jeu_role"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.049",
+      "number": "049",
+      "variants": [
+        {
+          "variant_id": "variant.v4.049.bouche.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante bouche",
+          "primary_preference_tags": [
+            "sextoy",
+            "bouche"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.049.bouche.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante bouche",
+          "primary_preference_tags": [
+            "sextoy",
+            "bouche"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.049.bouche.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante bouche",
+          "primary_preference_tags": [
+            "sextoy",
+            "bouche"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.049.anal.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante anale",
+          "primary_preference_tags": [
+            "sextoy",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.049.anal.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante anale",
+          "primary_preference_tags": [
+            "sextoy",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.049.anal.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante anale",
+          "primary_preference_tags": [
+            "sextoy",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.049.vaginal.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante vaginale",
+          "primary_preference_tags": [
+            "sextoy",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.049.vaginal.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante vaginale",
+          "primary_preference_tags": [
+            "sextoy",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.049.vaginal.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante vaginale",
+          "primary_preference_tags": [
+            "sextoy",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.049.phallus.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante phallus",
+          "primary_preference_tags": [
+            "sextoy"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "phallus"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.049.phallus.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante phallus",
+          "primary_preference_tags": [
+            "sextoy"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "phallus"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.049.phallus.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante phallus",
+          "primary_preference_tags": [
+            "sextoy"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "phallus"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.050",
+      "number": "050",
+      "variants": [
+        {
+          "variant_id": "variant.v4.050.vaginal.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante vaginale",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.050.vaginal.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante vaginale",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.050.vaginal.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante vaginale",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.050.anal.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante anale",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.050.anal.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante anale",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.050.anal.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante anale",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.050.phallus.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante phallus",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "phallus"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.050.phallus.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante phallus",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "phallus"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.050.phallus.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante phallus",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "phallus"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.051",
+      "number": "051",
+      "variants": [
+        {
+          "variant_id": "variant.v4.051.vaginal.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante vaginale",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.051.vaginal.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante vaginale",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.051.vaginal.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante vaginale",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.051.anal.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante anale",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.051.anal.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante anale",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.051.anal.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante anale",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy",
+            "anal"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.051.phallus.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante phallus",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "phallus"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.051.phallus.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante phallus",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "phallus"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.051.phallus.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante phallus",
+          "primary_preference_tags": [
+            "masturbation",
+            "sextoy"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "phallus"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.052",
+      "number": "052",
+      "variants": [
+        {
+          "variant_id": "variant.v4.052.vaginal.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante vaginale",
+          "primary_preference_tags": [
+            "sextoy",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.052.vaginal.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante vaginale",
+          "primary_preference_tags": [
+            "sextoy",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.052.vaginal.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante vaginale",
+          "primary_preference_tags": [
+            "sextoy",
+            "vaginal"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.052.anal.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante anale",
+          "primary_preference_tags": [
+            "sextoy",
+            "anal"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.052.anal.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante anale",
+          "primary_preference_tags": [
+            "sextoy",
+            "anal"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.052.anal.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante anale",
+          "primary_preference_tags": [
+            "sextoy",
+            "anal"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.052.phallus.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; variante phallus",
+          "primary_preference_tags": [
+            "sextoy"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [
+            "phallus"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.052.phallus.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; variante phallus",
+          "primary_preference_tags": [
+            "sextoy"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [
+            "phallus"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.052.phallus.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; variante phallus",
+          "primary_preference_tags": [
+            "sextoy"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [
+            "phallus"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.053",
+      "number": "053",
+      "variants": [
+        {
+          "variant_id": "variant.v4.053.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "contenu_adulte"
+          ],
+          "secondary_preference_tags": [
+            "regarder"
+          ],
+          "non_preference_data": [
+            "MUTUEL"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.054",
+      "number": "054",
+      "variants": [
+        {
+          "variant_id": "variant.v4.054.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "lieu_expose"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "MUTUEL"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.055",
+      "number": "055",
+      "variants": [
+        {
+          "variant_id": "variant.v4.055.base",
+          "stage": null,
+          "scope": "chaque zone/manière",
+          "primary_preference_tags": [
+            "ejaculation"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.056",
+      "number": "056",
+      "variants": [
+        {
+          "variant_id": "variant.v4.056.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "degradant"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "parole"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.056.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "degradant"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "parole"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.056.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "degradant"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "parole"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.057",
+      "number": "057",
+      "variants": [
+        {
+          "variant_id": "variant.v4.057.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "supplier"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [
+            "parole"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.057.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "supplier"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [
+            "parole"
+          ],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.057.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "supplier"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [
+            "parole"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.058",
+      "number": "058",
+      "variants": [
+        {
+          "variant_id": "variant.v4.058.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "lieu_inhabituel"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.059",
+      "number": "059",
+      "variants": [
+        {
+          "variant_id": "variant.v4.059.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; toute zone",
+          "primary_preference_tags": [
+            "texture"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.059.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; toute zone",
+          "primary_preference_tags": [
+            "texture"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.059.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; toute zone",
+          "primary_preference_tags": [
+            "texture"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.060",
+      "number": "060",
+      "variants": [
+        {
+          "variant_id": "variant.v4.060.base",
+          "stage": null,
+          "scope": "état unique",
+          "primary_preference_tags": [
+            "privation_sensorielle"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [
+            "ouie"
+          ],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.061",
+      "number": "061",
+      "variants": [
+        {
+          "variant_id": "variant.v4.061.base",
+          "stage": null,
+          "scope": "état unique",
+          "primary_preference_tags": [
+            "privation_parole"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.062",
+      "number": "062",
+      "variants": [
+        {
+          "variant_id": "variant.v4.062.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "maintien_cou"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.062.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "maintien_cou"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.062.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3",
+          "primary_preference_tags": [
+            "maintien_cou"
+          ],
+          "secondary_preference_tags": [
+            "controle"
+          ],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.063",
+      "number": "063",
+      "variants": [
+        {
+          "variant_id": "variant.v4.063.s1",
+          "stage": 1,
+          "scope": "S1, S2, S3; toute zone compatible",
+          "primary_preference_tags": [
+            "tirer"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.063.s2",
+          "stage": 2,
+          "scope": "S1, S2, S3; toute zone compatible",
+          "primary_preference_tags": [
+            "tirer"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.063.s3",
+          "stage": 3,
+          "scope": "S1, S2, S3; toute zone compatible",
+          "primary_preference_tags": [
+            "tirer"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.064",
+      "number": "064",
+      "variants": [
+        {
+          "variant_id": "variant.v4.064.nourriture",
+          "stage": null,
+          "scope": "variante nourriture",
+          "primary_preference_tags": [
+            "nourriture"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        },
+        {
+          "variant_id": "variant.v4.064.boisson",
+          "stage": null,
+          "scope": "variante boisson",
+          "primary_preference_tags": [
+            "boisson"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    },
+    {
+      "card_id": "card.v4.065",
+      "number": "065",
+      "variants": [
+        {
+          "variant_id": "variant.v4.065.base",
+          "stage": null,
+          "scope": "unique",
+          "primary_preference_tags": [
+            "masturbation",
+            "pieds"
+          ],
+          "secondary_preference_tags": [],
+          "non_preference_data": [],
+          "audit": "OK"
+        }
+      ]
+    }
+  ],
+  "preference_tags": [
+    "anal",
+    "attacher",
+    "bain_partage",
+    "boisson",
+    "bouche",
+    "calin",
+    "contact_corps",
+    "contenu_adulte",
+    "controle",
+    "danser",
+    "degradant",
+    "deguisement",
+    "doigts",
+    "douche_partagee",
+    "ejaculation",
+    "embrasser",
+    "enlever",
+    "etre_regarde",
+    "facesitting",
+    "frapper",
+    "frotter",
+    "immobiliser",
+    "jeu_intime",
+    "jeu_role",
+    "lieu_expose",
+    "lieu_inhabituel",
+    "main",
+    "maintien_cou",
+    "masturbation",
+    "nourriture",
+    "nudite",
+    "oral",
+    "ordres",
+    "paroles_coquines",
+    "penetration_vaginale",
+    "photo",
+    "photo_mutuelle",
+    "pieds",
+    "position",
+    "privation_parole",
+    "privation_sensorielle",
+    "regarder",
+    "sextoy",
+    "simuler",
+    "sous_vetements",
+    "striptease",
+    "supplier",
+    "temperature",
+    "tenue",
+    "texture",
+    "tirer",
+    "vaginal",
+    "video",
+    "video_mutuelle"
+  ],
+  "coverage": {
+    "ok": 65,
+    "partial": 0,
+    "missing": 0
+  }
+}

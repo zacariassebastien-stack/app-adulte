@@ -29,7 +29,7 @@ enum NetworkGameViewState {
   counterDecision,
   finalDefenseDecision,
   tieDecision,
-  finalResult,
+  actionInProgress,
   corruptionDecision,
   corruptionResponse,
   corruptionExecution,
@@ -58,10 +58,19 @@ final class NetworkGameController extends ChangeNotifier {
     PostGameProfileChoiceStore? profileChoiceStore,
     PlayerGameProfile? privateProfile,
     EngineSessionContext? initialContext,
+    V4Profile? v4Profile,
+    V4ScoringCatalog? scoringCatalog,
+    Set<String> availableAccessories = const {},
+    V4SessionMode sessionMode = V4SessionMode.presentiel,
+    Map<String, int> initialClothingCounts = const {},
+    Iterable<V4Accessory> profileAccessories = const [],
+    Iterable<String> disabledAccessoryIds = const [],
+    Iterable<V4Accessory> temporaryAccessories = const [],
     DateTime Function()? clock,
     String Function()? nonceFactory,
   }) : _catalog = catalog,
        _privateProfile = privateProfile,
+       _v4Profile = v4Profile,
        clock = clock ?? DateTime.now,
        nonceFactory = nonceFactory ?? _secureNonce {
     final ids = session.players.map((player) => player.userId).toList()..sort();
@@ -88,15 +97,33 @@ final class NetworkGameController extends ChangeNotifier {
       for (final element in catalog.profileElements)
         element.stableId: element.parentId,
     });
+    _sessionMode = sessionMode;
+    _presence = sessionMode == V4SessionMode.distance
+        ? V4SessionPresence.distance
+        : V4SessionPresence.presentiel;
+    _accessoryPool = V4SessionAccessoryPool(
+      profileAccessories: profileAccessories,
+      disabledIds: disabledAccessoryIds,
+      temporaryAccessories: temporaryAccessories,
+    );
     _context =
         initialContext ??
         EngineSessionContext(
-          mode: SessionMode.face_to_face,
-          proximity: ProximityState.TOGETHER,
-          chiliActive: 2,
-          chiliUnlocked: 2,
+          mode: switch (sessionMode) {
+            V4SessionMode.presentiel => SessionMode.face_to_face,
+            V4SessionMode.distance => SessionMode.distance,
+            V4SessionMode.hybrid => SessionMode.hybrid,
+          },
+          proximity: _presence == V4SessionPresence.distance
+              ? ProximityState.SEPARATED
+              : ProximityState.TOGETHER,
+          chiliActive: 1,
+          chiliUnlocked: 1,
+          accessories: availableAccessories,
           physicalStateByPlayer: {for (final id in playerIds) id: 'available'},
-          clothesByPlayer: {for (final id in playerIds) id: 5},
+          clothesByPlayer: {
+            for (final id in playerIds) id: initialClothingCounts[id] ?? 0,
+          },
         );
     _initialClothing = _context.clothesByPlayer[playerId] ?? 0;
     _buildDeckCycle();
@@ -142,6 +169,53 @@ final class NetworkGameController extends ChangeNotifier {
   ConceptActionOption? _selectedOption;
   String get _intentId => '${round?.roundId ?? 'opening'}:v$_choiceVersion';
   final PlayerGameProfile? _privateProfile;
+  final V4Profile? _v4Profile;
+  AdaptiveProfileState? _learnedState;
+  V4Profile? get _ratingProfile {
+    final base = _v4Profile;
+    if (base == null) return null;
+    final preferences = {...base.preferences};
+    for (final entry
+        in _learnedState?.entries.values ?? <PreferenceLearningEntry>[]) {
+      if (entry.source != AdaptiveProfileSource.autoLearned &&
+          entry.source != AdaptiveProfileSource.manualCustomized)
+        continue;
+      final key = ProfilePreferenceKey(
+        tagId: entry.key.preferenceId.replaceFirst('v3.preference.', ''),
+        role: ProfilePreferenceRole.values.byName(entry.key.role.name),
+        zoneId: entry.key.zoneId,
+      );
+      preferences[key.storageKey] = ProfilePreference(
+        profileId: base.profileId,
+        key: key,
+        pa: entry.currentPa,
+        excluded: entry.excluded,
+        source: entry.source == AdaptiveProfileSource.manualCustomized
+            ? ProfilePreferenceSource.manualCustomized
+            : ProfilePreferenceSource.autoLearned,
+      );
+    }
+    return V4Profile(
+      profileId: base.profileId,
+      preferences: preferences,
+      consents: base.consents,
+      accessories: base.accessories,
+    );
+  }
+
+  late final V4SessionMode _sessionMode;
+  V4SessionMode get sessionMode => _sessionMode;
+  late V4SessionPresence _presence;
+  late V4SessionAccessoryPool _accessoryPool;
+  List<V4PersistentEffect> _persistentEffects = [];
+  bool _publishingAction = false;
+  bool _startingNextRound = false;
+  bool _reportingHybridAvailability = false;
+  String? _preparedHybridAvailabilityKey;
+  final Map<String, int> _latestRoundRevisions = {};
+  Future<void> _snapshotApplication = Future.value();
+  DeckExhaustionChoice? _sessionClosureIntent;
+  bool _localSessionCleared = false;
   late final List<String> playerIds;
   late final Map<String, CardDefinition> _definitions;
   late final Map<String, EngineCard> _engineCards;
@@ -274,11 +348,10 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   bool get decksEmpty => _conceptPool(excludeHeld: true).isEmpty;
-  bool get deckExhausted =>
-      decksEmpty && !_runtime.any((card) => card.zone == CardZone.HAND);
+  bool get deckExhausted => round?.cycleExhausted ?? false;
   PlayerStyle get deckStyle => _deckStyle;
   bool get infiniteMode => _infiniteMode;
-  bool get isCycleController => deckExhausted;
+  bool get isCycleController => round?.cycleExhausted ?? false;
   bool get canCancelSelection =>
       !_cancelling &&
       !_cancelCommitRequested &&
@@ -341,21 +414,12 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   List<NetworkDuelCard> get auctionCards => [
-    for (final item in _runtime)
-      if ((item.zone == CardZone.HAND || item.zone == CardZone.DISCARD) &&
-          item.occurrenceId != _activeReveal?.choice.usageId)
-        ?_networkCard(
-          item.cardId,
-          occurrenceId: item.occurrenceId,
-          variantId: item.variantId,
-        ),
-    ..._replayableDiscards(),
+    for (final card in _replayableDiscards())
+      if (!heldConcepts.any((concept) => concept.id == card.id)) card,
   ];
 
   String? get corruptionActorId {
-    final retained = finalResolution?.retainedPlayerId;
-    if (retained == null) return null;
-    return playerIds.firstWhere((id) => id != retained);
+    return finalLoserId;
   }
 
   bool get isCorruptionActor => corruptionActorId == playerId;
@@ -391,6 +455,12 @@ final class NetworkGameController extends ChangeNotifier {
         (usage.resolvedAction['effective_chili']! as int) >
             _context.chiliActive) {
       return false;
+    }
+    if (_ratingProfile case final profile?) {
+      final tags = _conceptCatalog.vetoTags(usage.conceptId);
+      return !profile.preferences.values.any(
+        (p) => p.excluded && tags.contains(p.key.tagId),
+      );
     }
     final role = _profileRole(
       CardOccurrenceDirection.values.byName(
@@ -433,6 +503,10 @@ final class NetworkGameController extends ChangeNotifier {
   );
 
   List<NetworkDuelCard> get recoveryCards => [
+    for (final id in _currentOptions(recovery: true).keys)
+      if (!heldConcepts.any((c) => c.id == id) &&
+          _usageCheckpoint.availableFor(id) > 0)
+        if (_networkCard(id, recovery: true) case final card?) card,
     for (final item in _runtime.where((c) => c.zone == CardZone.HAND))
       if (_usageCheckpoint.availableFor(item.cardId) > 0)
         ?_networkCard(
@@ -447,12 +521,17 @@ final class NetworkGameController extends ChangeNotifier {
     if (_subscription != null) return;
     try {
       postGameProfileChoice = await _profileChoiceStore.load(playerId);
+      _learnedState = await learning.state();
       final current = await repository.openCurrentRound(
         command: _command('OPEN', roundId: null, roundNumber: 0),
       );
       if (current.usageContractVersion != 1) {
         throw const NetworkRoundException('USAGE_CONTRACT_NOT_DEPLOYED');
       }
+      _context = _context.copyWith(
+        chiliActive: current.v4UnlockedSpice,
+        chiliUnlocked: current.v4UnlockedSpice,
+      );
       _followOrientation(current.hybridOrientation);
       await _restoreOrCreatePrivateState(current);
       _privateStateReady = true;
@@ -492,6 +571,7 @@ final class NetworkGameController extends ChangeNotifier {
       pa: pa,
       excluded: category == DetailedPreferenceCategory.excluded,
     );
+    _learnedState = await learning.state();
     notifyListeners();
   }
 
@@ -511,8 +591,14 @@ final class NetworkGameController extends ChangeNotifier {
     if (repository is! NetworkSessionFlowRepository || !isCycleController) {
       return;
     }
-    if (viewState != NetworkGameViewState.finalResult &&
+    if (viewState != NetworkGameViewState.actionInProgress &&
         viewState != NetworkGameViewState.waitingNext) {
+      return;
+    }
+    if (choice == DeckExhaustionChoice.finish ||
+        choice == DeckExhaustionChoice.newCustomizedGame) {
+      _sessionClosureIntent = choice;
+      await closeSession();
       return;
     }
     await _stageLearningForRound();
@@ -599,6 +685,7 @@ final class NetworkGameController extends ChangeNotifier {
     bool recovery = false,
   }) => const ConceptActionOptions().evaluate(
     catalog: _conceptCatalog,
+    profile: _ratingProfile,
     context: _context,
     actor: _profile(playerId),
     partner: _profile(opponentId),
@@ -684,6 +771,9 @@ final class NetworkGameController extends ChangeNotifier {
           usage,
           sharedParameterKeys: const {
             'committed_at',
+            'learning_role',
+            'clothing_behavior',
+            'duration_actions',
             'technique',
             'practice_concept_id',
             'practice_action_id',
@@ -811,22 +901,33 @@ final class NetworkGameController extends ChangeNotifier {
       'effective_chili': option.choice.chili,
       'direction': direction.name,
       'actor_player_ids': mutual ? playerIds : [actor],
-      'target_player_ids': mutual
-          ? playerIds
-          : direction == CardOccurrenceDirection.SOLO
-          ? <String>[]
-          : [actor == playerId ? opponentId : playerId],
+      'target_player_ids': const V4ActionTargetResolver().resolve(
+        ownerPlayerId: playerId,
+        playerIds: playerIds,
+        direction: direction,
+      ),
       'parameters': {
         ...option.parameters,
+        if (card.id == '013') 'learning_role': 'soi',
         'committed_at': at.toIso8601String(),
+        'clothing_behavior': _definitions[card.id]?.v4?.clothingBehavior.name,
+        'duration_actions': _definitions[card.id]?.v4?.durationActions,
         'clothes_at_engagement': _context.clothesByPlayer,
       },
       'accessories': <Object?>[],
-      'tags': option.variant.tags.toList(),
-      'primary_preference_ids': option.variant.tags
-          .where((t) => t.startsWith('v3.preference.'))
-          .take(1)
-          .toList(),
+      'tags': [
+        for (final tag in option.variant.tags)
+          if (!tag.startsWith('v3.preference.') ||
+              _ratedPreferenceIds(card.id, option).contains(tag))
+            tag
+          else
+            'v3.semantic.${tag.split('.').last}',
+        ..._ratedPreferenceIds(
+          card.id,
+          option,
+        ).where((t) => !option.variant.tags.contains(t)),
+      ],
+      'primary_preference_ids': _primaryPreferenceIds(card.id, option),
       'personal_values': [
         {
           'player_id': playerId,
@@ -835,6 +936,20 @@ final class NetworkGameController extends ChangeNotifier {
         },
       ],
       'effects': [
+        if (_definitions[card.id]?.v4?.durationActions case final duration?)
+          for (final target in const V4ActionTargetResolver().resolve(
+            ownerPlayerId: playerId,
+            playerIds: playerIds,
+            direction: direction,
+          ))
+            {
+              'effect_id': 'duration:${card.id}:$target',
+              'parameters': {
+                'card_id': card.id,
+                'target_player_id': target,
+                'remaining_actions': duration,
+              },
+            },
         for (var i = 0; i < option.variant.effects.length; i++)
           {
             'effect_id': '${card.id}:$i',
@@ -873,6 +988,9 @@ final class NetworkGameController extends ChangeNotifier {
         usage,
         sharedParameterKeys: const {
           'committed_at',
+          'learning_role',
+          'clothing_behavior',
+          'duration_actions',
           'technique',
           'practice_concept_id',
           'practice_action_id',
@@ -937,6 +1055,11 @@ final class NetworkGameController extends ChangeNotifier {
     }
     final at = clock().toUtc();
     final original = source == null ? null : _savedUsage(source.usageId);
+    if (source != null && original == null) {
+      throw StateError(
+        'Historical replay requires its immutable private usage',
+      );
+    }
     final wasInverted =
         original != null &&
         original.action.direction.name != source!.resolvedAction['direction'];
@@ -1023,9 +1146,11 @@ final class NetworkGameController extends ChangeNotifier {
       for (final card in accepted) {
         _acceptSecondary(card.usage);
       }
-      for (final intent in _reservedChoices.keys.toList()) {
-        if (intent.startsWith('${value.roundId}:negotiation:')) {
-          _releaseSecondary(intent);
+      if (value.negotiation?.response?.accepted != null) {
+        for (final intent in _reservedChoices.keys.toList()) {
+          if (intent.startsWith('${value.roundId}:negotiation:')) {
+            _releaseSecondary(intent);
+          }
         }
       }
     }
@@ -1191,8 +1316,9 @@ final class NetworkGameController extends ChangeNotifier {
     Set<String> cardIds = const {},
     Map<String, ConceptActionOption> actionChoices = const {},
   }) async {
-    if (viewState != NetworkGameViewState.negotiationProposal ||
-        !isInitialLoser) {
+    if ((viewState != NetworkGameViewState.negotiationProposal &&
+            viewState != NetworkGameViewState.corruptionDecision) ||
+        !isNegotiationProposer) {
       return;
     }
     final before = _usageCheckpoint;
@@ -1207,36 +1333,35 @@ final class NetworkGameController extends ChangeNotifier {
         cardIds: cardIds,
         actionChoices: actionChoices,
       );
-      _validateNegotiationOffer(offer, NegotiationPhase.proposal);
+      if (offer.directPa > (actionPoints[playerId] ?? 0) || offer.directPa < 0)
+        throw ArgumentError('PA indisponibles');
+      if (offer.inversionRequested && !inversionAllowed)
+        throw ArgumentError('Inversion indisponible');
     } catch (_) {
       _usageCheckpoint = before;
       _reservedChoices = beforeChoices;
       rethrow;
     }
-    await _sendSecondary('NEGOTIATION_PROPOSAL', offer.toJson());
+    await _sendSecondary(
+      'NEGOTIATION_PROPOSAL',
+      offer.toJson(includePrivateSnapshots: true),
+    );
   }
 
   Future<void> respondNegotiation({
-    required bool acceptInversion,
-    required bool acceptAuction,
+    bool? accepted,
+    bool acceptInversion = false,
+    bool acceptAuction = false,
   }) async {
     if (viewState != NetworkGameViewState.negotiationResponse ||
-        !isInitialWinner) {
+        !isNegotiationResponder)
       return;
-    }
-    final response = NetworkNegotiationResponseDto(
-      acceptInversion: acceptInversion,
-      acceptAuction: acceptAuction,
+    await _sendSecondary(
+      'NEGOTIATION_RESPONSE',
+      NetworkNegotiationResponseDto(
+        accepted: accepted ?? (acceptInversion || acceptAuction),
+      ).toCommandJson(),
     );
-    final state = _negotiationState(NegotiationPhase.response);
-    negotiationEngine.respond(
-      state,
-      NegotiationResponse(
-        acceptInversion: acceptInversion,
-        acceptAuction: acceptAuction,
-      ),
-    );
-    await _sendSecondary('NEGOTIATION_RESPONSE', response.toJson());
   }
 
   Future<void> adaptNegotiation({
@@ -1267,7 +1392,10 @@ final class NetworkGameController extends ChangeNotifier {
       _reservedChoices = beforeChoices;
       rethrow;
     }
-    await _sendSecondary('NEGOTIATION_ADAPTATION', offer.toJson());
+    await _sendSecondary(
+      'NEGOTIATION_ADAPTATION',
+      offer.toJson(includePrivateSnapshots: true),
+    );
   }
 
   Future<void> validateNegotiation({required bool accepted}) async {
@@ -1296,8 +1424,8 @@ final class NetworkGameController extends ChangeNotifier {
     final initial = initialResolution;
     if (!_canCounter || initial == null) return;
     final auction = auctionEngine.start(
-      initialWinnerId: initial.winnerPlayerId!,
-      initialLoserId: initial.loserPlayerId!,
+      initialWinnerId: finalWinnerId ?? initial.winnerPlayerId!,
+      initialLoserId: finalLoserId ?? initial.loserPlayerId!,
       actionPoints: actionPoints,
     );
     auctionEngine.counter(
@@ -1334,8 +1462,8 @@ final class NetworkGameController extends ChangeNotifier {
       ..[initial.loserPlayerId!] =
           (actionPoints[initial.loserPlayerId!] ?? 0) + counter.amount;
     var auction = auctionEngine.start(
-      initialWinnerId: initial.winnerPlayerId!,
-      initialLoserId: initial.loserPlayerId!,
+      initialWinnerId: finalWinnerId ?? initial.winnerPlayerId!,
+      initialLoserId: finalLoserId ?? initial.loserPlayerId!,
       actionPoints: beforeCounter,
     );
     auction = auctionEngine.counter(
@@ -1381,29 +1509,43 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   Future<void> proposeCorruption(
-    String occurrenceId,
+    Set<String> usageIds,
     CorruptionObjective objective,
   ) async {
-    final card = corruptionCards
-        .where((item) => item.identity == occurrenceId)
-        .firstOrNull;
+    final cards = corruptionCards
+        .where((c) => usageIds.contains(c.identity))
+        .toList();
     if (viewState != NetworkGameViewState.corruptionDecision ||
         !isCorruptionActor ||
-        card == null) {
+        cards.isEmpty ||
+        cards.length != usageIds.length)
       return;
-    }
-    final source = _publicDiscards
-        .singleWhere((r) => r.usage.usageId == card.identity)
-        .usage;
-    final projection = _reserveSecondary(
-      card,
-      '${round!.roundId}:corruption:${source.usageId}',
-      source: source,
+    final before = _usageCheckpoint;
+    final beforeChoices = Map<String, ConceptUsageSnapshot>.of(
+      _reservedChoices,
     );
-    await _sendSecondary('CORRUPTION_OFFER', {
-      'objective': objective.name,
-      'actions': [NetworkCorruptionActionDto.fromUsage(projection).toJson()],
-    });
+    try {
+      final actions = <NetworkCorruptionActionDto>[];
+      for (final card in cards) {
+        final source = _publicDiscards
+            .singleWhere((r) => r.usageId == card.identity)
+            .usage;
+        final projection = _reserveSecondary(
+          card,
+          '${round!.roundId}:corruption:${source.usageId}',
+          source: source,
+        );
+        actions.add(NetworkCorruptionActionDto.fromUsage(projection));
+      }
+      await _sendSecondary('CORRUPTION_OFFER', {
+        'objective': objective.name,
+        'actions': actions.map((a) => a.toJson()).toList(),
+      });
+    } catch (_) {
+      _usageCheckpoint = before;
+      _reservedChoices = beforeChoices;
+      rethrow;
+    }
   }
 
   Future<void> skipCorruption() async {
@@ -1457,9 +1599,11 @@ final class NetworkGameController extends ChangeNotifier {
         .where((r) => r.usage.usageId == identity)
         .firstOrNull
         ?.usage;
-    final source = sourceUsage == null
+    final source = sourceUsage != null
+        ? RecoverySource.DISCARD
+        : heldConcepts.any((c) => c.id == card.id)
         ? RecoverySource.HAND
-        : RecoverySource.DISCARD;
+        : RecoverySource.CATALOG;
     final projection = _reserveSecondary(
       card,
       '${round!.roundId}:recovery:${round!.recoveryHistory.length}:$identity',
@@ -1508,17 +1652,57 @@ final class NetworkGameController extends ChangeNotifier {
     );
   }
 
-  Future<void> readyForNextRound() async {
+  Future<void> completeAction() async {
     final current = round;
     if (current == null ||
-        (viewState != NetworkGameViewState.finalResult &&
+        (viewState != NetworkGameViewState.actionInProgress &&
             viewState != NetworkGameViewState.waitingNext)) {
       return;
     }
+    if (viewState == NetworkGameViewState.actionInProgress &&
+        actionCompletionSubmitted) {
+      return;
+    }
     try {
+      final atBoundary = viewState == NetworkGameViewState.waitingNext;
+      if (atBoundary && !canStartNextRound) return;
+      if (atBoundary) {
+        await _startNextRoundAutomatically();
+        return;
+      }
       await _stageLearningForRound();
-      await _prepareNextRound();
-      await _sendSecondary('READY_NEXT', {});
+      await _apply(
+        await repository.readyNextRound(
+          command: _command(
+            atBoundary ? 'START_NEXT_ROUND' : 'ACTION_COMPLETE',
+          ),
+          noPlayableOccurrences:
+              !atBoundary && _availablePlayableConcepts(_presence) == 0,
+          hasPlayableAlternateOrientation:
+              !atBoundary &&
+              sessionMode == V4SessionMode.hybrid &&
+              _availablePlayableConcepts(
+                    _presence == V4SessionPresence.presentiel
+                        ? V4SessionPresence.distance
+                        : V4SessionPresence.presentiel,
+                  ) >
+                  0,
+          clothingCount: !atBoundary && ownClothingResyncRequired
+              ? _context.clothesByPlayer[playerId]
+              : null,
+        ),
+      );
+    } on NetworkRoundException catch (error) {
+      if (error.code == 'ROUND_INVALID_PHASE') {
+        try {
+          await _apply(await repository.getCurrentRound(sessionId: session.id));
+          return;
+        } catch (refreshError) {
+          _fail(refreshError);
+          return;
+        }
+      }
+      _fail(error);
     } catch (error) {
       _fail(error);
     }
@@ -1543,10 +1727,19 @@ final class NetworkGameController extends ChangeNotifier {
     }
   }
 
-  Future<void> _switchRound(NetworkGameRoundStateDto value) async {
+  Future<void> _switchRound(
+    NetworkGameRoundStateDto value, {
+    bool applyImmediately = false,
+  }) async {
     final changed = round?.roundId != value.roundId;
-    round = value;
     if (changed) {
+      // Publish the new round's immediately usable state before awaiting the
+      // old realtime subscription cancellation. Otherwise the new round
+      // number can briefly coexist with the previous WAITING_NEXT UI.
+      if (value.phase == NetworkGamePhase.commit) {
+        viewState = NetworkGameViewState.choosing;
+        notifyListeners();
+      }
       await _subscription?.cancel();
       _subscription = repository
           .watchRound(sessionId: session.id, roundId: value.roundId)
@@ -1555,177 +1748,22 @@ final class NetworkGameController extends ChangeNotifier {
             onError: (Object error) => _fail(error),
           );
     }
-    await _apply(value);
+    if (applyImmediately) {
+      await _applyNow(value, roundBound: true);
+    } else {
+      await _apply(value, roundBound: true);
+    }
   }
 
-  Future<void> _apply(NetworkGameRoundStateDto value) async {
-    if (_disposed) return;
-    if (value.usageContractVersion != 1) {
-      _fail(const NetworkRoundException('USAGE_CONTRACT_NOT_DEPLOYED'));
-      return;
-    }
-    if (value.sessionId != session.id) {
-      _fail(const NetworkRoundException('ROUND_NOT_FOUND'));
-      return;
-    }
-    if (value.deckCycle < _deckCycle) return;
-    await _flushLearning(value);
-    final publicCycleAdvanced = value.deckCycle > _deckCycle;
-    if (publicCycleAdvanced) {
-      // On reconnect, acceptance can predate the canonical renewal while the
-      // local reservation is still pending. Engage it before archiving its cycle.
-      await _reconcileSecondaryChoices(value);
-      _capturePublicDiscards(value);
-      await _stageLearningForRound();
-    }
-    _followOrientation(value.hybridOrientation);
-    _deckStyle = value.deckStyle;
-    _deckCycle = value.deckCycle;
-    _infiniteMode = value.infiniteMode;
-    if (publicCycleAdvanced) {
-      // The canonical shared cycle renews both players, including a peer who
-      // still held cards. Historical usage journals remain archived.
-      for (final intent in _reservedChoices.keys.toList()) {
-        _releaseSecondary(intent);
-      }
-      _runtime = [];
-      _reservedChoices = {};
-      _buildDeckCycle();
-      _refill(value.roundNumber + 1);
-      await _persist(roundNumber: value.roundNumber);
-    }
-    if (round?.roundId != value.roundId) {
-      await _activatePreparedRound(value);
-      await _switchRound(value);
-      return;
-    }
-    round = value;
-    await _reconcileSecondaryChoices(value);
-    _capturePublicDiscards(value);
-    await _closeNormalRoundForRecovery(value);
-    await _reconcilePublicLifecycle(value);
-    if (_disposed) return;
-    switch (value.phase) {
-      case NetworkGamePhase.commit:
-        if (_cancelCommitRequested) {
-          if (!_cancelling) await cancelSelection();
-          return;
-        }
-        if (value.ownCommitRecorded) {
-          if (_activeReveal == null) {
-            _fail(const NetworkRoundException('ROUND_LOCAL_SECRET_MISSING'));
-          } else {
-            viewState = NetworkGameViewState.waitingForPartner;
-          }
-        } else {
-          // Missing remote commit is not evidence of cancellation. Replay the
-          // persisted projection and nonce; never engage or consume again.
-          if (_activeReveal != null) {
-            if (!_committing) {
-              _committing = true;
-              try {
-                await _persist();
-                final reveal = _activeReveal!;
-                final updated = await repository.submitCommit(
-                  command: _command('COMMIT', choiceVersion: _choiceVersion),
-                  commitment: contract.commit(
-                    sessionRound: reveal.sessionRound,
-                    playerId: playerId,
-                    choice: reveal.choice,
-                    nonce: reveal.nonce,
-                  ),
-                );
-                await _apply(updated);
-              } catch (error) {
-                _fail(error);
-              } finally {
-                _committing = false;
-              }
-            }
-            return;
-          }
-          viewState = NetworkGameViewState.choosing;
-        }
-        break;
-      case NetworkGamePhase.reveal:
-        viewState = NetworkGameViewState.revealing;
-        notifyListeners();
-        if (!value.ownRevealRecorded) await _revealOnce(value);
-        return;
-      case NetworkGamePhase.ready:
-        viewState = NetworkGameViewState.revealing;
-        notifyListeners();
-        await _resolveOnce(value);
-        return;
-      case NetworkGamePhase.negotiationProposal:
-        viewState = NetworkGameViewState.negotiationProposal;
-        break;
-      case NetworkGamePhase.negotiationResponse:
-        viewState = NetworkGameViewState.negotiationResponse;
-        break;
-      case NetworkGamePhase.negotiationAdaptation:
-        viewState = NetworkGameViewState.negotiationAdaptation;
-        break;
-      case NetworkGamePhase.negotiationValidation:
-        viewState = NetworkGameViewState.negotiationValidation;
-        break;
-      case NetworkGamePhase.counterDecision:
-        viewState = NetworkGameViewState.counterDecision;
-        break;
-      case NetworkGamePhase.finalDefenseDecision:
-        viewState = NetworkGameViewState.finalDefenseDecision;
-        break;
-      case NetworkGamePhase.tieDecision:
-        viewState = NetworkGameViewState.tieDecision;
-        break;
-      case NetworkGamePhase.finalResolved:
-        viewState = NetworkGameViewState.finalResult;
-        break;
-      case NetworkGamePhase.corruptionDecision:
-        viewState = NetworkGameViewState.corruptionDecision;
-        break;
-      case NetworkGamePhase.corruptionResponse:
-        viewState = NetworkGameViewState.corruptionResponse;
-        break;
-      case NetworkGamePhase.corruptionExecution:
-        viewState = NetworkGameViewState.corruptionExecution;
-        break;
-      case NetworkGamePhase.recovery:
-        viewState = NetworkGameViewState.recovery;
-        break;
-      case NetworkGamePhase.recoveryResponse:
-        viewState = NetworkGameViewState.recoveryResponse;
-        break;
-      case NetworkGamePhase.recoveryExecution:
-        viewState = NetworkGameViewState.recoveryExecution;
-        break;
-      case NetworkGamePhase.waitingNext:
-        viewState = value.readyNextPlayerIds.contains(playerId)
-            ? NetworkGameViewState.waitingNext
-            : NetworkGameViewState.finalResult;
-        break;
-      case NetworkGamePhase.closed:
-        viewState = NetworkGameViewState.waitingNext;
-        notifyListeners();
-        await _switchRound(
-          await repository.getCurrentRound(sessionId: session.id),
-        );
-        return;
-      case NetworkGamePhase.sessionClosed:
-        viewState = NetworkGameViewState.sessionEnded;
-        break;
-    }
-    notifyListeners();
-    if (_infiniteMode &&
-        deckExhausted &&
-        _usageCheckpoint.usagesByIntent.isNotEmpty &&
-        _pendingSecondaryCommand == null &&
-        !_sendingSecondary &&
-        !_stagingSecondary &&
-        (viewState == NetworkGameViewState.finalResult ||
-            viewState == NetworkGameViewState.waitingNext)) {
-      await continueDeck(DeckExhaustionChoice.infinite);
-    }
+  Future<void> _apply(
+    NetworkGameRoundStateDto value, {
+    bool roundBound = false,
+  }) {
+    final operation = _snapshotApplication.then(
+      (_) => _applyNow(value, roundBound: roundBound),
+    );
+    _snapshotApplication = operation.then<void>((_) {}, onError: (_, _) {});
+    return operation;
   }
 
   Future<void> _closeNormalRoundForRecovery(
@@ -1818,7 +1856,7 @@ final class NetworkGameController extends ChangeNotifier {
     }
     _revealing = true;
     try {
-      await _apply(
+      await _applyNow(
         await repository.submitReveal(
           command: _command('REVEAL', choiceVersion: _choiceVersion),
           reveal: reveal,
@@ -1833,6 +1871,24 @@ final class NetworkGameController extends ChangeNotifier {
 
   Future<void> _resolveOnce(NetworkGameRoundStateDto value) async {
     if (_resolving) return;
+    if (repository is NetworkPrivateInitialResolutionRepository) {
+      final privateResolver =
+          repository as NetworkPrivateInitialResolutionRepository;
+      _resolving = true;
+      try {
+        await _applyNow(
+          await privateResolver.resolveInitialPrivately(
+            command: _command('INITIAL_RESOLVE'),
+          ),
+        );
+        resolutionCount++;
+      } catch (error) {
+        _fail(error);
+      } finally {
+        _resolving = false;
+      }
+      return;
+    }
     final own = value.ownReveal;
     final other = value.opponentReveal;
     if (own == null || other == null) {
@@ -1874,7 +1930,7 @@ final class NetworkGameController extends ChangeNotifier {
             ? false
             : commitments[winner]!.cardInvertible,
       );
-      await _apply(
+      await _applyNow(
         await repository.submitInitialResolution(
           command: _command('INITIAL_RESOLVE'),
           resolution: initial,
@@ -1942,6 +1998,9 @@ final class NetworkGameController extends ChangeNotifier {
       _initialClothing = saved.initialClothing;
       _priorCheckpoints = List.of(saved.priorCheckpoints);
       _clothingObservations = Map.of(saved.clothingObservations);
+      _presence = saved.presence;
+      _accessoryPool = saved.accessoryPool;
+      _persistentEffects = List.of(saved.persistentEffects);
       if (_usageCheckpoint.sessionId != session.id ||
           _usageCheckpoint.ownerPlayerId != playerId ||
           _usageCheckpoint.cycle != _deckCycle) {
@@ -2025,10 +2084,13 @@ final class NetworkGameController extends ChangeNotifier {
         conceptIdentity: card.id,
         tags: card.variant.tags.toList(),
         spiceLevel: card.chiliLevel,
-        primaryPreferenceIds: card.variant.tags
-            .where((t) => t.startsWith('v3.preference.'))
-            .take(1)
-            .toList(),
+        primaryPreferenceIds: [
+          for (final tag
+              in _conceptCatalog
+                  .ratingFor(card.id, card.variant.id)
+                  .primaryPreferenceTags)
+            'v3.preference.$tag',
+        ],
       );
       displayed[descriptor.identity] = descriptor;
     }
@@ -2117,7 +2179,21 @@ final class NetworkGameController extends ChangeNotifier {
               sessionId: session.id,
               roundId: pending['round_id']! as String,
             );
-      if (!canonical.readyNextPlayerIds.containsAll(playerIds)) return;
+      if (!canonical.readyNextPlayerIds.containsAll(playerIds) ||
+          (canonical.phase != NetworkGamePhase.waitingNext &&
+              canonical.phase != NetworkGamePhase.closed))
+        return;
+      final completedUsages = <String, NetworkUsageProjection>{
+        for (final raw in pending['accepted']! as List)
+          if (NetworkUsageProjection.fromJson(raw as JsonMap) case final usage)
+            usage.usageId: usage,
+        for (final recovery in canonical.recoveryHistory)
+          if (recovery.completed) recovery.usageId: recovery.usage,
+        for (final action
+            in canonical.corruption?.actions ?? <NetworkCorruptionActionDto>[])
+          if (action.status == ActionExecutionStatus.COMPLETED)
+            action.identity: action.usage,
+      };
       await learning.recordCompletedRound(
         eventId: pending['event_id']! as String,
         expectedPlayers: playerIds.toSet(),
@@ -2136,10 +2212,8 @@ final class NetworkGameController extends ChangeNotifier {
               .toSet(),
         ),
         accepted: [
-          for (final raw in pending['accepted']! as List)
-            usageLearningOutcome(
-              NetworkUsageProjection.fromJson(raw as JsonMap),
-            ),
+          for (final usage in completedUsages.values)
+            usageLearningOutcome(usage),
         ],
         resistance: [
           for (final raw in pending['resistance']! as List)
@@ -2155,6 +2229,7 @@ final class NetworkGameController extends ChangeNotifier {
             ),
         ],
       );
+      _learnedState = await learning.state();
       _learningRecordedRounds.add(oldNumber);
       _pendingLearning = null;
       await _persist(roundNumber: current.roundNumber);
@@ -2261,11 +2336,26 @@ final class NetworkGameController extends ChangeNotifier {
         .where((t) => t.startsWith('v3.preference.'))
         .toList();
     if (preferenceIds.isEmpty) return null;
-    bool allows(ProfileRole role) => preferenceIds.every((id) {
-      final value = _profile(playerId).preference(id);
-      return value.status == PreferenceStatus.ACCEPTED &&
-          value.valueFor(role) != null;
-    });
+    bool allows(ProfileRole role) {
+      if (_v4Profile != null) {
+        return _conceptPersonalValue(
+              cardId,
+              selected,
+              role == ProfileRole.FAIRE
+                  ? CardOccurrenceDirection.FAIRE
+                  : role == ProfileRole.RECEVOIR
+                  ? CardOccurrenceDirection.RECEVOIR
+                  : CardOccurrenceDirection.GENERAL,
+            ) !=
+            null;
+      }
+      return preferenceIds.every((id) {
+        final value = _profile(playerId).preference(id);
+        return value.status == PreferenceStatus.ACCEPTED &&
+            value.valueFor(role) != null;
+      });
+    }
+
     final reversible =
         eligible.invertible &&
         eligible.tags.contains('v3.direction.faire') &&
@@ -2293,9 +2383,13 @@ final class NetworkGameController extends ChangeNotifier {
       direction.effectiveDirection,
       fallback: ProfileRole.GENERAL,
     );
-    if (!allows(role)) return null;
+    if (_v4Profile == null && !allows(role)) return null;
     final elementId = preferenceIds.first;
-    final value = _privateValue(elementId, role);
+    final value = _conceptPersonalValue(
+      cardId,
+      selected,
+      direction.effectiveDirection,
+    );
     if (value == null) return null;
     return NetworkDuelCard(
       definition: definition,
@@ -2307,10 +2401,18 @@ final class NetworkGameController extends ChangeNotifier {
         role,
         value,
         faire: allows(ProfileRole.FAIRE)
-            ? _privateValue(elementId, ProfileRole.FAIRE)
+            ? _conceptPersonalValue(
+                cardId,
+                selected,
+                CardOccurrenceDirection.FAIRE,
+              )
             : null,
         recevoir: allows(ProfileRole.RECEVOIR)
-            ? _privateValue(elementId, ProfileRole.RECEVOIR)
+            ? _conceptPersonalValue(
+                cardId,
+                selected,
+                CardOccurrenceDirection.RECEVOIR,
+              )
             : null,
       ),
       occurrenceId: occurrenceId ?? cardId,
@@ -2474,8 +2576,8 @@ final class NetworkGameController extends ChangeNotifier {
           );
     final response = dto?.response;
     return NegotiationState(
-      initialWinnerId: initial.winnerPlayerId!,
-      initialLoserId: initial.loserPlayerId!,
+      initialWinnerId: finalWinnerId ?? initial.winnerPlayerId!,
+      initialLoserId: finalLoserId ?? initial.loserPlayerId!,
       initialHighValue: initial.highValue,
       initialGapCost: initial.gapCost,
       actionPoints: actionPoints,
@@ -2492,6 +2594,11 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   PlayerGameProfile _profile(String id) {
+    if (id == playerId && _v4Profile != null) {
+      return playerGameProfileFromLearningState(
+        adaptiveProfileFromV4Profile(_v4Profile),
+      );
+    }
     if (id == playerId && _privateProfile != null) return _privateProfile;
     return PlayerGameProfile(
       playerId: id,
@@ -2519,32 +2626,39 @@ final class NetworkGameController extends ChangeNotifier {
     );
   }
 
-  Future<void> _persist({int? roundNumber}) => privateStore.saveGame(
-    sessionId: session.id,
-    playerId: playerId,
-    state: NetworkPrivateGameState(
-      roundNumber: roundNumber ?? this.roundNumber,
-      cards: _runtime,
-      activeReveal: _activeReveal,
-      nextRoundPrepared: _nextRoundPrepared,
-      learningRecordedRounds: _learningRecordedRounds,
-      deckCycle: _deckCycle,
-      infiniteMode: _infiniteMode,
-      deckStyle: _deckStyle,
-      publicDiscards: _publicDiscards,
-      choiceVersion: _choiceVersion,
-      cancelCommitRequested: _cancelCommitRequested,
-      conceptCheckpoint: _usageCheckpoint,
-      reservedChoices: _reservedChoices,
-      pendingSecondaryCommand: _pendingSecondaryCommand,
-      pendingLearning: _pendingLearning,
-      priorCheckpoints: _priorCheckpoints,
-      activeChili: _context.chiliActive,
-      initialClothing: _initialClothing,
-      clothesByPlayer: _context.clothesByPlayer,
-      clothingObservations: _clothingObservations,
-    ),
-  );
+  Future<void> _persist({int? roundNumber}) {
+    if (_localSessionCleared) return Future.value();
+    return privateStore.saveGame(
+      sessionId: session.id,
+      playerId: playerId,
+      state: NetworkPrivateGameState(
+        roundNumber: roundNumber ?? this.roundNumber,
+        cards: _runtime,
+        activeReveal: _activeReveal,
+        nextRoundPrepared: _nextRoundPrepared,
+        learningRecordedRounds: _learningRecordedRounds,
+        deckCycle: _deckCycle,
+        infiniteMode: _infiniteMode,
+        deckStyle: _deckStyle,
+        publicDiscards: _publicDiscards,
+        choiceVersion: _choiceVersion,
+        cancelCommitRequested: _cancelCommitRequested,
+        conceptCheckpoint: _usageCheckpoint,
+        reservedChoices: _reservedChoices,
+        pendingSecondaryCommand: _pendingSecondaryCommand,
+        pendingLearning: _pendingLearning,
+        priorCheckpoints: _priorCheckpoints,
+        activeChili: _context.chiliActive,
+        sessionMode: sessionMode,
+        presence: _presence,
+        persistentEffects: _persistentEffects,
+        accessoryPool: _accessoryPool,
+        initialClothing: _initialClothing,
+        clothesByPlayer: _context.clothesByPlayer,
+        clothingObservations: _clothingObservations,
+      ),
+    );
+  }
 
   void _capturePublicDiscards(NetworkGameRoundStateDto value) {
     if (value.finalResolution == null) return;
@@ -2662,6 +2776,24 @@ final class NetworkGameController extends ChangeNotifier {
       8 + (_stableHash('$id/$element/${role.name}') % 11);
 
   int? _privateValue(String elementId, ProfileRole role) {
+    final v4 = _v4Profile;
+    if (v4 != null) {
+      final tag = elementId.replaceFirst('v3.preference.', '');
+      final effective = ProfilePreferenceRole.values.byName(
+        role.name.toLowerCase(),
+      );
+      final preference =
+          v4.preference(ProfilePreferenceKey(tagId: tag, role: effective)) ??
+          v4.preference(
+            ProfilePreferenceKey(
+              tagId: tag,
+              role: ProfilePreferenceRole.general,
+            ),
+          );
+      return preference == null || preference.excluded
+          ? null
+          : preference.pa?.round();
+    }
     final profile = _privateProfile;
     if (profile == null) return _fixtureValue(playerId, elementId, role);
     return profile.preference(elementId).valueFor(role);
@@ -2680,6 +2812,727 @@ final class NetworkGameController extends ChangeNotifier {
     final bytes = List<int>.generate(32, (_) => random.nextInt(256));
     return base64UrlEncode(bytes).replaceAll('=', '');
   }
+
+  String? get finalWinnerId =>
+      finalResolution?.finalWinnerPlayerId ?? finalResolution?.retainedPlayerId;
+  String? get finalLoserId {
+    final winner = finalWinnerId;
+    if (winner == null) return null;
+    return playerIds.where((id) => id != winner).firstOrNull;
+  }
+
+  bool get isFinalLoser => finalLoserId == playerId;
+  bool get isFinalWinner => finalWinnerId == playerId;
+  bool get isNegotiationProposer =>
+      finalResolution == null ? isInitialLoser : isFinalLoser;
+  bool get isNegotiationResponder =>
+      finalResolution == null ? isInitialWinner : isFinalWinner;
+  NetworkResolvedActionProjectionDto? get actionProjection =>
+      round?.actionProjection;
+  Set<String> get requiredClothingPlayerIds =>
+      actionProjection?.requiredClothingPlayerIds ?? const {};
+  bool get ownClothingResyncRequired =>
+      const NetworkActionCompletionGate().requiresPlayer(
+        projection: actionProjection,
+        resyncedPlayerIds: round?.clothingResyncedPlayerIds ?? const {},
+        playerId: playerId,
+      );
+  bool get actionCompletionSubmitted =>
+      round?.readyNextPlayerIds.contains(playerId) ?? false;
+  bool get waitingForClothingResync =>
+      actionProjection != null &&
+      !const NetworkActionCompletionGate().canClose(
+        projection: actionProjection,
+        resyncedPlayerIds: round?.clothingResyncedPlayerIds ?? const {},
+      );
+
+  bool get ownClothingChangeIsDeterministic {
+    final cards = actionProjection?.cards.where(
+      (card) => card.targetPlayerIds.contains(playerId),
+    );
+    if (cards == null || cards.isEmpty) return false;
+    var found = false;
+    for (final card in cards) {
+      final behavior = V4ClothingBehavior.values.byName(
+        (card.parameters['clothing_behavior'] as String?) ?? 'none',
+      );
+      if (behavior == V4ClothingBehavior.removeOne ||
+          behavior == V4ClothingBehavior.removeTwo) {
+        found = true;
+      } else if (behavior != V4ClothingBehavior.none) {
+        return false;
+      }
+    }
+    return found;
+  }
+
+  int suggestedOwnClothingCount() {
+    final canonicalCount =
+        round?.clothingCounts[playerId] ??
+        _context.clothesByPlayer[playerId] ??
+        0;
+    final cards = actionProjection?.cards
+        .where((card) => card.targetPlayerIds.contains(playerId))
+        .toList(growable: false);
+    if (cards == null || cards.isEmpty) return canonicalCount;
+    final behaviors = <V4ClothingBehavior>[];
+    for (final card in cards) {
+      final behavior = V4ClothingBehavior.values.byName(
+        (card.parameters['clothing_behavior'] as String?) ?? 'none',
+      );
+      if (behavior == V4ClothingBehavior.removeOne ||
+          behavior == V4ClothingBehavior.removeTwo) {
+        behaviors.add(behavior);
+      } else if (behavior != V4ClothingBehavior.none) {
+        // Outfit choices and resets require the player's real resulting count.
+        return canonicalCount;
+      }
+    }
+    var snapshot = V4ClothingSnapshot(
+      state: canonicalCount == 0 ? V4ClothingState.nu : V4ClothingState.habille,
+      removableClothing: canonicalCount,
+    );
+    for (final behavior in behaviors) {
+      snapshot = const V4ClothingEngine().apply(
+        current: snapshot,
+        behavior: behavior,
+        fullOutfitCount: canonicalCount,
+      );
+    }
+    return snapshot.removableClothing;
+  }
+
+  Future<void> updateOwnClothingCount(int actualCount) async {
+    if (actualCount < 0) {
+      throw ArgumentError.value(actualCount, 'actualCount');
+    }
+    final clothing = V4ClothingCounter(_context.clothesByPlayer)
+      ..resynchronize(playerId, actualCount);
+    _context = _context.copyWith(clothesByPlayer: clothing.counts);
+    await _persist();
+    notifyListeners();
+  }
+
+  V4SessionPresence get presence => _presence;
+  List<V4PersistentEffect> get persistentEffects =>
+      List.unmodifiable(_persistentEffects);
+  Map<String, int> get clothingCounts =>
+      Map.unmodifiable(_context.clothesByPlayer);
+  List<V4Accessory> get sessionAccessories => _accessoryPool.available;
+  String? accessoryName(String? id) => id == null
+      ? null
+      : _accessoryPool.available
+            .where((item) => item.id == id)
+            .map((item) => item.name)
+            .firstOrNull;
+  bool get mustSwitchHybridContext {
+    if (sessionMode != V4SessionMode.hybrid) return false;
+    final alternate = _presence == V4SessionPresence.presentiel
+        ? V4SessionPresence.distance
+        : V4SessionPresence.presentiel;
+    final alternateAvailability = _availablePlayableConcepts(alternate);
+    final barrierOrientation = round?.hybridAvailabilityOrientation;
+    if (barrierOrientation == orientation &&
+        round!.hybridAvailabilityByPlayer.values.any(
+          (report) =>
+              report.orientation == orientation &&
+              !report.hasPlayableCurrentOrientation &&
+              report.hasPlayableAlternateOrientation,
+        )) {
+      return true;
+    }
+    if (round?.cycleExhausted == true && alternateAvailability > 0) {
+      return true;
+    }
+    return const V4CycleGuard().evaluate(
+          mode: sessionMode,
+          activeOccurrencesByPlayer: {
+            playerId: _availablePlayableConcepts(_presence),
+          },
+          alternateContextOccurrencesByPlayer: {
+            playerId: alternateAvailability,
+          },
+        ) ==
+        V4CycleAvailability.switchHybridContext;
+  }
+
+  bool get canStartNextRound =>
+      !deckExhausted &&
+      !mustSwitchHybridContext &&
+      _hybridAvailabilityBarrierSatisfied;
+
+  bool get _hybridAvailabilityBarrierSatisfied {
+    final current = round;
+    if (sessionMode != V4SessionMode.hybrid ||
+        current?.hybridAvailabilityOrientation == null) {
+      return true;
+    }
+    if (current!.hybridAvailabilityOrientation != orientation) return false;
+    return playerIds.every((id) {
+      final report = current.hybridAvailabilityByPlayer[id];
+      return report?.orientation == orientation &&
+          report!.hasPlayableCurrentOrientation;
+    });
+  }
+
+  DeckExhaustionChoice? get sessionClosureIntent => _sessionClosureIntent;
+  Future<void> clearLocalSessionState() async {
+    _localSessionCleared = true;
+    final subscription = _subscription;
+    _subscription = null;
+    if (subscription != null) {
+      unawaited(subscription.cancel());
+    }
+    await privateStore.clear(sessionId: session.id, playerId: playerId);
+    await privateStore.clearGame(sessionId: session.id, playerId: playerId);
+  }
+
+  bool _isSuperseded(NetworkGameRoundStateDto value) {
+    final revision = value.roundRevision;
+    if (revision == null) return false;
+    return (_latestRoundRevisions[value.roundId] ?? revision) > revision;
+  }
+
+  bool _hybridAvailabilityReportRequired(NetworkGameRoundStateDto value) {
+    if (sessionMode != V4SessionMode.hybrid ||
+        value.hybridAvailabilityOrientation != orientation) {
+      return false;
+    }
+    final report = value.hybridAvailabilityByPlayer[playerId];
+    return report?.orientation != orientation;
+  }
+
+  Future<void> _reportHybridAvailability(NetworkGameRoundStateDto value) async {
+    if (_reportingHybridAvailability ||
+        repository is! NetworkSessionFlowRepository ||
+        value.phase != NetworkGamePhase.waitingNext ||
+        value.hybridAvailabilityOrientation != orientation) {
+      return;
+    }
+    final alternate = _presence == V4SessionPresence.presentiel
+        ? V4SessionPresence.distance
+        : V4SessionPresence.presentiel;
+    final availability = NetworkHybridAvailabilityDto(
+      orientation: orientation,
+      hasPlayableCurrentOrientation: _availablePlayableConcepts(_presence) > 0,
+      hasPlayableAlternateOrientation:
+          _availablePlayableConcepts(alternate) > 0,
+    );
+    _reportingHybridAvailability = true;
+    try {
+      await _applyNow(
+        await (repository as NetworkSessionFlowRepository)
+            .reportHybridAvailability(
+              command: _command(
+                'REPORT_HYBRID_AVAILABILITY_'
+                '${value.hybridAvailabilityGeneration}_'
+                '${orientation.name}',
+              ),
+              availability: availability,
+              generation: value.hybridAvailabilityGeneration,
+            ),
+      );
+    } catch (error) {
+      _fail(error);
+    } finally {
+      _reportingHybridAvailability = false;
+    }
+  }
+
+  Future<void> _startNextRoundAutomatically({
+    bool applyImmediately = false,
+  }) async {
+    if (_startingNextRound ||
+        viewState != NetworkGameViewState.waitingNext ||
+        !canStartNextRound) {
+      return;
+    }
+    _startingNextRound = true;
+    try {
+      final boundaryRoundId = round!.roundId;
+      final boundaryRoundNumber = roundNumber;
+      await _prepareNextRound();
+      if (repository is NetworkSessionFlowRepository) {
+        await _publishCanonicalSpiceIfNeeded(
+          roundId: boundaryRoundId,
+          roundNumber: boundaryRoundNumber,
+          applyImmediately: applyImmediately,
+        );
+      }
+      if (round?.roundId != boundaryRoundId) {
+        return;
+      }
+      final updated = await repository.readyNextRound(
+        command: _command(
+          'START_NEXT_ROUND',
+          roundId: boundaryRoundId,
+          roundNumber: boundaryRoundNumber,
+        ),
+      );
+      if (applyImmediately) {
+        await _applyNow(updated);
+      } else {
+        await _apply(updated);
+      }
+    } catch (error) {
+      _fail(error);
+    } finally {
+      _startingNextRound = false;
+    }
+  }
+
+  Future<void> _applyNow(
+    NetworkGameRoundStateDto value, {
+    bool roundBound = false,
+  }) async {
+    if (_disposed) return;
+    if (value.sessionId != session.id) {
+      _fail(const NetworkRoundException('ROUND_NOT_FOUND'));
+      return;
+    }
+    if (value.roundNumber < roundNumber) return;
+    final revision = value.roundRevision;
+    final latest = _latestRoundRevisions[value.roundId];
+    if (revision == null) {
+      if (latest != null) return;
+    } else {
+      if (latest != null && revision < latest) return;
+      _latestRoundRevisions[value.roundId] = revision;
+    }
+    if (value.usageContractVersion != 1) {
+      _fail(const NetworkRoundException('USAGE_CONTRACT_NOT_DEPLOYED'));
+      return;
+    }
+    if (value.deckCycle < _deckCycle) return;
+    await _flushLearning(value);
+    _context = _context.copyWith(
+      chiliActive: value.v4UnlockedSpice,
+      chiliUnlocked: value.v4UnlockedSpice,
+    );
+    if (value.hasCanonicalPersistentEffects) {
+      _persistentEffects = List.of(value.v4PersistentEffects);
+    }
+    if (value.clothingCounts.isNotEmpty) {
+      _context = _context.copyWith(clothesByPlayer: value.clothingCounts);
+    }
+    final publicCycleAdvanced = value.deckCycle > _deckCycle;
+    final previousPresence = _presence;
+    if (sessionMode == V4SessionMode.hybrid) {
+      _presence = value.hybridOrientation == HybridDeckOrientation.faceToFace
+          ? V4SessionPresence.presentiel
+          : V4SessionPresence.distance;
+      _context = _context.copyWith(
+        proximity: _presence == V4SessionPresence.presentiel
+            ? ProximityState.TOGETHER
+            : ProximityState.SEPARATED,
+      );
+      if (previousPresence != _presence &&
+          value.phase != NetworkGamePhase.waitingNext) {
+        _rebuildHandForPresence(value.roundNumber);
+        await _persist(roundNumber: value.roundNumber);
+        if (_isSuperseded(value)) return;
+      }
+    }
+    _deckStyle = value.deckStyle;
+    _infiniteMode = value.infiniteMode;
+    if (publicCycleAdvanced) {
+      await _reconcileSecondaryChoices(value);
+      await _transitionToCanonicalDeckCycle(
+        deckCycle: value.deckCycle,
+        targetRound: value.roundNumber + 1,
+      );
+      if (_isSuperseded(value)) return;
+    }
+    if (round?.roundId != value.roundId && !roundBound) {
+      await _activatePreparedRound(value);
+      if (_isSuperseded(value)) return;
+      if (value.roundNumber < roundNumber) return;
+      await _switchRound(value, applyImmediately: true);
+      return;
+    }
+    round = value;
+    await _reconcileSecondaryChoices(value);
+    _capturePublicDiscards(value);
+    await _closeNormalRoundForRecovery(value);
+    await _reconcilePublicLifecycle(value);
+    if (_disposed ||
+        _isSuperseded(value) ||
+        round?.roundId != value.roundId ||
+        value.roundNumber < roundNumber) {
+      return;
+    }
+    switch (value.phase) {
+      case NetworkGamePhase.commit:
+        if (_cancelCommitRequested) {
+          if (!_cancelling) unawaited(cancelSelection());
+          return;
+        }
+        if (value.ownCommitRecorded) {
+          if (_activeReveal == null) {
+            _fail(const NetworkRoundException('ROUND_LOCAL_SECRET_MISSING'));
+          } else {
+            viewState = NetworkGameViewState.waitingForPartner;
+          }
+        } else {
+          // Missing remote commit is not evidence of cancellation. Replay the
+          // persisted projection and nonce; never engage or consume again.
+          if (_activeReveal != null) {
+            if (!_committing) {
+              _committing = true;
+              try {
+                await _persist();
+                final reveal = _activeReveal!;
+                final updated = await repository.submitCommit(
+                  command: _command('COMMIT', choiceVersion: _choiceVersion),
+                  commitment: contract.commit(
+                    sessionRound: reveal.sessionRound,
+                    playerId: playerId,
+                    choice: reveal.choice,
+                    nonce: reveal.nonce,
+                  ),
+                );
+                await _applyNow(updated);
+              } catch (error) {
+                _fail(error);
+              } finally {
+                _committing = false;
+              }
+            }
+            return;
+          }
+          viewState = NetworkGameViewState.choosing;
+        }
+        break;
+      case NetworkGamePhase.reveal:
+        viewState = NetworkGameViewState.revealing;
+        notifyListeners();
+        if (!value.ownRevealRecorded) await _revealOnce(value);
+        return;
+      case NetworkGamePhase.ready:
+        viewState = NetworkGameViewState.revealing;
+        notifyListeners();
+        await _resolveOnce(value);
+        return;
+      case NetworkGamePhase.negotiationProposal:
+        viewState = NetworkGameViewState.negotiationProposal;
+        break;
+      case NetworkGamePhase.negotiationResponse:
+        viewState = NetworkGameViewState.negotiationResponse;
+        break;
+      case NetworkGamePhase.negotiationAdaptation:
+        viewState = NetworkGameViewState.negotiationAdaptation;
+        break;
+      case NetworkGamePhase.negotiationValidation:
+        viewState = NetworkGameViewState.negotiationValidation;
+        break;
+      case NetworkGamePhase.counterDecision:
+        viewState = NetworkGameViewState.counterDecision;
+        break;
+      case NetworkGamePhase.finalDefenseDecision:
+        viewState = NetworkGameViewState.finalDefenseDecision;
+        break;
+      case NetworkGamePhase.tieDecision:
+        viewState = NetworkGameViewState.tieDecision;
+        break;
+      case NetworkGamePhase.finalResolved:
+        if (value.actionProjection == null &&
+            repository is NetworkV4ActionRepository &&
+            !_publishingAction) {
+          await _publishActionProjection(value);
+          return;
+        }
+        viewState = NetworkGameViewState.actionInProgress;
+        break;
+      case NetworkGamePhase.corruptionDecision:
+        viewState = NetworkGameViewState.corruptionDecision;
+        break;
+      case NetworkGamePhase.corruptionResponse:
+        viewState = NetworkGameViewState.corruptionResponse;
+        break;
+      case NetworkGamePhase.corruptionExecution:
+        // Compatibility only: the pending SQL migration converts persisted
+        // legacy rows to the normal FINAL_RESOLVED action flow.
+        viewState = NetworkGameViewState.actionInProgress;
+        break;
+      case NetworkGamePhase.recovery:
+        viewState = NetworkGameViewState.recovery;
+        break;
+      case NetworkGamePhase.recoveryResponse:
+        viewState = NetworkGameViewState.recoveryResponse;
+        break;
+      case NetworkGamePhase.recoveryExecution:
+        viewState = NetworkGameViewState.recoveryExecution;
+        break;
+      case NetworkGamePhase.waitingNext:
+        await _flushLearning(value);
+        viewState = NetworkGameViewState.waitingNext;
+        notifyListeners();
+        if (_hybridAvailabilityReportRequired(value)) {
+          final preparationKey =
+              '${value.roundId}:${value.hybridAvailabilityGeneration}:'
+              '${orientation.name}';
+          if (_preparedHybridAvailabilityKey != preparationKey) {
+            _rebuildHandForPresence(value.roundNumber + 1);
+            _preparedHybridAvailabilityKey = preparationKey;
+            await _persist(roundNumber: value.roundNumber);
+          }
+          await _reportHybridAvailability(value);
+          return;
+        }
+        if (canStartNextRound) {
+          await _startNextRoundAutomatically(applyImmediately: true);
+        }
+        return;
+      case NetworkGamePhase.closed:
+        viewState = NetworkGameViewState.waitingNext;
+        notifyListeners();
+        await _switchRound(
+          await repository.getCurrentRound(sessionId: session.id),
+          applyImmediately: true,
+        );
+        return;
+      case NetworkGamePhase.sessionClosed:
+        viewState = NetworkGameViewState.sessionEnded;
+        break;
+    }
+    notifyListeners();
+  }
+
+  Future<void> _transitionToCanonicalDeckCycle({
+    required int deckCycle,
+    required int targetRound,
+  }) async {
+    if (deckCycle <= _deckCycle) return;
+    if (round != null) {
+      await _reconcileSecondaryChoices(round!);
+      _capturePublicDiscards(round!);
+      await _stageLearningForRound();
+    }
+    for (final intent in _reservedChoices.keys.toList()) {
+      _releaseSecondary(intent);
+    }
+    _deckCycle = deckCycle;
+    _runtime = [];
+    _nextRoundPrepared = false;
+    _buildDeckCycle();
+    _refill(targetRound);
+    await _persist(roundNumber: roundNumber);
+  }
+
+  int _availablePlayableConcepts(V4SessionPresence presence) {
+    final context = _context.copyWith(
+      proximity: presence == V4SessionPresence.presentiel
+          ? ProximityState.TOGETHER
+          : ProximityState.SEPARATED,
+    );
+    final options = const ConceptActionOptions().evaluate(
+      catalog: _conceptCatalog,
+      context: context,
+      actor: _profile(playerId),
+      partner: _profile(opponentId),
+      hierarchy: _hierarchy,
+    );
+    return options.keys
+        .where((id) => _usageCheckpoint.availableFor(id) > 0)
+        .length;
+  }
+
+  void _rebuildHandForPresence(int targetRound) {
+    final available = _currentOptions();
+    _runtime = _runtime
+        .where(
+          (card) =>
+              card.zone != CardZone.HAND || available.containsKey(card.cardId),
+        )
+        .toList();
+    _refill(targetRound);
+  }
+
+  Iterable<ConceptDeckCandidate> _projectConceptClasses(int ceiling) {
+    final options = const ConceptActionOptions().evaluate(
+      catalog: _conceptCatalog,
+      context: _context.copyWith(chiliActive: ceiling, chiliUnlocked: ceiling),
+      actor: _profile(playerId),
+      partner: _profile(opponentId),
+      hierarchy: _hierarchy,
+    );
+    final eligibility = ConceptDeckEligibility(
+      actionIdsByConcept: {
+        for (final e in options.entries)
+          e.key: e.value.map((o) => o.choice.actionId).toSet(),
+      },
+      zoneIdsByConcept: {
+        for (final e in options.entries)
+          e.key: e.value
+              .map((o) => o.choice.zoneId)
+              .whereType<String>()
+              .toSet(),
+      },
+    );
+    return [
+      for (final concept in _conceptCatalog.concepts.concepts)
+        if (const ConceptDeckEngine().candidateFor(
+              concept: concept,
+              catalog: _conceptCatalog.concepts,
+              eligibility: eligibility,
+              globalChili: ceiling,
+            )
+            case final c?)
+          c,
+    ];
+  }
+
+  Future<void> _publishCanonicalSpiceIfNeeded({
+    required String roundId,
+    required int roundNumber,
+    required bool applyImmediately,
+  }) async {
+    if (repository is! NetworkSessionFlowRepository ||
+        !session.players.any(
+          (player) =>
+              player.userId == playerId &&
+              player.role == LobbyPlayerRole.player1,
+        ))
+      return;
+    final target = const ConceptSpiceProgression().unlockedLevel(
+      currentLevel: activeSpice,
+      stock: _usageCheckpoint.stock,
+      project: _projectConceptClasses,
+    );
+    while (activeSpice < target) {
+      final next = activeSpice + 1;
+      final updated = await (repository as NetworkSessionFlowRepository)
+          .publishUnlockedSpice(
+            command: _command(
+              'PUBLISH_V4_SPICE_$next',
+              roundId: roundId,
+              roundNumber: roundNumber,
+            ),
+            unlockedSpice: next,
+          );
+      if (applyImmediately) {
+        await _applyNow(updated);
+      } else {
+        await _apply(updated);
+      }
+      if (activeSpice < next)
+        throw const NetworkRoundException('ROUND_SPICE_SYNC_FAILED');
+    }
+  }
+
+  Future<void> _publishActionProjection(NetworkGameRoundStateDto value) async {
+    if (repository is! NetworkV4ActionRepository ||
+        value.finalResolution == null ||
+        _publishingAction)
+      return;
+    _publishingAction = true;
+    try {
+      final result = value.finalResolution!;
+      final cards = result.mutualAbandon
+          ? <NetworkResolvedActionCardDto>[]
+          : [
+              for (final card in result.compromise)
+                NetworkResolvedActionCardDto.fromUsage(card.usage),
+            ];
+      final required = <String>{
+        for (final card in cards)
+          if (card.parameters['clothing_behavior'] != null &&
+              card.parameters['clothing_behavior'] != 'none')
+            ...card.targetPlayerIds,
+      };
+      await _applyNow(
+        await (repository as NetworkV4ActionRepository)
+            .publishV4ActionProjection(
+              command: _command('PUBLISH_V4_ACTION'),
+              projection: NetworkResolvedActionProjectionDto(
+                cards: cards,
+                requiredClothingPlayerIds: required,
+              ),
+            ),
+      );
+    } catch (error) {
+      _fail(error);
+    } finally {
+      _publishingAction = false;
+    }
+  }
+
+  int? _conceptPersonalValue(
+    String conceptId,
+    ConceptActionOption option,
+    CardOccurrenceDirection direction,
+  ) {
+    final rating = _conceptCatalog.ratingFor(
+      option.parameters['practice_concept_id'] as String? ?? conceptId,
+      option.parameters['practice_action_id'] as String? ??
+          option.choice.actionId,
+    );
+    if (_ratingProfile case final profile?) {
+      final result = const V4CardRatingEngine().initializeForDirection(
+        profile: profile,
+        variant: rating,
+        conceptId:
+            option.parameters['practice_concept_id'] as String? ?? conceptId,
+        direction: direction.name,
+        vetoTags: _conceptCatalog.vetoTags(conceptId),
+      );
+      return result.rawScore?.toInt();
+    }
+    // Existing private-profile test/local flow, using the same classified weights.
+    final role = _profileRole(direction, fallback: ProfileRole.GENERAL);
+    var sum = 0.0;
+    var total = 0.0;
+    for (final entry in [
+      for (final tag in rating.primaryPreferenceTags) (tag, 1.0),
+      for (final tag in rating.secondaryPreferenceTags) (tag, .5),
+    ]) {
+      final value = _privateValue('v3.preference.${entry.$1}', role);
+      if (value == null) return null;
+      sum += value * entry.$2;
+      total += entry.$2;
+    }
+    return total == 0 ? null : (sum / total).round();
+  }
+
+  List<String> _ratedPreferenceIds(
+    String conceptId,
+    ConceptActionOption option,
+  ) {
+    final rating = _conceptCatalog.ratingFor(
+      option.parameters['practice_concept_id'] as String? ?? conceptId,
+      option.parameters['practice_action_id'] as String? ??
+          option.choice.actionId,
+    );
+    return [
+      for (final tag in [
+        ...rating.primaryPreferenceTags,
+        ...rating.secondaryPreferenceTags,
+      ])
+        'v3.preference.$tag',
+    ];
+  }
+
+  List<String> _primaryPreferenceIds(
+    String conceptId,
+    ConceptActionOption option,
+  ) {
+    final rating = _conceptCatalog.ratingFor(
+      option.parameters['practice_concept_id'] as String? ?? conceptId,
+      option.parameters['practice_action_id'] as String? ??
+          option.choice.actionId,
+    );
+    return [
+      for (final tag in rating.primaryPreferenceTags) 'v3.preference.$tag',
+    ];
+  }
+
+  bool isCardPlayable(NetworkDuelCard card) =>
+      choicesFor(card.id).isNotEmpty &&
+      _usageCheckpoint.availableFor(card.id) > 0;
+  bool isAuctionCardPlayable(NetworkDuelCard card) =>
+      auctionCards.any((c) => c.identity == card.identity);
+  bool isCorruptionCardPlayable(NetworkDuelCard card) =>
+      corruptionCards.any((c) => c.identity == card.identity);
 
   @override
   void dispose() {

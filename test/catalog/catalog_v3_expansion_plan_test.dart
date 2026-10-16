@@ -35,7 +35,6 @@ void expectImplementedTagsMatchPlan(
   }
   expect(actualDirections, plannedDirections, reason: reason);
 }
-
 void main() {
   late JsonMap coverage;
   late JsonMap taxonomy;
@@ -46,7 +45,7 @@ void main() {
   setUpAll(() {
     coverage = readObject('docs/catalog_v3_coverage.json');
     taxonomy = readObject('assets/catalog/source/catalog_v3_taxonomy.json');
-    catalog = readObject('assets/catalog/source/cards.v2.fr.json');
+    catalog = readObject('assets/catalog/legacy/cards.v2.fr.json');
     decisions = readObject('docs/catalog_v3_zero_coverage_plan.json');
     expansion = readObject('docs/catalog_v3_expansion_plan.json');
   });

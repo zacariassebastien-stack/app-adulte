@@ -1,17 +1,12 @@
-# Source utilisée par le runtime antérieur à la refonte
+# Sources des règles V4
 
-Le contrat éditorial actif est désormais
-[`../concepts/active.fr.json`](../concepts/active.fr.json) : 56 concepts.
-Voir le [contrat du Lot 1](../../../docs/catalog/concept_contract.md).
+Le catalogue éditorial actif du jeu est `../concepts/active.fr.json` : 56 concepts.
+Ses stades, piments, zones et quotas font autorité. `runtime_rules.fr.json` associe
+chaque concept à sa source numérotée `card.v4.NNN` ; les décisions P1–P6 restent
+prioritaires. Le chargeur lit `cards.v4.fr.json` pour les métadonnées fonctionnelles
+V4 (contexte, vêtements, durée), pas pour reconstruire un deck d'occurrences.
 
-`cards.v2.fr.json` reste chargé par les anciens consommateurs tant que les
-lots moteur, usage, serveur et UI ne les ont pas remplacés. Ce fichier ne
-fait pas autorité sur les décisions éditoriales du nouveau catalogue.
-
-`cards.v1.fr.json`, ancien seed sans lecteur de production ni test, a été
-supprimé au Lot 1. Son empreinte dans `docs/source_hashes.json` reste une
-attestation historique de l'archive initiale, pas une liste des fichiers actifs.
-
-Les profils, tags et scénarios encore consommés restent en place : ils ne
-doivent pas être supprimés avec les anciens fichiers de cartes sans examen
-de leurs dépendances.
+`catalog_v4_scoring.json`, `profile_questions.v1.fr.json` et la taxonomie V4
+conservent les préférences et le questionnaire du runtime stabilisé.
+Le catalogue V2 dans `../legacy/` est réservé aux audits et tests historiques.
+L'ancien seed V1, sans consommateur, reste supprimé comme au Lot 1.

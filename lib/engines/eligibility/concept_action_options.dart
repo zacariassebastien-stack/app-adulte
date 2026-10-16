@@ -1,6 +1,9 @@
 import '../../domain/catalog/concept_catalog.dart';
 import '../../domain/catalog/enums.dart';
+import '../../domain/catalog/v4_catalog.dart';
 import '../../domain/game/game_models.dart';
+import '../../domain/profile/v4_profile.dart';
+import '../profile/v4_card_rating_engine.dart';
 import '../deck/concept_deck_engine.dart';
 import 'catalog_engine_adapter.dart';
 import 'concept_runtime_catalog.dart';
@@ -31,6 +34,7 @@ final class ConceptActionOptions {
     required PlayerGameProfile actor,
     required PlayerGameProfile partner,
     required ProfileHierarchy hierarchy,
+    V4Profile? profile,
     bool mediaSendRequired = false,
     bool recovery = false,
   }) {
@@ -56,10 +60,65 @@ final class ConceptActionOptions {
       globalChili: recovery ? 4 : context.chiliActive,
       style: PlayerStyle.SOFT,
     );
-    bool allowed(EngineVariant variant) {
+    bool allowed(String conceptId, EngineVariant variant) {
+      if (profile != null) {
+        final tags = catalog.vetoTags(conceptId);
+        if (profile.preferences.values.any(
+          (p) => p.excluded && tags.contains(p.key.tagId),
+        )) {
+          return false;
+        }
+        final rating = catalog.ratingFor(conceptId, variant.id);
+        bool rated(String direction) =>
+            const V4CardRatingEngine()
+                .initializeForDirection(
+                  profile: profile,
+                  variant: rating,
+                  conceptId: conceptId,
+                  direction: direction,
+                  vetoTags: tags,
+                )
+                .kind ==
+            V4RatingResultKind.rated;
+        final directions = variant.tags;
+        if (directions.contains('v3.direction.faire') &&
+            directions.contains('v3.direction.recevoir')) {
+          if (!rated('FAIRE') && !rated('RECEVOIR')) return false;
+        } else {
+          final direction = directions.contains('v3.direction.mutuel')
+              ? 'MUTUEL'
+              : directions.contains('v3.direction.simultane')
+              ? 'SIMULTANE'
+              : directions.contains('v3.direction.solo')
+              ? 'SOLO'
+              : directions.contains('v3.direction.faire')
+              ? 'FAIRE'
+              : directions.contains('v3.direction.recevoir')
+              ? 'RECEVOIR'
+              : 'GENERAL';
+          if (!rated(direction)) return false;
+        }
+      }
       final eligible = const EligibilityEngine()
           .evaluate(
-            card: EngineCard(id: 'resolved-choice', variants: [variant]),
+            card: EngineCard(
+              id: 'resolved-choice',
+              variants: [
+                if (profile == null)
+                  variant
+                else
+                  EngineVariant(
+                    id: variant.id,
+                    enabled: variant.enabled,
+                    chiliLevel: variant.chiliLevel,
+                    technicalRules: variant.technicalRules,
+                    technicalAlternatives: variant.technicalAlternatives,
+                    effects: variant.effects,
+                    tags: variant.tags,
+                    invertible: variant.invertible,
+                  ),
+              ],
+            ),
             context: context,
             actor: actor,
             partner: partner,
@@ -73,6 +132,7 @@ final class ConceptActionOptions {
       final preferences = variant.tags.where(
         (t) => t.startsWith('v3.preference.'),
       );
+      if (profile != null) return true;
       if (preferences.isEmpty) return false;
       bool directionAllowed(ProfileRole role) => preferences.every(
         (id) =>
@@ -89,6 +149,15 @@ final class ConceptActionOptions {
 
     for (final candidate in pool.classes.values.expand((items) => items)) {
       final concept = candidate.concept;
+      final definition = catalog.definitions[concept.id]!;
+      final presence =
+          context.mode == SessionMode.distance ||
+              (context.mode == SessionMode.hybrid &&
+                  context.proximity == ProximityState.SEPARATED)
+          ? V4SessionPresence.distance
+          : V4SessionPresence.presentiel;
+      if (definition.v4 != null && !definition.v4!.presence.supports(presence))
+        continue;
       // Profiles currently provide no concrete tagged accessory inventory.
       // No hasSextoy/ID/name fallback may authorize these choices.
       if (concept.kind == ConceptKind.accessory || concept.id == '024') {
@@ -153,7 +222,7 @@ final class ConceptActionOptions {
               invertible: variant.invertible,
             );
           }
-          if (!allowed(variant)) continue;
+          if (!allowed(concept.id, variant)) continue;
           final definition = catalog.definitions[concept.id]!.variants
               .singleWhere((v) => v.stableId == choice.actionId);
           final zone = catalog.concepts.zones
@@ -197,7 +266,13 @@ final class ConceptActionOptions {
       '065',
     };
     final joker = catalog.definitions['024'];
-    if (joker != null && (recovery || context.chiliActive >= 3)) {
+    if (joker != null &&
+        (recovery || context.chiliActive >= 3) &&
+        !(profile?.preferences.values.any(
+              (p) =>
+                  p.excluded && catalog.vetoTags('024').contains(p.key.tagId),
+            ) ??
+            false)) {
       final borrowed = <ConceptActionOption>[];
       for (final entry in result.entries.where(
         (e) => intimate.contains(e.key),
