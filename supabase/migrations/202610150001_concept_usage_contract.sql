@@ -1469,7 +1469,7 @@ revoke all on function public.network_usage_projection(jsonb,boolean) from publi
 revoke all on function public.network_usage_resolution(jsonb,boolean) from public,anon,authenticated;
 
 
-create function public.submit_network_tie_decision(
+create or replace function public.submit_network_tie_decision(
   p_session_id uuid,
   p_round_id uuid,
   p_player_id uuid,

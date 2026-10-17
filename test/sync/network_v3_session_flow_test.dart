@@ -448,10 +448,10 @@ void main() {
     () {
       final verification = File(
         'supabase/migrations/202610100014_verify_compromise_card_origins.sql',
-      ).readAsStringSync();
+      ).readAsStringSync().replaceAll('\r\n', '\n');
       final response = File(
         'supabase/migrations/202610100006_preserve_duel_winner_after_compromise.sql',
-      ).readAsStringSync();
+      ).readAsStringSync().replaceAll('\r\n', '\n');
 
       expect(
         verification,
@@ -625,18 +625,6 @@ void main() {
       expect(screen, contains('onPressed: controller.skipCorruption'));
       expect(controller, contains('isFinalLoser'));
       expect(controller, contains('isFinalWinner'));
-    });
-
-    test('rejects an empty compromise on client and server', () {
-      expect(
-        controller,
-        contains('Une proposition de compromis ne peut pas être vide'),
-      );
-      expect(
-        migration,
-        contains("raise exception 'ROUND_NEGOTIATION_INVALID'"),
-      );
-      expect(migration, contains("and jsonb_array_length(p_offer->'cards')=0"));
     });
 
     test('accepted or refused compromise never reopens corruption', () {

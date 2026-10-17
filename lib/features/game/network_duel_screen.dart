@@ -781,25 +781,18 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   Widget _resolvedActionTile(NetworkResolvedActionCardDto card) {
-    final definition = widget.catalog.cards.firstWhere(
-      (item) => item.stableId == card.cardId,
-    );
-    final variant = definition.variants.firstWhere(
-      (item) => item.stableId == card.variantId,
-    );
-    final actionText =
-        variant.actionText ?? definition.actionText ?? _title(card.cardId);
-    final detailsText = variant.detailsText ?? definition.detailsText;
+    final action = card.usage.resolvedAction;
+    final accessories = (action['accessories']! as List)
+        .cast<Map<String, Object?>>();
     return ListTile(
-      title: Text(actionText),
+      title: Text(action['action_text']! as String),
       subtitle: Text(
         [
-          if (detailsText != null && detailsText.trim().isNotEmpty) detailsText,
           card.direction.name,
           'cible : ${card.targetPlayerIds.join(', ')}',
           if (card.zoneId != null) 'zone : ${card.zoneId}',
-          if (card.accessoryId != null)
-            'accessoire : ${controller.accessoryName(card.accessoryId) ?? card.accessoryId}',
+          for (final accessory in accessories)
+            'accessoire : ${accessory['label']}',
           '🌶️ ${card.effectiveSpice}',
         ].join(' · '),
       ),

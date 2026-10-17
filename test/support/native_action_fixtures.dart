@@ -35,20 +35,22 @@ NetworkUsageProjection actionUsageFixture({
       : concept?.stages.firstOrNull?.id ??
             concept?.variants.firstOrNull?.id ??
             '$id.action';
-  final base = nativeUsageFixture(
-    conceptId: id,
-    usageId: usageId ?? 'fixture-$id-$ownerPlayerId',
-    owner: ownerPlayerId,
-    direction: nativeDirection.name,
-    value: snapshotValue == 0 ? 10 : snapshotValue,
-    chili:
-        effectiveSpice ??
-        concept?.stages.firstOrNull?.chili ??
-        concept?.variants.firstOrNull?.chili ??
-        concept?.intrinsicChili ??
-        1,
-    sourceUsageId: sourceUsageId,
-  ).toJson();
+  final base = Map<String, Object?>.from(
+    nativeUsageFixture(
+      conceptId: id,
+      usageId: usageId ?? 'fixture-$id-$ownerPlayerId',
+      owner: ownerPlayerId,
+      direction: nativeDirection.name,
+      value: snapshotValue == 0 ? 10 : snapshotValue,
+      chili:
+          effectiveSpice ??
+          concept?.stages.firstOrNull?.chili ??
+          concept?.variants.firstOrNull?.chili ??
+          concept?.intrinsicChili ??
+          1,
+      sourceUsageId: sourceUsageId,
+    ).toJson(),
+  );
   Map<String, Object?> action(Map<String, Object?> original) => {
     ...original
       ..remove('stage_id')
@@ -72,7 +74,7 @@ NetworkUsageProjection actionUsageFixture({
   base['resolved_action'] = action(
     Map<String, Object?>.from(base['resolved_action']! as Map),
   );
-  if (base['inverted_resolution'] case final Map inverse) {
+  if (base['inverted_resolution'] case final Map<String, Object?> inverse) {
     base['inverted_resolution'] = {
       ...inverse,
       'resolved_action': action(

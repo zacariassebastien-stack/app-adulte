@@ -426,11 +426,16 @@ final class NetworkGameController extends ChangeNotifier {
   List<NetworkDuelCard> get corruptionCards => _replayableDiscards();
 
   List<NetworkDuelCard> _replayableDiscards({bool recovery = false}) {
+    final currentCycleUsageIds = {
+      for (final usage in _usageCheckpoint.usagesByIntent.values)
+        if (usage.cycle == _deckCycle) usage.usageId,
+    };
     final seen = <String>{};
     return [
       for (final record in _publicDiscards)
         if (record.roundNumber < roundNumber &&
             record.usage.ownerPlayerId == playerId &&
+            (recovery || currentCycleUsageIds.contains(record.usageId)) &&
             (_usageCheckpoint.availableFor(record.cardId) > 0 ||
                 _reservedChoices.values.any(
                   (draft) =>
@@ -1321,6 +1326,9 @@ final class NetworkGameController extends ChangeNotifier {
         !isNegotiationProposer) {
       return;
     }
+    if (directPa == 0 && !inversion && cardIds.isEmpty) {
+      throw ArgumentError('Une proposition de compromis ne peut pas être vide');
+    }
     final before = _usageCheckpoint;
     final beforeChoices = Map<String, ConceptUsageSnapshot>.of(
       _reservedChoices,
@@ -1998,7 +2006,11 @@ final class NetworkGameController extends ChangeNotifier {
       _initialClothing = saved.initialClothing;
       _priorCheckpoints = List.of(saved.priorCheckpoints);
       _clothingObservations = Map.of(saved.clothingObservations);
-      _presence = saved.presence;
+      _presence = switch (sessionMode) {
+        V4SessionMode.presentiel => V4SessionPresence.presentiel,
+        V4SessionMode.distance => V4SessionPresence.distance,
+        V4SessionMode.hybrid => saved.presence,
+      };
       _accessoryPool = saved.accessoryPool;
       _persistentEffects = List.of(saved.persistentEffects);
       if (_usageCheckpoint.sessionId != session.id ||
@@ -2007,6 +2019,16 @@ final class NetworkGameController extends ChangeNotifier {
         throw const NetworkRoundException('PRIVATE_CHECKPOINT_SCOPE_MISMATCH');
       }
       _context = _context.copyWith(
+        mode: switch (sessionMode) {
+          V4SessionMode.presentiel => SessionMode.face_to_face,
+          V4SessionMode.distance => SessionMode.distance,
+          V4SessionMode.hybrid => _context.mode,
+        },
+        proximity: sessionMode == V4SessionMode.hybrid
+            ? _context.proximity
+            : _presence == V4SessionPresence.distance
+            ? ProximityState.SEPARATED
+            : ProximityState.TOGETHER,
         chiliActive: saved.activeChili,
         chiliUnlocked: saved.activeChili,
         clothesByPlayer: saved.clothesByPlayer.isEmpty
@@ -3122,6 +3144,7 @@ final class NetworkGameController extends ChangeNotifier {
           ? V4SessionPresence.presentiel
           : V4SessionPresence.distance;
       _context = _context.copyWith(
+        mode: SessionMode.hybrid,
         proximity: _presence == V4SessionPresence.presentiel
             ? ProximityState.TOGETHER
             : ProximityState.SEPARATED,

@@ -264,10 +264,15 @@ void main() {
         actions: [
           const ActionPromise(
             cardId: 'c',
+            occurrenceId: 'c-action-1',
             source: CardZone.DISCARD,
             visibility: PromiseVisibility.MYSTERY,
           ),
-          const ActionPromise(cardId: 'c', source: CardZone.DISCARD),
+          const ActionPromise(
+            cardId: 'c',
+            occurrenceId: 'c-action-2',
+            source: CardZone.DISCARD,
+          ),
           const ActionPromise(cardId: 'd', source: CardZone.DISCARD),
         ],
       ),

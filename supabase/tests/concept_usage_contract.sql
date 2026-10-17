@@ -142,8 +142,12 @@ begin
     values('prior-reveal',s,prior,a,'REVEAL');
   insert into public.network_round_reveals(round_id,player_id,choice_payload,nonce,command_id)
     values(prior,a,pg_temp.make_usage('prior-a','019',1,a,7),'prior-nonce','prior-reveal');
+  update public.network_rounds set recovery_history=recovery_history||jsonb_build_array(
+    pg_temp.make_usage('prior-a-2','019',1,a,7)||jsonb_build_object(
+      'player_id',a,'source','HAND','response','ACCEPT','gain',12,'completed',true))
+    where id=prior;
   c1:=(pg_temp.make_usage('corruption-1','019',1,a,7)-'snapshot_value')||jsonb_build_object('source_usage_id','prior-a');
-  c2:=(pg_temp.make_usage('corruption-2','019',1,a,7)-'snapshot_value')||jsonb_build_object('source_usage_id','prior-a');
+  c2:=(pg_temp.make_usage('corruption-2','019',1,a,7)-'snapshot_value')||jsonb_build_object('source_usage_id','prior-a-2');
   state:=public.submit_network_corruption_offer(s,current_round,a,'OWN_INITIAL_ACTION',jsonb_build_array(c1,c2),'corruption-offer');
   perform pg_temp.assert_true(state#>'{corruption,actions,0,resolved_action}'=c1->'resolved_action','corruption offer keeps snapshot');
   perform set_config('request.jwt.claim.sub',b::text,true);
