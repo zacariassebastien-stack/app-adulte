@@ -40,32 +40,41 @@ qui dépend de son intensité utilise l'API canonique `v4EffectiveChiliLevel`
 (`min(4, base + modificateur de zone)`). Le générateur ne suppose jamais une
 zone qui n'a pas encore été choisie.
 
-## Progression du pool
+## Progression par PA dépensés (règle canonique du 18 octobre 2026)
 
-Pour chaque niveau `n` :
+Le piment démarre à 1. Les seuils portent sur les PA définitivement dépensés
+par les deux joueurs depuis le début de la partie, sans remise à zéro au cycle.
 
-```text
-pourcentage restant(n) = unités non consommées(n) / unités initiales(n)
-```
+| Style courant | Piment 2 | Piment 3 | Piment 4 |
+|---|---:|---:|---:|
+| SOFT | 40 | 100 | 150 |
+| EPICE | 30 | 75 | 120 |
+| INTENABLE | 20 | 55 | 90 |
 
-Le niveau suivant est débloqué lorsque le pourcentage restant du niveau actif
-est strictement inférieur à celui du niveau suivant. Les fractions sont
-comparées exactement, sans arrondi. Après chaque consommation, le moteur
-répète la comparaison pour autoriser plusieurs déblocages cohérents. Un niveau
-absent ne provoque aucune division par zéro : un niveau actif sans unité ne
-bloque pas le suivant, tandis qu'un niveau suivant absent n'est pas débloqué.
+Ces seuils sont absolus et cumulés. Une opération peut ouvrir plusieurs niveaux
+directement ; un niveau débloqué ne redescend jamais. Les poids de pioche
+45/40/13/2, 20/40/30/10 et 10/25/40/25 restent inchangés.
 
-L'unité de consommation est l'occurrence, identifiée par son `occurrenceId`.
-Une variante ou un stade possède une occurrence par défaut, mais une
-métadonnée de multiplicité peut en matérialiser plusieurs. Jouer définitivement
-une occurrence ne consomme jamais ses copies. La simple distribution et le
-verrouillage ne consomment rien. La consommation est idempotente.
+Le serveur réutilise les soldes canoniques de `network_game_states.action_points`
+et les crédits Recovery enregistrés une seule fois dans `network_round_commands`
+(`RECOVERY_RESOLVE`). Le cumul est : 100 PA initiaux par joueur + crédits
+Recovery définitivement accordés − somme des soldes actuels. Recovery est
+actuellement la seule mécanique créditant des PA. Les anciens crédits et débits
+sont ainsi inclus sans nouveau journal ni compteur local.
 
-La progression compare toujours le **pool global** : toutes les occurrences
-du cycle moins les occurrences consommées. Le **pool actif** est une projection
-temporaire de ce pool selon la présence courante, les accessoires disponibles,
-les exclusions privées et le stade séquentiel. Un changement de contexte ne
-modifie donc aucun stock de progression et ne peut pas débloquer un niveau.
+Un trigger applique les seuils dans la transaction qui met à jour les soldes.
+Les dépenses de duel, compromis, contre-enchère et défense comptent lorsqu'elles
+sont réellement débitées. Propositions, réservations, refus sans débit, retries
+et reconnexions ne constituent pas des dépenses. Un rollback annule également
+la montée. Les clients utilisent le niveau canonique retourné par le serveur.
+
+Le pool, les capacités, les stades et la projection virtuelle N→N+1 ne pilotent
+plus la progression. L'ancien RPC de publication de piment conserve sa signature
+mais retourne uniquement l'état canonique, sans appliquer le niveau demandé.
+La migration conserve les niveaux déjà ouverts dans les parties existantes.
+
+Les cas SQL sont dans `supabase/tests/pa_spice_progression.sql` ; les débits et
+retries des RPC réels sont aussi vérifiés dans `concept_usage_contract.sql`.
 
 ## Présence et mode hybride
 

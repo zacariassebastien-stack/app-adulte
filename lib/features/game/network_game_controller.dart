@@ -3074,13 +3074,6 @@ final class NetworkGameController extends ChangeNotifier {
       final boundaryRoundId = round!.roundId;
       final boundaryRoundNumber = roundNumber;
       await _prepareNextRound();
-      if (repository is NetworkSessionFlowRepository) {
-        await _publishCanonicalSpiceIfNeeded(
-          roundId: boundaryRoundId,
-          roundNumber: boundaryRoundNumber,
-          applyImmediately: applyImmediately,
-        );
-      }
       if (round?.roundId != boundaryRoundId) {
         return;
       }
@@ -3369,78 +3362,6 @@ final class NetworkGameController extends ChangeNotifier {
         )
         .toList();
     _refill(targetRound);
-  }
-
-  Iterable<ConceptDeckCandidate> _projectConceptClasses(int ceiling) {
-    final options = const ConceptActionOptions().evaluate(
-      catalog: _conceptCatalog,
-      context: _context.copyWith(chiliActive: ceiling, chiliUnlocked: ceiling),
-      actor: _profile(playerId),
-      partner: _profile(opponentId),
-      hierarchy: _hierarchy,
-    );
-    final eligibility = ConceptDeckEligibility(
-      actionIdsByConcept: {
-        for (final e in options.entries)
-          e.key: e.value.map((o) => o.choice.actionId).toSet(),
-      },
-      zoneIdsByConcept: {
-        for (final e in options.entries)
-          e.key: e.value
-              .map((o) => o.choice.zoneId)
-              .whereType<String>()
-              .toSet(),
-      },
-    );
-    return [
-      for (final concept in _conceptCatalog.concepts.concepts)
-        if (const ConceptDeckEngine().candidateFor(
-              concept: concept,
-              catalog: _conceptCatalog.concepts,
-              eligibility: eligibility,
-              globalChili: ceiling,
-            )
-            case final c?)
-          c,
-    ];
-  }
-
-  Future<void> _publishCanonicalSpiceIfNeeded({
-    required String roundId,
-    required int roundNumber,
-    required bool applyImmediately,
-  }) async {
-    if (repository is! NetworkSessionFlowRepository ||
-        !session.players.any(
-          (player) =>
-              player.userId == playerId &&
-              player.role == LobbyPlayerRole.player1,
-        ))
-      return;
-    final target = const ConceptSpiceProgression().unlockedLevel(
-      currentLevel: activeSpice,
-      stock: _usageCheckpoint.stock,
-      project: _projectConceptClasses,
-    );
-    while (activeSpice < target) {
-      final next = activeSpice + 1;
-      final updated = await (repository as NetworkSessionFlowRepository)
-          .publishUnlockedSpice(
-            command: _command(
-              'PUBLISH_V4_SPICE_$next',
-              roundId: roundId,
-              roundNumber: roundNumber,
-            ),
-            unlockedSpice: next,
-          );
-      if (applyImmediately) {
-        await _applyNow(updated);
-      } else {
-        await _apply(updated);
-      }
-      if (activeSpice < next)
-        throw const NetworkRoundException('ROUND_SPICE_SYNC_FAILED');
-    }
   }
 
   Future<void> _publishActionProjection(NetworkGameRoundStateDto value) async {

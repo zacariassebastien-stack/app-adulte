@@ -421,27 +421,17 @@ void main() {
       expect(completedRound.phase, NetworkGamePhase.closed);
       expect(backend.closedRoundIds, contains(completedRoundId));
       expect(backend.currentRound, 2);
-      // V4 may already publish 2 automatically at this boundary. All further
-      // publications use the real RPC path, one level at a time. V4 permits a
-      // delayed publication against the just-closed round after the next opened.
+      // Only settled PA advances spice; held cards and their quotas stay put.
+      expect(backend.v4UnlockedSpice, 1);
       final checkpointsBeforePublication = {
         for (final player in [setup.alice, setup.bob])
           player.playerId: player.usageCheckpoint.encode(),
       };
-      final publisher =
-          backend.repository('alice') as NetworkSessionFlowRepository;
-      while (backend.v4UnlockedSpice < 4) {
-        final next = backend.v4UnlockedSpice + 1;
-        final result = await publisher.publishUnlockedSpice(
-          command: _command(
-            'held-045-spice-$next',
-            'alice',
-            'PUBLISH_V4_SPICE',
-            completedRoundId,
-          ),
-          unlockedSpice: next,
-        );
-        expect(result.v4UnlockedSpice, next);
+      for (final (spent, next) in [(40, 2), (100, 3), (150, 4)]) {
+        backend.points['alice'] = spent <= 100 ? 100 - spent : 0;
+        backend.points['bob'] = spent <= 100 ? 100 : 200 - spent;
+        backend.refreshPaSpice();
+        backend.notify();
         await _settle();
         for (final player in [setup.alice, setup.bob]) {
           expect(player.activeSpice, next);
@@ -711,39 +701,87 @@ void main() {
   );
 
   test(
-    'canonical spice publication is monotone, bounded and idempotent',
+    'legacy pool publication cannot unlock spice without PA spending',
     () async {
       final backend = _Backend();
-      backend.round
-        ..phase = NetworkGamePhase.waitingNext
-        ..ready.addAll(const {'alice', 'bob'});
-      final alice = backend.repository('alice') as NetworkSessionFlowRepository;
-      final bob = backend.repository('bob') as NetworkSessionFlowRepository;
+      final repository =
+          backend.repository('alice') as NetworkSessionFlowRepository;
       final command = _command(
-        'spice-2',
+        'old-spice',
         'alice',
         'PUBLISH_V4_SPICE',
         'round-1',
       );
-
-      await alice.publishUnlockedSpice(command: command, unlockedSpice: 2);
-      await alice.publishUnlockedSpice(command: command, unlockedSpice: 2);
-      expect(backend.v4UnlockedSpice, 2);
-      await expectLater(
-        alice.publishUnlockedSpice(
-          command: _command('spice-4', 'alice', 'PUBLISH_V4_SPICE', 'round-1'),
+      for (var attempt = 0; attempt < 2; attempt++) {
+        final state = await repository.publishUnlockedSpice(
+          command: command,
           unlockedSpice: 4,
-        ),
-        throwsA(isA<NetworkRoundException>()),
+        );
+        expect(state.v4UnlockedSpice, 1);
+        expect(backend.totalPaSpent, 0);
+      }
+    },
+  );
+
+  test(
+    'settled PA unlocks both clients immediately and survives retry/reconnect',
+    () async {
+      final stores = {
+        for (final id in ['alice', 'bob']) id: MemoryNetworkDuelSecretStore(),
+      };
+      final setup = await _setup(
+        session,
+        catalog,
+        aliceSecrets: stores['alice'],
+        bobSecrets: stores['bob'],
       );
-      await expectLater(
-        bob.publishUnlockedSpice(
-          command: _command('spice-3', 'bob', 'PUBLISH_V4_SPICE', 'round-1'),
-          unlockedSpice: 3,
-        ),
-        throwsA(isA<NetworkRoundException>()),
-      );
-      expect(backend.v4UnlockedSpice, 2);
+      addTearDown(setup.dispose);
+      await _playUnequal(setup);
+      final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+      final winner = loser == setup.alice ? setup.bob : setup.alice;
+      final initialSpending = setup.backend.totalPaSpent;
+      await loser.submitCounterBid(40, AuctionTarget.OWN_INITIAL_ACTION);
+      await _settle();
+      expect(setup.backend.totalPaSpent, initialSpending + 40);
+      expect(setup.backend.phase, NetworkGamePhase.finalDefenseDecision);
+      expect(setup.alice.activeSpice, 2);
+      expect(setup.bob.activeSpice, 2);
+      await setup.backend
+          .repository(loser.playerId)
+          .submitCounterDecision(
+            command: _command(
+              'game:session-multi:round-1:${loser.playerId}:counter_decision',
+              loser.playerId,
+              'COUNTER_DECISION',
+              setup.backend.round.id,
+            ),
+            decision: CounterDecision.bid,
+            amount: 40,
+            target: AuctionTarget.OWN_INITIAL_ACTION,
+          );
+      setup.backend.notifyTwice();
+      await _settle();
+      expect(setup.backend.totalPaSpent, initialSpending + 40);
+      await winner.submitFinalDefense(60);
+      await _settle();
+      expect(setup.backend.totalPaSpent, initialSpending + 100);
+      expect(setup.alice.activeSpice, 3);
+      expect(setup.bob.activeSpice, 3);
+      for (final id in ['alice', 'bob']) {
+        final reconnected = _controller(
+          setup.backend,
+          session,
+          catalog,
+          id,
+          stores[id]!,
+        );
+        addTearDown(reconnected.dispose);
+        await reconnected.start();
+        expect(reconnected.activeSpice, 3);
+        expect(setup.backend.totalPaSpent, initialSpending + 100);
+      }
+      expect(setup.backend.counterApplications, 1);
+      expect(setup.backend.defenseApplications, 1);
     },
   );
 
@@ -1953,35 +1991,44 @@ void main() {
     expect(backend.roundCreations, 2);
   });
 
-  test('player 1 spice publication survives player 2 advancement', () async {
-    final backend = _Backend();
-    backend.round
-      ..phase = NetworkGamePhase.waitingNext
-      ..ready.addAll(const {'alice', 'bob'});
-    final oldRoundId = backend.round.id;
+  test(
+    'settled PA spice survives player 2 advancement and legacy publication',
+    () async {
+      final backend = _Backend();
+      backend.round
+        ..phase = NetworkGamePhase.waitingNext
+        ..ready.addAll(const {'alice', 'bob'});
+      final oldRoundId = backend.round.id;
+      backend.points['alice'] = 60;
 
-    await backend
-        .repository('bob')
-        .readyNextRound(
-          command: _command('start-bob', 'bob', 'START_NEXT_ROUND', oldRoundId),
-        );
-    final published =
-        await (backend.repository('alice') as NetworkSessionFlowRepository)
-            .publishUnlockedSpice(
-              command: _command(
-                'spice-alice',
-                'alice',
-                'PUBLISH_V4_SPICE',
-                oldRoundId,
-              ),
-              unlockedSpice: 2,
-            );
+      await backend
+          .repository('bob')
+          .readyNextRound(
+            command: _command(
+              'start-bob',
+              'bob',
+              'START_NEXT_ROUND',
+              oldRoundId,
+            ),
+          );
+      final published =
+          await (backend.repository('alice') as NetworkSessionFlowRepository)
+              .publishUnlockedSpice(
+                command: _command(
+                  'spice-alice',
+                  'alice',
+                  'PUBLISH_V4_SPICE',
+                  oldRoundId,
+                ),
+                unlockedSpice: 2,
+              );
 
-    expect(backend.currentRound, 2);
-    expect(backend.v4UnlockedSpice, 2);
-    expect(published.roundId, 'round-2');
-    expect(published.v4UnlockedSpice, 2);
-  });
+      expect(backend.currentRound, 2);
+      expect(backend.v4UnlockedSpice, 2);
+      expect(published.roundId, 'round-2');
+      expect(published.v4UnlockedSpice, 2);
+    },
+  );
 
   test('next-round migration accepts a concurrent caller after close', () {
     final sql = File(
@@ -7139,6 +7186,20 @@ final class _Backend {
   bool infiniteMode = false;
   PlayerStyle deckStyle = PlayerStyle.SOFT;
   int v4UnlockedSpice = 1;
+  int recoveryCredits = 0;
+  int get totalPaSpent =>
+      200 + recoveryCredits - points.values.fold(0, (sum, pa) => sum + pa);
+
+  void refreshPaSpice() {
+    final thresholds = switch (deckStyle) {
+      PlayerStyle.SOFT => [40, 100, 150],
+      PlayerStyle.EPICE => [30, 75, 120],
+      PlayerStyle.INTENABLE => [20, 55, 90],
+    };
+    final level = 1 + thresholds.where((pa) => totalPaSpent >= pa).length;
+    if (level > v4UnlockedSpice) v4UnlockedSpice = level;
+  }
+
   HybridDeckOrientation hybridOrientation = HybridDeckOrientation.faceToFace;
   HybridDeckOrientation? hybridAvailabilityOrientation;
   int hybridAvailabilityGeneration = 0;
@@ -7148,51 +7209,55 @@ final class _Backend {
   NetworkGamePhase get phase => round.phase;
   NetworkGameRepository repository(String player) => _Repository(this, player);
 
-  NetworkGameRoundStateDto state(String player) => NetworkGameRoundStateDto(
-    usageContractVersion: 1,
-    roundId: round.id,
-    sessionId: 'session-multi',
-    sessionRound: 'session-multi.round-${round.number}',
-    roundNumber: round.number,
-    phase: round.phase,
-    playerId: player,
-    commits: {
-      for (final entry in round.commits.entries) entry.key: entry.value.digest,
-    },
-    actionPoints: points,
-    readyNextPlayerIds: round.ready,
-    tieDecisions: round.ties,
-    hybridOrientation: hybridOrientation,
-    hybridAvailabilityOrientation: hybridAvailabilityOrientation,
-    hybridAvailabilityGeneration: hybridAvailabilityGeneration,
-    hybridAvailabilityByPlayer: hybridAvailability,
-    deckCycle: deckCycle,
-    v4UnlockedSpice: v4UnlockedSpice,
-    infiniteMode: infiniteMode,
-    deckStyle: deckStyle,
-    v4ConsumedUsageIds: consumedCompromiseOccurrences[player],
-    v4PersistentEffects: persistentEffects,
-    cycleExhausted: cycleExhausted,
-    actionProjection: round.actionProjection,
-    clothingCounts: clothingCounts,
-    clothingResyncedPlayerIds: clothingResynced,
-    ownReveal: round.reveals[player],
-    opponentReveal: _revealsPublic && !redactOpponentReveal
-        ? round.reveals.entries
-              .where((entry) => entry.key != player)
-              .map((entry) => entry.value)
-              .firstOrNull
-        : null,
-    initialResolution: round.initial,
-    counterBid: round.counter,
-    finalDefense: round.defense,
-    finalResolution: round.finalResolution,
-    negotiation: round.negotiation,
-    corruption: round.corruption,
-    recoveryByPlayer: round.recoveries,
-    recoveryDonePlayerIds: round.recoveryDone,
-    recoveryHistory: round.recoveryHistory,
-  );
+  NetworkGameRoundStateDto state(String player) {
+    refreshPaSpice();
+    return NetworkGameRoundStateDto(
+      usageContractVersion: 1,
+      roundId: round.id,
+      sessionId: 'session-multi',
+      sessionRound: 'session-multi.round-${round.number}',
+      roundNumber: round.number,
+      phase: round.phase,
+      playerId: player,
+      commits: {
+        for (final entry in round.commits.entries)
+          entry.key: entry.value.digest,
+      },
+      actionPoints: points,
+      readyNextPlayerIds: round.ready,
+      tieDecisions: round.ties,
+      hybridOrientation: hybridOrientation,
+      hybridAvailabilityOrientation: hybridAvailabilityOrientation,
+      hybridAvailabilityGeneration: hybridAvailabilityGeneration,
+      hybridAvailabilityByPlayer: hybridAvailability,
+      deckCycle: deckCycle,
+      v4UnlockedSpice: v4UnlockedSpice,
+      infiniteMode: infiniteMode,
+      deckStyle: deckStyle,
+      v4ConsumedUsageIds: consumedCompromiseOccurrences[player],
+      v4PersistentEffects: persistentEffects,
+      cycleExhausted: cycleExhausted,
+      actionProjection: round.actionProjection,
+      clothingCounts: clothingCounts,
+      clothingResyncedPlayerIds: clothingResynced,
+      ownReveal: round.reveals[player],
+      opponentReveal: _revealsPublic && !redactOpponentReveal
+          ? round.reveals.entries
+                .where((entry) => entry.key != player)
+                .map((entry) => entry.value)
+                .firstOrNull
+          : null,
+      initialResolution: round.initial,
+      counterBid: round.counter,
+      finalDefense: round.defense,
+      finalResolution: round.finalResolution,
+      negotiation: round.negotiation,
+      corruption: round.corruption,
+      recoveryByPlayer: round.recoveries,
+      recoveryDonePlayerIds: round.recoveryDone,
+      recoveryHistory: round.recoveryHistory,
+    );
+  }
 
   bool get _revealsPublic => round.phase == NetworkGamePhase.ready;
 
@@ -7342,26 +7407,7 @@ class _Repository
     required NetworkCommandDto command,
     required int unlockedSpice,
   }) async {
-    if (backend.commands.contains(command.commandId)) {
-      return backend.state(player);
-    }
-    final commandRoundId = command.payload['round_id'];
-    final validBoundary =
-        backend.phase == NetworkGamePhase.waitingNext ||
-        (commandRoundId is String &&
-            backend.closedRoundIds.contains(commandRoundId));
-    if (!validBoundary ||
-        player != 'alice' ||
-        (backend.phase == NetworkGamePhase.waitingNext &&
-            backend.round.ready.length != 2) ||
-        unlockedSpice < 1 ||
-        unlockedSpice > 4 ||
-        unlockedSpice != backend.v4UnlockedSpice + 1) {
-      throw const NetworkRoundException('ROUND_INVALID_SPICE_PROGRESSION');
-    }
-    backend.commands.add(command.commandId);
-    backend.v4UnlockedSpice = unlockedSpice;
-    _notify();
+    // Legacy publication is now a read of the server-managed ceiling.
     return backend.state(player);
   }
 
@@ -7827,6 +7873,7 @@ class _Repository
     required NetworkRecoveryDto recovery,
   }) async {
     if (!_accept(command)) return backend.state(player);
+    backend.recoveryCredits += recovery.gain;
     backend.round.recoveryHistory.add(recovery);
     backend.round.recoveries.remove(recovery.playerId);
     backend.points[recovery.playerId] =
