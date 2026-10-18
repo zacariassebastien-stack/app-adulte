@@ -101,7 +101,7 @@ begin
       or v_inverse is null or not (v_inverse ? 'snapshot_value')
       then raise exception 'ROUND_INVERSION_UNAVAILABLE'; end if;
     if v_inverse#>>'{resolved_action,direction}' is distinct from
-      case v_usage->>'native_direction' when 'FAIRE' then 'RECEVOIR' else 'FAIRE' end
+      (case v_usage->>'native_direction' when 'FAIRE' then 'RECEVOIR' else 'FAIRE' end)
       then raise exception 'ROUND_DIRECTION_MISMATCH'; end if;
     return (v_usage-'inverted_resolution')||jsonb_build_object(
       'resolved_action',v_inverse->'resolved_action',
