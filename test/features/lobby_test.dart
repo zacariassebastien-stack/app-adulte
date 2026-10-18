@@ -234,6 +234,141 @@ void main() {
     },
   );
 
+  test(
+    'quit supersedes an in-flight restore without disabling later reconnect',
+    () async {
+      final backend = FakeLobbyBackend();
+      final delegate = backend.repository('host');
+      final created = await delegate.createSession(commandId: 'create-first');
+      final store = _MemoryActiveSessionStore()..value = created.id;
+      final response = Completer<LobbySession>();
+      final repository = _DelayedLobbyRepository(delegate)..response = response;
+      final controller = LobbyController(
+        repository: repository,
+        activeSessionStore: store,
+      );
+      addTearDown(() {
+        controller.dispose();
+        repository.releaseCancellation.complete();
+      });
+      final restore = controller.restoreActiveSession();
+      await Future<void>.delayed(Duration.zero);
+      await controller.clearActiveSession();
+      response.complete(created);
+      expect(await restore, isFalse);
+      expect(controller.state, LobbyViewState.idle);
+      expect(controller.session, isNull);
+      expect(store.value, isNull);
+      repository.response = null;
+      // Creating and restoring another session is still available after a quit.
+      await controller.create();
+      final nextId = controller.session!.id;
+      expect(nextId, isNot(created.id));
+      final restarted = LobbyController(
+        repository: delegate,
+        activeSessionStore: store,
+      );
+      addTearDown(restarted.dispose);
+      expect(await restarted.restoreActiveSession(), isTrue);
+      expect(restarted.session!.id, nextId);
+    },
+  );
+
+  test('late retry cannot reattach a session after explicit quit', () async {
+    final backend = FakeLobbyBackend();
+    final repository = _DelayedLobbyRepository(backend.repository('host'));
+    final store = _MemoryActiveSessionStore();
+    final controller = LobbyController(
+      repository: repository,
+      activeSessionStore: store,
+    );
+    addTearDown(() {
+      controller.dispose();
+      repository.releaseCancellation.complete();
+    });
+    await controller.create();
+    final old = controller.session!;
+    repository.response = Completer<LobbySession>();
+    final retry = controller.retry();
+    await controller.clearActiveSession();
+    repository.response!.complete(old);
+    await retry;
+    expect(controller.state, LobbyViewState.idle);
+    expect(controller.session, isNull);
+    expect(store.value, isNull);
+  });
+
+  test(
+    'quit clears a save already in flight before allowing reconstruction',
+    () async {
+      final backend = FakeLobbyBackend();
+      final store = _DelayedActiveSessionStore();
+      final controller = LobbyController(
+        repository: backend.repository('host'),
+        activeSessionStore: store,
+      );
+      addTearDown(controller.dispose);
+      final creation = controller.create();
+      await Future<void>.delayed(Duration.zero);
+      expect(controller.session, isNotNull);
+      final quit = controller.clearActiveSession();
+      expect(controller.session, isNull);
+      store.releaseSave.complete();
+      await Future.wait([creation, quit]);
+      expect(store.value, isNull);
+      final restarted = LobbyController(
+        repository: backend.repository('host'),
+        activeSessionStore: store,
+      );
+      addTearDown(restarted.dispose);
+      expect(await restarted.restoreActiveSession(), isFalse);
+    },
+  );
+
+  test(
+    'both restored players detach independently while transport cleanup waits',
+    () async {
+      final backend = FakeLobbyBackend();
+      final host = backend.repository('host');
+      final created = await host.createSession(commandId: 'two-quit-create');
+      await backend
+          .repository('guest')
+          .joinSession(code: created.joinCode, commandId: 'two-quit-join');
+      final controllers = <LobbyController>[];
+      final stores = <_MemoryActiveSessionStore>[];
+      final repositories = <_DelayedLobbyRepository>[];
+      for (final id in ['host', 'guest']) {
+        final repository = _DelayedLobbyRepository(backend.repository(id));
+        repositories.add(repository);
+        final store = _MemoryActiveSessionStore()..value = created.id;
+        stores.add(store);
+        final controller = LobbyController(
+          repository: repository,
+          activeSessionStore: store,
+        );
+        controllers.add(controller);
+        expect(await controller.restoreActiveSession(), isTrue);
+      }
+      // Neither unsubscribe acknowledgement is needed to detach either player.
+      await Future.wait(controllers.map((c) => c.clearActiveSession()));
+      for (var i = 0; i < controllers.length; i++) {
+        expect(controllers[i].state, LobbyViewState.idle);
+        expect(controllers[i].session, isNull);
+        expect(stores[i].value, isNull);
+        expect(repositories[i].cancelled, isTrue);
+        expect(repositories[i].releaseCancellation.isCompleted, isFalse);
+        controllers[i].dispose();
+        final restarted = LobbyController(
+          repository: repositories[i],
+          activeSessionStore: stores[i],
+        );
+        expect(await restarted.restoreActiveSession(), isFalse);
+        restarted.dispose();
+        repositories[i].releaseCancellation.complete();
+      }
+    },
+  );
+
   test('unknown active session is ignored and cleared', () async {
     final backend = FakeLobbyBackend();
     final store = _MemoryActiveSessionStore()..value = 'unknown';
@@ -427,4 +562,46 @@ final class _MemoryActiveSessionStore implements ActiveSessionStore {
 
   @override
   Future<void> save(String sessionId) async => value = sessionId;
+}
+
+final class _DelayedLobbyRepository implements LobbyRepository {
+  _DelayedLobbyRepository(this.delegate);
+  final LobbyRepository delegate;
+  Completer<LobbySession>? response;
+  final releaseCancellation = Completer<void>();
+  bool cancelled = false;
+  @override
+  Future<LobbySession> createSession({required String commandId}) =>
+      delegate.createSession(commandId: commandId);
+  @override
+  Future<LobbySession> joinSession({
+    required String code,
+    required String commandId,
+  }) => delegate.joinSession(code: code, commandId: commandId);
+  @override
+  Future<LobbySession> getSession(String sessionId) =>
+      response?.future ?? delegate.getSession(sessionId);
+  @override
+  Stream<LobbySession> watchSession(String sessionId) =>
+      StreamController<LobbySession>(
+        onCancel: () {
+          cancelled = true;
+          return releaseCancellation.future;
+        },
+      ).stream;
+}
+
+final class _DelayedActiveSessionStore implements ActiveSessionStore {
+  final releaseSave = Completer<void>();
+  String? value;
+  @override
+  Future<String?> load() async => value;
+  @override
+  Future<void> save(String sessionId) async {
+    await releaseSave.future;
+    value = sessionId;
+  }
+
+  @override
+  Future<void> clear() async => value = null;
 }

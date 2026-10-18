@@ -23,6 +23,8 @@ final class LobbyController extends ChangeNotifier {
   bool _busy = false;
   Future<bool>? _restoreFuture;
   String? _restoredSessionId;
+  int _sessionGeneration = 0;
+  Future<void> _pendingSessionSave = Future.value();
 
   LobbyViewState state = LobbyViewState.idle;
   LobbySession? session;
@@ -37,42 +39,65 @@ final class LobbyController extends ChangeNotifier {
   }
 
   Future<bool> _restoreActiveSession() async {
+    final generation = _sessionGeneration;
     final store = activeSessionStore;
     if (store == null) return false;
     final sessionId = await store.load();
-    if (sessionId == null || _busy) return false;
+    if (generation != _sessionGeneration || sessionId == null || _busy) {
+      return false;
+    }
     _busy = true;
     try {
       if (_restoredSessionId == sessionId && session?.id == sessionId) {
         return true;
       }
       final restored = await repository.getSession(sessionId);
-      if (!_isActive(restored) || !await _belongsToCurrentPlayer(restored)) {
+      final belongs =
+          _isActive(restored) && await _belongsToCurrentPlayer(restored);
+      if (generation != _sessionGeneration) {
+        return false;
+      }
+      if (!belongs) {
         await store.clear();
         _resetToMenu();
         return false;
       }
-      await _setSession(restored, persist: false);
+      await _setSession(restored, persist: false, generation: generation);
+      if (generation != _sessionGeneration) {
+        return false;
+      }
       _restoredSessionId = sessionId;
       return true;
     } on InvalidJoinCodeException {
+      if (generation != _sessionGeneration) {
+        return false;
+      }
       await store.clear();
       _resetToMenu();
       return false;
     } on ExpiredLobbyException {
+      if (generation != _sessionGeneration) {
+        return false;
+      }
       await store.clear();
       _resetToMenu();
       return false;
     } catch (_) {
+      if (generation != _sessionGeneration) {
+        return false;
+      }
       _resetToMenu();
       return false;
     } finally {
-      _busy = false;
+      if (generation == _sessionGeneration) {
+        _busy = false;
+      }
     }
   }
 
   Future<void> create() async {
     if (_busy) return;
+    final generation = _sessionGeneration;
     _busy = true;
     state = LobbyViewState.creating;
     errorMessage = null;
@@ -80,16 +105,22 @@ final class LobbyController extends ChangeNotifier {
     try {
       await _setSession(
         await repository.createSession(commandId: _commandIdFactory()),
+        generation: generation,
       );
     } catch (error) {
-      _setError(error);
+      if (generation == _sessionGeneration) {
+        _setError(error);
+      }
     } finally {
-      _busy = false;
+      if (generation == _sessionGeneration) {
+        _busy = false;
+      }
     }
   }
 
   Future<void> join(String rawCode) async {
     if (_busy) return;
+    final generation = _sessionGeneration;
     final code = JoinCode.normalize(rawCode);
     if (!JoinCode.isValid(code)) {
       _setError(const InvalidJoinCodeException());
@@ -105,36 +136,72 @@ final class LobbyController extends ChangeNotifier {
           code: code,
           commandId: _commandIdFactory(),
         ),
+        generation: generation,
       );
     } catch (error) {
-      _setError(error);
+      if (generation == _sessionGeneration) {
+        _setError(error);
+      }
     } finally {
-      _busy = false;
+      if (generation == _sessionGeneration) {
+        _busy = false;
+      }
     }
   }
 
   Future<void> retry() async {
     final current = session;
     if (_busy || current == null) return;
+    final generation = _sessionGeneration;
     _busy = true;
     try {
-      await _setSession(await repository.getSession(current.id));
+      await _setSession(
+        await repository.getSession(current.id),
+        generation: generation,
+      );
     } catch (error) {
-      _setError(error, offline: true);
+      if (generation == _sessionGeneration) {
+        _setError(error, offline: true);
+      }
     } finally {
-      _busy = false;
+      if (generation == _sessionGeneration) {
+        _busy = false;
+      }
     }
   }
 
   Future<void> clearActiveSession() async {
-    await _subscription?.cancel();
+    final generation = ++_sessionGeneration;
+    final subscription = _subscription;
     _subscription = null;
-    await activeSessionStore?.clear();
     _restoredSessionId = null;
+    _busy = true;
     _resetToMenu();
+    // Detachment must not wait for a realtime/RPC cancellation acknowledgement.
+    // cancel() suppresses further deliveries immediately; the generation also
+    // invalidates any restore/retry already awaiting its response.
+    if (subscription != null) {
+      unawaited(subscription.cancel().catchError((Object _) {}));
+    }
+    try {
+      // A save already in flight must finish before the explicit quit erases it.
+      await _pendingSessionSave.catchError((Object _) {});
+      await activeSessionStore?.clear();
+    } finally {
+      if (generation == _sessionGeneration) {
+        _busy = false;
+      }
+    }
   }
 
-  Future<void> _setSession(LobbySession value, {bool persist = true}) async {
+  Future<void> _setSession(
+    LobbySession value, {
+    bool persist = true,
+    required int generation,
+  }) async {
+    if (generation != _sessionGeneration) {
+      return;
+    }
     if (!_isActive(value)) {
       await activeSessionStore?.clear();
       _resetToMenu();
@@ -145,10 +212,16 @@ final class LobbyController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
     await _subscription?.cancel();
+    if (generation != _sessionGeneration) {
+      return;
+    }
     _subscription = repository
         .watchSession(value.id)
         .listen(
           (updated) {
+            if (generation != _sessionGeneration) {
+              return;
+            }
             if (_sameSession(session, updated)) return;
             if (!_isActive(updated)) {
               activeSessionStore?.clear();
@@ -163,12 +236,19 @@ final class LobbyController extends ChangeNotifier {
             notifyListeners();
           },
           onError: (Object _) {
+            if (generation != _sessionGeneration) {
+              return;
+            }
             state = LobbyViewState.offline;
             errorMessage = const LobbyNetworkException().message;
             notifyListeners();
           },
         );
-    if (persist) await activeSessionStore?.save(value.id);
+    if (persist) {
+      _pendingSessionSave =
+          activeSessionStore?.save(value.id) ?? Future.value();
+      await _pendingSessionSave;
+    }
   }
 
   void _setError(Object error, {bool offline = false}) {

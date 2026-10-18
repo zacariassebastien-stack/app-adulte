@@ -154,92 +154,131 @@ void main() {
     },
   );
 
-  for (final stage in ['preparation', 'playing', 'cycle']) {
-    testWidgets(
-      'leaving $stage returns to multiplayer menu with no lobby update',
-      (tester) async {
-        rootBundle.clear();
-        tester.binding.defaultBinaryMessenger.setMockMessageHandler(
-          'flutter/assets',
-          (data) async {
-            final file = File(utf8.decode(data!.buffer.asUint8List()));
-            return file.existsSync()
-                ? ByteData.sublistView(file.readAsBytesSync())
-                : null;
-          },
-        );
-        addTearDown(
-          () => tester.binding.defaultBinaryMessenger.setMockMessageHandler(
+  for (final player in ['alice', 'bob']) {
+    for (final stage in [
+      'preparation',
+      'playing',
+      'cycle',
+      'restored-playing',
+    ]) {
+      testWidgets(
+        'leaving $stage as $player returns to menu despite pending lobby cancellation',
+        (tester) async {
+          rootBundle.clear();
+          tester.binding.defaultBinaryMessenger.setMockMessageHandler(
             'flutter/assets',
-            null,
-          ),
-        );
-
-        SharedPreferences.setMockInitialValues(<String, Object>{});
-        final backend = _Backend();
-        if (stage == 'cycle') {
-          backend.cycleExhausted = true;
-          backend.round.phase = NetworkGamePhase.waitingNext;
-        }
-        final store = _MemoryActiveSessionStore();
-        final lobby = _MenuLobbyRepository(
-          session,
-          _PreparedRepository(backend, 'alice', stage != 'preparation'),
-        );
-        await tester.pumpWidget(
-          MaterialApp(
-            home: TwoPhoneLobbyScreen(
-              repository: lobby,
-              activeSessionStore: store,
-              historyStore: MemoryGameHistoryStore(),
+            (data) async {
+              final file = File(utf8.decode(data!.buffer.asUint8List()));
+              return file.existsSync()
+                  ? ByteData.sublistView(file.readAsBytesSync())
+                  : null;
+            },
+          );
+          addTearDown(
+            () => tester.binding.defaultBinaryMessenger.setMockMessageHandler(
+              'flutter/assets',
+              null,
             ),
-          ),
-        );
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('create-lobby')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('launch-network-duel')));
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 300)),
-        );
-        for (var i = 0; i < 30; i++) {
-          await tester.runAsync(
-            () => Future<void>.delayed(const Duration(milliseconds: 20)),
           );
-          await tester.pump(const Duration(milliseconds: 50));
-        }
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 100)),
-        );
-        await tester.pumpAndSettle();
-        if (stage == 'preparation') {
-          await tester.pageBack();
-        } else {
-          await tester.tap(
-            find.byKey(const Key('open-private-profile-settings')),
-          );
-          await tester.pumpAndSettle();
-          await tester.ensureVisible(
-            find.byKey(const Key('quit-network-game')),
-          );
-          await tester.tap(find.byKey(const Key('quit-network-game')));
-          await tester.pumpAndSettle();
-          await tester.tap(find.byKey(const Key('confirm-quit-game')));
-        }
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 100)),
-        );
-        await tester.pumpAndSettle();
-        expect(find.byKey(const Key('create-lobby')), findsOneWidget);
-        expect(find.byKey(const Key('show-join-lobby')), findsOneWidget);
-        expect(find.byKey(const Key('lobby-ready')), findsNothing);
-        expect(store.value, isNull);
-        expect(tester.takeException(), isNull);
-        await tester.pumpWidget(const SizedBox.shrink());
-      },
-    );
-  }
 
+          SharedPreferences.setMockInitialValues(<String, Object>{});
+          final backend = _Backend();
+          if (stage == 'cycle') {
+            backend.cycleExhausted = true;
+            backend.round.phase = NetworkGamePhase.waitingNext;
+          }
+          final store = _MemoryActiveSessionStore();
+          if (stage == 'restored-playing') store.value = session.id;
+          final cancellation = Completer<void>();
+          addTearDown(() {
+            if (!cancellation.isCompleted) cancellation.complete();
+          });
+          final lobby = _MenuLobbyRepository(
+            session,
+            _PreparedRepository(backend, player, stage != 'preparation'),
+            playerId: player,
+            cancellation: cancellation,
+          );
+          await tester.pumpWidget(
+            MaterialApp(
+              home: TwoPhoneLobbyScreen(
+                repository: lobby,
+                activeSessionStore: store,
+                historyStore: MemoryGameHistoryStore(),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          if (stage != 'restored-playing') {
+            await tester.tap(find.byKey(const Key('create-lobby')));
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const Key('launch-network-duel')));
+          }
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 300)),
+          );
+          for (var i = 0; i < 30; i++) {
+            await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 20)),
+            );
+            await tester.pump(const Duration(milliseconds: 50));
+          }
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 100)),
+          );
+          await tester.pumpAndSettle();
+          if (stage == 'preparation') {
+            await tester.pageBack();
+          } else {
+            if (stage == 'restored-playing') {
+              expect(store.value, session.id);
+              expect(find.byKey(const Key('game-status')), findsOneWidget);
+            }
+            await tester.tap(
+              find.byKey(const Key('open-private-profile-settings')),
+            );
+            await tester.pumpAndSettle();
+            await tester.ensureVisible(
+              find.byKey(const Key('quit-network-game')),
+            );
+            await tester.tap(find.byKey(const Key('quit-network-game')));
+            await tester.pumpAndSettle();
+            await tester.tap(find.byKey(const Key('confirm-quit-game')));
+          }
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 100)),
+          );
+          await tester.pumpAndSettle();
+          expect(find.byKey(const Key('create-lobby')), findsOneWidget);
+          expect(find.byKey(const Key('show-join-lobby')), findsOneWidget);
+          expect(find.byKey(const Key('lobby-ready')), findsNothing);
+          expect(store.value, isNull);
+          if (stage != 'preparation') {
+            expect(backend.phase, NetworkGamePhase.sessionClosed);
+            expect(backend.closeApplications, 1);
+          }
+          expect(tester.takeException(), isNull);
+          // The transport has not acknowledged cancellation, but quit must
+          // already be durable and must not auto-resume after reconstruction.
+          expect(cancellation.isCompleted, isFalse);
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pumpWidget(
+            MaterialApp(
+              home: TwoPhoneLobbyScreen(
+                repository: lobby,
+                activeSessionStore: store,
+                historyStore: MemoryGameHistoryStore(),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(find.byKey(const Key('create-lobby')), findsOneWidget);
+          expect(find.byKey(const Key('launch-network-duel')), findsNothing);
+          await tester.pumpWidget(const SizedBox.shrink());
+        },
+      );
+    }
+  }
   for (final id in ['alice', 'bob']) {
     testWidgets('RECEVOIR order gives the correct instruction to $id', (
       tester,
@@ -8191,21 +8230,27 @@ final class _PreparedRepository extends _Repository
 }
 
 final class _MenuLobbyRepository implements NetworkLobbyRepository {
-  _MenuLobbyRepository(LobbySession original, this.gameRepository)
-    : session = LobbySession(
-        id: original.id,
-        joinCode: original.joinCode,
-        status: original.status,
-        expiresAt: DateTime.utc(2099),
-        players: original.players,
-      );
+  _MenuLobbyRepository(
+    LobbySession original,
+    this.gameRepository, {
+    this.playerId = 'alice',
+    this.cancellation,
+  }) : session = LobbySession(
+         id: original.id,
+         joinCode: original.joinCode,
+         status: original.status,
+         expiresAt: DateTime.utc(2099),
+         players: original.players,
+       );
   final LobbySession session;
+  final String playerId;
+  final Completer<void>? cancellation;
   @override
   final NetworkGameRepository gameRepository;
   @override
   NetworkRoundRepository get roundRepository => throw UnimplementedError();
   @override
-  Future<String> currentPlayerId() async => 'alice';
+  Future<String> currentPlayerId() async => playerId;
   @override
   Future<LobbySession> createSession({required String commandId}) async =>
       session;
@@ -8217,5 +8262,11 @@ final class _MenuLobbyRepository implements NetworkLobbyRepository {
     required String commandId,
   }) async => session;
   @override
-  Stream<LobbySession> watchSession(String sessionId) => const Stream.empty();
+  Stream<LobbySession> watchSession(String sessionId) {
+    // Model realtime/RPC cleanup whose acknowledgement is delayed independently
+    // of CLOSE_SESSION. Previous tests used Stream.empty(), masking this race.
+    return StreamController<LobbySession>(
+      onCancel: () => cancellation?.future,
+    ).stream;
+  }
 }
