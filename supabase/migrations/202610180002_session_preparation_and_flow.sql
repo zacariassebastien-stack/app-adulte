@@ -458,22 +458,22 @@ create or replace function public.submit_network_counter_decision(p_session_id u
 
 create or replace function public.submit_network_final_defense(p_session_id uuid,p_round_id uuid,p_player_id uuid,p_decision text,p_amount integer,p_command_id text) returns jsonb language plpgsql as $$ begin raise exception 'ROUND_MECHANIC_REMOVED'; end; $$;
 
--- Resume conceptual rounds paused at the retired counter/defense steps.
--- Previously debited counter PA remain part of canonical historical spending.
+-- Retired decision steps cannot safely resume historical (pre-usage) choices.
+-- Close only sessions whose latest round is paused there, using the existing
+-- SESSION_CLOSED convention. Preserve reveals, resolutions and all spent PA.
 do $$
-declare r public.network_rounds%rowtype; v_winner uuid; v_current integer;
+declare v_session_id uuid;
 begin
-  for r in select * from public.network_rounds where phase in ('COUNTER_DECISION','FINAL_DEFENSE_DECISION') for update loop
-    v_winner:=(r.initial_resolution->>'winner_player_id')::uuid;
-    if r.phase='COUNTER_DECISION' and r.counter_bid is null then
-      select (action_points->>v_winner::text)::integer into v_current
-        from public.network_game_states where session_id=r.session_id for update;
-      update public.network_game_states set action_points=jsonb_set(action_points,array[v_winner::text],
-        to_jsonb(v_current-least(coalesce((r.initial_resolution->>'gap_cost')::integer,0),v_current))) where session_id=r.session_id;
-    end if;
-    update public.network_rounds set phase='CORRUPTION_DECISION',updated_at=now(),
-      final_resolution=public.network_final_choice(r.id,v_winner,v_winner,false)
-        ||jsonb_build_object('initial_winner_player_id',v_winner,'final_winner_player_id',v_winner,
-          'final_loser_player_id',r.initial_resolution->>'loser_player_id') where id=r.id;
+  for v_session_id in
+    select r.session_id from public.network_rounds r
+    where r.phase in ('COUNTER_DECISION','FINAL_DEFENSE_DECISION')
+      and not exists (select 1 from public.network_rounds newer
+        where newer.session_id=r.session_id and newer.round_number>r.round_number)
+    for update of r
+  loop
+    update public.game_sessions set status='closed',updated_at=now()
+      where id=v_session_id and status<>'closed';
+    update public.network_rounds set phase='SESSION_CLOSED',updated_at=now()
+      where session_id=v_session_id and phase<>'SESSION_CLOSED';
   end loop;
 end; $$;
