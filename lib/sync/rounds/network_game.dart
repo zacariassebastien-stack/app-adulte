@@ -131,22 +131,36 @@ final class V4PlayerSessionSetupDto {
   V4PlayerSessionSetupDto({
     required this.playerId,
     required this.clothingCount,
+    this.environmentReady = true,
+    this.inventoryReady = true,
+    this.availableAccessories = const [],
     required List<V4Accessory> accessories,
   }) : accessories = List.unmodifiable(accessories);
 
   final String playerId;
+  final bool environmentReady, inventoryReady;
+  final List<V4Accessory> availableAccessories;
   final int clothingCount;
   final List<V4Accessory> accessories;
 
   Map<String, Object?> toJson() => {
     'player_id': playerId,
     'clothing_count': clothingCount,
+    'environment_ready': environmentReady,
+    'inventory_ready': inventoryReady,
+    'available_accessories': [for (final a in availableAccessories) a.toJson()],
     'accessories': [for (final accessory in accessories) accessory.toJson()],
   };
 
   factory V4PlayerSessionSetupDto.fromJson(Map<String, Object?> json) =>
       V4PlayerSessionSetupDto(
         playerId: json['player_id']! as String,
+        environmentReady: json['environment_ready'] != false,
+        inventoryReady: json['inventory_ready'] != false,
+        availableAccessories: [
+          for (final a in (json['available_accessories'] as List?) ?? [])
+            V4Accessory.fromJson(Map<String, Object?>.from(a as Map)),
+        ],
         clothingCount: json['clothing_count']! as int,
         accessories: [
           for (final raw in (json['accessories'] as List?) ?? const [])
@@ -158,12 +172,22 @@ final class V4PlayerSessionSetupDto {
 final class V4SessionSetupDto {
   V4SessionSetupDto({
     required this.mode,
+    this.style,
+    this.status = 'DRAFT',
+    this.revision = 0,
     required List<V4PlayerSessionSetupDto> players,
   }) : players = List.unmodifiable(players);
 
+  final PlayerStyle? style;
+  final String status;
+  final int revision;
   final V4SessionMode? mode;
   final List<V4PlayerSessionSetupDto> players;
-  bool get complete => mode != null && players.length == 2;
+  bool get complete =>
+      status == 'ACCEPTED' &&
+      mode != null &&
+      style != null &&
+      players.length == 2;
   Map<String, int> get clothingCounts => {
     for (final player in players) player.playerId: player.clothingCount,
   };
@@ -173,6 +197,11 @@ final class V4SessionSetupDto {
 
   factory V4SessionSetupDto.fromJson(Map<String, Object?> json) =>
       V4SessionSetupDto(
+        style: json['style'] == null
+            ? null
+            : PlayerStyle.values.byName(json['style']! as String),
+        status: (json['status'] as String?) ?? 'DRAFT',
+        revision: (json['revision'] as int?) ?? 0,
         mode: json['mode'] == null
             ? null
             : V4SessionMode.values.byName(json['mode']! as String),
@@ -186,12 +215,24 @@ final class V4SessionSetupDto {
 }
 
 abstract interface class NetworkSessionSetupRepository {
-  Future<V4SessionSetupDto> submitV4SessionSetup({
+  Future<V4SessionSetupDto> registerSetupAccessories({
     required String sessionId,
-    required String playerId,
-    required int clothingCount,
     required List<V4Accessory> accessories,
-    V4SessionMode? mode,
+  });
+  Future<V4SessionSetupDto> proposeSessionSetup({
+    required String sessionId,
+    required V4SessionMode mode,
+    required PlayerStyle style,
+    required List<V4PlayerSessionSetupDto> players,
+    required int expectedRevision,
+    required String commandId,
+  });
+  Future<V4SessionSetupDto> respondSessionSetup({
+    required String sessionId,
+    required int revision,
+    required bool accepted,
+    V4PlayerSessionSetupDto? environment,
+    required String commandId,
   });
   Future<V4SessionSetupDto> getV4SessionSetup(String sessionId);
   Stream<V4SessionSetupDto> watchV4SessionSetup(String sessionId);
@@ -672,6 +713,10 @@ final class NetworkGameRoundStateDto {
     this.infiniteMode = false,
     this.deckStyle = PlayerStyle.SOFT,
     this.cycleExhausted = false,
+    this.cycleStyleProposal,
+    this.cycleStyleProposer,
+    this.cycleStyleRevision = 0,
+    this.cycleStyleVotes = const {},
     this.hybridAvailabilityOrientation,
     this.hybridAvailabilityGeneration = 0,
     Map<String, NetworkHybridAvailabilityDto>? hybridAvailabilityByPlayer,
@@ -730,6 +775,10 @@ final class NetworkGameRoundStateDto {
   final bool hasCanonicalPersistentEffects;
   final bool infiniteMode;
   final PlayerStyle deckStyle;
+  final PlayerStyle? cycleStyleProposal;
+  final String? cycleStyleProposer;
+  final int cycleStyleRevision;
+  final Map<String, bool> cycleStyleVotes;
   final bool cycleExhausted;
   final HybridDeckOrientation? hybridAvailabilityOrientation;
   final int hybridAvailabilityGeneration;
@@ -782,6 +831,10 @@ final class NetworkGameRoundStateDto {
     'infinite_mode': infiniteMode,
     'deck_style': deckStyle.name,
     'cycle_exhausted': cycleExhausted,
+    'cycle_style_proposal': cycleStyleProposal?.name,
+    'cycle_style_proposer': cycleStyleProposer,
+    'cycle_style_revision': cycleStyleRevision,
+    'cycle_style_votes': cycleStyleVotes,
     'hybrid_availability_orientation': switch (hybridAvailabilityOrientation) {
       HybridDeckOrientation.faceToFace => 'FACE_TO_FACE',
       HybridDeckOrientation.distance => 'DISTANCE',
@@ -879,6 +932,14 @@ final class NetworkGameRoundStateDto {
         (json['deck_style'] as String?) ?? PlayerStyle.SOFT.name,
       ),
       cycleExhausted: (json['cycle_exhausted'] as bool?) ?? false,
+      cycleStyleProposal: json['cycle_style_proposal'] == null
+          ? null
+          : PlayerStyle.values.byName(json['cycle_style_proposal']! as String),
+      cycleStyleProposer: json['cycle_style_proposer'] as String?,
+      cycleStyleRevision: (json['cycle_style_revision'] as int?) ?? 0,
+      cycleStyleVotes: Map<String, bool>.from(
+        (json['cycle_style_votes'] as Map?) ?? {},
+      ),
       hybridAvailabilityOrientation:
           switch (json['hybrid_availability_orientation']) {
             'FACE_TO_FACE' => HybridDeckOrientation.faceToFace,
@@ -972,19 +1033,6 @@ abstract interface class NetworkGameRepository {
   Future<NetworkGameRoundStateDto> submitInitialResolution({
     required NetworkCommandDto command,
     required NetworkInitialResolutionDto resolution,
-  });
-
-  Future<NetworkGameRoundStateDto> submitCounterDecision({
-    required NetworkCommandDto command,
-    required CounterDecision decision,
-    int? amount,
-    AuctionTarget? target,
-  });
-
-  Future<NetworkGameRoundStateDto> submitFinalDefense({
-    required NetworkCommandDto command,
-    required FinalDefenseDecision decision,
-    int? amount,
   });
 
   Future<NetworkGameRoundStateDto> submitTieDecision({
@@ -1097,6 +1145,7 @@ abstract interface class NetworkSessionFlowRepository {
     required NetworkCommandDto command,
     required DeckExhaustionChoice choice,
     required int expectedCycle,
+    int expectedStyleRevision = 0,
   });
   Future<NetworkGameRoundStateDto> publishUnlockedSpice({
     required NetworkCommandDto command,

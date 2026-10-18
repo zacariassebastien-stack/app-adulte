@@ -26,8 +26,6 @@ enum NetworkGameViewState {
   negotiationResponse,
   negotiationAdaptation,
   negotiationValidation,
-  counterDecision,
-  finalDefenseDecision,
   tieDecision,
   actionInProgress,
   corruptionDecision,
@@ -50,7 +48,6 @@ final class NetworkGameController extends ChangeNotifier {
     required Catalog catalog,
     this.contract = const CommitRevealContract(),
     this.duelEngine = const DuelEngine(),
-    this.auctionEngine = const AuctionEngine(),
     this.negotiationEngine = const NegotiationEngineV3(),
     this.lifecycleEngine = const LifecycleEngine(),
     this.recoveryEngine = const RecoveryEngine(),
@@ -145,7 +142,6 @@ final class NetworkGameController extends ChangeNotifier {
   final NetworkDuelSecretStore privateStore;
   final CommitRevealContract contract;
   final DuelEngine duelEngine;
-  final AuctionEngine auctionEngine;
   final NegotiationEngineV3 negotiationEngine;
   final LifecycleEngine lifecycleEngine;
   final RecoveryEngine recoveryEngine;
@@ -264,7 +260,6 @@ final class NetworkGameController extends ChangeNotifier {
   bool get inversionAllowed => initialResolution?.inversionAllowed ?? false;
   bool get hasSubmittedTieDecision =>
       round?.tieDecisions.containsKey(playerId) ?? false;
-  int get minimumDefense => (round?.counterBid?.amount ?? 0) + 1;
   bool get usesV3Negotiation => repository is NetworkNegotiationRepository;
   String? get lockedCardId => _runtime
       .where((card) => card.zone == CardZone.HAND && card.locked)
@@ -610,6 +605,7 @@ final class NetworkGameController extends ChangeNotifier {
     await _sendSecondary('CONTINUE_CYCLE', {
       'choice': choice.name,
       'expected_cycle': _deckCycle,
+      'style_revision': round?.cycleStyleRevision ?? 0,
     });
   }
 
@@ -1197,7 +1193,7 @@ final class NetworkGameController extends ChangeNotifier {
     try {
       if (_pendingSecondaryCommand == null) {
         final suffix = kind == 'CONTINUE_CYCLE'
-            ? ':cycle-${payload['expected_cycle']}'
+            ? ':cycle-${payload['expected_cycle']}:${payload['choice']}:r${payload['style_revision'] ?? 0}'
             : kind.startsWith('RECOVERY')
             ? ':${payload['usage_id'] ?? round!.recoveryHistory.length}'
             : '';
@@ -1288,6 +1284,7 @@ final class NetworkGameController extends ChangeNotifier {
               payload['choice']! as String,
             ),
             expectedCycle: payload['expected_cycle']! as int,
+            expectedStyleRevision: (payload['style_revision'] as int?) ?? 0,
           ),
         'READY_NEXT' => repository.readyNextRound(command: command),
         'RECOVERY_RESOLVE' => repository.resolveRecovery(
@@ -1416,78 +1413,6 @@ final class NetworkGameController extends ChangeNotifier {
       accepted: accepted,
     );
     await _sendSecondary('NEGOTIATION_VALIDATION', {'accepted': accepted});
-  }
-
-  Future<void> acceptInitialResult() async {
-    if (!_canCounter) return;
-    await _networkAction(
-      repository.submitCounterDecision(
-        command: _command('COUNTER_DECISION'),
-        decision: CounterDecision.accept,
-      ),
-    );
-  }
-
-  Future<void> submitCounterBid(int amount, AuctionTarget target) async {
-    final initial = initialResolution;
-    if (!_canCounter || initial == null) return;
-    final auction = auctionEngine.start(
-      initialWinnerId: finalWinnerId ?? initial.winnerPlayerId!,
-      initialLoserId: finalLoserId ?? initial.loserPlayerId!,
-      actionPoints: actionPoints,
-    );
-    auctionEngine.counter(
-      auction,
-      amount: amount,
-      target: target,
-      inversionAllowed: initial.inversionAllowed,
-    );
-    await _networkAction(
-      repository.submitCounterDecision(
-        command: _command('COUNTER_DECISION'),
-        decision: CounterDecision.bid,
-        amount: amount,
-        target: target,
-      ),
-    );
-  }
-
-  Future<void> yieldFinalDefense() async {
-    if (!_canDefend) return;
-    await _networkAction(
-      repository.submitFinalDefense(
-        command: _command('FINAL_DEFENSE'),
-        decision: FinalDefenseDecision.renounce,
-      ),
-    );
-  }
-
-  Future<void> submitFinalDefense(int amount) async {
-    final initial = initialResolution;
-    final counter = round?.counterBid;
-    if (!_canDefend || initial == null || counter == null) return;
-    final beforeCounter = Map<String, int>.from(actionPoints)
-      ..[initial.loserPlayerId!] =
-          (actionPoints[initial.loserPlayerId!] ?? 0) + counter.amount;
-    var auction = auctionEngine.start(
-      initialWinnerId: finalWinnerId ?? initial.winnerPlayerId!,
-      initialLoserId: finalLoserId ?? initial.loserPlayerId!,
-      actionPoints: beforeCounter,
-    );
-    auction = auctionEngine.counter(
-      auction,
-      amount: counter.amount,
-      target: counter.target,
-      inversionAllowed: initial.inversionAllowed,
-    );
-    auctionEngine.defend(auction, amount: amount);
-    await _networkAction(
-      repository.submitFinalDefense(
-        command: _command('FINAL_DEFENSE'),
-        decision: FinalDefenseDecision.defend,
-        amount: amount,
-      ),
-    );
   }
 
   Future<void> concedeTie() async {
@@ -1715,11 +1640,6 @@ final class NetworkGameController extends ChangeNotifier {
       _fail(error);
     }
   }
-
-  bool get _canCounter =>
-      viewState == NetworkGameViewState.counterDecision && isInitialLoser;
-  bool get _canDefend =>
-      viewState == NetworkGameViewState.finalDefenseDecision && isInitialWinner;
 
   Future<void> _networkAction(
     Future<NetworkGameRoundStateDto> operation,
@@ -2836,7 +2756,9 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   String? get finalWinnerId =>
-      finalResolution?.finalWinnerPlayerId ?? finalResolution?.retainedPlayerId;
+      initialResolution?.winnerPlayerId ??
+      finalResolution?.finalWinnerPlayerId ??
+      finalResolution?.retainedPlayerId;
   String? get finalLoserId {
     final winner = finalWinnerId;
     if (winner == null) return null;
@@ -3242,10 +3164,8 @@ final class NetworkGameController extends ChangeNotifier {
         viewState = NetworkGameViewState.negotiationValidation;
         break;
       case NetworkGamePhase.counterDecision:
-        viewState = NetworkGameViewState.counterDecision;
-        break;
       case NetworkGamePhase.finalDefenseDecision:
-        viewState = NetworkGameViewState.finalDefenseDecision;
+        _fail(const NetworkRoundException('ROUND_MECHANIC_REMOVED'));
         break;
       case NetworkGamePhase.tieDecision:
         viewState = NetworkGameViewState.tieDecision;

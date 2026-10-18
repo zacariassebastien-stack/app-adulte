@@ -1,6 +1,8 @@
 import '../support/native_action_fixtures.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:couple_cards/domain/game/game_models.dart';
 
 import 'package:couple_cards/domain/profile/v4_profile.dart';
 import 'package:couple_cards/engines/runtime/v4_runtime_engine.dart';
@@ -72,6 +74,8 @@ void main() {
   test('session setup combines both profile and temporary accessories', () {
     final setup = V4SessionSetupDto(
       mode: V4SessionMode.hybrid,
+      style: PlayerStyle.EPICE,
+      status: 'ACCEPTED',
       players: [
         V4PlayerSessionSetupDto(
           playerId: 'alice',
@@ -102,6 +106,8 @@ void main() {
     );
     final restored = V4SessionSetupDto.fromJson({
       'mode': setup.mode!.name,
+      'style': setup.style!.name,
+      'status': setup.status,
       'players': [for (final player in setup.players) player.toJson()],
     });
     expect(restored.complete, isTrue);
@@ -187,42 +193,310 @@ void main() {
     );
   });
 
-  testWidgets('setup requires a non-negative clothing count and accepts zero', (
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+  for (final mode in V4SessionMode.values) {
+    testWidgets('host configures ${mode.name} and explicitly selects style', (
+      tester,
+    ) async {
+      final repo = _SetupRepository();
+      addTearDown(repo.close);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: V4SessionSetupScreen(
+            session: _session,
+            playerId: 'alice',
+            repository: repo,
+            profile: null,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.text(switch (mode) {
+          V4SessionMode.presentiel => 'Présentiel',
+          V4SessionMode.distance => 'Distance',
+          V4SessionMode.hybrid => 'Hybride',
+        }),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('setup-style-EPICE')));
+      await tester.ensureVisible(
+        find.byKey(const Key('initial-clothing-count')),
+      );
+      await tester.enterText(
+        find.byKey(const Key('initial-clothing-count')),
+        '0',
+      );
+      if (mode != V4SessionMode.distance) {
+        await tester.ensureVisible(
+          find.byKey(const Key('partner-clothing-count')),
+        );
+        await tester.enterText(
+          find.byKey(const Key('partner-clothing-count')),
+          '4',
+        );
+      } else {
+        expect(find.byKey(const Key('partner-clothing-count')), findsNothing);
+      }
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('submit-v4-session-setup')).hitTestable(),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.byKey(const Key('submit-v4-session-setup')));
+      await tester.pumpAndSettle();
+      expect(repo.state.mode, mode);
+      expect(repo.state.style, PlayerStyle.EPICE);
+      expect(
+        repo.proposedPlayers.length,
+        mode == V4SessionMode.distance ? 1 : 2,
+      );
+      expect(repo.state.complete, isFalse);
+    });
+    testWidgets('partner ${mode.name} sees summary and validates', (
+      tester,
+    ) async {
+      final repo = _SetupRepository()..state = _proposal(mode);
+      addTearDown(repo.close);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: V4SessionSetupScreen(
+            session: _session,
+            playerId: 'bob',
+            repository: repo,
+            profile: null,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('setup-style-EPICE')), findsNothing);
+      if (mode == V4SessionMode.distance) {
+        await tester.ensureVisible(
+          find.byKey(const Key('initial-clothing-count')),
+        );
+        await tester.enterText(
+          find.byKey(const Key('initial-clothing-count')),
+          '3',
+        );
+      } else {
+        expect(find.byType(TextField), findsNothing);
+      }
+      await tester.ensureVisible(
+        find.byKey(const Key('accept-v4-session-setup')),
+      );
+      await tester.tap(find.byKey(const Key('accept-v4-session-setup')));
+      await tester.pumpAndSettle();
+      expect(repo.state.complete, isTrue);
+      expect(
+        repo.responseEnvironment?.clothingCount,
+        mode == V4SessionMode.distance ? 3 : null,
+      );
+    });
+  }
+  testWidgets('refusal persists and host can revise without retyping', (
     tester,
   ) async {
-    final repository = _SetupRepository();
-    addTearDown(repository.close);
+    final repo = _SetupRepository()
+      ..state = _proposal(V4SessionMode.presentiel);
+    addTearDown(repo.close);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: V4SessionSetupScreen(
+          session: _session,
+          playerId: 'bob',
+          repository: repo,
+          profile: null,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const Key('refuse-v4-session-setup')),
+    );
+    await tester.tap(find.byKey(const Key('refuse-v4-session-setup')));
+    await tester.pumpAndSettle();
+    expect(repo.state.status, 'REFUSED');
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
     await tester.pumpWidget(
       MaterialApp(
         home: V4SessionSetupScreen(
           session: _session,
           playerId: 'alice',
-          repository: repository,
+          repository: repo,
           profile: null,
         ),
       ),
     );
-    await tester.pump();
-    await tester.enterText(
-      find.byKey(const Key('initial-clothing-count')),
-      '-1',
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Configuration refusée'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const Key('initial-clothing-count')))
+          .controller!
+          .text,
+      '2',
+    );
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('submit-v4-session-setup')).hitTestable(),
+      200,
+      scrollable: find.byType(Scrollable).first,
     );
     await tester.tap(find.byKey(const Key('submit-v4-session-setup')));
-    await tester.pump();
-    expect(find.byKey(const Key('setup-error')), findsOneWidget);
-    expect(repository.submittedCount, isNull);
+    await tester.pumpAndSettle();
+    expect(repo.state.status, 'PROPOSED');
+    expect(repo.state.revision, 2);
+    expect(repo.proposedPlayers.last.clothingCount, 4);
+  });
+  testWidgets('host assigns a temporary accessory to the partner environment', (
+    tester,
+  ) async {
+    final repo = _SetupRepository();
+    addTearDown(repo.close);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: V4SessionSetupScreen(
+          session: _session,
+          playerId: 'alice',
+          repository: repo,
+          profile: null,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('setup-style-SOFT')));
+    await tester.ensureVisible(find.byKey(const Key('initial-clothing-count')));
+    await tester.enterText(
+      find.byKey(const Key('initial-clothing-count')),
+      '2',
+    );
+    await tester.ensureVisible(find.byKey(const Key('partner-clothing-count')));
+    await tester.enterText(
+      find.byKey(const Key('partner-clothing-count')),
+      '4',
+    );
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('add-partner-temporary-accessory')).hitTestable(),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byKey(const Key('add-partner-temporary-accessory')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('temporary-accessory-name')),
+      'Accessoire partagé',
+    );
+    await tester.tap(find.text('EXTERNE'));
+    await tester.tap(find.text('Ajouter'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('submit-v4-session-setup')).hitTestable(),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byKey(const Key('submit-v4-session-setup')));
+    await tester.pumpAndSettle();
+    final a = repo.proposedPlayers
+        .singleWhere((p) => p.playerId == 'bob')
+        .accessories
+        .single;
+    expect(a.ownerPlayerId, 'bob');
+    expect(a.temporary, isTrue);
+    expect(a.name, 'Accessoire partagé');
+  });
+  for (final id in ['alice', 'bob']) {
+    testWidgets('accepted configuration automatically leaves setup for $id', (
+      tester,
+    ) async {
+      final repo = _SetupRepository()
+        ..state = _proposal(V4SessionMode.presentiel);
+      addTearDown(repo.close);
+      V4SessionSetupDto? completed;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => FilledButton(
+              onPressed: () async {
+                completed = await Navigator.of(context).push<V4SessionSetupDto>(
+                  MaterialPageRoute(
+                    builder: (_) => V4SessionSetupScreen(
+                      session: _session,
+                      playerId: id,
+                      repository: repo,
+                      profile: null,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Ouvrir'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Ouvrir'));
+      await tester.pumpAndSettle();
+      if (id == 'alice') {
+        await repo.respondSessionSetup(
+          sessionId: 'session',
+          revision: 1,
+          accepted: true,
+          commandId: 'peer-approval',
+        );
+      } else {
+        await tester.ensureVisible(
+          find.byKey(const Key('accept-v4-session-setup')),
+        );
+        await tester.tap(find.byKey(const Key('accept-v4-session-setup')));
+      }
+      await tester.pumpAndSettle();
+      expect(completed?.complete, isTrue);
+      expect(find.text('Ouvrir'), findsOneWidget);
+    });
+  }
+  testWidgets('unsent setup draft survives screen reconnection', (
+    tester,
+  ) async {
+    final repo = _SetupRepository();
+    addTearDown(repo.close);
+    Future<void> open() async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: V4SessionSetupScreen(
+            session: _session,
+            playerId: 'alice',
+            repository: repo,
+            profile: null,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
 
+    await open();
+    await tester.tap(find.byKey(const Key('setup-style-INTENABLE')));
+    await tester.ensureVisible(find.byKey(const Key('initial-clothing-count')));
     await tester.enterText(
       find.byKey(const Key('initial-clothing-count')),
-      '0',
+      '7',
     );
-    await tester.tap(find.text('HYBRID'));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox());
     await tester.pump();
-    await tester.tap(find.byKey(const Key('submit-v4-session-setup')));
-    await tester.pump();
-    expect(repository.submittedCount, 0);
-    expect(repository.submittedMode, V4SessionMode.hybrid);
-    expect(find.text('En attente de ton partenaire…'), findsOneWidget);
+    await open();
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const Key('initial-clothing-count')))
+          .controller!
+          .text,
+      '7',
+    );
+    await tester.ensureVisible(find.byKey(const Key('setup-style-INTENABLE')));
+    expect(
+      tester
+          .widget<ListTile>(find.byKey(const Key('setup-style-INTENABLE')))
+          .selected,
+      isTrue,
+    );
   });
 }
 
@@ -236,44 +510,92 @@ final _session = LobbySession(
     LobbyPlayer(userId: 'bob', role: LobbyPlayerRole.player2),
   ],
 );
+V4SessionSetupDto _proposal(V4SessionMode mode) => V4SessionSetupDto(
+  mode: mode,
+  style: PlayerStyle.EPICE,
+  status: 'PROPOSED',
+  revision: 1,
+  players: [
+    for (final id in ['alice', 'bob'])
+      V4PlayerSessionSetupDto(
+        playerId: id,
+        clothingCount: id == 'alice' ? 2 : 4,
+        accessories: const [],
+      ),
+  ],
+);
 
 final class _SetupRepository implements NetworkSessionSetupRepository {
   final updates = StreamController<V4SessionSetupDto>.broadcast();
-  int? submittedCount;
-  V4SessionMode? submittedMode;
-
-  Future<void> close() => updates.close();
-
-  V4SessionSetupDto get incomplete =>
-      V4SessionSetupDto(mode: null, players: const []);
-
-  @override
-  Future<V4SessionSetupDto> getV4SessionSetup(String sessionId) async =>
-      incomplete;
-
-  @override
-  Future<V4SessionSetupDto> submitV4SessionSetup({
-    required String sessionId,
-    required String playerId,
-    required int clothingCount,
-    required List<V4Accessory> accessories,
-    V4SessionMode? mode,
-  }) async {
-    submittedCount = clothingCount;
-    submittedMode = mode;
-    return V4SessionSetupDto(
-      mode: mode,
-      players: [
+  V4SessionSetupDto state = V4SessionSetupDto(
+    mode: null,
+    players: [
+      for (final id in ['alice', 'bob'])
         V4PlayerSessionSetupDto(
-          playerId: playerId,
-          clothingCount: clothingCount,
-          accessories: accessories,
+          playerId: id,
+          clothingCount: 0,
+          environmentReady: false,
+          accessories: const [],
         ),
-      ],
-    );
-  }
-
+    ],
+  );
+  List<V4PlayerSessionSetupDto> proposedPlayers = [];
+  V4PlayerSessionSetupDto? responseEnvironment;
+  Future<void> close() => updates.close();
+  @override
+  Future<V4SessionSetupDto> registerSetupAccessories({
+    required String sessionId,
+    required List<V4Accessory> accessories,
+  }) async => state;
+  @override
+  Future<V4SessionSetupDto> getV4SessionSetup(String sessionId) async => state;
   @override
   Stream<V4SessionSetupDto> watchV4SessionSetup(String sessionId) =>
       updates.stream;
+  @override
+  Future<V4SessionSetupDto> proposeSessionSetup({
+    required String sessionId,
+    required V4SessionMode mode,
+    required PlayerStyle style,
+    required List<V4PlayerSessionSetupDto> players,
+    required int expectedRevision,
+    required String commandId,
+  }) async {
+    proposedPlayers = players;
+    state = V4SessionSetupDto(
+      mode: mode,
+      style: style,
+      status: 'PROPOSED',
+      revision: expectedRevision + 1,
+      players: [
+        for (final old in state.players)
+          players.where((p) => p.playerId == old.playerId).firstOrNull ?? old,
+      ],
+    );
+    updates.add(state);
+    return state;
+  }
+
+  @override
+  Future<V4SessionSetupDto> respondSessionSetup({
+    required String sessionId,
+    required int revision,
+    required bool accepted,
+    V4PlayerSessionSetupDto? environment,
+    required String commandId,
+  }) async {
+    responseEnvironment = environment;
+    state = V4SessionSetupDto(
+      mode: state.mode,
+      style: state.style,
+      status: accepted ? 'ACCEPTED' : 'REFUSED',
+      revision: revision,
+      players: [
+        for (final p in state.players)
+          environment?.playerId == p.playerId ? environment! : p,
+      ],
+    );
+    updates.add(state);
+    return state;
+  }
 }

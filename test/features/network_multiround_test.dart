@@ -128,7 +128,7 @@ void main() {
 
       await _playUnequal(setup);
       final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-      await loser.acceptInitialResult();
+      await loser.skipCorruption();
       await _settle();
       final oldUsages = {
         for (final player in [setup.alice, setup.bob])
@@ -176,7 +176,7 @@ void main() {
       await repository.continueDeckCycle(
         expectedCycle: 1,
         command: command,
-        choice: DeckExhaustionChoice.continueSpicier,
+        choice: DeckExhaustionChoice.keepStyle,
       );
       await _settle();
       expect(setup.backend.deckCycle, 2);
@@ -221,7 +221,7 @@ void main() {
       await repository.continueDeckCycle(
         expectedCycle: 1,
         command: command,
-        choice: DeckExhaustionChoice.continueSpicier,
+        choice: DeckExhaustionChoice.keepStyle,
       );
       await _settle();
       expect(setup.backend.deckCycle, 2);
@@ -406,7 +406,7 @@ void main() {
       final completedRoundId = backend.round.id;
       await _playUnequal(setup, forceAliceCard: '001', avoidBobCard: '045');
       final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-      await loser.acceptInitialResult();
+      await loser.skipCorruption();
       await _settle();
       expect(backend.phase, NetworkGamePhase.finalResolved);
       await setup.alice.completeAction();
@@ -550,7 +550,7 @@ void main() {
       addTearDown(setup.dispose);
       await _playUnequal(setup);
       final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-      await loser.acceptInitialResult();
+      await loser.skipCorruption();
       await _settle();
       await setup.alice.completeAction();
       expect((await setup.alice.learning.state()).entries, isEmpty);
@@ -578,7 +578,7 @@ void main() {
       final setup = await _setup(session, catalog);
       await _playUnequal(setup);
       final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-      await loser.acceptInitialResult();
+      await loser.skipCorruption();
       await _settle();
       setup.backend.points['alice'] = 10;
       setup.backend.round.phase = NetworkGamePhase.recovery;
@@ -723,67 +723,50 @@ void main() {
     },
   );
 
-  test(
-    'settled PA unlocks both clients immediately and survives retry/reconnect',
-    () async {
-      final stores = {
-        for (final id in ['alice', 'bob']) id: MemoryNetworkDuelSecretStore(),
-      };
-      final setup = await _setup(
-        session,
-        catalog,
-        aliceSecrets: stores['alice'],
-        bobSecrets: stores['bob'],
-      );
-      addTearDown(setup.dispose);
-      await _playUnequal(setup);
-      final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-      final winner = loser == setup.alice ? setup.bob : setup.alice;
-      final initialSpending = setup.backend.totalPaSpent;
-      await loser.submitCounterBid(40, AuctionTarget.OWN_INITIAL_ACTION);
-      await _settle();
-      expect(setup.backend.totalPaSpent, initialSpending + 40);
-      expect(setup.backend.phase, NetworkGamePhase.finalDefenseDecision);
-      expect(setup.alice.activeSpice, 2);
-      expect(setup.bob.activeSpice, 2);
-      await setup.backend
-          .repository(loser.playerId)
-          .submitCounterDecision(
-            command: _command(
-              'game:session-multi:round-1:${loser.playerId}:counter_decision',
-              loser.playerId,
-              'COUNTER_DECISION',
-              setup.backend.round.id,
-            ),
-            decision: CounterDecision.bid,
-            amount: 40,
-            target: AuctionTarget.OWN_INITIAL_ACTION,
-          );
-      setup.backend.notifyTwice();
-      await _settle();
-      expect(setup.backend.totalPaSpent, initialSpending + 40);
-      await winner.submitFinalDefense(60);
-      await _settle();
-      expect(setup.backend.totalPaSpent, initialSpending + 100);
-      expect(setup.alice.activeSpice, 3);
-      expect(setup.bob.activeSpice, 3);
-      for (final id in ['alice', 'bob']) {
-        final reconnected = _controller(
-          setup.backend,
-          session,
-          catalog,
-          id,
-          stores[id]!,
-        );
-        addTearDown(reconnected.dispose);
-        await reconnected.start();
-        expect(reconnected.activeSpice, 3);
-        expect(setup.backend.totalPaSpent, initialSpending + 100);
-      }
-      expect(setup.backend.counterApplications, 1);
-      expect(setup.backend.defenseApplications, 1);
-    },
-  );
+
+
+  for(final style in PlayerStyle.values){
+    test('first hand receives canonical initial ${style.name} style',()async{
+      final backend=_Backend()..deckStyle=style;
+      final player=_controller(backend,session,catalog,'alice',MemoryNetworkDuelSecretStore());addTearDown(player.dispose);
+      await player.start();
+      expect(player.deckStyle,style);expect(player.hand,isNotEmpty);expect(player.activeSpice,1);
+      final saved=await player.privateStore.loadGame(sessionId:session.id,playerId:'alice');
+      expect(saved!.deckStyle,style);
+    });
+  }
+  test('cycle increase waits for peer; refusal, retry and 80 PA thresholds are canonical',()async{
+    final backend=_Backend()..cycleExhausted=true;
+    backend.points..['alice']=60..['bob']=60;
+    backend.round.phase=NetworkGamePhase.waitingNext;
+    final alice=backend.repository('alice') as NetworkSessionFlowRepository;
+    final bob=backend.repository('bob') as NetworkSessionFlowRepository;
+    Future<NetworkGameRoundStateDto> vote(NetworkSessionFlowRepository repo,String player,String id,DeckExhaustionChoice choice,int revision)=>repo.continueDeckCycle(command:_command(id,player,'CONTINUE_CYCLE',backend.round.id),choice:choice,expectedCycle:1,expectedStyleRevision:revision);
+    await vote(alice,'alice','proposal',DeckExhaustionChoice.continueSpicier,0);
+    expect(backend.deckStyle,PlayerStyle.SOFT);expect(backend.deckCycle,1);
+    expect(backend.state('alice').v4UnlockedSpice,2);
+    await vote(bob,'bob','refusal',DeckExhaustionChoice.refuseStyle,1);
+    expect(backend.deckStyle,PlayerStyle.SOFT);expect(backend.deckCycle,1);
+    await vote(alice,'alice','proposal-2',DeckExhaustionChoice.continueSpicier,2);
+    final accepted=await vote(bob,'bob','agreement',DeckExhaustionChoice.continueSpicier,3);
+    expect(accepted.deckStyle,PlayerStyle.EPICE);expect(accepted.v4UnlockedSpice,3);
+    expect(backend.deckCycle,2);expect(backend.totalPaSpent,80);
+    await vote(bob,'bob','agreement',DeckExhaustionChoice.continueSpicier,3);
+    expect(backend.deckCycle,2);
+  });
+  test('duel directly offers post-duel choice and compromise keeps its winner',()async{
+    final setup=await _setup(session,catalog);addTearDown(setup.dispose);
+    await _playUnequal(setup);
+    final winner=setup.alice.isInitialWinner?setup.alice:setup.bob;
+    final loser=winner==setup.alice?setup.bob:setup.alice;
+    expect(loser.viewState,NetworkGameViewState.corruptionDecision);
+    expect(loser.isCorruptionActor,isTrue);
+    final originalWinner=winner.playerId;
+    await loser.proposeNegotiation(inversion:false,directPa:6);
+    await _settle();await winner.respondNegotiation(accepted:true);await _settle();
+    expect(loser.finalWinnerId,originalWinner);expect(winner.finalWinnerId,originalWinner);
+    expect(setup.backend.counterApplications,0);expect(setup.backend.defenseApplications,0);
+  });
 
   test('auction accepts only eligible discard occurrences', () async {
     final focusedCatalog = _catalogWithCards(catalog, {
@@ -900,7 +883,6 @@ void main() {
     await _playUnequal(setup, forceAliceCard: '001');
     expect(setup.alice.isInitialLoser, isTrue);
     backend.routeToUnifiedPostDuelChoice = true;
-    await setup.alice.acceptInitialResult();
     await _settle();
     final controller = setup.alice;
     expect(controller.activeSpice, 1);
@@ -957,8 +939,6 @@ void main() {
           } else {
             await _playUnequal(setup, requireInvertibleWinner: true);
             setup.backend.routeToUnifiedPostDuelChoice = true;
-            final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-            await loser.acceptInitialResult();
           }
           await _settle();
           final actor = setup.alice.isNegotiationProposer
@@ -1126,7 +1106,7 @@ void main() {
     expect(source.usageId, isNotEmpty);
     final originalSnapshot = source.toJson();
     final firstLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-    await firstLoser.acceptInitialResult();
+    await firstLoser.skipCorruption();
     await _settle();
     await _completeResolvedAction(setup);
     await _settle();
@@ -1148,7 +1128,6 @@ void main() {
     await _playUnequal(setup, forceAliceCard: '001', avoidBobCard: '003');
     backend.routeToUnifiedPostDuelChoice = true;
     expect(setup.alice.isInitialLoser, isTrue);
-    await setup.alice.acceptInitialResult();
     await _settle();
     final loser = setup.alice;
     final winner = setup.bob;
@@ -1246,7 +1225,7 @@ void main() {
       expect(source.usageId, isNotEmpty);
       final originalSnapshot = source.toJson();
       final firstLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-      await firstLoser.acceptInitialResult();
+      await firstLoser.skipCorruption();
       await _settle();
       await _completeResolvedAction(setup);
       await _settle();
@@ -1268,7 +1247,6 @@ void main() {
       await _playUnequal(setup, forceAliceCard: '001', avoidBobCard: '003');
       backend.routeToUnifiedPostDuelChoice = true;
       expect(setup.alice.isInitialLoser, isTrue);
-      await setup.alice.acceptInitialResult();
       await _settle();
       final loser = setup.alice;
       final winner = setup.bob;
@@ -1768,7 +1746,7 @@ void main() {
       expect(newUsage.cycle, 2);
       expect(newUsage.usageId, isNot(oldSources['alice']!.usageId));
       final loser = controller.isInitialLoser ? controller : bob;
-      await loser.acceptInitialResult();
+      await loser.skipCorruption();
       await _settle();
       await _completeResolvedAction(setup);
       await _settle();
@@ -1861,7 +1839,7 @@ void main() {
               'CONTINUE_CYCLE',
               backend.round.id,
             ),
-            choice: DeckExhaustionChoice.continueSpicier,
+            choice: DeckExhaustionChoice.keepStyle,
           ),
       throwsA(
         isA<NetworkRoundException>().having(
@@ -1917,7 +1895,7 @@ void main() {
     final setup = await _setup(session, catalog);
     await _playUnequal(setup);
     final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-    await loser.acceptInitialResult();
+    await loser.skipCorruption();
     await _settle();
 
     await setup.alice.completeAction();
@@ -4028,7 +4006,7 @@ void main() {
       await pumpOperations();
       expect(alice.initialResolution, isNotNull);
       final loser = alice.isInitialLoser ? alice : bob;
-      unawaited(loser.acceptInitialResult());
+      unawaited(loser.skipCorruption());
       await pumpOperations();
       expect(tester.takeException(), isNull);
       expect(backend.phase, NetworkGamePhase.finalResolved);
@@ -4634,7 +4612,7 @@ void main() {
       await _playUnequal(setup, avoidAliceCard: locked);
       final initial = setup.alice.initialResolution!;
       final loser = initial.loserPlayerId == 'alice' ? setup.alice : setup.bob;
-      await loser.acceptInitialResult();
+      await loser.skipCorruption();
       await _settle();
       final beforeReady = Map<String, int>.from(setup.alice.actionPoints);
       await setup.alice.completeAction();
@@ -4676,7 +4654,7 @@ void main() {
       final loser = setup.alice.initialResolution!.loserPlayerId == 'alice'
           ? setup.alice
           : setup.bob;
-      await loser.acceptInitialResult();
+      await loser.skipCorruption();
       await setup.alice.completeAction();
       await _settle();
       expect(
@@ -4704,60 +4682,7 @@ void main() {
     },
   );
 
-  test('counter bid spends once, survives loss and adds no gap cost', () async {
-    final setup = await _setup(session, catalog);
-    await _playUnequal(setup);
-    final initial = setup.alice.initialResolution!;
-    final loser = initial.loserPlayerId == 'alice' ? setup.alice : setup.bob;
-    final winner = initial.winnerPlayerId == 'alice' ? setup.alice : setup.bob;
-    final afterGap = Map<String, int>.from(loser.actionPoints);
-    await loser.submitCounterBid(2, AuctionTarget.OWN_INITIAL_ACTION);
-    await _settle();
-    expect(loser.actionPoints[loser.playerId], afterGap[loser.playerId]! - 2);
-    expect(setup.backend.counterApplications, 1);
-    await setup.backend
-        .repository(loser.playerId)
-        .submitCounterDecision(
-          command: _command(
-            'game:session-multi:round-1:${loser.playerId}:counter_decision',
-            loser.playerId,
-            'COUNTER_DECISION',
-            setup.backend.round.id,
-          ),
-          decision: CounterDecision.bid,
-          amount: 2,
-          target: AuctionTarget.OWN_INITIAL_ACTION,
-        );
-    expect(setup.backend.counterApplications, 1);
-    await winner.submitFinalDefense(3);
-    await _settle();
-    expect(loser.actionPoints[loser.playerId], afterGap[loser.playerId]! - 2);
-    expect(
-      winner.actionPoints[winner.playerId],
-      afterGap[winner.playerId]! - 3,
-    );
-    expect(setup.backend.defenseApplications, 1);
-    await setup.backend
-        .repository(winner.playerId)
-        .submitFinalDefense(
-          command: _command(
-            'game:session-multi:round-1:${winner.playerId}:final_defense',
-            winner.playerId,
-            'FINAL_DEFENSE',
-            setup.backend.round.id,
-          ),
-          decision: FinalDefenseDecision.defend,
-          amount: 3,
-        );
-    expect(setup.backend.defenseApplications, 1);
-    expect(winner.finalResolution!.retainedPlayerId, winner.playerId);
-    setup.backend.notifyTwice();
-    await _settle();
-    expect(setup.backend.initialApplications, 1);
-    expect(setup.backend.counterApplications, 1);
-    expect(setup.backend.defenseApplications, 1);
-    setup.dispose();
-  });
+
 
   test(
     'learning waits for both Terminé and remains idempotent after reconnect',
@@ -4785,7 +4710,7 @@ void main() {
       final setup = _Setup(backend, alice, bob);
       await _playUnequal(setup);
       final loser = alice.isInitialLoser ? alice : bob;
-      await loser.acceptInitialResult();
+      await loser.skipCorruption();
       await _settle();
 
       expect(backend.phase, NetworkGamePhase.finalResolved);
@@ -4849,7 +4774,7 @@ void main() {
     final setup = _Setup(backend, alice, bob);
     await _playUnequal(setup);
     final loser = alice.isInitialLoser ? alice : bob;
-    await loser.acceptInitialResult();
+    await loser.skipCorruption();
     await _settle();
 
     await alice.completeAction();
@@ -4860,204 +4785,11 @@ void main() {
     expect(learning.appliedEventIds['alice'], anyOf(isNull, isEmpty));
   });
 
-  test('equal, insufficient, excessive and third bids are rejected', () async {
-    final setup = await _setup(session, catalog);
-    await _playUnequal(setup);
-    final initial = setup.alice.initialResolution!;
-    final loser = initial.loserPlayerId == 'alice' ? setup.alice : setup.bob;
-    final winner = initial.winnerPlayerId == 'alice' ? setup.alice : setup.bob;
-    await expectLater(
-      loser.submitCounterBid(0, AuctionTarget.OWN_INITIAL_ACTION),
-      throwsArgumentError,
-    );
-    await expectLater(
-      loser.submitCounterBid(1000, AuctionTarget.OWN_INITIAL_ACTION),
-      throwsStateError,
-    );
-    await loser.submitCounterBid(2, AuctionTarget.OWN_INITIAL_ACTION);
-    await _settle();
-    await expectLater(winner.submitFinalDefense(2), throwsArgumentError);
-    await winner.submitFinalDefense(3);
-    await _settle();
-    final before = Map<String, int>.from(winner.actionPoints);
-    await winner.submitFinalDefense(4);
-    await loser.submitCounterBid(4, AuctionTarget.OWN_INITIAL_ACTION);
-    expect(winner.actionPoints, before);
-    setup.dispose();
-  });
 
-  test(
-    'winner can renounce and inversion preserves initial snapshot semantics',
-    () async {
-      final setup = await _setup(session, catalog);
-      final hasPlayableInvertibleWinner =
-          [
-            for (final a in setup.alice.hand.where(setup.alice.isCardPlayable))
-              for (final b in setup.bob.hand.where(setup.bob.isCardPlayable))
-                if (a.personalValue != b.personalValue)
-                  (a.personalValue > b.personalValue ? a : b),
-          ].any(
-            (winner) =>
-                winner.variant.invertible &&
-                (winner.nativeDirection == CardOccurrenceDirection.FAIRE ||
-                    winner.nativeDirection ==
-                        CardOccurrenceDirection.RECEVOIR) &&
-                winner.oppositePersonalValue != null,
-          );
-      expect(hasPlayableInvertibleWinner, isTrue);
-      addTearDown(setup.dispose);
-      await _playUnequal(setup, requireInvertibleWinner: true);
-      final initial = setup.alice.initialResolution!;
-      final loser = initial.loserPlayerId == 'alice' ? setup.alice : setup.bob;
-      final winner = initial.winnerPlayerId == 'alice'
-          ? setup.alice
-          : setup.bob;
-      expect(initial.inversionAllowed, isTrue);
-      final winnerReveal = setup.backend.round.reveals[winner.playerId]!;
-      final winnerUsage = winner.usageCheckpoint.usagesByIntent.values.single;
-      final originalSnapshots = {
-        for (final player in [setup.alice, setup.bob])
-          player.playerId: player.usageCheckpoint.encode(),
-      };
-      final originalReveal = winnerReveal.toJson();
-      final initialJson = initial.toJson();
-      final pointsBefore = Map<String, int>.of(setup.backend.points);
-      final resolutionsBefore =
-          setup.alice.resolutionCount + setup.bob.resolutionCount;
-      expect(winnerUsage.invertedAction, isNotNull);
-      expect(winnerUsage.usageId, winnerReveal.choice.usageId);
-      expect(setup.backend.phase, NetworkGamePhase.counterDecision);
-      await loser.submitCounterBid(2, AuctionTarget.INVERT_WINNING_ACTION);
-      await _settle();
-      expect(setup.backend.phase, NetworkGamePhase.finalDefenseDecision);
-      expect(winner.viewState, NetworkGameViewState.finalDefenseDecision);
-      expect(
-        setup.backend.round.counter!.target,
-        AuctionTarget.INVERT_WINNING_ACTION,
-      );
-      expect(
-        setup.backend.points[loser.playerId],
-        pointsBefore[loser.playerId]! - 2,
-      );
-      await winner.yieldFinalDefense();
-      await _settle();
-      final finalResult = winner.finalResolution!;
-      expect(finalResult.inverted, isTrue);
-      expect(finalResult.initialWinnerPlayerId, initial.winnerPlayerId);
-      expect(finalResult.finalWinnerPlayerId, loser.playerId);
-      expect(finalResult.cardId, winnerUsage.conceptId);
-      expect(finalResult.usageId, winnerUsage.usageId);
-      final executed = finalResult.compromise.single.usage;
-      final expected = winnerReveal.choice.usage!.resolved(inverted: true);
-      expect(executed.toJson(), expected.toJson());
-      expect(executed.usageId, winnerUsage.usageId);
-      expect(
-        executed.resolvedAction['direction'],
-        winnerUsage.invertedAction!.direction.name,
-      );
-      expect(
-        executed.resolvedAction['actor_player_ids'],
-        winnerUsage.invertedAction!.actorPlayerIds,
-      );
-      expect(
-        executed.resolvedAction['target_player_ids'],
-        winnerUsage.invertedAction!.targetPlayerIds,
-      );
-      expect(
-        executed.snapshotValue,
-        winnerUsage.invertedAction!.personalValues.single.value,
-      );
-      expect(winner.initialResolution!.toJson(), initialJson);
-      expect(
-        setup.backend.round.reveals[winner.playerId]!.toJson(),
-        originalReveal,
-      );
-      expect(setup.backend.points, {
-        ...pointsBefore,
-        loser.playerId: pointsBefore[loser.playerId]! - 2,
-      });
-      for (final player in [setup.alice, setup.bob]) {
-        expect(
-          player.usageCheckpoint.encode(),
-          originalSnapshots[player.playerId],
-        );
-        expect(player.usageCheckpoint.reservationsByIntent, isEmpty);
-      }
-      final finalJson = finalResult.toJson();
-      final pointsAfter = Map<String, int>.of(setup.backend.points);
-      await winner.yieldFinalDefense();
-      await setup.backend
-          .repository(winner.playerId)
-          .submitFinalDefense(
-            command: _command(
-              'game:session-multi:round-1:${winner.playerId}:final_defense',
-              winner.playerId,
-              'FINAL_DEFENSE',
-              setup.backend.round.id,
-            ),
-            decision: FinalDefenseDecision.renounce,
-          );
-      setup.backend.notifyTwice();
-      await _settle();
-      final reconnect = _controller(
-        setup.backend,
-        session,
-        catalog,
-        winner.playerId,
-        winner.privateStore,
-      );
-      try {
-        await reconnect.start();
-        await _settle();
-        expect(reconnect.finalResolution!.toJson(), finalJson);
-        expect(
-          reconnect.usageCheckpoint.encode(),
-          originalSnapshots[winner.playerId],
-        );
-        expect(reconnect.initialResolution!.toJson(), initialJson);
-        expect(setup.backend.points, pointsAfter);
-        expect(setup.backend.initialApplications, 1);
-        expect(setup.backend.counterApplications, 1);
-        expect(
-          setup.alice.resolutionCount + setup.bob.resolutionCount,
-          resolutionsBefore,
-        );
-        expect(reconnect.resolutionCount, 0);
-      } finally {
-        reconnect.dispose();
-      }
-    },
-  );
 
-  test('inversion is refused when catalog winner is not invertible', () async {
-    final setup = await _setup(session, catalog);
-    final hasNonInvertibleWinningPair = [
-      for (final alice in setup.alice.hand)
-        for (final bob in setup.bob.hand)
-          if (alice.personalValue != bob.personalValue)
-            (alice.personalValue > bob.personalValue ? alice : bob),
-    ].any((winner) => !winner.variant.invertible);
-    if (!hasNonInvertibleWinningPair) {
-      expect(
-        catalog.cards
-            .map((card) => const CatalogEngineAdapter.v4().card(card))
-            .expand((card) => card.variants)
-            .any((variant) => variant.invertible == false),
-        isTrue,
-      );
-      setup.dispose();
-      return;
-    }
-    await _playUnequal(setup, requireNonInvertibleWinner: true);
-    final initial = setup.alice.initialResolution!;
-    final loser = initial.loserPlayerId == 'alice' ? setup.alice : setup.bob;
-    expect(initial.inversionAllowed, isFalse);
-    await expectLater(
-      loser.submitCounterBid(2, AuctionTarget.INVERT_WINNING_ACTION),
-      throwsStateError,
-    );
-    setup.dispose();
-  });
+
+
+
 
   test(
     'tie spends no PA and supports either concession or mutual abandon',
@@ -5109,68 +4841,7 @@ void main() {
     },
   );
 
-  test(
-    'reconnect resumes commit, auction, final result and waiting-next',
-    () async {
-      final backend = _Backend();
-      final aliceStore = MemoryNetworkDuelSecretStore();
-      final bobStore = MemoryNetworkDuelSecretStore();
-      var alice = _controller(backend, session, catalog, 'alice', aliceStore);
-      final bob = _controller(backend, session, catalog, 'bob', bobStore);
-      await Future.wait([alice.start(), bob.start()]);
-      alice.selectCard(alice.hand.firstWhere(alice.isCardPlayable).identity);
-      final aliceValue = alice.selectedCard!.personalValue;
-      await alice.confirmSelection();
-      final savedPoints = Map<String, int>.from(alice.actionPoints);
-      final savedHandIds = alice.hand.map((card) => card.id).toList();
-      final savedZones = {
-        for (final card in alice.runtime) card.cardId: card.zone,
-      };
-      alice.dispose();
-      alice = _controller(backend, session, catalog, 'alice', aliceStore);
-      await alice.start();
-      expect(alice.viewState, NetworkGameViewState.waitingForPartner);
-      expect(alice.actionPoints, savedPoints);
-      expect(alice.hand.map((card) => card.id), savedHandIds);
-      expect({
-        for (final card in alice.runtime) card.cardId: card.zone,
-      }, savedZones);
-      await _chooseUnequalPartner(bob, aliceValue);
-      await _settle();
-      expect(alice.initialResolution, isNotNull);
-      alice.dispose();
-      alice = _controller(backend, session, catalog, 'alice', aliceStore);
-      await alice.start();
-      expect(
-        alice.viewState,
-        anyOf(
-          NetworkGameViewState.counterDecision,
-          NetworkGameViewState.finalDefenseDecision,
-        ),
-      );
-      final loser = alice.initialResolution!.loserPlayerId == 'alice'
-          ? alice
-          : bob;
-      await loser.acceptInitialResult();
-      await _settle();
-      alice.dispose();
-      alice = _controller(backend, session, catalog, 'alice', aliceStore);
-      await alice.start();
-      expect(alice.viewState, NetworkGameViewState.actionInProgress);
-      await alice.completeAction();
-      await bob.completeAction();
-      await _settle();
-      alice.dispose();
-      alice = _controller(backend, session, catalog, 'alice', aliceStore);
-      await alice.start();
-      expect(backend.initialApplications, 1);
-      expect(alice.roundNumber, 2);
-      expect(alice.viewState, NetworkGameViewState.choosing);
-      expect(alice.hand, hasLength(const BalanceConfig().handSize));
-      alice.dispose();
-      bob.dispose();
-    },
-  );
+
 
   test('reconnect restores the canonical frozen action snapshot', () async {
     final backend = _Backend();
@@ -6121,7 +5792,7 @@ void main() {
     addTearDown(setup.dispose);
     await _playUnequal(setup);
     final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-    await loser.acceptInitialResult();
+    await loser.skipCorruption();
     await _settle();
     await _completeResolvedAction(setup);
 
@@ -6140,7 +5811,7 @@ void main() {
       final setup = await _setup(session, catalog);
       await _playUnequal(setup);
       final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-      await loser.acceptInitialResult();
+      await loser.skipCorruption();
       await _settle();
       setup.backend.points['alice'] = 10;
       setup.backend.points['bob'] = 11;
@@ -6412,7 +6083,7 @@ void main() {
       final partner = identical(recovering, setup.alice)
           ? setup.bob
           : setup.alice;
-      await recovering.acceptInitialResult();
+      await recovering.skipCorruption();
       await _settle();
       setup.backend.points[recovering.playerId] = 10;
       setup.backend.points[partner.playerId] = 11;
@@ -6846,17 +6517,6 @@ Future<void> _playUnequal(
   );
 }
 
-Future<void> _chooseUnequalPartner(
-  NetworkGameController bob,
-  int opponentValue,
-) async {
-  final partner = bob.hand.firstWhere(
-    (card) => bob.isCardPlayable(card) && card.personalValue != opponentValue,
-  );
-  bob.selectCard(partner.identity);
-  await bob.confirmSelection();
-}
-
 Future<_Setup> _setupCorruption(
   LobbySession session,
   Catalog catalog, {
@@ -6922,14 +6582,14 @@ Future<void> _reachSecondResolved(_Setup setup) async {
   final firstBob =
       setup.bob.usageCheckpoint.usagesByIntent.values.single.conceptId;
   final firstLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-  await firstLoser.acceptInitialResult();
+  await firstLoser.skipCorruption();
   await _settle();
   await _completeResolvedAction(setup);
   await _cycleController(setup).completeAction();
   await _settle();
   await _playUnequal(setup, avoidAliceCard: firstAlice, avoidBobCard: firstBob);
   final secondLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-  await secondLoser.acceptInitialResult();
+  await secondLoser.skipCorruption();
   await _settle();
 }
 
@@ -7186,6 +6846,10 @@ final class _Backend {
   bool infiniteMode = false;
   PlayerStyle deckStyle = PlayerStyle.SOFT;
   int v4UnlockedSpice = 1;
+  PlayerStyle? cycleStyleProposal;
+  String? cycleStyleProposer;
+  int cycleStyleRevision=0;
+  Map<String,bool> cycleStyleVotes={};
   int recoveryCredits = 0;
   int get totalPaSpent =>
       200 + recoveryCredits - points.values.fold(0, (sum, pa) => sum + pa);
@@ -7237,6 +6901,7 @@ final class _Backend {
       v4ConsumedUsageIds: consumedCompromiseOccurrences[player],
       v4PersistentEffects: persistentEffects,
       cycleExhausted: cycleExhausted,
+      cycleStyleProposal:cycleStyleProposal,cycleStyleProposer:cycleStyleProposer,cycleStyleRevision:cycleStyleRevision,cycleStyleVotes:cycleStyleVotes,
       actionProjection: round.actionProjection,
       clothingCounts: clothingCounts,
       clothingResyncedPlayerIds: clothingResynced,
@@ -7363,6 +7028,7 @@ class _Repository
     required NetworkCommandDto command,
     required DeckExhaustionChoice choice,
     required int expectedCycle,
+    int expectedStyleRevision = 0,
   }) async {
     if (choice == DeckExhaustionChoice.finish ||
         choice == DeckExhaustionChoice.newCustomizedGame) {
@@ -7381,23 +7047,21 @@ class _Repository
       throw const NetworkRoundException('ROUND_CYCLE_NOT_EXHAUSTED');
     }
     backend.commands.add(command.commandId);
-    if (choice != DeckExhaustionChoice.newCustomizedGame &&
-        choice != DeckExhaustionChoice.finish) {
+    if(expectedStyleRevision!=backend.cycleStyleRevision)throw const NetworkRoundException('ROUND_STYLE_STALE');
+    final increase=choice==DeckExhaustionChoice.continueSpicier||choice==DeckExhaustionChoice.continueIntenable;
+    if(choice==DeckExhaustionChoice.refuseStyle){
+      backend.cycleStyleProposal=null;backend.cycleStyleVotes={player:false};backend.cycleStyleRevision++;
+    }else if(increase&&backend.deckStyle!=PlayerStyle.INTENABLE&&backend.cycleStyleProposal==null){
+      backend.cycleStyleProposal=backend.deckStyle==PlayerStyle.SOFT?PlayerStyle.EPICE:PlayerStyle.INTENABLE;
+      backend.cycleStyleProposer=player;backend.cycleStyleVotes={player:true};backend.cycleStyleRevision++;
+    }else{
+      if(increase&&backend.cycleStyleProposer==player)throw const NetworkRoundException('ROUND_STYLE_NOT_AGREED');
       backend.deckCycle++;
-      backend.infiniteMode =
-          backend.infiniteMode || choice == DeckExhaustionChoice.infinite;
-      backend.deckStyle = switch (choice) {
-        DeckExhaustionChoice.continueSpicier =>
-          backend.deckStyle == PlayerStyle.SOFT
-              ? PlayerStyle.EPICE
-              : PlayerStyle.INTENABLE,
-        DeckExhaustionChoice.continueIntenable => PlayerStyle.INTENABLE,
-        _ => backend.deckStyle,
-      };
-      backend.consumedCompromiseOccurrences['alice']!.clear();
-      backend.consumedCompromiseOccurrences['bob']!.clear();
+      if(increase)backend.deckStyle=backend.cycleStyleProposal??backend.deckStyle;
+      backend.infiniteMode=backend.infiniteMode||choice==DeckExhaustionChoice.infinite;
+      backend.cycleStyleProposal=null;backend.cycleStyleVotes={};backend.cycleStyleRevision++;
+      backend.consumedCompromiseOccurrences['alice']!.clear();backend.consumedCompromiseOccurrences['bob']!.clear();backend.cycleExhausted=false;
     }
-    backend.cycleExhausted = false;
     _notify();
     return backend.state(player);
   }
@@ -7579,94 +7243,12 @@ class _Repository
       ..addAll(resolution.actionPoints);
     backend.round.phase = resolution.tied
         ? NetworkGamePhase.tieDecision
-        : NetworkGamePhase.counterDecision;
+        : NetworkGamePhase.corruptionDecision;
+    if(backend.round.initial?.winnerPlayerId case final winner?){
+      backend.points[winner]=backend.points[winner]!-backend.round.initial!.gapCost;
+      backend.round.finalResolution=_finalChoice(winner,winner);
+    }
     backend.initialApplications++;
-    _notify();
-    return backend.state(player);
-  }
-
-  @override
-  Future<NetworkGameRoundStateDto> submitCounterDecision({
-    required NetworkCommandDto command,
-    required CounterDecision decision,
-    int? amount,
-    AuctionTarget? target,
-  }) async {
-    if (!_accept(command)) return backend.state(player);
-    final initial = backend.round.initial!;
-    if (backend.phase != NetworkGamePhase.counterDecision ||
-        initial.loserPlayerId != player) {
-      throw const NetworkRoundException('ROUND_INVALID_PHASE');
-    }
-    if (decision == CounterDecision.accept) {
-      backend.round.finalResolution = _finalChoice(
-        initial.winnerPlayerId!,
-        initial.winnerPlayerId!,
-      );
-      backend.round.phase = backend.routeToUnifiedPostDuelChoice
-          ? NetworkGamePhase.corruptionDecision
-          : NetworkGamePhase.finalResolved;
-    } else {
-      if (amount == null || amount <= 0 || amount > backend.points[player]!) {
-        throw const NetworkRoundException('ROUND_INVALID_BID');
-      }
-      if (target == AuctionTarget.INVERT_WINNING_ACTION &&
-          !initial.inversionAllowed) {
-        throw const NetworkRoundException('ROUND_INVERSION_FORBIDDEN');
-      }
-      backend.points[player] = backend.points[player]! - amount;
-      backend.round.counter = NetworkAuctionBidDto(
-        playerId: player,
-        amount: amount,
-        target: target!,
-      );
-      backend.round.phase = NetworkGamePhase.finalDefenseDecision;
-      backend.counterApplications++;
-    }
-    _notify();
-    return backend.state(player);
-  }
-
-  @override
-  Future<NetworkGameRoundStateDto> submitFinalDefense({
-    required NetworkCommandDto command,
-    required FinalDefenseDecision decision,
-    int? amount,
-  }) async {
-    if (!_accept(command)) return backend.state(player);
-    final initial = backend.round.initial!;
-    final counter = backend.round.counter!;
-    if (backend.phase != NetworkGamePhase.finalDefenseDecision ||
-        initial.winnerPlayerId != player) {
-      throw const NetworkRoundException('ROUND_INVALID_PHASE');
-    }
-    if (decision == FinalDefenseDecision.defend) {
-      if (amount == null ||
-          amount <= counter.amount ||
-          amount > backend.points[player]!) {
-        throw const NetworkRoundException('ROUND_INVALID_BID');
-      }
-      backend.points[player] = backend.points[player]! - amount;
-      backend.round.defense = NetworkAuctionBidDto(
-        playerId: player,
-        amount: amount,
-        target: counter.target,
-      );
-      backend.round.finalResolution = _finalChoice(player, player);
-      backend.defenseApplications++;
-    } else if (counter.target == AuctionTarget.OWN_INITIAL_ACTION) {
-      backend.round.finalResolution = _finalChoice(
-        initial.loserPlayerId!,
-        initial.loserPlayerId!,
-      );
-    } else {
-      backend.round.finalResolution = _finalChoice(
-        initial.winnerPlayerId!,
-        initial.loserPlayerId!,
-        inverted: true,
-      );
-    }
-    backend.round.phase = NetworkGamePhase.finalResolved;
     _notify();
     return backend.state(player);
   }
@@ -7680,7 +7262,7 @@ class _Repository
     return NetworkFinalResolutionDto(
       retainedPlayerId: retained,
       initialWinnerPlayerId: backend.round.initial?.winnerPlayerId,
-      finalWinnerPlayerId: retained,
+      finalWinnerPlayerId: backend.round.initial?.winnerPlayerId ?? retained,
       cardId: choice.cardId,
       variantId: choice.variantId,
       usageId: choice.usageId,
@@ -8188,7 +7770,11 @@ final class _PrivateResolutionRepository extends _Repository
     );
     backend.round.phase = tied
         ? NetworkGamePhase.tieDecision
-        : NetworkGamePhase.counterDecision;
+        : NetworkGamePhase.corruptionDecision;
+    if(backend.round.initial?.winnerPlayerId case final winner?){
+      backend.points[winner]=backend.points[winner]!-backend.round.initial!.gapCost;
+      backend.round.finalResolution=_finalChoice(winner,winner);
+    }
     backend.initialApplications++;
     _notify();
     return backend.state(player);

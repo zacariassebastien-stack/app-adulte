@@ -7,7 +7,6 @@ import '../../domain/game/game_models.dart';
 import '../../domain/profile/adaptive_profile.dart';
 import '../../domain/profile/v4_profile.dart';
 import '../../domain/catalog/v4_catalog.dart';
-import '../../engines/auction/auction_engine.dart';
 import '../../engines/corruption/corruption_engine.dart';
 import '../../engines/deck/deck_cycle_state.dart';
 import '../../engines/recovery/recovery_engine.dart';
@@ -200,8 +199,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     NetworkGameViewState.negotiationResponse => _negotiationResponse(),
     NetworkGameViewState.negotiationAdaptation => _negotiationAdaptation(),
     NetworkGameViewState.negotiationValidation => _negotiationValidation(),
-    NetworkGameViewState.counterDecision => _counterDecision(),
-    NetworkGameViewState.finalDefenseDecision => _finalDefense(),
     NetworkGameViewState.tieDecision => _tieDecision(),
     NetworkGameViewState.actionInProgress => _actionInProgress(),
     NetworkGameViewState.corruptionDecision => _corruptionDecision(),
@@ -426,7 +423,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         if (allowAuction) ...[
           TextField(
             key: const Key('negotiation-direct-pa'),
-            controller: auctionForm.counterAmount,
+            controller: auctionForm.directPaAmount,
             onChanged: (_) => setState(() {}),
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
@@ -534,100 +531,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             child: const Text('Conserver le résultat initial'),
           ),
         ],
-      ],
-    );
-  }
-
-  Widget _counterDecision() {
-    final initial = controller.initialResolution!;
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _initialResult(initial),
-        const SizedBox(height: 16),
-        if (!controller.isInitialLoser)
-          _waitingCard('Ton partenaire choisit s’il contre-enchérit.')
-        else ...[
-          FilledButton.tonal(
-            key: const Key('accept-initial-result'),
-            onPressed: controller.acceptInitialResult,
-            child: const Text('Accepter le résultat'),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            key: const Key('counter-amount'),
-            controller: auctionForm.counterAmount,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Montant de la contre-enchère',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          RadioGroup<AuctionTarget>(
-            groupValue: auctionForm.counterTarget,
-            onChanged: (value) =>
-                setState(() => auctionForm.counterTarget = value!),
-            child: Column(
-              children: [
-                const RadioListTile(
-                  value: AuctionTarget.OWN_INITIAL_ACTION,
-                  title: Text('Défendre ma carte'),
-                ),
-                if (controller.inversionAllowed)
-                  const RadioListTile(
-                    value: AuctionTarget.INVERT_WINNING_ACTION,
-                    title: Text('Inverser la carte gagnante'),
-                  ),
-              ],
-            ),
-          ),
-          FilledButton(
-            key: const Key('submit-counter-bid'),
-            onPressed: _submitCounter,
-            child: const Text('Contre-enchérir'),
-          ),
-        ],
-        if (actionError case final message?) _errorText(message),
-      ],
-    );
-  }
-
-  Widget _finalDefense() {
-    final initial = controller.initialResolution!;
-    final counter = controller.round!.counterBid!;
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _initialResult(initial),
-        Text('Contre-enchère : ${counter.amount} PA'),
-        const SizedBox(height: 16),
-        if (!controller.isInitialWinner)
-          _waitingCard('Ton partenaire choisit sa défense finale.')
-        else ...[
-          FilledButton.tonal(
-            key: const Key('yield-final-defense'),
-            onPressed: controller.yieldFinalDefense,
-            child: const Text('Laisser gagner'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            key: const Key('defense-amount'),
-            controller: auctionForm.defenseAmount,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText:
-                  'Défense finale (minimum ${controller.minimumDefense})',
-              border: const OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 12),
-          FilledButton(
-            key: const Key('submit-final-defense'),
-            onPressed: _submitDefense,
-            child: const Text('Défendre'),
-          ),
-        ],
-        if (actionError case final message?) _errorText(message),
       ],
     );
   }
@@ -847,18 +750,42 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     ],
     if (controller.isCycleController) ...[
       FilledButton(
-        key: const Key('continue-spicier'),
-        onPressed: () => controller.continueDeck(
-          controller.deckStyle == PlayerStyle.INTENABLE
-              ? DeckExhaustionChoice.continueIntenable
-              : DeckExhaustionChoice.continueSpicier,
-        ),
-        child: Text(
-          controller.deckStyle == PlayerStyle.SOFT
-              ? 'Continuer en Épicé'
-              : 'Continuer en Intenable',
-        ),
+        key: const Key('continue-same-style'),
+        onPressed: () =>
+            controller.continueDeck(DeckExhaustionChoice.keepStyle),
+        child: const Text('Continuer avec le même style'),
       ),
+      if (controller.round?.cycleStyleVotes.values.contains(false) == true)
+        const Text('L’augmentation a été refusée. Le style est inchangé.'),
+      if (controller.round?.cycleStyleProposal != null) ...[
+        Text('Style proposé : ${controller.round!.cycleStyleProposal!.name}'),
+        if (controller.round!.cycleStyleProposer == controller.playerId)
+          const Text('En attente de l’accord de ton partenaire…')
+        else ...[
+          FilledButton(
+            key: const Key('accept-cycle-style'),
+            onPressed: () =>
+                controller.continueDeck(DeckExhaustionChoice.continueSpicier),
+            child: const Text('Accepter ce style et continuer'),
+          ),
+          OutlinedButton(
+            key: const Key('refuse-cycle-style'),
+            onPressed: () =>
+                controller.continueDeck(DeckExhaustionChoice.refuseStyle),
+            child: const Text('Refuser l’augmentation'),
+          ),
+        ],
+      ] else if (controller.deckStyle != PlayerStyle.INTENABLE)
+        OutlinedButton(
+          key: const Key('continue-spicier'),
+          onPressed: () =>
+              controller.continueDeck(DeckExhaustionChoice.continueSpicier),
+          child: Text(
+            controller.deckStyle == PlayerStyle.SOFT
+                ? 'Proposer Épicé'
+                : 'Proposer Intenable',
+          ),
+        ),
       OutlinedButton(
         key: const Key('enable-infinite'),
         onPressed: () => controller.continueDeck(DeckExhaustionChoice.infinite),
@@ -879,7 +806,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   ];
 
   bool get _hasNegotiationProposal {
-    final directPa = int.tryParse(auctionForm.counterAmount.text.trim()) ?? 0;
+    final directPa = int.tryParse(auctionForm.directPaAmount.text.trim()) ?? 0;
     return directPa > 0 || _requestInversion || _negotiationCards.isNotEmpty;
   }
 
@@ -1395,20 +1322,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         PostGameProfileChoice.later => 'Ne rien faire pour l’instant',
       };
 
-  Future<void> _submitCounter() async {
-    final amount = int.tryParse(auctionForm.counterAmount.text);
-    if (amount == null) {
-      setState(() => actionError = 'Montant invalide.');
-      return;
-    }
-    try {
-      await controller.submitCounterBid(amount, auctionForm.counterTarget);
-      if (mounted) setState(() => actionError = null);
-    } catch (error) {
-      if (mounted) setState(() => actionError = error.toString());
-    }
-  }
-
   Future<ConceptActionOption?> _chooseSecondary(
     String conceptId, {
     bool recovery = false,
@@ -1442,9 +1355,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   Future<void> _submitNegotiation({required bool adaptation}) async {
-    final amount = auctionForm.counterAmount.text.trim().isEmpty
+    final amount = auctionForm.directPaAmount.text.trim().isEmpty
         ? 0
-        : int.tryParse(auctionForm.counterAmount.text);
+        : int.tryParse(auctionForm.directPaAmount.text);
     if (amount == null) {
       setState(() => actionError = 'Montant invalide.');
       return;
@@ -1477,20 +1390,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           actionChoices: actionChoices,
         );
       }
-      if (mounted) setState(() => actionError = null);
-    } catch (error) {
-      if (mounted) setState(() => actionError = error.toString());
-    }
-  }
-
-  Future<void> _submitDefense() async {
-    final amount = int.tryParse(auctionForm.defenseAmount.text);
-    if (amount == null) {
-      setState(() => actionError = 'Montant invalide.');
-      return;
-    }
-    try {
-      await controller.submitFinalDefense(amount);
       if (mounted) setState(() => actionError = null);
     } catch (error) {
       if (mounted) setState(() => actionError = error.toString());

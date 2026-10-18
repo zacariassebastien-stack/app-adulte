@@ -3,7 +3,7 @@ import 'dart:developer' as developer;
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../engines/auction/auction_engine.dart';
+import '../../domain/game/game_models.dart';
 import '../../engines/corruption/corruption_engine.dart';
 import '../../engines/deck/deck_cycle_state.dart';
 import '../../engines/recovery/recovery_engine.dart';
@@ -39,34 +39,68 @@ final class SupabaseNetworkGameRepository
   }) => _rpc('open_network_game_round', command);
 
   @override
-  Future<V4SessionSetupDto> submitV4SessionSetup({
+  Future<V4SessionSetupDto> registerSetupAccessories({
     required String sessionId,
-    required String playerId,
-    required int clothingCount,
     required List<V4Accessory> accessories,
-    V4SessionMode? mode,
   }) async {
-    final identity = await _identity();
-    if (identity != playerId) {
-      throw const NetworkRoundException('ROUND_IDENTITY_MISMATCH');
-    }
-    try {
-      return _setupMap(
-        await client.rpc<Object?>(
-          'submit_v4_session_setup',
-          params: {
-            'p_session_id': sessionId,
-            'p_clothing_count': clothingCount,
-            'p_accessories': [for (final item in accessories) item.toJson()],
-            'p_mode': mode?.name,
-          },
-        ),
-      );
-    } on PostgrestException catch (error) {
-      throw NetworkRoundException(
-        _knownCode('${error.message} ${error.details ?? ''}'),
-      );
-    }
+    await _identity();
+    return _setupMap(
+      await client.rpc<Object?>(
+        'register_v4_setup_accessories',
+        params: {
+          'p_session_id': sessionId,
+          'p_accessories': [for (final a in accessories) a.toJson()],
+        },
+      ),
+    );
+  }
+
+  @override
+  Future<V4SessionSetupDto> proposeSessionSetup({
+    required String sessionId,
+    required V4SessionMode mode,
+    required PlayerStyle style,
+    required List<V4PlayerSessionSetupDto> players,
+    required int expectedRevision,
+    required String commandId,
+  }) async {
+    await _identity();
+    return _setupMap(
+      await client.rpc<Object?>(
+        'propose_v4_session_setup',
+        params: {
+          'p_session_id': sessionId,
+          'p_mode': mode.name,
+          'p_style': style.name,
+          'p_players': {for (final p in players) p.playerId: p.toJson()},
+          'p_expected_revision': expectedRevision,
+          'p_command_id': commandId,
+        },
+      ),
+    );
+  }
+
+  @override
+  Future<V4SessionSetupDto> respondSessionSetup({
+    required String sessionId,
+    required int revision,
+    required bool accepted,
+    V4PlayerSessionSetupDto? environment,
+    required String commandId,
+  }) async {
+    await _identity();
+    return _setupMap(
+      await client.rpc<Object?>(
+        'respond_v4_session_setup',
+        params: {
+          'p_session_id': sessionId,
+          'p_revision': revision,
+          'p_accepted': accepted,
+          'p_environment': environment?.toJson(),
+          'p_command_id': commandId,
+        },
+      ),
+    );
   }
 
   @override
@@ -268,18 +302,24 @@ final class SupabaseNetworkGameRepository
     required NetworkCommandDto command,
     required DeckExhaustionChoice choice,
     required int expectedCycle,
+    int expectedStyleRevision = 0,
   }) => _rpc(
     'continue_network_deck_cycle',
     command,
     extra: {
       'p_choice': switch (choice) {
+        DeckExhaustionChoice.keepStyle => 'CONTINUE_SAME',
+        DeckExhaustionChoice.refuseStyle => 'REFUSE_STYLE',
         DeckExhaustionChoice.continueSpicier => 'CONTINUE_SPICIER',
         DeckExhaustionChoice.continueIntenable => 'CONTINUE_INTENABLE',
         DeckExhaustionChoice.infinite => 'INFINITE',
         DeckExhaustionChoice.newCustomizedGame => 'NEW_GAME',
         DeckExhaustionChoice.finish => 'FINISH',
       },
-      'p_adjustment': {'expected_cycle': expectedCycle},
+      'p_adjustment': {
+        'expected_cycle': expectedCycle,
+        'style_revision': expectedStyleRevision,
+      },
     },
   );
 
@@ -291,39 +331,6 @@ final class SupabaseNetworkGameRepository
     'publish_network_v4_unlocked_spice',
     command,
     extra: {'p_unlocked_spice': unlockedSpice},
-  );
-
-  @override
-  Future<NetworkGameRoundStateDto> submitCounterDecision({
-    required NetworkCommandDto command,
-    required CounterDecision decision,
-    int? amount,
-    AuctionTarget? target,
-  }) => _rpc(
-    'submit_network_counter_decision',
-    command,
-    extra: {
-      'p_decision': decision.name.toUpperCase(),
-      'p_amount': amount,
-      'p_target': target?.name,
-    },
-  );
-
-  @override
-  Future<NetworkGameRoundStateDto> submitFinalDefense({
-    required NetworkCommandDto command,
-    required FinalDefenseDecision decision,
-    int? amount,
-  }) => _rpc(
-    'submit_network_final_defense',
-    command,
-    extra: {
-      'p_decision': switch (decision) {
-        FinalDefenseDecision.renounce => 'YIELD',
-        FinalDefenseDecision.defend => 'DEFEND',
-      },
-      'p_amount': amount,
-    },
   );
 
   @override

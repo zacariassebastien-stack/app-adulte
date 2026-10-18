@@ -3,6 +3,8 @@ import '../../domain/game/game_models.dart';
 enum HybridDeckOrientation { faceToFace, distance }
 
 enum DeckExhaustionChoice {
+  keepStyle,
+  refuseStyle,
   continueSpicier,
   continueIntenable,
   infinite,
@@ -28,6 +30,8 @@ final class DeckCycleState {
       style: style,
       infinite: true,
     ),
+    DeckExhaustionChoice.keepStyle ||
+    DeckExhaustionChoice.refuseStyle ||
     DeckExhaustionChoice.newCustomizedGame ||
     DeckExhaustionChoice.finish => this,
   };

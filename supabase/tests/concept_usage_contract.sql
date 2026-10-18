@@ -104,37 +104,13 @@ begin
   perform pg_temp.assert_true(n=2 and state#>>'{own_reveal,choice,usage_id}'='usage-a','reveal retry/reconnect identity');
 
   state:=public.resolve_network_initial_private(s,current_round,a,'initial');
-  perform pg_temp.assert_true(state->>'phase'='COUNTER_DECISION','private initial resolution retains V4 counter flow');
-  perform set_config('request.jwt.claim.sub',b::text,true);
-  state:=public.submit_network_counter_decision(s,current_round,b,'ACCEPT',0,null,'accept-initial');
-  perform pg_temp.assert_true(state->>'phase'='CORRUPTION_DECISION','unified post-duel choice');
+  perform pg_temp.assert_true(state->>'phase'='CORRUPTION_DECISION','private initial resolution retains V4 counter flow');
   perform pg_temp.assert_true(public.network_total_pa_spent(s,state->'action_points')=2,
-    'initial duel gap is settled PA, not the displayed card values');
-
-  -- Actual counter/defense RPC debits are included, even when the bidder loses.
-  insert into public.network_rounds(id,session_id,round_number,round_key,phase,initial_resolution)
-    values(counter_round,s,4,'fixture-counter','COUNTER_DECISION',
-      jsonb_build_object('winner_player_id',a,'loser_player_id',b,
-        'inversion_allowed',false,'gap_cost',2,'high_value',9));
-  insert into public.network_round_commands(command_id,session_id,round_id,player_id,kind)
-    values('counter-reveal-a',s,counter_round,a,'REVEAL'),
-          ('counter-reveal-b',s,counter_round,b,'REVEAL');
-  insert into public.network_round_reveals(round_id,player_id,choice_payload,nonce,command_id)
-    values(counter_round,a,ua,'counter-a','counter-reveal-a'),
-          (counter_round,b,ub,'counter-b','counter-reveal-b');
-  state:=public.submit_network_counter_decision(s,counter_round,b,'BID',40,'OWN_INITIAL_ACTION','pa-counter');
-  perform pg_temp.assert_true(public.network_total_pa_spent(s,state->'action_points')=42,
-    'counter bid is a definitive expense');
-  state:=public.submit_network_counter_decision(s,counter_round,b,'BID',40,'OWN_INITIAL_ACTION','pa-counter');
-  perform pg_temp.assert_true(public.network_total_pa_spent(s,state->'action_points')=42,
-    'counter retry does not spend twice');
-  perform set_config('request.jwt.claim.sub',a::text,true);
-  state:=public.submit_network_final_defense(s,counter_round,a,'DEFEND',41,'pa-defense');
-  perform pg_temp.assert_true(public.network_total_pa_spent(s,state->'action_points')=83,
-    'both players expenses count, including losing counter bid');
-  state:=public.submit_network_final_defense(s,counter_round,a,'DEFEND',41,'pa-defense');
-  perform pg_temp.assert_true(public.network_total_pa_spent(s,state->'action_points')=83,
-    'final defense retry does not spend twice');
+    'initial gap is debited once before the post-duel choice');
+  begin
+    perform public.submit_network_counter_decision(s,current_round,b,'BID',40,'OWN_INITIAL_ACTION','removed-counter');
+    raise exception 'TEST FAILED: counter bid still executable';
+  exception when raise_exception then if sqlerrm<>'ROUND_MECHANIC_REMOVED' then raise; end if; end;
   perform set_config('request.jwt.claim.sub',b::text,true);
   -- Only earlier discarded usages can be proposed as compromise arguments.
   update public.network_rounds set recovery_history=jsonb_build_array(
@@ -266,10 +242,10 @@ begin
   perform set_config('request.jwt.claim.sub',b::text,true);
   select jsonb_build_object('expected_cycle',deck_cycle) into saved
     from public.network_game_states where session_id=s;
-  state:=public.continue_network_deck_cycle(s,current_round,b,'CONTINUE_SPICIER',saved,'cycle-b');
+  state:=public.continue_network_deck_cycle(s,current_round,b,'CONTINUE_SAME',saved,'cycle-b');
   perform pg_temp.assert_true((state->>'deck_cycle')::integer=(saved->>'expected_cycle')::integer+1,
     'second member can renew shared cycle');
-  state:=public.continue_network_deck_cycle(s,current_round,b,'CONTINUE_SPICIER',saved,'cycle-b');
+  state:=public.continue_network_deck_cycle(s,current_round,b,'CONTINUE_SAME',saved,'cycle-b');
   perform pg_temp.assert_true((state->>'deck_cycle')::integer=(saved->>'expected_cycle')::integer+1,
     'same continuation retry keeps cycle');
   perform set_config('request.jwt.claim.sub',a::text,true);

@@ -25,7 +25,10 @@ class GameSettingsPanel extends StatelessWidget {
       'Inversion',
       'Une inversion échange les rôles prévus par la carte retenue.',
     ),
-    ('Enchère', 'Le perdant initial peut proposer des PA ou des cartes.'),
+    (
+      'Après le duel',
+      'Le perdant choisit d’accepter, de proposer un compromis ou une corruption.',
+    ),
     ('Réponse du gagnant', 'Le gagnant choisit les éléments qu’il accepte.'),
     (
       'Adaptation',
@@ -44,7 +47,7 @@ class GameSettingsPanel extends StatelessWidget {
     ),
     (
       'Fin de cycle',
-      'Le joueur qui a créé la partie choisit de continuer ou terminer.',
+      'Vous pouvez conserver le style. Son augmentation nécessite votre accord à tous les deux.',
     ),
   ];
 
