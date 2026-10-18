@@ -358,12 +358,47 @@ final class NetworkGameController extends ChangeNotifier {
 
   List<NetworkDuelCard> get hand => [
     for (final item in _runtime.where((card) => card.zone == CardZone.HAND))
-      ?_networkCard(
-        item.cardId,
-        occurrenceId: item.occurrenceId,
-        variantId: item.variantId,
-      ),
+      ?_networkCard(item.cardId, occurrenceId: item.occurrenceId),
   ];
+
+  NetworkDuelCard? get personalDuelCard {
+    final reveal = round?.ownReveal ?? _activeReveal;
+    if (reveal == null) return null;
+    final saved = _usageCheckpoint.usagesByIntent.values
+        .where((u) => u.usageId == reveal.choice.usageId)
+        .firstOrNull;
+    return _cardFromUsage(
+      saved == null
+          ? reveal.choice.usage!
+          : NetworkUsageProjection.fromSnapshot(
+              saved,
+              sharedParameterKeys: saved.action.parameters.keys.toSet(),
+              sharedEffectIds: saved.action.effects
+                  .map((e) => e.effectId)
+                  .toSet(),
+              includePersonalValue: true,
+            ),
+      forDisplay: true,
+    );
+  }
+
+  String? zoneForCard(NetworkDuelCard card) {
+    if (card.identity != card.id) {
+      final own = round?.ownReveal?.choice.usage;
+      if (own?.usageId == card.identity) {
+        return own!.resolvedAction['zone_id'] as String?;
+      }
+      for (final checkpoint in [_usageCheckpoint, ..._priorCheckpoints]) {
+        final usage = checkpoint.usagesByIntent.values
+            .where((u) => u.usageId == card.identity)
+            .firstOrNull;
+        if (usage != null) return usage.action.zoneId;
+      }
+    }
+    return conceptFor(
+      card.id,
+    ).variants.where((v) => v.id == card.variant.id).firstOrNull?.zoneId;
+  }
 
   List<CardConcept> get heldConcepts => [
     for (final state in _runtime.where((c) => c.zone == CardZone.HAND))
@@ -638,7 +673,7 @@ final class NetworkGameController extends ChangeNotifier {
     selectedCard = hand.where((card) => card.identity == conceptId).firstOrNull;
     _selectedOption = selectedCard == null
         ? null
-        : choicesFor(selectedCard!.id).firstOrNull;
+        : defaultAction(selectedCard!.id);
     notifyListeners();
   }
 
@@ -653,7 +688,13 @@ final class NetworkGameController extends ChangeNotifier {
     if (card == null) return;
     _usageCheckpoint = _usageCheckpoint
         .releaseReservation(_intentId)
-        .reserve(intentId: _intentId, conceptId: card.id);
+        .reserve(
+          intentId: _intentId,
+          conceptId: card.id,
+          stageId: conceptFor(card.id).stages.isEmpty
+              ? null
+              : _selectedOption?.choice.actionId,
+        );
     await _persist();
   }
 
@@ -684,16 +725,72 @@ final class NetworkGameController extends ChangeNotifier {
 
   Map<String, List<ConceptActionOption>> _currentOptions({
     bool recovery = false,
-  }) => const ConceptActionOptions().evaluate(
-    catalog: _conceptCatalog,
-    profile: _ratingProfile,
-    context: _context,
-    actor: _profile(playerId),
-    partner: _profile(opponentId),
-    hierarchy: _hierarchy,
-    mediaSendRequired: _context.flags['mediaSendRequired'] == true,
-    recovery: recovery,
-  );
+  }) {
+    final options = const ConceptActionOptions().evaluate(
+      catalog: _conceptCatalog,
+      profile: _ratingProfile,
+      context: _context,
+      actor: _profile(playerId),
+      partner: _profile(opponentId),
+      hierarchy: _hierarchy,
+      mediaSendRequired: _context.flags['mediaSendRequired'] == true,
+      recovery: recovery,
+    );
+    return {
+      for (final entry in options.entries)
+        if (entry.value.any((o) => _stageAvailable(entry.key, o)))
+          entry.key: entry.value
+              .where((o) => _stageAvailable(entry.key, o))
+              .toList(),
+    };
+  }
+
+  bool _stageAvailable(String id, ConceptActionOption option) {
+    final concept = _conceptCatalog.concepts.concepts.singleWhere(
+      (c) => c.id == id,
+    );
+    return _usageCheckpoint.stageAvailable(
+      id,
+      concept.stages.isEmpty ? null : option.choice.actionId,
+      intentId: _intentId,
+    );
+  }
+
+  CardConcept conceptFor(String id) =>
+      _conceptCatalog.concepts.concepts.singleWhere((c) => c.id == id);
+
+  bool stageConsumed(String id, String stageId) =>
+      _usageCheckpoint.stageConsumed(id, stageId);
+
+  ConceptActionOption? defaultAction(
+    String id, [
+    List<ConceptActionOption>? options,
+  ]) {
+    final choices = options ?? choicesFor(id);
+    final concept = conceptFor(id);
+    if (concept.stages.isNotEmpty) {
+      for (final stage in concept.stages.reversed) {
+        final found = choices
+            .where((o) => o.choice.actionId == stage.id)
+            .firstOrNull;
+        if (found != null) return found;
+      }
+    }
+    // The generic zone card is presented as LIBRE. Its complete free action
+    // must be played directly; fixed-zone definitions remain available when
+    // an explicitly structured action is requested by another flow.
+    return choices
+            .where(
+              (o) => concept.variants.any(
+                (v) => v.id == o.choice.actionId && v.freeZone,
+              ),
+            )
+            .firstOrNull ??
+        choices.firstOrNull;
+  }
+
+  NetworkDuelCard? previewAction(String id, ConceptActionOption option) =>
+      _networkCard(id, option: option);
 
   ConceptDeckPool _conceptPool({bool excludeHeld = false}) {
     final options = _currentOptions();
@@ -923,6 +1020,13 @@ final class NetworkGameController extends ChangeNotifier {
         ...option.parameters,
         if (card.id == '013') 'learning_role': 'soi',
         'committed_at': at.toIso8601String(),
+        'display_title': card.title,
+        'display_details':
+            card.definition.variants
+                .singleWhere((v) => v.stableId == option.choice.actionId)
+                .detailsText ??
+            card.definition.detailsText,
+        'display_illustration': card.definition.illustrationKey,
         'clothing_behavior': _definitions[card.id]?.v4?.clothingBehavior.name,
         'duration_actions': _definitions[card.id]?.v4?.durationActions,
         'clothes_at_engagement': _context.clothesByPlayer,
@@ -1048,6 +1152,13 @@ final class NetworkGameController extends ChangeNotifier {
                 option.choice.zoneId == previous.action.zoneId &&
                 option.parameters['technique'] ==
                     previous.action.parameters['technique']))) {
+      if (!_usageCheckpoint.stageAvailable(
+        card.id,
+        previous.action.stageId,
+        intentId: intent,
+      )) {
+        throw const NetworkRoundException('ROUND_STAGE_ALREADY_CONSUMED');
+      }
       return _sharedUsage(previous);
     }
     if (source != null && !_replayConsentAllowed(source, recovery: recovery)) {
@@ -1057,7 +1168,7 @@ final class NetworkGameController extends ChangeNotifier {
     final resolvedOption =
         option ??
         (source == null
-            ? choices.firstOrNull
+            ? defaultAction(card.id, choices)
             : choices.where((o) => _matchesUsage(o, source!)).firstOrNull);
     if (resolvedOption == null ||
         !choices.any((o) => o.key == resolvedOption.key)) {
@@ -1101,7 +1212,7 @@ final class NetworkGameController extends ChangeNotifier {
     );
     _usageCheckpoint = _usageCheckpoint
         .releaseReservation(intent)
-        .reserve(intentId: intent, conceptId: card.id);
+        .reserve(intentId: intent, conceptId: card.id, stageId: action.stageId);
     _reservedChoices = {..._reservedChoices, intent: draft};
     return _sharedUsage(draft);
   }
@@ -1237,6 +1348,25 @@ final class NetworkGameController extends ChangeNotifier {
     if (pending == null || _sendingSecondary) return;
     _sendingSecondary = true;
     try {
+      final proposesNewUsage = const {
+        'NEGOTIATION_PROPOSAL',
+        'NEGOTIATION_ADAPTATION',
+        'CORRUPTION_OFFER',
+        'RECOVERY',
+      }.contains(pending['kind']);
+      for (final draft in _reservedChoices.values) {
+        if (proposesNewUsage &&
+            _usageCheckpoint.usageForIntent(draft.intentId) == null &&
+            !_usageCheckpoint.stageAvailable(
+              draft.conceptId,
+              draft.action.stageId,
+              intentId: draft.intentId,
+            )) {
+          // A pending v1 replay may target an already played stage. Preserve
+          // its data, but do not dispatch a new engagement under the old rule.
+          throw const NetworkRoundException('ROUND_STAGE_ALREADY_CONSUMED');
+        }
+      }
       final command = NetworkCommandDto.fromJson(
         pending['command']! as JsonMap,
       );
@@ -2295,9 +2425,9 @@ final class NetworkGameController extends ChangeNotifier {
         : choicesFor(cardId);
     final selected =
         option ??
-        options
-            .where((o) => variantId == null || o.choice.actionId == variantId)
-            .firstOrNull;
+        (variantId == null
+            ? defaultAction(cardId, options)
+            : options.where((o) => o.choice.actionId == variantId).firstOrNull);
     if (selected == null) return null;
     final eligible = selected.variant;
     final variant = definition.variants.firstWhere(
@@ -2392,8 +2522,13 @@ final class NetworkGameController extends ChangeNotifier {
     );
   }
 
-  NetworkDuelCard _cardFromUsage(NetworkUsageProjection usage) {
+  NetworkDuelCard _cardFromUsage(
+    NetworkUsageProjection usage, {
+    bool forDisplay = false,
+  }) {
     final action = usage.resolvedAction;
+    final inverse = usage.toJson()['inverted_resolution'] as JsonMap?;
+    final oppositeValue = inverse?['snapshot_value'] as int?;
     final actionId = (action['stage_id'] ?? action['variant_id'])! as String;
     final template = _definitions[usage.conceptId] ?? _definitions.values.first;
     final variant = CardVariantDefinition.fromJson({
@@ -2401,14 +2536,27 @@ final class NetworkGameController extends ChangeNotifier {
       'stable_id': actionId,
       'card_id': usage.conceptId,
       'action_text': action['action_text'],
-      'details_text': null,
+      'details_text':
+          (action['parameters'] as Map).containsKey('display_details')
+          ? (action['parameters'] as Map)['display_details']
+          : template.detailsText,
       'chili_level': action['effective_chili'],
     });
     final definition = CardDefinition.fromJson({
       ...template.reader.json,
       'stable_id': usage.conceptId,
-      'title': _definitions[usage.conceptId]?.title ?? usage.conceptId,
+      'title':
+          (action['parameters'] as Map)['display_title'] ??
+          _definitions[usage.conceptId]?.title ??
+          usage.conceptId,
       'action_text': action['action_text'],
+      'details_text':
+          (action['parameters'] as Map).containsKey('display_details')
+          ? (action['parameters'] as Map)['display_details']
+          : template.detailsText,
+      if ((action['parameters'] as Map).containsKey('display_illustration'))
+        'illustration_key':
+            (action['parameters'] as Map)['display_illustration'],
       'variants': [variant.toJson()],
     });
     final direction = CardOccurrenceDirection.values.byName(
@@ -2429,6 +2577,12 @@ final class NetworkGameController extends ChangeNotifier {
         'historical.snapshot',
         role,
         usage.snapshotValue!,
+        faire: forDisplay && role == ProfileRole.RECEVOIR
+            ? oppositeValue
+            : null,
+        recevoir: forDisplay && role == ProfileRole.FAIRE
+            ? oppositeValue
+            : null,
       ),
       occurrenceId: usage.usageId,
       nativeDirection: CardOccurrenceDirection.values.byName(
@@ -3303,7 +3457,11 @@ final class NetworkGameController extends ChangeNotifier {
       hierarchy: _hierarchy,
     );
     return options.keys
-        .where((id) => _usageCheckpoint.availableFor(id) > 0)
+        .where(
+          (id) =>
+              _usageCheckpoint.availableFor(id) > 0 &&
+              options[id]!.any((o) => _stageAvailable(id, o)),
+        )
         .length;
   }
 

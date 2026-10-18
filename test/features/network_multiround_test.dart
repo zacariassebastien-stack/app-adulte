@@ -1,3 +1,5 @@
+import 'package:couple_cards/features/game/ui/card_hand_surface.dart';
+import 'package:couple_cards/card_themes/card_renderer.dart';
 import 'package:flutter/services.dart';
 import 'package:couple_cards/sync/projection/usage_learning_projection.dart';
 import 'package:couple_cards/features/lobby/two_phone_lobby_screen.dart';
@@ -380,7 +382,7 @@ void main() {
   );
 
   for (final id in ['alice', 'bob']) {
-    testWidgets('post duel keeps both public cards visible for $id', (
+    testWidgets('post duel shows only the complete personal card for $id', (
       tester,
     ) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -414,10 +416,14 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.byKey(const Key('initial-duel-card-alice')), findsOneWidget);
-      expect(find.byKey(const Key('initial-duel-card-bob')), findsOneWidget);
+      expect(find.byKey(const Key('personal-duel-card')), findsOneWidget);
+      final shown = tester.widget<CardRenderer>(find.byKey(const Key('personal-duel-card'))).definition;
+      expect(shown.variantId, backend.round.reveals[id]!.choice.variantId);
+      expect(shown.action, backend.round.reveals[id]!.choice.usage!.resolvedAction['action_text']);
+      expect(find.byType(CardRenderer), findsOneWidget);
+      expect(find.byKey(const Key('initial-duel-cards')), findsNothing);
       final bounds = tester.getRect(
-        find.byKey(const Key('initial-duel-cards')),
+        find.byKey(const Key('personal-duel-card')),
       );
       expect(
         bounds.top,
@@ -433,15 +439,70 @@ void main() {
         await tester.tap(find.byKey(const Key('choose-negotiation')));
         await tester.pumpAndSettle();
         expect(
-          find.byKey(const Key('initial-duel-card-alice')),
+          find.byKey(const Key('personal-duel-card')),
           findsOneWidget,
         );
-        expect(find.byKey(const Key('initial-duel-card-bob')), findsOneWidget);
+        expect(find.byKey(const Key('initial-duel-cards')), findsNothing);
       }
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
     });
   }
+  test('stage defaults follow highest available stage and consumed stages stay unavailable', () async {
+    final backend = _Backend()..v4UnlockedSpice = 2;
+    final controller = _controller(backend, session, _catalogWithCards(catalog, {'card.v4.003'}), 'alice', MemoryNetworkDuelSecretStore());
+    addTearDown(controller.dispose);
+    await controller.start();
+    expect(controller.defaultAction('003')!.choice.actionId, '003.stage.3');
+    controller.selectCard('003');
+    controller.chooseAction(controller.choicesFor('003').singleWhere((o) => o.choice.actionId == '003.stage.2'));
+    await controller.confirmSelection();
+    expect(controller.usageCheckpoint.stageConsumed('003', '003.stage.2'), isTrue);
+    expect(controller.choicesFor('003').map((o) => o.choice.actionId), ['003.stage.1', '003.stage.3']);
+    await controller.cancelSelection();
+    expect(controller.defaultAction('003')!.choice.actionId, '003.stage.3');
+    await controller.applyResolvedContext(EngineSessionContext(mode: SessionMode.face_to_face, proximity: ProximityState.TOGETHER, chiliActive: 1, chiliUnlocked: 1));
+    expect(controller.defaultAction('003')!.choice.actionId, '003.stage.1');
+    await controller.applyResolvedContext(EngineSessionContext(mode: SessionMode.face_to_face, proximity: ProximityState.TOGETHER, chiliActive: 2, chiliUnlocked: 2));
+    expect(controller.defaultAction('003')!.choice.actionId, '003.stage.3');
+  });
+
+  for (final conceptId in ['003','002']) {
+    testWidgets('playing $conceptId commits its displayed action without another selection', (tester) async {
+      SharedPreferences.setMockInitialValues(<String,Object>{});
+      final backend = _Backend()..v4UnlockedSpice = 2;
+      final store = MemoryNetworkDuelSecretStore();
+      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session, playerId: 'alice',
+        repository: backend.repository('alice'), catalog: _catalogWithCards(catalog, {'card.v4.$conceptId'}), secretStore: store)));
+      for (var i=0;i<20;i++) { await tester.pump(const Duration(milliseconds:50)); }
+      var surface = tester.widget<CardHandSurface>(find.byType(CardHandSurface));
+      var item = surface.cards.single;
+      expect(item.definition.variantId, conceptId == '003' ? '003.stage.3' : '002.zone.free');
+      if (conceptId == '003') {
+        expect(item.tabs, hasLength(3));
+        surface.onTabChanged!(item, '003.stage.2');
+        await tester.pump();
+        surface = tester.widget<CardHandSurface>(find.byType(CardHandSurface));
+        item = surface.cards.single;
+        expect(item.definition.variantId, '003.stage.2');
+      }
+      final shown = item.definition;
+      surface.onPlay!(item);
+      for (var i=0;i<20;i++) { await tester.pump(const Duration(milliseconds:50)); }
+      expect(find.byType(SimpleDialog), findsNothing);
+      final saved = (await store.loadGame(sessionId: session.id, playerId: 'alice'))!;
+      final usage = saved.activeReveal!.choice.usage!;
+      expect(usage.resolvedAction['stage_id'] ?? usage.resolvedAction['variant_id'], shown.variantId);
+      expect(usage.resolvedAction['action_text'], shown.action);
+      expect(saved.conceptCheckpoint!.usagesByIntent, hasLength(1));
+      if (conceptId == '002') {
+        expect(usage.resolvedAction.containsKey('zone_id'), isFalse);
+        expect(usage.resolvedAction['effective_chili'], 1);
+      }
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
   test('watchRound cancellation detaches without another backend event', () async {
     final backend = _Backend();
     final repository = backend.repository('alice');
@@ -1168,7 +1229,7 @@ void main() {
 
   test('auction accepts only eligible discard occurrences', () async {
     final focusedCatalog = _catalogWithCards(catalog, {
-      'card.v4.001', 'card.v4.002', 'card.v4.003',
+      'card.v4.001', 'card.v4.002', 'card.v4.006',
       'card.v4.010', 'card.v4.037',
     });
     final store = MemoryNetworkDuelSecretStore();
@@ -1237,13 +1298,13 @@ void main() {
       history.add(NetworkPlayedCardRecord(usage: usage, roundNumber: 0));
       return usage;
     }
-    final kiss = engageHistory('003', '003.stage.1', CardOccurrenceDirection.MUTUEL, 1);
+    final kiss = engageHistory('006', '006.action', CardOccurrenceDirection.FAIRE, 1);
     final striptease = engageHistory('010', '010.stage.1', CardOccurrenceDirection.FAIRE, 1);
     final exhausted = engageHistory('002', '002.zone.face_hair', CardOccurrenceDirection.FAIRE, 1,
       zoneId: 'face_hair');
     final tooSpicy = engageHistory('037', '037.stage.1', CardOccurrenceDirection.FAIRE, 2);
     expect(history.map((r) => r.usageId).toSet(), hasLength(4));
-    expect(checkpoint.availableFor('003'), 2);
+    expect(checkpoint.availableFor('006'), 1);
     expect(checkpoint.availableFor('010'), 2);
     expect(checkpoint.availableFor('002'), 0);
     expect(checkpoint.availableFor('037'), 2);
@@ -1285,22 +1346,22 @@ void main() {
     final controller = setup.alice;
     expect(controller.activeSpice, 1);
     expect(controller.auctionCards.map((c) => c.identity), unorderedEquals([
-      kiss.usageId, striptease.usageId,
+      kiss.usageId,
     ]));
     expect(controller.auctionCards.every(controller.isAuctionCardPlayable), isTrue);
     expect(controller.auctionCards.map((c) => c.identity),
       isNot(contains(exhausted.usageId)));
     expect(controller.auctionCards.map((c) => c.identity),
       isNot(contains(tooSpicy.usageId)));
-    expect(controller.usageCheckpoint.availableFor('003'), 2);
+    expect(controller.usageCheckpoint.availableFor('006'), 1);
     expect(controller.usageCheckpoint.availableFor('010'), 2);
     for (final usage in [kiss, striptease]) {
       final snapshot = usage.resolvedAction;
       expect(history.any((r) => r.usageId == usage.usageId &&
         r.usage.ownerPlayerId == 'alice' && r.roundNumber < controller.roundNumber), isTrue);
       expect(controller.choicesFor(usage.conceptId).any((option) =>
-        option.choice.actionId == snapshot['stage_id'] &&
-        option.choice.zoneId == snapshot['zone_id']), isTrue);
+        option.choice.actionId == (snapshot['stage_id'] ?? snapshot['variant_id']) &&
+        option.choice.zoneId == snapshot['zone_id']), usage.usageId == kiss.usageId);
     }
 
     final sql = File(
@@ -1464,7 +1525,7 @@ void main() {
           roundNumber: 1,
           ownerPlayerId: entry.key,
           cards: [
-            for (final id in ['003', '001', '012', '032'])
+            for (final id in ['006', '001', '012', '032'])
               CardRuntimeState(cardId: id, zone: CardZone.HAND),
           ],
         ),
@@ -1496,11 +1557,11 @@ void main() {
     addTearDown(setup.dispose);
     await Future.wait([setup.alice.start(), setup.bob.start()]);
     await _settle();
-    final initialCapacity = setup.alice.usageCheckpoint.availableFor('003');
-    expect(initialCapacity, 3);
-    await _playUnequal(setup, forceAliceCard: '003', requireRepeatable: true);
+    final initialCapacity = setup.alice.usageCheckpoint.availableFor('006');
+    expect(initialCapacity, 2);
+    await _playUnequal(setup, forceAliceCard: '006', requireRepeatable: true);
     final source = setup.alice.usageCheckpoint.usagesByIntent.values.single;
-    expect(source.conceptId, '003');
+    expect(source.conceptId, '006');
     expect(source.usageId, isNotEmpty);
     final originalSnapshot = source.toJson();
     final firstLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
@@ -1514,16 +1575,16 @@ void main() {
     final historical = afterFirst.publicDiscards.singleWhere((r) => r.usageId == source.usageId);
     expect(historical.roundNumber, 1);
     expect(historical.usage.ownerPlayerId, 'alice');
-    expect(historical.usage.conceptId, '003');
+    expect(historical.usage.conceptId, '006');
     final historicalSnapshot = historical.toJson();
     expect(afterFirst.conceptCheckpoint!.usageForIntent(source.intentId)!.toJson(), originalSnapshot);
     expect(setup.alice.usageCheckpoint.usageForIntent(source.intentId)!.toJson(), originalSnapshot);
-    expect(setup.alice.usageCheckpoint.stock.remainingFor('003'), initialCapacity - 1);
-    expect(setup.alice.usageCheckpoint.availableFor('003'), initialCapacity - 1);
-    expect(setup.alice.usageCheckpoint.usagesByIntent.values.where((u) => u.conceptId == '003'), hasLength(1));
+    expect(setup.alice.usageCheckpoint.stock.remainingFor('006'), initialCapacity - 1);
+    expect(setup.alice.usageCheckpoint.availableFor('006'), initialCapacity - 1);
+    expect(setup.alice.usageCheckpoint.usagesByIntent.values.where((u) => u.conceptId == '006'), hasLength(1));
 
     // Play another concept so the historical source remains an unused replay.
-    await _playUnequal(setup, forceAliceCard: '001', avoidBobCard: '003');
+    await _playUnequal(setup, forceAliceCard: '001', avoidBobCard: '006');
     backend.routeToUnifiedPostDuelChoice = true;
     expect(setup.alice.isInitialLoser, isTrue);
     await _settle();
@@ -1533,16 +1594,16 @@ void main() {
     expect(loser.isAuctionCardPlayable(offered), isTrue);
     final beforeProposal = loser.usageCheckpoint.encode();
     final engagedIds = loser.usageCheckpoint.usagesByIntent.values.map((u) => u.usageId).toSet();
-    final remaining = loser.usageCheckpoint.stock.remainingFor('003');
+    final remaining = loser.usageCheckpoint.stock.remainingFor('006');
     expect(remaining, initialCapacity - 1);
     await loser.proposeNegotiation(directPa: 0, inversion: false, cardIds: {source.usageId});
     await _settle();
     final pending = (await aliceStore.loadGame(sessionId: session.id, playerId: 'alice'))!;
     final draft = pending.reservedChoices.values.singleWhere((u) => u.sourceUsageId == source.usageId);
     expect(draft.usageId, isNot(source.usageId));
-    expect(pending.conceptCheckpoint!.reservationsByIntent[draft.intentId], '003');
-    expect(loser.usageCheckpoint.stock.remainingFor('003'), remaining);
-    expect(loser.usageCheckpoint.availableFor('003'), remaining - 1);
+    expect(pending.conceptCheckpoint!.reservationsByIntent[draft.intentId], '006');
+    expect(loser.usageCheckpoint.stock.remainingFor('006'), remaining);
+    expect(loser.usageCheckpoint.availableFor('006'), remaining - 1);
     expect(loser.usageCheckpoint.usagesByIntent.values.map((u) => u.usageId).toSet(), engagedIds);
     expect(loser.usageCheckpoint.usagesByIntent.values.any((u) => u.usageId == draft.usageId), isFalse);
     expect(winner.viewState, NetworkGameViewState.negotiationResponse);
@@ -1555,8 +1616,8 @@ void main() {
     expect(loser.usageCheckpoint.encode(), beforeProposal);
     expect(refused.conceptCheckpoint!.encode(), beforeProposal);
     expect(loser.usageCheckpoint.usagesByIntent.values.map((u) => u.usageId).toSet(), engagedIds);
-    expect(loser.usageCheckpoint.stock.remainingFor('003'), remaining);
-    expect(loser.usageCheckpoint.availableFor('003'), remaining);
+    expect(loser.usageCheckpoint.stock.remainingFor('006'), remaining);
+    expect(loser.usageCheckpoint.availableFor('006'), remaining);
     expect(refused.publicDiscards.singleWhere((r) => r.usageId == source.usageId).toJson(), historicalSnapshot);
     expect(loser.usageCheckpoint.usageForIntent(source.intentId)!.toJson(), originalSnapshot);
     expect(loser.auctionCards.any((c) => c.identity == source.usageId && loser.isAuctionCardPlayable(c)), isTrue);
@@ -1579,7 +1640,7 @@ void main() {
             roundNumber: 1,
             ownerPlayerId: entry.key,
             cards: [
-              for (final id in ['003', '001', '012', '032'])
+              for (final id in ['006', '001', '012', '032'])
                 CardRuntimeState(cardId: id, zone: CardZone.HAND),
             ],
           ),
@@ -1615,11 +1676,11 @@ void main() {
       });
       await Future.wait([setup.alice.start(), setup.bob.start()]);
       await _settle();
-      final initialCapacity = setup.alice.usageCheckpoint.availableFor('003');
-      expect(initialCapacity, 3);
-      await _playUnequal(setup, forceAliceCard: '003', requireRepeatable: true);
+      final initialCapacity = setup.alice.usageCheckpoint.availableFor('006');
+      expect(initialCapacity, 2);
+      await _playUnequal(setup, forceAliceCard: '006', requireRepeatable: true);
       final source = setup.alice.usageCheckpoint.usagesByIntent.values.single;
-      expect(source.conceptId, '003');
+      expect(source.conceptId, '006');
       expect(source.usageId, isNotEmpty);
       final originalSnapshot = source.toJson();
       final firstLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
@@ -1633,16 +1694,16 @@ void main() {
       final historical = afterFirst.publicDiscards.singleWhere((r) => r.usageId == source.usageId);
       expect(historical.roundNumber, 1);
       expect(historical.usage.ownerPlayerId, 'alice');
-      expect(historical.usage.conceptId, '003');
+      expect(historical.usage.conceptId, '006');
       final historicalSnapshot = historical.toJson();
       expect(afterFirst.conceptCheckpoint!.usageForIntent(source.intentId)!.toJson(), originalSnapshot);
       expect(setup.alice.usageCheckpoint.usageForIntent(source.intentId)!.toJson(), originalSnapshot);
-      expect(setup.alice.usageCheckpoint.stock.remainingFor('003'), initialCapacity - 1);
-      expect(setup.alice.usageCheckpoint.availableFor('003'), initialCapacity - 1);
-      expect(setup.alice.usageCheckpoint.usagesByIntent.values.where((u) => u.conceptId == '003'), hasLength(1));
+      expect(setup.alice.usageCheckpoint.stock.remainingFor('006'), initialCapacity - 1);
+      expect(setup.alice.usageCheckpoint.availableFor('006'), initialCapacity - 1);
+      expect(setup.alice.usageCheckpoint.usagesByIntent.values.where((u) => u.conceptId == '006'), hasLength(1));
 
       // Play another concept so the historical source remains an unused replay.
-      await _playUnequal(setup, forceAliceCard: '001', avoidBobCard: '003');
+      await _playUnequal(setup, forceAliceCard: '001', avoidBobCard: '006');
       backend.routeToUnifiedPostDuelChoice = true;
       expect(setup.alice.isInitialLoser, isTrue);
       await _settle();
@@ -1651,7 +1712,7 @@ void main() {
       final offered = loser.auctionCards.singleWhere((c) => c.identity == source.usageId);
       expect(loser.isAuctionCardPlayable(offered), isTrue);
       final engagedIds = loser.usageCheckpoint.usagesByIntent.values.map((u) => u.usageId).toSet();
-      final remaining = loser.usageCheckpoint.stock.remainingFor('003');
+      final remaining = loser.usageCheckpoint.stock.remainingFor('006');
       expect(remaining, initialCapacity - 1);
       final eventId = '${session.id}/${loser.round!.roundId}/alice';
       final learnedBefore = jsonEncode((await aliceLearning.load('alice'))?.toJson());
@@ -1662,9 +1723,9 @@ void main() {
       final pending = (await aliceStore.loadGame(sessionId: session.id, playerId: 'alice'))!;
       final draft = pending.reservedChoices.values.singleWhere((u) => u.sourceUsageId == source.usageId);
       expect(draft.usageId, isNot(source.usageId));
-      expect(pending.conceptCheckpoint!.reservationsByIntent[draft.intentId], '003');
-      expect(loser.usageCheckpoint.stock.remainingFor('003'), remaining);
-      expect(loser.usageCheckpoint.availableFor('003'), remaining - 1);
+      expect(pending.conceptCheckpoint!.reservationsByIntent[draft.intentId], '006');
+      expect(loser.usageCheckpoint.stock.remainingFor('006'), remaining);
+      expect(loser.usageCheckpoint.availableFor('006'), remaining - 1);
       expect(loser.usageCheckpoint.usagesByIntent.values.map((u) => u.usageId).toSet(), engagedIds);
       expect(loser.usageCheckpoint.usagesByIntent.values.any((u) => u.usageId == draft.usageId), isFalse);
       expect(winner.viewState, NetworkGameViewState.negotiationResponse);
@@ -1679,8 +1740,8 @@ void main() {
       expect(replay.action.toJson(), source.action.toJson());
       expect(loser.usageCheckpoint.usagesByIntent.values.map((u) => u.usageId).toSet(),
         {...engagedIds, replay.usageId});
-      expect(loser.usageCheckpoint.stock.remainingFor('003'), remaining - 1);
-      expect(loser.usageCheckpoint.availableFor('003'), remaining - 1);
+      expect(loser.usageCheckpoint.stock.remainingFor('006'), remaining - 1);
+      expect(loser.usageCheckpoint.availableFor('006'), remaining - 1);
       expect(loser.usageCheckpoint.reservationsByIntent, isEmpty);
       final accepted = (await aliceStore.loadGame(sessionId: session.id, playerId: 'alice'))!;
       expect(accepted.reservedChoices, isEmpty);
@@ -1715,8 +1776,8 @@ void main() {
       expect(completed.learningRecordedRounds, contains(2));
       expect(completed.conceptCheckpoint!.encode(), acceptedCheckpoint);
       expect(completed.conceptCheckpoint!.usagesByIntent.values.where(
-        (u) => u.conceptId == '003'), hasLength(2));
-      expect(initialCapacity - completed.conceptCheckpoint!.stock.remainingFor('003'), 2);
+        (u) => u.conceptId == '006'), hasLength(2));
+      expect(initialCapacity - completed.conceptCheckpoint!.stock.remainingFor('006'), 2);
       expect(completed.publicDiscards.singleWhere((r) => r.usageId == source.usageId).toJson(), historicalSnapshot);
       expect(completed.publicDiscards.singleWhere((r) => r.usageId == replay.usageId).usage.toJson()['source_usage_id'], source.usageId);
       expect(backend.consumedCompromiseOccurrences['alice'], contains(replay.usageId));
@@ -1744,7 +1805,7 @@ void main() {
         (u) => u.sourceUsageId == source.usageId), hasLength(1));
       expect(reconnected.usageCheckpoint.usageForIntent(source.intentId)!.toJson(), originalSnapshot);
       expect(reconnected.usageCheckpoint.usageForIntent(replay.intentId)!.toJson(), replay.toJson());
-      expect(reconnected.usageCheckpoint.stock.remainingFor('003'), initialCapacity - 2);
+      expect(reconnected.usageCheckpoint.stock.remainingFor('006'), initialCapacity - 2);
       expect(aliceLearning.appliedEventIds['alice'], {...eventsBefore, eventId});
       expect(jsonEncode((await aliceLearning.load('alice'))?.toJson()), learnedOnce);
     },
@@ -2150,7 +2211,7 @@ void main() {
       await _settle();
       final afterPlay = (await store.loadGame(sessionId: session.id, playerId: 'alice'))!;
       expect(afterPlay.publicDiscards.any((r) => r.usageId == newUsage.usageId), isTrue);
-      expect(controller.corruptionCards.any((c) => c.identity == newUsage.usageId), isTrue);
+      expect(controller.corruptionCards.any((c) => c.identity == newUsage.usageId), isFalse);
       expect(controller.corruptionCards.any((c) => c.identity == oldSources['alice']!.usageId), isFalse);
       expect(controller.usageCheckpoint.usagesByIntent.values.single.toJson(), newUsage.toJson());
     },
@@ -5520,7 +5581,7 @@ void main() {
       final card = actor.corruptionCards.single;
       expect(actor.playerId, 'alice');
       final source = actor.usageCheckpoint.usagesByIntent.values.singleWhere(
-        (u) => u.conceptId == '003',
+        (u) => u.conceptId == '006',
       );
       final sourceJson = source.toJson();
       expect(card.identity, source.usageId);
@@ -5528,14 +5589,14 @@ void main() {
         sessionId: session.id,
         playerId: actor.playerId,
       ))!.publicDiscards.singleWhere((r) => r.usageId == source.usageId);
-      expect(source.action.stageId, '003.stage.1');
+      expect(source.action.variantId, '006.action');
       expect(source.action.zoneId, isNull);
       expect(
         source.action.effectiveChili,
         lessThanOrEqualTo(actor.round!.v4UnlockedSpice),
       );
-      expect(actor.usageCheckpoint.stock.capacity['003'], 3);
-      expect(actor.usageCheckpoint.stock.remainingFor('003'), 2);
+      expect(actor.usageCheckpoint.stock.capacity['006'], 2);
+      expect(actor.usageCheckpoint.stock.remainingFor('006'), 1);
       expect(historical.usage.usageId, source.usageId);
       expect(historical.roundNumber, 1);
       expect(historical.usage.ownerPlayerId, actor.playerId);
@@ -5558,10 +5619,10 @@ void main() {
       expect(draft.usageId, isNot(source.usageId));
       expect(
         pending.conceptCheckpoint!.reservationsByIntent[draft.intentId],
-        '003',
+        '006',
       );
-      expect(actor.usageCheckpoint.stock.remainingFor('003'), 2);
-      expect(actor.usageCheckpoint.availableFor('003'), 1);
+      expect(actor.usageCheckpoint.stock.remainingFor('006'), 1);
+      expect(actor.usageCheckpoint.availableFor('006'), 0);
       expect(
         actor.usageCheckpoint.usagesByIntent.values
             .map((u) => u.usageId)
@@ -5603,7 +5664,7 @@ void main() {
       ))!;
       expect(refused.reservedChoices, isEmpty);
       expect(actor.usageCheckpoint.reservationsByIntent, isEmpty);
-      expect(actor.usageCheckpoint.availableFor('003'), 2);
+      expect(actor.usageCheckpoint.availableFor('006'), 1);
       expect(
         actor.usageCheckpoint.usagesByIntent.values
             .map((u) => u.usageId)
@@ -5809,7 +5870,7 @@ void main() {
       final offered = actor.corruptionCards.single;
       expect(actor.playerId, 'alice');
       final source = actor.usageCheckpoint.usagesByIntent.values.singleWhere(
-        (u) => u.conceptId == '003',
+        (u) => u.conceptId == '006',
       );
       final sourceJson = source.toJson();
       expect(offered.identity, source.usageId);
@@ -5817,14 +5878,14 @@ void main() {
         sessionId: session.id,
         playerId: actor.playerId,
       ))!.publicDiscards.singleWhere((r) => r.usageId == source.usageId);
-      expect(source.action.stageId, '003.stage.1');
+      expect(source.action.variantId, '006.action');
       expect(source.action.zoneId, isNull);
       expect(
         source.action.effectiveChili,
         lessThanOrEqualTo(actor.round!.v4UnlockedSpice),
       );
-      expect(actor.usageCheckpoint.stock.capacity['003'], 3);
-      expect(actor.usageCheckpoint.stock.remainingFor('003'), 2);
+      expect(actor.usageCheckpoint.stock.capacity['006'], 2);
+      expect(actor.usageCheckpoint.stock.remainingFor('006'), 1);
       expect(historical.usage.usageId, source.usageId);
       expect(historical.roundNumber, 1);
       expect(historical.usage.ownerPlayerId, actor.playerId);
@@ -5848,10 +5909,10 @@ void main() {
       expect(draft.usageId, isNot(source.usageId));
       expect(
         pending.conceptCheckpoint!.reservationsByIntent[draft.intentId],
-        '003',
+        '006',
       );
-      expect(actor.usageCheckpoint.stock.remainingFor('003'), 2);
-      expect(actor.usageCheckpoint.availableFor('003'), 1);
+      expect(actor.usageCheckpoint.stock.remainingFor('006'), 1);
+      expect(actor.usageCheckpoint.availableFor('006'), 0);
       expect(
         actor.usageCheckpoint.usagesByIntent.values
             .map((u) => u.usageId)
@@ -5875,7 +5936,7 @@ void main() {
       expect(replay.usageId, draft.usageId);
       expect(replay.usageId, isNot(source.usageId));
       expect(replay.action.toJson(), source.action.toJson());
-      expect(actor.usageCheckpoint.stock.remainingFor('003'), 1);
+      expect(actor.usageCheckpoint.stock.remainingFor('006'), 0);
       expect(actor.usageCheckpoint.reservationsByIntent, isEmpty);
       expect(
         actor.usageCheckpoint.usageForIntent(source.intentId)!.toJson(),
@@ -6933,7 +6994,7 @@ Future<_Setup> _setupCorruption(
         roundNumber: 1,
         ownerPlayerId: entry.key,
         cards: [
-          for (final id in ['003', '001', '012', '032'])
+          for (final id in ['006', '001', '012', '032'])
             CardRuntimeState(cardId: id, zone: CardZone.HAND),
         ],
       ),
@@ -6952,6 +7013,7 @@ Future<_Setup> _setupCorruption(
     privateStore: stores[id]!,
     learningStore: learning ?? MemoryNetworkProfileLearningStore(),
     catalog: catalog,
+    initialClothingCounts: const {'alice': 6, 'bob': 6},
     privateProfile: PlayerGameProfile(
       playerId: id,
       preferences: {
@@ -6974,7 +7036,7 @@ Future<_Setup> _setupCorruption(
 }
 
 Future<void> _reachSecondResolved(_Setup setup) async {
-  await _playUnequal(setup, forceAliceCard: '003', requireRepeatable: true);
+  await _playUnequal(setup, forceAliceCard: '006', requireRepeatable: true);
   final firstAlice =
       setup.alice.usageCheckpoint.usagesByIntent.values.single.conceptId;
   final firstBob =

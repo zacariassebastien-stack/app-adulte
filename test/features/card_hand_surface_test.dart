@@ -26,6 +26,7 @@ void main() {
     bool animations = true,
     ValueChanged<CardHandItem>? onPlay,
     ValueChanged<CardHandItem>? onLock,
+    void Function(CardHandItem, String)? onTab,
     VoidCallback? onCancel,
     Size size = const Size(800, 800),
   }) async {
@@ -40,6 +41,7 @@ void main() {
               canCancelCommitted: canCancel,
               animationsEnabled: animations,
               onPlay: onPlay,
+              onTabChanged: onTab,
               onLockChanged: onLock,
               onCancelCommitted: onCancel,
             ),
@@ -72,6 +74,51 @@ void main() {
       CardVisualState.full,
     );
   });
+
+  testWidgets(
+    'stage tabs distinguish played from locked and only available tabs select',
+    (tester) async {
+      String? selected;
+      final item = CardHandItem(
+        id: 'evolution',
+        definition: const CardRenderDefinition(
+          cardId: 'evolution',
+          title: 'Evolution',
+          variantId: 'stage-2',
+        ),
+        tabs: const [
+          CardHandTab(
+            id: 'stage-1',
+            label: '1',
+            enabled: false,
+            consumed: true,
+          ),
+          CardHandTab(id: 'stage-2', label: '2', enabled: true),
+          CardHandTab(id: 'stage-3', label: '3', enabled: false),
+        ],
+      );
+      await pumpHand(tester, items: [item], onTab: (_, id) => selected = id);
+      await tester.tapAt(const Offset(400, 650));
+      await tester.pumpAndSettle();
+      await tester.tapAt(
+        tester.getCenter(find.byKey(const Key('hand-card-evolution'))),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('1 ✓ joué'), findsOneWidget);
+      expect(find.text('3 🔒'), findsOneWidget);
+      for (final id in ['stage-1', 'stage-3']) {
+        expect(
+          tester
+              .widget<TextButton>(find.byKey(Key('stage-tab-evolution-$id')))
+              .onPressed,
+          isNull,
+        );
+      }
+      await tester.tap(find.byKey(const Key('stage-tab-evolution-stage-2')));
+      await tester.pump();
+      expect(selected, 'stage-2');
+    },
+  );
 
   testWidgets('another card receives focus directly', (tester) async {
     await pumpHand(tester);

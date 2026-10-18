@@ -1,3 +1,4 @@
+import '../../card_themes/card_theme_models.dart';
 import 'package:flutter/material.dart';
 
 import '../../card_themes/card_renderer.dart';
@@ -81,6 +82,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   bool _requestInversion = false;
   String? actionError;
   CardHandStage _handStage = CardHandStage.resting;
+  final Map<String, String> _displayedActions = {};
   late final GamePreferencesController preferences;
   late final bool _ownsPreferences;
   bool _historyRecorded = false;
@@ -115,6 +117,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     final changedRound = auctionForm.enterRound(controller.roundNumber);
     setState(() {
       if (changedRound) {
+        _displayedActions.clear();
         actionError = null;
         _negotiationCards.clear();
         _corruptionCards.clear();
@@ -189,7 +192,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
 
   Widget _body() {
     final body = _phaseBody();
-    final cards = controller.round?.initialDuelCards ?? const [];
+    final card = controller.personalDuelCard;
     final decision = const {
       NetworkGameViewState.corruptionDecision,
       NetworkGameViewState.corruptionResponse,
@@ -198,45 +201,19 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       NetworkGameViewState.negotiationAdaptation,
       NetworkGameViewState.negotiationValidation,
     }.contains(controller.viewState);
-    if (!decision || cards.isEmpty) return body;
+    if (!decision || card == null) return body;
     return LayoutBuilder(
       builder: (context, bounds) => Column(
         children: [
           Expanded(child: body),
           SizedBox(
             height: bounds.maxHeight / 3,
-            child: Row(
-              key: const Key('initial-duel-cards'),
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (final usage in cards)
-                  Expanded(
-                    child: Card(
-                      key: Key('initial-duel-card-${usage.ownerPlayerId}'),
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              usage.ownerPlayerId == controller.playerId
-                                  ? 'Ta carte'
-                                  : 'Carte du partenaire',
-                              style: Theme.of(context).textTheme.labelLarge,
-                            ),
-                            Text(
-                              _title(usage.conceptId),
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            Text(
-                              usage.resolvedAction['action_text']! as String,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+            child: IgnorePointer(
+              child: CardRenderer(
+                key: const Key('personal-duel-card'),
+                definition: _handItem(card).definition,
+                state: CardVisualState.full,
+              ),
             ),
           ),
         ],
@@ -276,12 +253,25 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       if (mounted) setState(() => _handStage = stage);
     },
     onLockChanged: (item) => controller.toggleLock(item.id),
+    onTabChanged: (item, actionId) =>
+        setState(() => _displayedActions[item.id] = actionId),
     animationsEnabled: preferences.value.animations,
     onPlay: (item) async {
       if (controller.viewState != NetworkGameViewState.choosing) return;
       controller.selectCard(item.id);
       await controller.reserveSelection();
-      final choices = controller.choicesFor(item.id);
+      final concept = controller.conceptFor(item.id);
+      final selectedIsFree = concept.variants.any(
+        (v) => v.id == item.definition.variantId && v.freeZone,
+      );
+      final choices = controller
+          .choicesFor(item.id)
+          .where(
+            (o) =>
+                (concept.stages.isEmpty && !selectedIsFree) ||
+                o.choice.actionId == item.definition.variantId,
+          )
+          .toList();
       if (!mounted) return;
       ConceptActionOption? choice;
       if (choices.length == 1) {
@@ -322,12 +312,24 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     return [
       for (final concept in controller.heldConcepts)
         if (available[concept.id] case final card?)
-          _handItem(card)
+          _conceptHandItem(concept.id, card)
         else
           CardHandItem(
             id: concept.id,
             available: false,
             locked: controller.lockedCardId == concept.id,
+            tabs: [
+              for (var i = 0; i < concept.stages.length; i++)
+                CardHandTab(
+                  id: concept.stages[i].id,
+                  label: '${i + 1}',
+                  enabled: false,
+                  consumed: controller.stageConsumed(
+                    concept.id,
+                    concept.stages[i].id,
+                  ),
+                ),
+            ],
             definition: CardRenderDefinition(
               cardId: concept.id,
               title: concept.title,
@@ -341,6 +343,37 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             ),
           ),
     ];
+  }
+
+  CardHandItem _conceptHandItem(String id, NetworkDuelCard fallback) {
+    final concept = controller.conceptFor(id);
+    final options = controller.choicesFor(id);
+    final option =
+        options
+            .where((o) => o.choice.actionId == _displayedActions[id])
+            .firstOrNull ??
+        controller.defaultAction(id);
+    final card = option == null
+        ? fallback
+        : controller.previewAction(id, option) ?? fallback;
+    final item = _handItem(card);
+    return CardHandItem(
+      id: item.id,
+      definition: item.definition,
+      available: item.available,
+      locked: item.locked,
+      tabs: [
+        for (var i = 0; i < concept.stages.length; i++)
+          CardHandTab(
+            id: concept.stages[i].id,
+            label: '${i + 1}',
+            enabled: options.any(
+              (o) => o.choice.actionId == concept.stages[i].id,
+            ),
+            consumed: controller.stageConsumed(id, concept.stages[i].id),
+          ),
+      ],
+    );
   }
 
   Widget _waiting() {
@@ -376,6 +409,16 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     final editorialVariant = card.definition.variants
         .where((variant) => variant.stableId == card.variant.id)
         .firstOrNull;
+    final concept = widget.catalog.concepts!.concepts
+        .where((c) => c.id == card.id)
+        .firstOrNull;
+    final free =
+        concept?.variants.any((v) => v.id == card.variant.id && v.freeZone) ??
+        false;
+    final option = controller
+        .choicesFor(card.id)
+        .where((o) => o.choice.actionId == card.variant.id)
+        .firstOrNull;
     return CardHandItem(
       id: card.identity,
       locked: controller.lockedCardId == card.identity,
@@ -384,12 +427,23 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         cardId: card.id,
         variantId: card.variant.id,
         title: card.title,
-        action:
-            editorialVariant?.actionText ??
-            card.definition.actionText ??
-            card.definition.descriptionKey,
+        action: card.identity != card.id
+            ? editorialVariant?.actionText ?? card.definition.actionText
+            : free && option != null
+            ? option.title
+            : '${editorialVariant?.actionText ?? card.definition.actionText ?? card.definition.descriptionKey}${editorialVariant?.title == null ? '' : ' · ${editorialVariant!.title}'}',
+        zones: [
+          if (controller.zoneForCard(card) case final zone?)
+            widget.catalog.concepts!.zones
+                    .where((z) => z.id == zone)
+                    .firstOrNull
+                    ?.title ??
+                'Zone indiquée'
+          else if (free)
+            'LIBRE',
+        ],
         details: editorialVariant?.detailsText ?? card.definition.detailsText,
-        direction: card.role.name,
+        direction: card.effectiveDirection.name,
         spice: card.chiliLevel,
         personalPa: card.personalValue,
         oppositePa: card.oppositePersonalValue,
@@ -1402,9 +1456,19 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     String conceptId, {
     bool recovery = false,
   }) async {
-    final choices = recovery
+    final available = recovery
         ? controller.recoveryChoicesFor(conceptId)
         : controller.choicesFor(conceptId);
+    final displayed = controller.defaultAction(conceptId, available);
+    final isFree = controller
+        .conceptFor(conceptId)
+        .variants
+        .any((v) => v.id == displayed?.choice.actionId && v.freeZone);
+    final choices = isFree
+        ? available
+              .where((o) => o.choice.actionId == displayed!.choice.actionId)
+              .toList()
+        : available;
     if (choices.isEmpty) return null;
     if (choices.length == 1) return choices.single;
     return showDialog<ConceptActionOption>(

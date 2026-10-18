@@ -14,8 +14,10 @@ final class ConceptUsageCheckpoint {
     required this.stock,
     required Map<String, ConceptUsageSnapshot> usagesByIntent,
     Map<String, String> reservationsByIntent = const {},
+    Map<String, String> reservedStagesByIntent = const {},
   }) : usagesByIntent = Map.unmodifiable(usagesByIntent),
-       reservationsByIntent = Map.unmodifiable(reservationsByIntent);
+       reservationsByIntent = Map.unmodifiable(reservationsByIntent),
+       reservedStagesByIntent = Map.unmodifiable(reservedStagesByIntent);
 
   factory ConceptUsageCheckpoint.startCycle({
     required String sessionId,
@@ -52,12 +54,14 @@ final class ConceptUsageCheckpoint {
       'stock',
       'usages',
       'reservations',
+      'reserved_stages',
+      'legacy_stage_duplicates',
     });
-    reader.integer('schema_version', min: 1, max: 1);
+    final version = reader.integer('schema_version', min: 1, max: 2);
     final sessionId = reader.string('session_id');
     final owner = reader.string('owner_player_id');
     final cycle = reader.integer('cycle', min: 1);
-    final stock = ConceptDeckStock.fromJson(
+    var stock = ConceptDeckStock.fromJson(
       reader.child(json['stock'], 'stock', 'ConceptDeckStock').json,
     );
     final usages = reader.objects(
@@ -67,6 +71,7 @@ final class ConceptUsageCheckpoint {
     );
     final byIntent = <String, ConceptUsageSnapshot>{};
     final counts = <String, int>{};
+    final consumed = <String, Set<String>>{};
     for (final usage in usages) {
       if (usage.sessionId != sessionId ||
           usage.ownerPlayerId != owner ||
@@ -81,13 +86,36 @@ final class ConceptUsageCheckpoint {
       }
       byIntent[usage.intentId] = usage;
       counts.update(usage.conceptId, (count) => count + 1, ifAbsent: () => 1);
-    }
-    for (final entry in stock.capacity.entries) {
-      if (stock.remainingFor(entry.key) !=
-          entry.value - (counts[entry.key] ?? 0)) {
-        reader.fail('stock', 'Usage journal and remaining quota disagree');
+      if (usage.action.stageId case final stage?
+          when !_clothing(usage.conceptId)) {
+        final stages = consumed.putIfAbsent(usage.conceptId, () => {});
+        if (!stages.add(stage) && version == 2) {
+          // Historical duplicates are allowed only when explicitly retained by
+          // the v1 upgrade marker, never through a new engagement.
+          if (json['legacy_stage_duplicates'] != true) {
+            reader.fail('usages', 'Stage engaged twice');
+          }
+        }
       }
     }
+    final remaining = <String, int>{};
+    for (final entry in stock.capacity.entries) {
+      final spent = consumed[entry.key]?.length ?? counts[entry.key] ?? 0;
+      final expected = entry.value - spent;
+      if (stock.remainingFor(entry.key) != expected &&
+          !(version == 1 &&
+              stock.remainingFor(entry.key) ==
+                  entry.value - (counts[entry.key] ?? 0))) {
+        reader.fail('stock', 'Usage journal and remaining quota disagree');
+      }
+      remaining[entry.key] = expected;
+    }
+    // v1 spent generic concept quota. Recover distinct remaining stages from
+    // its immutable journal; repeated historical snapshots are not rewritten.
+    stock = ConceptDeckStock.fromJson({
+      ...stock.toJson(),
+      'remaining': remaining,
+    });
     final reservations = <String, String>{};
     final reservedCounts = <String, int>{};
     if (json.containsKey('reservations')) {
@@ -110,6 +138,15 @@ final class ConceptUsageCheckpoint {
         }
       }
     }
+    final reservedStages = Map<String, String>.from(
+      json['reserved_stages'] as Map? ?? const {},
+    );
+    if (reservedStages.keys.any((id) => !reservations.containsKey(id))) {
+      reader.fail(
+        'reserved_stages',
+        'Stage reservation has no concept reservation',
+      );
+    }
     return ConceptUsageCheckpoint._(
       sessionId: sessionId,
       ownerPlayerId: owner,
@@ -117,6 +154,7 @@ final class ConceptUsageCheckpoint {
       stock: stock,
       usagesByIntent: byIntent,
       reservationsByIntent: reservations,
+      reservedStagesByIntent: reservedStages,
     );
   }
 
@@ -126,6 +164,26 @@ final class ConceptUsageCheckpoint {
   final ConceptDeckStock stock;
   final Map<String, ConceptUsageSnapshot> usagesByIntent;
   final Map<String, String> reservationsByIntent;
+  final Map<String, String> reservedStagesByIntent;
+
+  static bool _clothing(String id) => id == '006' || id == '007';
+
+  bool stageConsumed(String conceptId, String stageId) =>
+      !_clothing(conceptId) &&
+      usagesByIntent.values.any(
+        (u) => u.conceptId == conceptId && u.action.stageId == stageId,
+      );
+
+  bool stageAvailable(String conceptId, String? stageId, {String? intentId}) =>
+      stageId == null ||
+      _clothing(conceptId) ||
+      (!stageConsumed(conceptId, stageId) &&
+          !reservedStagesByIntent.entries.any(
+            (e) =>
+                e.key != intentId &&
+                reservationsByIntent[e.key] == conceptId &&
+                e.value == stageId,
+          ));
 
   int availableFor(String conceptId) =>
       stock.remainingFor(conceptId) -
@@ -134,8 +192,13 @@ final class ConceptUsageCheckpoint {
   ConceptUsageCheckpoint reserve({
     required String intentId,
     required String conceptId,
+    String? stageId,
   }) {
     ConceptUsageSnapshot.identityFor(sessionId, ownerPlayerId, cycle, intentId);
+    if (!stageAvailable(conceptId, stageId, intentId: intentId) &&
+        usagesByIntent[intentId] == null) {
+      throw StateError('Stage unavailable: $stageId');
+    }
     final existing =
         usagesByIntent[intentId]?.conceptId ?? reservationsByIntent[intentId];
     if (existing != null) {
@@ -154,6 +217,7 @@ final class ConceptUsageCheckpoint {
       stock: stock,
       usagesByIntent: usagesByIntent,
       reservationsByIntent: {...reservationsByIntent, intentId: conceptId},
+      reservedStagesByIntent: {...reservedStagesByIntent, intentId: ?stageId},
     );
   }
 
@@ -167,6 +231,7 @@ final class ConceptUsageCheckpoint {
       stock: stock,
       usagesByIntent: usagesByIntent,
       reservationsByIntent: {...reservationsByIntent}..remove(intentId),
+      reservedStagesByIntent: {...reservedStagesByIntent}..remove(intentId),
     );
   }
 
@@ -203,6 +268,13 @@ final class ConceptUsageCheckpoint {
     if (action.conceptId != conceptId) {
       throw ArgumentError('Resolved concept differs from intent');
     }
+    if (!stageAvailable(conceptId, action.stageId, intentId: intentId)) {
+      throw StateError('Stage already consumed or reserved: ${action.stageId}');
+    }
+    final reservedStage = reservedStagesByIntent[intentId];
+    if (reservedStage != null && reservedStage != action.stageId) {
+      throw StateError('Engagement differs from reserved stage');
+    }
     final usage = ConceptUsageSnapshot.create(
       sessionId: sessionId,
       ownerPlayerId: ownerPlayerId,
@@ -220,17 +292,34 @@ final class ConceptUsageCheckpoint {
       stock: stock.consume(conceptId),
       usagesByIntent: {...usagesByIntent, intentId: usage},
       reservationsByIntent: {...reservationsByIntent}..remove(intentId),
+      reservedStagesByIntent: {...reservedStagesByIntent}..remove(intentId),
     );
   }
 
   JsonMap toJson() =>
       freezeJson({
-            'schema_version': 1,
+            'schema_version': 2,
             'session_id': sessionId,
             'owner_player_id': ownerPlayerId,
             'cycle': cycle,
             'stock': stock.toJson(),
             'reservations': reservationsByIntent,
+            'reserved_stages': reservedStagesByIntent,
+            if (usagesByIntent.values
+                    .where(
+                      (u) =>
+                          u.action.stageId != null && !_clothing(u.conceptId),
+                    )
+                    .map((u) => '${u.conceptId}/${u.action.stageId}')
+                    .toSet()
+                    .length <
+                usagesByIntent.values
+                    .where(
+                      (u) =>
+                          u.action.stageId != null && !_clothing(u.conceptId),
+                    )
+                    .length)
+              'legacy_stage_duplicates': true,
             'usages': [
               for (final usage in usagesByIntent.values) usage.toJson(),
             ],

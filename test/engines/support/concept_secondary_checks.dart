@@ -104,31 +104,21 @@ Map<String, void Function()> conceptSecondaryChecks() {
             'wrong debit',
           );
         },
-    'replaying a past stage creates another linked usage and consumes exactly one capacity':
-        () {
-          final first = engage(start(), 'duel');
-          final original = first.usageForIntent('duel')!;
-          final next = engage(
-            first.reserve(intentId: 'replay', conceptId: '019'),
-            'replay',
-            source: original.usageId,
-          );
-          final replay = next.usageForIntent('replay')!;
-          check(
-            original.usageId != replay.usageId &&
-                replay.sourceUsageId == original.usageId,
-            'replay identity/link',
-          );
-          check(
-            original.action.stageId == replay.action.stageId,
-            'same stage cannot replay',
-          );
-          check(
-            next.stock.remainingFor('019') ==
-                first.stock.remainingFor('019') - 1,
-            'replay debit',
-          );
-        },
+    'replay cannot create a new usage for a consumed stage': () {
+      final first = engage(start(), 'duel');
+      final original = first.usageForIntent('duel')!;
+      var rejected = false;
+      try {
+        engage(first, 'replay', source: original.usageId);
+      } on StateError {
+        rejected = true;
+      }
+      check(rejected, 'Consumed stage replay accepted');
+      check(
+        first.stock.remainingFor('019') == 2,
+        'Rejected replay spent quota',
+      );
+    },
     'including an engaged usage in a compromise preserves identity without a second debit':
         () {
           final accepted = engage(start(), 'duel');

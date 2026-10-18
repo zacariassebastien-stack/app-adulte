@@ -226,41 +226,37 @@ Map<String, void Function()> conceptDeckChecks() => {
           );
         }
       },
-  'same evolution stage remains selectable through all three concept uses': () {
-    final catalog = _catalog({'019'});
-    var stock = ConceptDeckStock.startCycle(
-      catalog: catalog,
-      initialClothing: 5,
-    );
-    final original = stock;
-    final eligibility = _eligible(
-      catalog,
-      actionOverrides: {
-        '019': {'019.stage.1'},
+  'pool contains only the unconsumed stages supplied by action eligibility':
+      () {
+        final catalog = _catalog({'019'});
+        final stock = ConceptDeckStock.startCycle(
+          catalog: catalog,
+          initialClothing: 5,
+        ).consume('019');
+        final candidate = _pool(
+          catalog,
+          stock: stock,
+          eligibility: _eligible(
+            catalog,
+            actionOverrides: {
+              '019': {'019.stage.1', '019.stage.3'},
+            },
+          ),
+        ).candidates.single;
+        _check(
+          candidate.choices.map((c) => c.actionId).join('/') ==
+              '019.stage.1/019.stage.3',
+          'Consumed stage returned to pool',
+        );
+        _check(
+          _pool(
+            catalog,
+            stock: stock,
+            eligibility: _eligible(catalog, actionOverrides: {'019': {}}),
+          ).isEmpty,
+          'No playable stages must produce an empty pool',
+        );
       },
-    );
-    for (var use = 0; use < 3; use++) {
-      final choice = _pool(
-        catalog,
-        stock: stock,
-        eligibility: eligibility,
-      ).candidates.single;
-      _check(
-        choice.choices.single.actionId == '019.stage.1',
-        'Same stage was removed',
-      );
-      stock = stock.consume('019');
-    }
-    _check(
-      stock.remainingFor('019') == 0 && original.remainingFor('019') == 3,
-      'Immutable concept counter',
-    );
-    _check(
-      _pool(catalog, stock: stock, eligibility: eligibility).isEmpty,
-      'Quota must exhaust',
-    );
-    _throws<StateError>(() => stock.consume('019'));
-  },
   'consuming a concept changes only its own shared counter': () {
     final catalog = _catalog({'001', '019'});
     final stock = ConceptDeckStock.startCycle(

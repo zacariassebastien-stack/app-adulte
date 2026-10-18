@@ -8,18 +8,31 @@ import '../../../card_themes/card_theme_models.dart';
 
 enum CardHandStage { resting, focused, open, committed }
 
+final class CardHandTab {
+  const CardHandTab({
+    required this.id,
+    required this.label,
+    required this.enabled,
+    this.consumed = false,
+  });
+  final String id, label;
+  final bool enabled, consumed;
+}
+
 final class CardHandItem {
   const CardHandItem({
     required this.id,
     required this.definition,
     this.locked = false,
     this.available = true,
+    this.tabs = const [],
   });
 
   final String id;
   final CardRenderDefinition definition;
   final bool locked;
   final bool available;
+  final List<CardHandTab> tabs;
 }
 
 class CardHandSurface extends StatefulWidget {
@@ -29,6 +42,7 @@ class CardHandSurface extends StatefulWidget {
     this.canCancelCommitted = false,
     this.animationsEnabled = true,
     this.onPlay,
+    this.onTabChanged,
     this.onCancelCommitted,
     this.onLockChanged,
     this.onStageChanged,
@@ -40,6 +54,7 @@ class CardHandSurface extends StatefulWidget {
   final bool canCancelCommitted;
   final bool animationsEnabled;
   final ValueChanged<CardHandItem>? onPlay;
+  final void Function(CardHandItem card, String tabId)? onTabChanged;
   final VoidCallback? onCancelCommitted;
   final ValueChanged<CardHandItem>? onLockChanged;
   final ValueChanged<CardHandStage>? onStageChanged;
@@ -319,16 +334,60 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
                 : Duration.zero,
             child: Opacity(
               opacity: card.available ? 1 : .48,
-              child: CardRenderer(
-                definition: card.definition,
-                locked: card.locked,
-                state: open
-                    ? CardVisualState.full
-                    : focused
-                    ? CardVisualState.focused
-                    : card.locked
-                    ? CardVisualState.locked
-                    : CardVisualState.normal,
+              child: Column(
+                children: [
+                  if (open && card.tabs.isNotEmpty)
+                    SizedBox(
+                      height: 38,
+                      child: Row(
+                        children: [
+                          for (final tab in card.tabs)
+                            Expanded(
+                              child: TextButton(
+                                key: Key('stage-tab-${card.id}-${tab.id}'),
+                                onPressed: tab.enabled
+                                    ? () => widget.onTabChanged?.call(
+                                        card,
+                                        tab.id,
+                                      )
+                                    : null,
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 2,
+                                  ),
+                                  backgroundColor:
+                                      card.definition.variantId == tab.id
+                                      ? Theme.of(
+                                          context,
+                                        ).colorScheme.primaryContainer
+                                      : null,
+                                ),
+                                child: Text(
+                                  '${tab.label}${tab.consumed
+                                      ? ' ✓ joué'
+                                      : tab.enabled
+                                      ? ''
+                                      : ' 🔒'}',
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  Expanded(
+                    child: CardRenderer(
+                      definition: card.definition,
+                      locked: card.locked,
+                      state: open
+                          ? CardVisualState.full
+                          : focused
+                          ? CardVisualState.focused
+                          : card.locked
+                          ? CardVisualState.locked
+                          : CardVisualState.normal,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

@@ -140,8 +140,9 @@ Map<String, void Function()> conceptRuntimeChecks() {
   final at = DateTime.utc(2026, 10, 15, 12);
   ConceptUsageCheckpoint engage(
     ConceptUsageCheckpoint checkpoint,
-    String intent,
-  ) => checkpoint.engage(
+    String intent, {
+    int stage = 1,
+  }) => checkpoint.engage(
     intentId: intent,
     conceptId: '019',
     clock: () => at,
@@ -149,7 +150,7 @@ Map<String, void Function()> conceptRuntimeChecks() {
       'concept_id': '019',
       'catalog_version': 1,
       'locale': 'fr-FR',
-      'stage_id': '019.stage.1',
+      'stage_id': '019.stage.$stage',
       'effective_chili': 3,
       'direction': 'FAIRE',
       'actor_player_ids': ['alice'],
@@ -535,36 +536,36 @@ Map<String, void Function()> conceptRuntimeChecks() {
         'Cancellation spent quota',
       );
     },
-    'same stage can engage three times and retry after exhaustion spends nothing':
-        () {
-          var checkpoint = start();
-          for (final intent in ['a', 'b', 'c']) {
-            checkpoint = engage(
-              checkpoint.reserve(intentId: intent, conceptId: '019'),
-              intent,
-            );
-          }
-          _check(
-            checkpoint.stock.remainingFor('019') == 0 &&
-                checkpoint.usagesByIntent.values
-                        .map((u) => u.usageId)
-                        .toSet()
-                        .length ==
-                    3,
-            'Wrong quota or identity',
-          );
-          _check(
-            identical(engage(checkpoint, 'c'), checkpoint),
-            'Retry spent again',
-          );
-          _check(
-            !pool(
-              options(),
-              checkpoint,
-            ).classes.values.expand((v) => v).any((c) => c.concept.id == '019'),
-            'Exhausted concept drawn',
-          );
-        },
+    'three different stages exhaust the concept and retry spends nothing': () {
+      var checkpoint = start();
+      for (final intent in ['a', 'b', 'c']) {
+        checkpoint = engage(
+          checkpoint.reserve(intentId: intent, conceptId: '019'),
+          intent,
+          stage: ['a', 'b', 'c'].indexOf(intent) + 1,
+        );
+      }
+      _check(
+        checkpoint.stock.remainingFor('019') == 0 &&
+            checkpoint.usagesByIntent.values
+                    .map((u) => u.usageId)
+                    .toSet()
+                    .length ==
+                3,
+        'Wrong quota or identity',
+      );
+      _check(
+        identical(engage(checkpoint, 'c'), checkpoint),
+        'Retry spent again',
+      );
+      _check(
+        !pool(
+          options(),
+          checkpoint,
+        ).classes.values.expand((v) => v).any((c) => c.concept.id == '019'),
+        'Exhausted concept drawn',
+      );
+    },
     'native reveal roundtrip preserves usage and canonical commit digest': () {
       final choice = ChoicePayload.fromUsage(projection());
       final restored = ChoicePayload.fromJson(

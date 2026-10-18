@@ -197,7 +197,11 @@ Map<String, void Function()> conceptUsageChecks() => {
       },
   'two engaged uses of the same concept receive distinct stable identities':
       () {
-        final checkpoint = _engage(_engage(_start(), 'first'), 'second');
+        final checkpoint = _engage(
+          _engage(_start(), 'first'),
+          'second',
+          stage: 2,
+        );
         final a = checkpoint.usageForIntent('first')!;
         final b = checkpoint.usageForIntent('second')!;
         _check(
@@ -206,28 +210,116 @@ Map<String, void Function()> conceptUsageChecks() => {
         );
         _check(checkpoint.stock.remainingFor('019') == 1, 'Concept quota');
       },
-  'using the same stage three times creates three usages and spends one shared quota':
+  'each stage is consumed once independently and resets in a new cycle': () {
+    var checkpoint = _engage(_start(), 'second', stage: 2);
+    _check(
+      checkpoint.stageConsumed('019', '019.stage.2'),
+      'Stage 2 not consumed',
+    );
+    _check(
+      checkpoint.stageAvailable('019', '019.stage.1') &&
+          checkpoint.stageAvailable('019', '019.stage.3'),
+      'Other stages consumed',
+    );
+    _throws<StateError>(() => _engage(checkpoint, 'again', stage: 2));
+    checkpoint = _engage(checkpoint, 'first', stage: 1);
+    checkpoint = _engage(checkpoint, 'third', stage: 3);
+    _check(checkpoint.stock.remainingFor('019') == 0, 'Concept not exhausted');
+    final restored = ConceptUsageCheckpoint.fromJson(
+      _decode(checkpoint.encode()),
+    );
+    _check(
+      identical(_engage(restored, 'second', stage: 2), restored),
+      'Retry consumed twice',
+    );
+    _check(
+      _start(cycle: 2).stageAvailable('019', '019.stage.2'),
+      'New cycle did not reset',
+    );
+  },
+  'clothing 006 and 007 repeat their variant up to the frozen clothing capacity':
       () {
         var checkpoint = _start();
-        for (final intent in ['a', 'b', 'c']) {
-          checkpoint = _engage(checkpoint, intent);
+        for (final id in ['006', '007']) {
+          final capacity = checkpoint.stock.remainingFor(id);
+          _check(capacity > 1, 'Fixture clothing capacity');
+          for (var n = 0; n < capacity; n++) {
+            checkpoint = checkpoint.engage(
+              intentId: '$id-$n',
+              conceptId: id,
+              resolveAction: () => ResolvedConceptAction.fromJson(
+                _actionJson(conceptId: id, variantId: '$id.action'),
+              ),
+              clock: () => _time,
+            );
+          }
+          _check(
+            checkpoint.stock.remainingFor(id) == 0,
+            'Clothing quota not consumed',
+          );
         }
-        final usages = checkpoint.usagesByIntent.values.toList();
         _check(
-          usages.map((u) => u.usageId).toSet().length == 3,
-          'Duplicate usages',
+          ConceptUsageCheckpoint.fromJson(
+                _decode(checkpoint.encode()),
+              ).stock.remainingFor('007') ==
+              0,
+          'Clothing restore',
+        );
+      },
+  'stage reservation is non-consuming and releases independently': () {
+    final reserved = _start().reserve(
+      intentId: 'a',
+      conceptId: '019',
+      stageId: '019.stage.2',
+    );
+    _check(reserved.stock.remainingFor('019') == 3, 'Reservation consumed');
+    _throws<StateError>(
+      () => reserved.reserve(
+        intentId: 'b',
+        conceptId: '019',
+        stageId: '019.stage.2',
+      ),
+    );
+    final restored = ConceptUsageCheckpoint.fromJson(
+      _decode(reserved.encode()),
+    );
+    _check(
+      restored.releaseReservation('a').stageAvailable('019', '019.stage.2'),
+      'Reservation not released',
+    );
+  },
+  'legacy repeated-stage journal upgrades without altering historical snapshots':
+      () {
+        final first = _engage(_start(), 'a');
+        final json = _decode(first.encode());
+        json['schema_version'] = 1;
+        final second = ConceptUsageSnapshot.create(
+          sessionId: first.sessionId,
+          ownerPlayerId: first.ownerPlayerId,
+          cycle: first.cycle,
+          intentId: 'b',
+          engagedAt: _time,
+          action: _action(),
+        );
+        (json['usages'] as List).add(second.toJson());
+        ((json['stock'] as Map)['remaining'] as Map)['019'] = 1;
+        final restored = ConceptUsageCheckpoint.fromJson(json);
+        _check(
+          restored.stock.remainingFor('019') == 2,
+          'Distinct stage remainder',
         );
         _check(
-          usages.every((u) => u.action.stageId == '019.stage.1'),
-          'Stage was consumed',
+          restored.usageForIntent('b')!.encode() == second.encode(),
+          'Legacy snapshot changed',
         );
+        _throws<StateError>(() => _engage(restored, 'c'));
         _check(
-          checkpoint.stock.remainingFor('019') == 0 &&
-              checkpoint.stock.capacity['019'] == 3 &&
-              checkpoint.stock.remainingFor('001') == 1,
-          'Quota belongs to concept, not stage or usage ID',
+          ConceptUsageCheckpoint.fromJson(
+                _decode(restored.encode()),
+              ).usagesByIntent.length ==
+              2,
+          'Upgraded checkpoint cannot reconnect',
         );
-        _throws<StateError>(() => _engage(checkpoint, 'd'));
       },
   'usage serialization restores the same identity and complete snapshot': () {
     final original = _snapshot();
@@ -295,7 +387,11 @@ Map<String, void Function()> conceptUsageChecks() => {
   'retry still succeeds after the last available concept use': () {
     var checkpoint = _start();
     for (final intent in ['a', 'b', 'c']) {
-      checkpoint = _engage(checkpoint, intent);
+      checkpoint = _engage(
+        checkpoint,
+        intent,
+        stage: ['a', 'b', 'c'].indexOf(intent) + 1,
+      );
     }
     _check(checkpoint.stock.remainingFor('019') == 0, 'Fixture quota');
     _check(
