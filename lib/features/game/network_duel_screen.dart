@@ -760,39 +760,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     if (count != null && mounted) setState(() => _pendingClothingCount = count);
   }
 
-  Future<int?> _requestClothingCount(int initialCount) async {
-    final input = TextEditingController(text: '$initialCount');
-    final count = await showDialog<int>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Vêtements'),
-        content: TextField(
-          key: const Key('clothing-resync-count'),
-          controller: input,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Combien de vêtements portes-tu actuellement ?',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final value = int.tryParse(input.text);
-              if (value != null && value >= 0) Navigator.pop(context, value);
-            },
-            child: const Text('Valider'),
-          ),
-        ],
-      ),
-    );
-    input.dispose();
-    return count;
-  }
+  Future<int?> _requestClothingCount(int initialCount) => showDialog<int>(
+    context: context,
+    builder: (context) => _ClothingCountDialog(initialCount: initialCount),
+  );
 
   Widget _resolvedActionTile(NetworkResolvedActionCardDto card) {
     final action = card.usage.resolvedAction;
@@ -1591,4 +1562,56 @@ class NetworkNegotiationOfferSummary extends StatelessWidget {
         NetworkCardDirection.SIMULTANE => 'Simultané',
         NetworkCardDirection.GENERAL => 'Général',
       };
+}
+
+class _ClothingCountDialog extends StatefulWidget {
+  const _ClothingCountDialog({required this.initialCount});
+
+  final int initialCount;
+
+  @override
+  State<_ClothingCountDialog> createState() => _ClothingCountDialogState();
+}
+
+class _ClothingCountDialogState extends State<_ClothingCountDialog> {
+  late final TextEditingController input;
+
+  @override
+  void initState() {
+    super.initState();
+    input = TextEditingController(text: '${widget.initialCount}');
+  }
+
+  @override
+  void dispose() {
+    input.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Vêtements'),
+    content: TextField(
+      key: const Key('clothing-resync-count'),
+      controller: input,
+      autofocus: true,
+      keyboardType: TextInputType.number,
+      decoration: const InputDecoration(
+        labelText: 'Combien de vêtements portes-tu actuellement ?',
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Annuler'),
+      ),
+      FilledButton(
+        onPressed: () {
+          final value = int.tryParse(input.text);
+          if (value != null && value >= 0) Navigator.pop(context, value);
+        },
+        child: const Text('Valider'),
+      ),
+    ],
+  );
 }

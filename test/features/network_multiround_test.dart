@@ -4579,6 +4579,154 @@ void main() {
     expect(backend.clothingCounts['alice'], 5);
   });
 
+  for (final cancel in [false, true]) {
+    testWidgets(
+      'clothing resync keeps its controller alive during ${cancel ? 'cancel' : 'validation'} transition',
+      (tester) async {
+        SharedPreferences.setMockInitialValues(<String, Object>{});
+        final backend = _Backend()..clothingCounts['alice'] = 6;
+        _setProjectedAction(
+          backend,
+          cards: [
+            _projectedCard(
+              occurrenceId: 'resync-lifecycle',
+              cardId: '006',
+              variantId: '006.action',
+              targetPlayerIds: const ['alice'],
+              clothingBehavior: V4ClothingBehavior.removeOne,
+            ),
+          ],
+          requiredClothingPlayerIds: const {'alice'},
+        );
+        await tester.pumpWidget(
+          MaterialApp(
+            home: NetworkDuelScreen(
+              session: session,
+              playerId: 'alice',
+              repository: backend.repository('alice'),
+              catalog: catalog,
+              secretStore: MemoryNetworkDuelSecretStore(),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.byKey(const Key('adjust-deterministic-clothing-count')),
+        );
+        await tester.pumpAndSettle();
+        final field = find.byKey(const Key('clothing-resync-count'));
+        final input = tester.widget<TextField>(field).controller!;
+        expect(input.text, '5');
+        await tester.enterText(field, '3');
+        backend.notify();
+        await tester.pumpAndSettle();
+        expect(tester.widget<TextField>(field).controller, same(input));
+        expect(input.text, '3');
+        await tester.enterText(field, '-1');
+        await tester.tap(find.widgetWithText(FilledButton, 'Valider'));
+        await tester.pump();
+        expect(field, findsOneWidget);
+        await tester.enterText(field, '0');
+        await tester.tap(
+          cancel
+              ? find.widgetWithText(TextButton, 'Annuler')
+              : find.widgetWithText(FilledButton, 'Valider'),
+        );
+        await tester.pump(const Duration(milliseconds: 1));
+        // The dialog is still mounted during its reverse animation, although the
+        // showDialog future has completed. Rebuild its focused TextField now.
+        expect(field, findsOneWidget);
+        tester.element(field).markNeedsBuild();
+        backend.notify();
+        await tester.pump(const Duration(milliseconds: 1));
+        expect(tester.takeException(), isNull);
+        void listener() {}
+        expect(() => input.addListener(listener), returnsNormally);
+        input.removeListener(listener);
+        await tester.pumpAndSettle();
+        expect(field, findsNothing);
+        expect(tester.takeException(), isNull);
+        expect(
+          find.text('Ajuster les vêtements (${cancel ? 5 : 0})'),
+          findsOneWidget,
+        );
+        // Reopening creates a fresh controller with the saved draft/default.
+        await tester.tap(
+          find.byKey(const Key('adjust-deterministic-clothing-count')),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.widget<TextField>(field).controller, isNot(same(input)));
+        expect(
+          tester.widget<TextField>(field).controller!.text,
+          cancel ? '5' : '0',
+        );
+        await tester.tap(find.widgetWithText(TextButton, 'Annuler'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('complete-network-action')));
+        await tester.pumpAndSettle();
+        expect(backend.clothingCounts['alice'], cancel ? 5 : 0);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
+  }
+
+  testWidgets(
+    'clothing resync survives viewState change and focused dialog removal',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final backend = _Backend()..clothingCounts['alice'] = 6;
+      _setProjectedAction(
+        backend,
+        cards: [
+          _projectedCard(
+            occurrenceId: 'resync-strip-lifecycle',
+            cardId: '010',
+            variantId: '010.stage.2',
+            targetPlayerIds: const ['alice'],
+            clothingBehavior: V4ClothingBehavior.resetThenStrip,
+          ),
+        ],
+        requiredClothingPlayerIds: const {'alice'},
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NetworkDuelScreen(
+            session: session,
+            playerId: 'alice',
+            repository: backend.repository('alice'),
+            catalog: catalog,
+            secretStore: MemoryNetworkDuelSecretStore(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final controller =
+          (tester.state(find.byType(NetworkDuelScreen)) as dynamic).controller
+              as NetworkGameController;
+      final previousView = controller.viewState;
+      await tester.tap(find.byKey(const Key('complete-network-action')));
+      await tester.pumpAndSettle();
+      final field = find.byKey(const Key('clothing-resync-count'));
+      final input = tester.widget<TextField>(field).controller!;
+      expect(input.text, '6');
+      await tester.enterText(field, '0');
+      expect(tester.testTextInput.isVisible, isTrue);
+      backend.round.phase = NetworkGamePhase.waitingNext;
+      backend.notify();
+      await tester.pumpAndSettle();
+      expect(controller.viewState, isNot(previousView));
+      expect(tester.widget<TextField>(field).controller, same(input));
+      expect(input.text, '0');
+      expect(tester.takeException(), isNull);
+      // Remove the navigator and focused dialog while the input is still active.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(field, findsNothing);
+    },
+  );
+
   test(
     'deterministic clothing count is shared and survives next round reconnect',
     () async {
