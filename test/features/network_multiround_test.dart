@@ -1,3 +1,7 @@
+import 'package:flutter/services.dart';
+import 'package:couple_cards/sync/projection/usage_learning_projection.dart';
+import 'package:couple_cards/features/lobby/two_phone_lobby_screen.dart';
+import 'package:couple_cards/features/lobby/lobby_repository.dart';
 import '../support/native_action_fixtures.dart';
 import '../support/native_usage_fixture.dart';
 import 'dart:async';
@@ -44,6 +48,361 @@ void main() {
     );
   });
 
+  for (final last in ['alice', 'bob']) {
+    test(
+      'next round clears old reveal when $last misses the boundary',
+      () async {
+        final setup = await _setup(session, catalog);
+        addTearDown(setup.dispose);
+        await _playUnequal(setup);
+        await (setup.alice.isInitialLoser ? setup.alice : setup.bob)
+            .skipCorruption();
+        await _settle();
+        final first = last == 'alice' ? setup.bob : setup.alice;
+        final second = last == 'alice' ? setup.alice : setup.bob;
+        setup.backend.missedBoundaryPlayer = last;
+        setup.backend.delayedCompletionPlayer = last;
+        setup.backend.completionResponse = Completer<void>();
+        await first.completeAction();
+        await _settle();
+        final completion = second.completeAction();
+        await _settle();
+        expect(setup.backend.currentRound, 2);
+        expect(second.roundNumber, 2);
+        expect(
+          second.selectedCard,
+          isNull,
+          reason: 'new round must not retain the previous committed choice',
+        );
+        setup.backend.completionResponse!.complete();
+        await completion;
+        await _settle();
+        expect(setup.backend.roundCreations, 2);
+        expect(setup.backend.round.commits, isEmpty);
+        await Future.wait([
+          setup.alice.retryCurrentAction(),
+          setup.bob.retryCurrentAction(),
+        ]);
+        await _playUnequal(setup);
+        for (final entry in setup.backend.round.reveals.entries) {
+          expect(entry.value.sessionRound, 'session-multi.round-2');
+          expect(
+            const CommitRevealContract().verify(
+              setup.backend.round.commits[entry.key]!,
+              entry.value,
+            ),
+            isTrue,
+          );
+        }
+        expect(setup.alice.errorMessage, isNull);
+        expect(setup.bob.errorMessage, isNull);
+      },
+    );
+  }
+
+  test(
+    'free zone engagement stores base spice without anatomical evidence',
+    () async {
+      final store = MemoryNetworkDuelSecretStore();
+      final setup = await _setup(
+        session,
+        _catalogWithCards(catalog, {'card.v4.002'}),
+        aliceSecrets: store,
+      );
+      addTearDown(setup.dispose);
+      final free = setup.alice
+          .choicesFor('002')
+          .where((o) => o.choice.actionId == '002.zone.free')
+          .toList();
+      expect(free, hasLength(1));
+      expect(free.single.choice.zoneId, isNull);
+      expect(free.single.choice.chili, 1);
+      setup.alice.selectCard('002');
+      setup.alice.chooseAction(free.single);
+      await setup.alice.confirmSelection();
+      final saved = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      final usage = saved.activeReveal!.choice.usage!;
+      expect(usage.resolvedAction.containsKey('zone_id'), isFalse);
+      expect(usage.resolvedAction['effective_chili'], 1);
+      expect(
+        usage.resolvedAction['action_text'],
+        'Choisis librement une zone à embrasser.',
+      );
+      expect(
+        (usage.resolvedAction['tags'] as List).where(
+          (tag) => (tag as String).startsWith('v3.zone.'),
+        ),
+        isEmpty,
+      );
+      final evidence = const V3LearningTagProjector().project(
+        usageLearningDescriptor(usage),
+      );
+      expect(evidence, isNotEmpty);
+      expect(evidence.every((e) => e.key.zoneId == null), isTrue);
+      await setup.alice.retryCurrentAction();
+      expect(
+        (await store.loadGame(
+          sessionId: session.id,
+          playerId: 'alice',
+        ))!.activeReveal!.nonce,
+        saved.activeReveal!.nonce,
+      );
+      expect(setup.alice.usageCheckpoint.usagesByIntent, hasLength(1));
+    },
+  );
+
+  for (final stage in ['preparation', 'playing', 'cycle']) {
+    testWidgets(
+      'leaving $stage returns to multiplayer menu with no lobby update',
+      (tester) async {
+        rootBundle.clear();
+        tester.binding.defaultBinaryMessenger.setMockMessageHandler(
+          'flutter/assets',
+          (data) async {
+            final file = File(utf8.decode(data!.buffer.asUint8List()));
+            return file.existsSync()
+                ? ByteData.sublistView(file.readAsBytesSync())
+                : null;
+          },
+        );
+        addTearDown(
+          () => tester.binding.defaultBinaryMessenger.setMockMessageHandler(
+            'flutter/assets',
+            null,
+          ),
+        );
+
+        SharedPreferences.setMockInitialValues(<String, Object>{});
+        final backend = _Backend();
+        if (stage == 'cycle') {
+          backend.cycleExhausted = true;
+          backend.round.phase = NetworkGamePhase.waitingNext;
+        }
+        final store = _MemoryActiveSessionStore();
+        final lobby = _MenuLobbyRepository(
+          session,
+          _PreparedRepository(backend, 'alice', stage != 'preparation'),
+        );
+        await tester.pumpWidget(
+          MaterialApp(
+            home: TwoPhoneLobbyScreen(
+              repository: lobby,
+              activeSessionStore: store,
+              historyStore: MemoryGameHistoryStore(),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('create-lobby')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('launch-network-duel')));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 300)),
+        );
+        for (var i = 0; i < 30; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 20)),
+          );
+          await tester.pump(const Duration(milliseconds: 50));
+        }
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 100)),
+        );
+        await tester.pumpAndSettle();
+        if (stage == 'preparation') {
+          await tester.pageBack();
+        } else {
+          await tester.tap(
+            find.byKey(const Key('open-private-profile-settings')),
+          );
+          await tester.pumpAndSettle();
+          await tester.ensureVisible(
+            find.byKey(const Key('quit-network-game')),
+          );
+          await tester.tap(find.byKey(const Key('quit-network-game')));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const Key('confirm-quit-game')));
+        }
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 100)),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('create-lobby')), findsOneWidget);
+        expect(find.byKey(const Key('show-join-lobby')), findsOneWidget);
+        expect(find.byKey(const Key('lobby-ready')), findsNothing);
+        expect(store.value, isNull);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
+  }
+
+  for (final id in ['alice', 'bob']) {
+    testWidgets('RECEVOIR order gives the correct instruction to $id', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final backend = _Backend();
+      final usage = nativeUsageFixture(
+        owner: 'alice',
+        conceptId: '032',
+        direction: 'RECEVOIR',
+      );
+      _setProjectedAction(
+        backend,
+        cards: [NetworkResolvedActionCardDto.fromUsage(usage)],
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NetworkDuelScreen(
+            session: session,
+            playerId: id,
+            repository: backend.repository(id),
+            catalog: catalog,
+            secretStore: MemoryNetworkDuelSecretStore(),
+          ),
+        ),
+      );
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(
+        find.text(
+          id == 'alice'
+              ? "Ton partenaire choisit l’ordre que tu devras suivre."
+              : "Choisis l’ordre que ton partenaire devra suivre.",
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining('cible :'), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
+  test(
+    'reconnect after a missed round boundary preserves quota and clears old secret',
+    () async {
+      final store = MemoryNetworkDuelSecretStore();
+      final setup = await _setup(session, catalog, bobSecrets: store);
+      await _playUnequal(setup);
+      await (setup.alice.isInitialLoser ? setup.alice : setup.bob)
+          .skipCorruption();
+      await _settle();
+      final before = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'bob',
+      ))!;
+      setup.bob.dispose();
+      await setup.alice.completeAction();
+      await setup.backend
+          .repository('bob')
+          .readyNextRound(
+            command: _command(
+              'offline-complete',
+              'bob',
+              'ACTION_COMPLETE',
+              'round-1',
+            ),
+          );
+      await _settle();
+      expect(setup.backend.currentRound, 2);
+      final bob = _controller(setup.backend, session, catalog, 'bob', store);
+      addTearDown(() {
+        setup.alice.dispose();
+        bob.dispose();
+      });
+      await bob.start();
+      await _settle();
+      expect(bob.roundNumber, 2);
+      expect(bob.selectedCard, isNull);
+      expect(
+        bob.usageCheckpoint.stock.remaining,
+        before.conceptCheckpoint!.stock.remaining,
+      );
+      expect(
+        bob.usageCheckpoint.usagesByIntent.length,
+        before.conceptCheckpoint!.usagesByIntent.length,
+      );
+      final saved = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'bob',
+      ))!;
+      expect(saved.activeReveal, isNull);
+      await _playUnequal(_Setup(setup.backend, setup.alice, bob));
+      expect(bob.errorMessage, isNull);
+      expect(
+        setup.backend.round.reveals['bob']!.sessionRound,
+        'session-multi.round-2',
+      );
+    },
+  );
+
+  for (final id in ['alice', 'bob']) {
+    testWidgets('post duel keeps both public cards visible for $id', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final backend = await tester.runAsync(() async {
+        final setup = await _setup(session, catalog);
+        setup.backend.routeToUnifiedPostDuelChoice = true;
+        await _playUnequal(setup);
+        setup.dispose();
+        return setup.backend;
+      });
+      final winner = backend!.round.initial!.winnerPlayerId == id;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NetworkDuelScreen(
+            session: session,
+            playerId: id,
+            repository: backend.repository(id),
+            catalog: catalog,
+            secretStore: MemoryNetworkDuelSecretStore(),
+          ),
+        ),
+      );
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(
+        find.text(
+          winner
+              ? 'Tu as gagné le duel.\nEn attente de la réponse de ton partenaire…'
+              : 'Tu as perdu le duel.\nChoisis la suite.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('initial-duel-card-alice')), findsOneWidget);
+      expect(find.byKey(const Key('initial-duel-card-bob')), findsOneWidget);
+      final bounds = tester.getRect(
+        find.byKey(const Key('initial-duel-cards')),
+      );
+      expect(
+        bounds.top,
+        greaterThan(
+          tester.view.physicalSize.height / tester.view.devicePixelRatio * .6,
+        ),
+      );
+      expect(
+        find.byKey(const Key('choose-negotiation')),
+        winner ? findsNothing : findsOneWidget,
+      );
+      if (!winner) {
+        await tester.tap(find.byKey(const Key('choose-negotiation')));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const Key('initial-duel-card-alice')),
+          findsOneWidget,
+        );
+        expect(find.byKey(const Key('initial-duel-card-bob')), findsOneWidget);
+      }
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
   test('watchRound cancellation detaches without another backend event', () async {
     final backend = _Backend();
     final repository = backend.repository('alice');
@@ -6814,6 +7173,9 @@ final class _MemoryActiveSessionStore implements ActiveSessionStore {
 }
 
 final class _Backend {
+  String? missedBoundaryPlayer;
+  String? delayedCompletionPlayer;
+  Completer<void>? completionResponse;
   bool failNextCommit = false;
   bool failNextRecovery = false;
   bool failNextCancellation = false;
@@ -6905,6 +7267,7 @@ final class _Backend {
       actionProjection: round.actionProjection,
       clothingCounts: clothingCounts,
       clothingResyncedPlayerIds: clothingResynced,
+      initialDuelCards: round.initial == null ? const [] : [for (final reveal in round.reveals.values) NetworkUsageProjection.fromJson({...reveal.choice.usage!.toJson()}..remove('snapshot_value')..remove('inverted_resolution'))],
       ownReveal: round.reveals[player],
       opponentReveal: _revealsPublic && !redactOpponentReveal
           ? round.reveals.entries
@@ -7172,12 +7535,23 @@ class _Repository
     required NetworkCommandDto command,
     required ChoiceRevealDto reveal,
   }) async {
+    if (backend.commands.contains(command.commandId)) {
+      final recorded = backend.rounds.values
+          .singleWhere((r) => r.id == command.payload['round_id'])
+          .reveals[player];
+      if (recorded == null || recorded.nonce != reveal.nonce ||
+          recorded.choice.canonicalJson() != reveal.choice.canonicalJson()) {
+        throw const NetworkRoundException('ROUND_COMMAND_CONFLICT');
+      }
+      return backend.state(player);
+    }
     if (backend.phase != NetworkGamePhase.reveal) {
       throw const NetworkRoundException('ROUND_REVEAL_CLOSED');
     }
     if (!const CommitRevealContract().verify(
       backend.round.commits[player]!,
-      reveal,
+      ChoiceRevealDto(sessionRound: backend.state(player).sessionRound,
+        playerId: player, choice: reveal.choice, nonce: reveal.nonce),
     )) {
       throw const NetworkRoundException('ROUND_REVEAL_MISMATCH');
     }
@@ -7559,6 +7933,9 @@ class _Repository
       });
     }
     _notify();
+    if (!closesBoundary && backend.delayedCompletionPlayer == player) {
+      await backend.completionResponse!.future;
+    }
     return backend.state(player);
   }
 
@@ -7604,7 +7981,10 @@ class _Repository
       onListen: () {
         subscription = backend.changes.stream.listen(
           (_) {
-            if (!cancelled) controller.add(backend.state(player));
+            if (!cancelled && !(backend.missedBoundaryPlayer == player &&
+                backend.phase == NetworkGamePhase.waitingNext)) {
+              controller.add(backend.state(player));
+            }
           },
           onError: controller.addError,
           onDone: controller.close,
@@ -7779,4 +8159,63 @@ final class _PrivateResolutionRepository extends _Repository
     _notify();
     return backend.state(player);
   }
+}
+
+final class _PreparedRepository extends _Repository
+    implements NetworkSessionSetupRepository {
+  _PreparedRepository(super.backend, super.player, this.accepted);
+  final bool accepted;
+  V4SessionSetupDto get setup => V4SessionSetupDto(
+    mode: V4SessionMode.presentiel,
+    style: PlayerStyle.SOFT,
+    status: accepted ? 'ACCEPTED' : 'DRAFT',
+    players: [
+      for (final id in ['alice', 'bob'])
+        V4PlayerSessionSetupDto(
+          playerId: id,
+          clothingCount: 2,
+          accessories: const [],
+        ),
+    ],
+  );
+  @override
+  Future<V4SessionSetupDto> registerSetupAccessories({
+    required String sessionId,
+    required List<V4Accessory> accessories,
+  }) async => setup;
+  @override
+  Stream<V4SessionSetupDto> watchV4SessionSetup(String sessionId) =>
+      const Stream.empty();
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+final class _MenuLobbyRepository implements NetworkLobbyRepository {
+  _MenuLobbyRepository(LobbySession original, this.gameRepository)
+    : session = LobbySession(
+        id: original.id,
+        joinCode: original.joinCode,
+        status: original.status,
+        expiresAt: DateTime.utc(2099),
+        players: original.players,
+      );
+  final LobbySession session;
+  @override
+  final NetworkGameRepository gameRepository;
+  @override
+  NetworkRoundRepository get roundRepository => throw UnimplementedError();
+  @override
+  Future<String> currentPlayerId() async => 'alice';
+  @override
+  Future<LobbySession> createSession({required String commandId}) async =>
+      session;
+  @override
+  Future<LobbySession> getSession(String sessionId) async => session;
+  @override
+  Future<LobbySession> joinSession({
+    required String code,
+    required String commandId,
+  }) async => session;
+  @override
+  Stream<LobbySession> watchSession(String sessionId) => const Stream.empty();
 }

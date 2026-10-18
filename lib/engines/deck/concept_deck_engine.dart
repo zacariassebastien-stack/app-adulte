@@ -273,8 +273,18 @@ final class ConceptDeckEngine {
         add(variant.id, variant.chili!);
         continue;
       }
+      if (variant.freeZone) {
+        // Physical choice stays private and unspecified. Retain eligibility,
+        // but never infer a concrete zone or apply its modifier to this usage.
+        if (catalog.zones.any(
+          (zone) => eligibility.allowsZone(concept.id, zone.id),
+        )) {
+          add(variant.id, concept.intrinsicChili!);
+        }
+        continue;
+      }
       for (final zone in catalog.zones) {
-        if ((variant.freeZone || variant.zoneId == zone.id) &&
+        if (variant.zoneId == zone.id &&
             eligibility.allowsZone(concept.id, zone.id)) {
           add(
             variant.id,

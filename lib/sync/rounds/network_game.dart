@@ -725,6 +725,7 @@ final class NetworkGameRoundStateDto {
     Set<String>? clothingResyncedPlayerIds,
     Map<String, int>? deckAdjustment,
     this.ownReveal,
+    this.initialDuelCards = const [],
     this.opponentReveal,
     this.initialResolution,
     this.counterBid,
@@ -787,6 +788,7 @@ final class NetworkGameRoundStateDto {
   final Map<String, int> clothingCounts;
   final Set<String> clothingResyncedPlayerIds;
   final Map<String, int> deckAdjustment;
+  final List<NetworkUsageProjection> initialDuelCards;
   final ChoiceRevealDto? ownReveal;
   final ChoiceRevealDto? opponentReveal;
   final NetworkInitialResolutionDto? initialResolution;
@@ -851,6 +853,7 @@ final class NetworkGameRoundStateDto {
     'deck_adjustment': deckAdjustment,
     'own_reveal': ownReveal?.toJson(),
     'opponent_reveal': null,
+    'initial_duel_cards': [for (final card in initialDuelCards) card.toJson()],
     'initial_resolution': initialResolution?.toJson(
       includePrivateMetrics: false,
     ),
@@ -969,6 +972,12 @@ final class NetworkGameRoundStateDto {
         (json['deck_adjustment'] as Map<Object?, Object?>?) ?? const {},
       ),
       ownReveal: reveal('own_reveal'),
+      initialDuelCards: [
+        for (final card in (json['initial_duel_cards'] as List? ?? const []))
+          NetworkUsageProjection.fromJson(
+            Map<String, Object?>.from(card as Map),
+          ),
+      ],
       // An opponent reveal is server-private. Older payloads are deliberately
       // ignored so a stale backend cannot hydrate private preference values.
       opponentReveal: null,

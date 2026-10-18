@@ -719,7 +719,13 @@ final class NetworkGameController extends ChangeNotifier {
         },
         zoneIdsByConcept: {
           for (final entry in options.entries)
-            entry.key: entry.value.map((o) => o.choice.zoneId).nonNulls.toSet(),
+            entry.key: {
+              ...entry.value.map((o) => o.choice.zoneId).nonNulls,
+              // An eligible unspecified zone has no anatomical choice to carry
+              // into the second (draw-only) eligibility projection.
+              if (entry.value.any((o) => o.choice.zoneId == null))
+                ..._conceptCatalog.concepts.zones.map((z) => z.id),
+            },
         },
       ),
     );
@@ -750,6 +756,7 @@ final class NetworkGameController extends ChangeNotifier {
     notifyListeners();
     try {
       await reserveSelection();
+      if (round?.roundId != current.roundId) return;
       final option = choicesFor(
         card.id,
       ).where((o) => o.key == _selectedOption?.key).firstOrNull;
@@ -813,7 +820,12 @@ final class NetworkGameController extends ChangeNotifier {
       await _persist();
       await _apply(
         await repository.submitCommit(
-          command: _command('COMMIT', choiceVersion: _choiceVersion),
+          command: _command(
+            'COMMIT',
+            roundId: current.roundId,
+            roundNumber: current.roundNumber,
+            choiceVersion: _choiceVersion,
+          ),
           commitment: contract.commit(
             sessionRound: current.sessionRound,
             playerId: playerId,
@@ -957,7 +969,12 @@ final class NetworkGameController extends ChangeNotifier {
             'parameters': option.variant.effects[i].toJson(),
           },
       ],
-      'action_text': '${concept.actionText} · ${option.title}',
+      'action_text':
+          concept.variants.any(
+            (v) => v.id == option.choice.actionId && v.freeZone,
+          )
+          ? option.title
+          : '${concept.actionText} · ${option.title}',
     });
   }
 
@@ -1608,6 +1625,8 @@ final class NetworkGameController extends ChangeNotifier {
         await repository.readyNextRound(
           command: _command(
             atBoundary ? 'START_NEXT_ROUND' : 'ACTION_COMPLETE',
+            roundId: current.roundId,
+            roundNumber: current.roundNumber,
           ),
           noPlayableOccurrences:
               !atBoundary && _availablePlayableConcepts(_presence) == 0,
@@ -1661,13 +1680,6 @@ final class NetworkGameController extends ChangeNotifier {
   }) async {
     final changed = round?.roundId != value.roundId;
     if (changed) {
-      // Publish the new round's immediately usable state before awaiting the
-      // old realtime subscription cancellation. Otherwise the new round
-      // number can briefly coexist with the previous WAITING_NEXT UI.
-      if (value.phase == NetworkGamePhase.commit) {
-        viewState = NetworkGameViewState.choosing;
-        notifyListeners();
-      }
       await _subscription?.cancel();
       _subscription = repository
           .watchRound(sessionId: session.id, roundId: value.roundId)
@@ -1786,7 +1798,12 @@ final class NetworkGameController extends ChangeNotifier {
     try {
       await _applyNow(
         await repository.submitReveal(
-          command: _command('REVEAL', choiceVersion: _choiceVersion),
+          command: _command(
+            'REVEAL',
+            roundId: value.roundId,
+            roundNumber: value.roundNumber,
+            choiceVersion: _choiceVersion,
+          ),
           reveal: reveal,
         ),
       );
@@ -1908,7 +1925,8 @@ final class NetworkGameController extends ChangeNotifier {
     }
     if (saved != null &&
         (saved.roundNumber == current.roundNumber ||
-            saved.roundNumber == current.roundNumber + 1)) {
+            saved.roundNumber == current.roundNumber + 1 ||
+            saved.roundNumber == current.roundNumber - 1)) {
       _runtime = List.of(saved.cards);
       _activeReveal = saved.activeReveal;
       _nextRoundPrepared = saved.nextRoundPrepared;
@@ -1959,6 +1977,11 @@ final class NetworkGameController extends ChangeNotifier {
       selectedCard = restoredUsage == null
           ? null
           : _cardFromUsage(restoredUsage);
+      if (saved.roundNumber == current.roundNumber - 1) {
+        await _prepareNextRound(targetRound: current.roundNumber);
+        _nextRoundPrepared = false;
+        await _persist(roundNumber: current.roundNumber);
+      }
       if (_nextRoundPrepared && saved.roundNumber == current.roundNumber) {
         _nextRoundPrepared = false;
         await _persist(roundNumber: current.roundNumber);
@@ -1977,14 +2000,17 @@ final class NetworkGameController extends ChangeNotifier {
     await _persist(roundNumber: current.roundNumber);
   }
 
-  Future<void> _prepareNextRound() async {
+  Future<void> _prepareNextRound({int? targetRound}) async {
     if (_nextRoundPrepared) return;
     _runtime = _runtime.where((c) => c.zone != CardZone.ENGAGED).toList();
-    _refill(roundNumber + 1);
+    final nextNumber = targetRound ?? roundNumber + 1;
+    _refill(nextNumber);
     _activeReveal = null;
     selectedCard = null;
+    _selectedOption = null;
+    _cancelCommitRequested = false;
     _nextRoundPrepared = true;
-    await _persist(roundNumber: roundNumber + 1);
+    await _persist(roundNumber: nextNumber);
   }
 
   JsonMap _descriptorJson(LearningCardDescriptor card) => {
@@ -2198,7 +2224,10 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   Future<void> _activatePreparedRound(NetworkGameRoundStateDto next) async {
-    if (_nextRoundPrepared && next.roundNumber == roundNumber + 1) {
+    if (round != null && next.roundNumber > roundNumber) {
+      // Realtime/RPC refreshes can skip WAITING_NEXT entirely. Preparing the
+      // local hand and clearing the old secret cannot depend on observing it.
+      await _prepareNextRound(targetRound: next.roundNumber);
       _nextRoundPrepared = false;
       _activeReveal = null;
       selectedCard = null;
@@ -3121,7 +3150,12 @@ final class NetworkGameController extends ChangeNotifier {
                 await _persist();
                 final reveal = _activeReveal!;
                 final updated = await repository.submitCommit(
-                  command: _command('COMMIT', choiceVersion: _choiceVersion),
+                  command: _command(
+                    'COMMIT',
+                    roundId: value.roundId,
+                    roundNumber: value.roundNumber,
+                    choiceVersion: _choiceVersion,
+                  ),
                   commitment: contract.commit(
                     sessionRound: reveal.sessionRound,
                     playerId: playerId,

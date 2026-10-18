@@ -187,7 +187,64 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     _ => 'Résolution du tour',
   };
 
-  Widget _body() => switch (controller.viewState) {
+  Widget _body() {
+    final body = _phaseBody();
+    final cards = controller.round?.initialDuelCards ?? const [];
+    final decision = const {
+      NetworkGameViewState.corruptionDecision,
+      NetworkGameViewState.corruptionResponse,
+      NetworkGameViewState.negotiationProposal,
+      NetworkGameViewState.negotiationResponse,
+      NetworkGameViewState.negotiationAdaptation,
+      NetworkGameViewState.negotiationValidation,
+    }.contains(controller.viewState);
+    if (!decision || cards.isEmpty) return body;
+    return LayoutBuilder(
+      builder: (context, bounds) => Column(
+        children: [
+          Expanded(child: body),
+          SizedBox(
+            height: bounds.maxHeight / 3,
+            child: Row(
+              key: const Key('initial-duel-cards'),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final usage in cards)
+                  Expanded(
+                    child: Card(
+                      key: Key('initial-duel-card-${usage.ownerPlayerId}'),
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              usage.ownerPlayerId == controller.playerId
+                                  ? 'Ta carte'
+                                  : 'Carte du partenaire',
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
+                            Text(
+                              _title(usage.conceptId),
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            Text(
+                              usage.resolvedAction['action_text']! as String,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _phaseBody() => switch (controller.viewState) {
     NetworkGameViewState.loading => const Center(
       child: CircularProgressIndicator(key: Key('duel-loading')),
     ),
@@ -688,12 +745,24 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     final accessories = (action['accessories']! as List)
         .cast<Map<String, Object?>>();
     return ListTile(
-      title: Text(action['action_text']! as String),
+      title: Text(
+        card.cardId == '032' && card.direction == NetworkCardDirection.RECEVOIR
+            ? card.targetPlayerIds.contains(controller.playerId)
+                  ? "Ton partenaire choisit l’ordre que tu devras suivre."
+                  : "Choisis l’ordre que ton partenaire devra suivre."
+            : action['action_text']! as String,
+      ),
       subtitle: Text(
         [
           card.direction.name,
-          'cible : ${card.targetPlayerIds.join(', ')}',
-          if (card.zoneId != null) 'zone : ${card.zoneId}',
+          if (card.direction == NetworkCardDirection.RECEVOIR &&
+              card.cardId != '032')
+            card.targetPlayerIds.contains(controller.playerId)
+                ? 'Ton partenaire réalise cette action pour toi.'
+                : 'Tu réalises cette action pour ton partenaire.',
+          'Pour : ${card.targetPlayerIds.map((id) => id == controller.playerId ? 'toi' : 'ton partenaire').join(', ')}',
+          if (card.zoneId != null)
+            'Zone : ${widget.catalog.concepts?.zones.where((z) => z.id == card.zoneId).firstOrNull?.title ?? 'zone indiquée'}',
           for (final accessory in accessories)
             'accessoire : ${accessory['label']}',
           '🌶️ ${card.effectiveSpice}',
@@ -816,7 +885,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         key: const Key('network-post-duel-waiting'),
         padding: const EdgeInsets.all(16),
         children: [
-          _waitingCard('Ton partenaire choisit la suite de la résolution…'),
+          _waitingCard(
+            'Tu as gagné le duel.\nEn attente de la réponse de ton partenaire…',
+          ),
         ],
       );
     }
@@ -845,7 +916,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            'Choisis la suite',
+            'Tu as perdu le duel.\nChoisis la suite.',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 16),
@@ -1311,7 +1382,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       );
     }
     if (mounted) {
-      Navigator.of(context, rootNavigator: true).pop(exit);
+      final gameRoute = ModalRoute.of(context)!;
+      final navigator = Navigator.of(context);
+      // Settings/confirmation dialogs may still cover the game. Return the
+      // result from this route, not from whichever modal happens to be on top.
+      navigator.popUntil((route) => route == gameRoute);
+      navigator.pop(exit);
     }
   }
 

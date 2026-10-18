@@ -256,7 +256,12 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
           ),
         ),
       );
-      if (!mounted || setup == null || !setup.complete) return;
+      if (!mounted) return;
+      if (setup == null) {
+        await controller.clearActiveSession();
+        return;
+      }
+      if (!setup.complete) return;
       final exit = await Navigator.of(context).push<NetworkDuelExit>(
         MaterialPageRoute<NetworkDuelExit>(
           builder: (_) => NetworkDuelScreen(

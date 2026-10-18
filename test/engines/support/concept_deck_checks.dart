@@ -442,7 +442,7 @@ Map<String, void Function()> conceptDeckChecks() => {
       }
     }
   },
-  'free zones cannot bypass the global ceiling or excluded zones': () {
+  'free zones stay unspecified at base chili with no zone modifier': () {
     final catalog = _catalog({'005'});
     final eligibility = _eligible(
       catalog,
@@ -453,49 +453,62 @@ Map<String, void Function()> conceptDeckChecks() => {
         '005': {'vulva', 'unlisted_zone'},
       },
     );
+    for (final global in [1, 2, 3, 4]) {
+      final candidate = _pool(
+        catalog,
+        eligibility: eligibility,
+        global: global,
+      ).candidates.single;
+      _check(
+        candidate.choices.single.zoneId == null &&
+            candidate.choices.single.chili == 1 &&
+            candidate.drawClass == 1,
+        'Free action inferred an anatomical zone or modifier',
+      );
+    }
     _check(
-      _pool(catalog, eligibility: eligibility, global: 2).isEmpty,
-      'Free-zone ceiling bypass',
+      _pool(
+        catalog,
+        eligibility: _eligible(catalog, zoneOverrides: {'005': {}}),
+      ).isEmpty,
+      'No eligible zone must still exclude the concept',
     );
-    final candidate = _pool(
-      catalog,
-      eligibility: eligibility,
-      global: 3,
-    ).candidates.single;
     _check(
-      candidate.choices.single.zoneId == 'vulva' &&
-          candidate.choices.single.chili == 3 &&
-          candidate.drawClass == 2,
-      'Excluded or unlisted zone was admitted',
+      _pool(
+        catalog,
+        eligibility: _eligible(catalog, actionOverrides: {'005': {}}),
+      ).isEmpty,
+      'Excluded action admitted',
     );
   },
-  'fixed-zone and free-zone choices obey the same explicit zone exclusions':
+  'fixed zones keep their modifier and free variant remains a separate choice':
       () {
         final catalog = _catalog({'005'});
         final eligibility = _eligible(
           catalog,
           zoneOverrides: {
-            '005': {'arms_hands'},
+            '005': {'vulva'},
           },
         );
-        final candidate = _pool(
+        final low = _pool(
           catalog,
           eligibility: eligibility,
+          global: 1,
         ).candidates.single;
         _check(
-          candidate.drawClass == 1 &&
-              candidate.choices.length == 2 &&
-              candidate.choices.every(
-                (choice) => choice.zoneId == 'arms_hands' && choice.chili == 1,
-              ),
-          'Fixed/free zone exclusions differ',
+          low.choices.length == 1 && low.choices.single.zoneId == null,
+          'Fixed intimate zone admitted below its ceiling',
         );
+        final high = _pool(
+          catalog,
+          eligibility: eligibility,
+          global: 3,
+        ).candidates.single;
         _check(
-          _pool(
-            catalog,
-            eligibility: _eligible(catalog, zoneOverrides: {'005': {}}),
-          ).isEmpty,
-          'No admissible zone must mean no candidate',
+          high.choices.length == 2 &&
+              high.choices.any((c) => c.zoneId == 'vulva' && c.chili == 3) &&
+              high.choices.any((c) => c.zoneId == null && c.chili == 1),
+          'Fixed zone modifier or free base chili changed',
         );
       },
   'toy variants use intrinsic 3/4 without zone discount or evolution quota':

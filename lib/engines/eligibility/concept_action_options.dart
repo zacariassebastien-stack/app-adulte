@@ -233,7 +233,12 @@ final class ConceptActionOptions {
               choice: choice,
               variant: variant,
               title:
-                  '${definition.title ?? concept.title}${zone == null ? '' : ' · ${zone.title}'}${technique == null ? '' : ' · $technique'}',
+                  '${concept.variants.any((v) => v.id == choice.actionId && v.freeZone) ? switch (concept.id) {
+                          '002' => 'Choisis librement une zone à embrasser.',
+                          '004' => 'Choisis librement une zone pour ce jeu de bouche.',
+                          '005' => 'Choisis librement une zone à caresser.',
+                          _ => 'Choisis librement une zone.',
+                        } : '${definition.title ?? concept.title}${zone == null ? '' : ' · ${zone.title}'}'}${technique == null ? '' : ' · $technique'}',
               parameters: {
                 'technique': ?technique,
                 if (media) 'media_capture_player_id': actor.playerId,
