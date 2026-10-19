@@ -107,7 +107,7 @@ begin
   perform pg_temp.assert_true(state->>'phase'='NEGOTIATION_RESPONSE','proposal accepted');
   perform set_config('request.jwt.claim.sub',winner::text,true);
   state:=public.respond_network_negotiation(s,r,winner,jsonb_build_object('accepted',mask<>2),'response-'||i);
-  perform pg_temp.assert_true(state->>'phase'='FINAL_RESOLVED','response resolves round');
+  perform pg_temp.assert_true(state->>'phase'=case when mask=2 then 'CORRUPTION_DECISION' else 'FINAL_RESOLVED' end,'response returns to choice only on refusal');
   select final_resolution into saved from public.network_rounds where id=r;
   if mask=2 then
    perform pg_temp.assert_true(saved=before_final,'refusal preserves original resolution');

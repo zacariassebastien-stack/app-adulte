@@ -2319,11 +2319,28 @@ void main() {
       await _settle();
       await _completeResolvedAction(setup);
       await _settle();
-      final afterPlay = (await store.loadGame(sessionId: session.id, playerId: 'alice'))!;
-      expect(afterPlay.publicDiscards.any((r) => r.usageId == newUsage.usageId), isTrue);
-      expect(controller.corruptionCards.any((c) => c.identity == newUsage.usageId), isFalse);
-      expect(controller.corruptionCards.any((c) => c.identity == oldSources['alice']!.usageId), isFalse);
-      expect(controller.usageCheckpoint.usagesByIntent.values.single.toJson(), newUsage.toJson());
+      final afterPlay = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      expect(
+        afterPlay.publicDiscards.any((r) => r.usageId == newUsage.usageId),
+        isTrue,
+      );
+      expect(
+        controller.corruptionCards.any((c) => c.identity == newUsage.usageId),
+        isTrue,
+      );
+      expect(
+        controller.corruptionCards.any(
+          (c) => c.identity == oldSources['alice']!.usageId,
+        ),
+        isFalse,
+      );
+      expect(
+        controller.usageCheckpoint.usagesByIntent.values.single.toJson(),
+        newUsage.toJson(),
+      );
     },
   );
 
@@ -5826,11 +5843,266 @@ void main() {
     },
   );
 
+  for (final concept in ['002', '003']) {
+    test(
+      'corruption second life replays exhausted historical $concept without normal stock',
+      () async {
+        final setup = await _setupCorruption(
+          session,
+          catalog,
+          firstLifeConcept: concept,
+        );
+        addTearDown(setup.dispose);
+        await _playUnequal(setup, forceAliceCard: concept);
+        final source = setup.alice.usageCheckpoint.usagesByIntent.values.single;
+        final firstLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+        await firstLoser.skipCorruption();
+        await _settle();
+        await _completeResolvedAction(setup);
+        await _playUnequal(
+          setup,
+          avoidAliceCard: concept,
+          avoidBobCard: concept,
+        );
+        final actor = setup.alice;
+        expect(actor.isCorruptionActor, isTrue);
+        if (source.action.stageId != null) {
+          expect(
+            actor
+                .choicesFor(concept)
+                .any((o) => o.choice.actionId == source.action.stageId),
+            isFalse,
+          );
+        }
+        if (concept == '002') {
+          expect(actor.usageCheckpoint.stock.remainingFor(concept), 0);
+        }
+        if (source.action.stageId != null) {
+          expect(actor.stageConsumed(concept, source.action.stageId!), isTrue);
+        }
+        final stock = actor.usageCheckpoint.stock.toJson();
+        final sourceJson = source.action.toJson();
+        final replayCard = actor.corruptionCards.singleWhere(
+          (c) => c.identity == source.usageId,
+        );
+        if (concept == '002') expect(actor.isCardPlayable(replayCard), isFalse);
+        await actor.proposeCorruption({
+          replayCard.identity,
+        }, CorruptionObjective.OWN_INITIAL_ACTION);
+        await _settle();
+        expect(actor.errorMessage, isNull);
+        final offered = setup.bob.corruption!.actions.single.usage;
+        expect(offered.toJson()['source_usage_id'], source.usageId);
+        expect(
+          offered.resolvedAction,
+          actor.visibleDiscardUsages
+              .singleWhere((u) => u.usageId == source.usageId)
+              .resolvedAction,
+        );
+        expect(actor.usageCheckpoint.stock.toJson(), stock);
+        final pendingReconnect = _controller(
+          setup.backend,
+          session,
+          catalog,
+          'alice',
+          actor.privateStore,
+        );
+        await pendingReconnect.start();
+        await _settle();
+        expect(pendingReconnect.errorMessage, isNull);
+        expect(pendingReconnect.usageCheckpoint.stock.toJson(), stock);
+        expect(
+          pendingReconnect.viewState,
+          NetworkGameViewState.corruptionResponse,
+        );
+        pendingReconnect.dispose();
+        await setup.bob.respondToCorruption(accepted: true);
+        await _settle();
+        expect(setup.backend.phase, NetworkGamePhase.finalResolved);
+        final replay = actor.usageCheckpoint.usagesByIntent.values.singleWhere(
+          (u) => u.sourceUsageId == source.usageId,
+        );
+        expect(replay.action.toJson(), sourceJson);
+        expect(replay.usageId, isNot(source.usageId));
+        expect(actor.usageCheckpoint.stock.toJson(), stock);
+        expect(
+          actor.corruptionCards.any(
+            (c) => c.identity == source.usageId || c.identity == replay.usageId,
+          ),
+          isFalse,
+        );
+        final reconnected = _controller(
+          setup.backend,
+          session,
+          catalog,
+          'alice',
+          actor.privateStore,
+        );
+        await reconnected.start();
+        await _settle();
+        expect(reconnected.errorMessage, isNull);
+        expect(reconnected.usageCheckpoint.stock.toJson(), stock);
+        expect(
+          reconnected.usageCheckpoint.usageForIntent(replay.intentId)!.toJson(),
+          replay.toJson(),
+        );
+        expect(
+          reconnected.corruptionCards.any(
+            (c) => c.identity == source.usageId || c.identity == replay.usageId,
+          ),
+          isFalse,
+        );
+        reconnected.dispose();
+      },
+    );
+  }
+
+  testWidgets('post duel choice disables only persisted refused mechanisms', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    for (final (negotiationRefused, corruptionRefused) in [
+      (true, false),
+      (false, true),
+      (true, true),
+    ]) {
+      final backend = _Backend();
+      backend.round
+        ..phase = NetworkGamePhase.corruptionDecision
+        ..finalResolution = NetworkFinalResolutionDto(
+          retainedPlayerId: 'bob',
+          initialWinnerPlayerId: 'bob',
+          finalWinnerPlayerId: 'bob',
+          cardId: '003',
+          variantId: '003.stage.1',
+        )
+        ..negotiation = negotiationRefused
+            ? NetworkNegotiationDto(
+                response: NetworkNegotiationResponseDto(accepted: false),
+              )
+            : null
+        ..corruption = corruptionRefused
+            ? NetworkCorruptionDto(
+                offeredBy: 'alice',
+                objective: CorruptionObjective.OWN_INITIAL_ACTION,
+                actions: const [],
+                accepted: false,
+              )
+            : null;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NetworkDuelScreen(
+            session: session,
+            playerId: 'alice',
+            repository: backend.repository('alice'),
+            catalog: catalog,
+            secretStore: MemoryNetworkDuelSecretStore(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        tester
+                .widget<FilledButton>(
+                  find.byKey(const Key('choose-negotiation')),
+                )
+                .onPressed ==
+            null,
+        negotiationRefused,
+      );
+      expect(
+        tester
+                .widget<FilledButton>(
+                  find.byKey(const Key('choose-corruption')),
+                )
+                .onPressed ==
+            null,
+        corruptionRefused,
+      );
+      expect(
+        tester
+            .widget<OutlinedButton>(
+              find.byKey(const Key('accept-final-result')),
+            )
+            .onPressed,
+        isNotNull,
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    }
+  });
+
+  for (final compromiseFirst in [true, false]) {
+    test(
+      'post duel refuses both mechanisms in ${compromiseFirst ? 'compromise' : 'corruption'} first order and reconnects',
+      () async {
+        final setup = await _setupCorruption(session, catalog);
+        addTearDown(setup.dispose);
+        await _reachSecondResolved(setup, acceptSecond: false);
+        setup.backend.round.phase = NetworkGamePhase.corruptionDecision;
+        setup.backend.notify();
+        await _settle();
+        final actor = setup.alice;
+        final partner = setup.bob;
+        final original = setup.backend.round.finalResolution!.toJson();
+        final points = Map<String, int>.of(setup.backend.points);
+        final source = actor.corruptionCards.first.identity;
+        Future<void> refuse(bool compromise) async {
+          if (compromise) {
+            await actor.proposeNegotiation(inversion: false, directPa: 10);
+            await _settle();
+            await partner.respondNegotiation(accepted: false);
+          } else {
+            await actor.proposeCorruption({
+              source,
+            }, CorruptionObjective.OWN_INITIAL_ACTION);
+            await _settle();
+            await partner.respondToCorruption(accepted: false);
+          }
+          await _settle();
+          expect(actor.viewState, NetworkGameViewState.corruptionDecision);
+          expect(setup.backend.points, points);
+          expect(setup.backend.round.finalResolution!.toJson(), original);
+        }
+
+        await refuse(compromiseFirst);
+        expect(actor.canAttemptNegotiation, !compromiseFirst);
+        expect(actor.canAttemptCorruption, compromiseFirst);
+        final reconnect = _controller(
+          setup.backend,
+          session,
+          catalog,
+          'alice',
+          actor.privateStore,
+        );
+        await reconnect.start();
+        await _settle();
+        expect(reconnect.canAttemptNegotiation, !compromiseFirst);
+        expect(reconnect.canAttemptCorruption, compromiseFirst);
+        reconnect.dispose();
+        await refuse(!compromiseFirst);
+        expect(actor.canAttemptNegotiation, isFalse);
+        expect(actor.canAttemptCorruption, isFalse);
+        await actor.proposeNegotiation(inversion: false, directPa: 10);
+        await actor.proposeCorruption({
+          source,
+        }, CorruptionObjective.OWN_INITIAL_ACTION);
+        expect(actor.viewState, NetworkGameViewState.corruptionDecision);
+        await actor.skipCorruption();
+        await _settle();
+        expect(setup.backend.phase, NetworkGamePhase.finalResolved);
+        expect(setup.backend.round.finalResolution!.toJson(), original);
+        expect(setup.backend.points, points);
+      },
+    );
+  }
+
   test(
     'corruption refusal is public, idempotent and leaves discard untouched',
     () async {
       final setup = await _setupCorruption(session, catalog);
-      await _reachSecondResolved(setup);
+      await _reachSecondResolved(setup, acceptSecond: false);
       setup.backend.round.phase = NetworkGamePhase.corruptionDecision;
       setup.backend.notify();
       await _settle();
@@ -5877,10 +6149,10 @@ void main() {
       expect(draft.usageId, isNot(source.usageId));
       expect(
         pending.conceptCheckpoint!.reservationsByIntent[draft.intentId],
-        '006',
+        isNull,
       );
       expect(actor.usageCheckpoint.stock.remainingFor('006'), 1);
-      expect(actor.usageCheckpoint.availableFor('006'), 0);
+      expect(actor.usageCheckpoint.availableFor('006'), 1);
       expect(
         actor.usageCheckpoint.usagesByIntent.values
             .map((u) => u.usageId)
@@ -5909,8 +6181,10 @@ void main() {
       await partner.respondToCorruption(accepted: false);
       await partner.respondToCorruption(accepted: false);
       await _settle();
-      expect(setup.backend.phase, NetworkGamePhase.finalResolved);
-      expect(actor.viewState, NetworkGameViewState.actionInProgress);
+      expect(setup.backend.phase, NetworkGamePhase.corruptionDecision);
+      expect(actor.viewState, NetworkGameViewState.corruptionDecision);
+      expect(actor.canAttemptCorruption, isFalse);
+      expect(actor.canAttemptNegotiation, isTrue);
       expect(actor.usageCheckpoint.stock.remainingFor(card.id), before);
       expect(
         actor.visibleDiscardUsages.map((u) => u.usageId),
@@ -6167,10 +6441,10 @@ void main() {
       expect(draft.usageId, isNot(source.usageId));
       expect(
         pending.conceptCheckpoint!.reservationsByIntent[draft.intentId],
-        '006',
+        isNull,
       );
       expect(actor.usageCheckpoint.stock.remainingFor('006'), 1);
-      expect(actor.usageCheckpoint.availableFor('006'), 0);
+      expect(actor.usageCheckpoint.availableFor('006'), 1);
       expect(
         actor.usageCheckpoint.usagesByIntent.values
             .map((u) => u.usageId)
@@ -6194,7 +6468,7 @@ void main() {
       expect(replay.usageId, draft.usageId);
       expect(replay.usageId, isNot(source.usageId));
       expect(replay.action.toJson(), source.action.toJson());
-      expect(actor.usageCheckpoint.stock.remainingFor('006'), 0);
+      expect(actor.usageCheckpoint.stock.remainingFor('006'), 1);
       expect(actor.usageCheckpoint.reservationsByIntent, isEmpty);
       expect(
         actor.usageCheckpoint.usageForIntent(source.intentId)!.toJson(),
@@ -6227,10 +6501,7 @@ void main() {
       expect(setup.alice.viewState, NetworkGameViewState.choosing);
       expect(setup.bob.viewState, NetworkGameViewState.choosing);
       expect(setup.backend.points, pointsBeforeCorruption);
-      expect(
-        actor.usageCheckpoint.stock.remainingFor(offered.id),
-        quotaBefore - 1,
-      );
+      expect(actor.usageCheckpoint.stock.remainingFor(offered.id), quotaBefore);
       expect(
         actor.usageCheckpoint.usagesByIntent.values.where(
           (usage) => usage.sourceUsageId == offered.identity,
@@ -7238,6 +7509,7 @@ Future<_Setup> _setupCorruption(
   LobbySession session,
   Catalog catalog, {
   MemoryNetworkProfileLearningStore? learning,
+  String firstLifeConcept = '006',
 }) async {
   final backend = _Backend();
   final stores = {
@@ -7252,8 +7524,12 @@ Future<_Setup> _setupCorruption(
         roundNumber: 1,
         ownerPlayerId: entry.key,
         cards: [
-          for (final id in ['006', '001', '012', '032'])
-            CardRuntimeState(cardId: id, zone: CardZone.HAND),
+          for (final id in [firstLifeConcept, '001', '012', '032'])
+            CardRuntimeState(
+              cardId: id,
+              zone: CardZone.HAND,
+              variantId: id == '002' ? '002.zone.feet' : null,
+            ),
         ],
       ),
     );
@@ -7293,7 +7569,10 @@ Future<_Setup> _setupCorruption(
   return setup;
 }
 
-Future<void> _reachSecondResolved(_Setup setup) async {
+Future<void> _reachSecondResolved(
+  _Setup setup, {
+  bool acceptSecond = true,
+}) async {
   await _playUnequal(setup, forceAliceCard: '006', requireRepeatable: true);
   final firstAlice =
       setup.alice.usageCheckpoint.usagesByIntent.values.single.conceptId;
@@ -7307,7 +7586,7 @@ Future<void> _reachSecondResolved(_Setup setup) async {
   await _settle();
   await _playUnequal(setup, avoidAliceCard: firstAlice, avoidBobCard: firstBob);
   final secondLoser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
-  await secondLoser.skipCorruption();
+  if (acceptSecond) await secondLoser.skipCorruption();
   await _settle();
 }
 
@@ -7851,7 +8130,9 @@ class _Repository
         compromise: offer.cards,
       );
     }
-    backend.round.phase = NetworkGamePhase.finalResolved;
+    backend.round.phase = response.accepted
+        ? NetworkGamePhase.finalResolved
+        : NetworkGamePhase.corruptionDecision;
     _notify();
     return backend.state(player);
   }
@@ -8088,7 +8369,7 @@ class _Repository
       );
       backend.round.phase = NetworkGamePhase.finalResolved;
     } else {
-      backend.round.phase = NetworkGamePhase.finalResolved;
+      backend.round.phase = NetworkGamePhase.corruptionDecision;
     }
     _notify();
     return backend.state(player);

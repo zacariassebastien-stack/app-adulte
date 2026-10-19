@@ -117,6 +117,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     if (!mounted) return;
     final changedRound = auctionForm.enterRound(controller.roundNumber);
     setState(() {
+      if ((_postDuelChoice == _PostDuelChoice.compromise &&
+              !controller.canAttemptNegotiation) ||
+          (_postDuelChoice == _PostDuelChoice.corruption &&
+              !controller.canAttemptCorruption)) {
+        _postDuelChoice = null;
+      }
       if (changedRound) {
         _displayedActions.clear();
         actionError = null;
@@ -950,14 +956,20 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           const SizedBox(height: 16),
           FilledButton(
             key: const Key('choose-negotiation'),
-            onPressed: () =>
-                setState(() => _postDuelChoice = _PostDuelChoice.compromise),
+            onPressed: !controller.canAttemptNegotiation
+                ? null
+                : () => setState(
+                    () => _postDuelChoice = _PostDuelChoice.compromise,
+                  ),
             child: const Text('Tenter un compromis'),
           ),
           FilledButton.tonal(
             key: const Key('choose-corruption'),
-            onPressed: () =>
-                setState(() => _postDuelChoice = _PostDuelChoice.corruption),
+            onPressed: !controller.canAttemptCorruption
+                ? null
+                : () => setState(
+                    () => _postDuelChoice = _PostDuelChoice.corruption,
+                  ),
             child: const Text('Proposer une corruption'),
           ),
           OutlinedButton(

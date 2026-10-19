@@ -217,7 +217,8 @@ begin
     pg_temp.make_usage('prior-recovery-a','019',1,a,7)||jsonb_build_object(
       'player_id',a,'source','HAND','response','ACCEPT','gain',12,'completed',true))
     where id=prior;
-  update public.network_rounds set phase='CORRUPTION_DECISION',
+  -- Independent source scenario: reset the previous corruption attempt.
+  update public.network_rounds set phase='CORRUPTION_DECISION',corruption=null,
     final_resolution=jsonb_set(final_resolution,'{retained_player_id}',to_jsonb(b))
     where id=current_round;
   c1:=(pg_temp.make_usage('replayed-recovery-a','019',1,a,7)-'snapshot_value')

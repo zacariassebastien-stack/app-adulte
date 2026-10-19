@@ -457,12 +457,26 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   bool get isCorruptionActor => corruptionActorId == playerId;
-  List<NetworkDuelCard> get corruptionCards => _replayableDiscards();
+  bool get canAttemptNegotiation => negotiation?.response == null;
+  bool get canAttemptCorruption => corruption?.accepted == null;
+  List<NetworkDuelCard> get corruptionCards =>
+      _replayableDiscards(corruptionReplay: true);
 
-  List<NetworkDuelCard> _replayableDiscards({bool recovery = false}) {
+  List<NetworkDuelCard> _replayableDiscards({
+    bool recovery = false,
+    bool corruptionReplay = false,
+  }) {
     final currentCycleUsageIds = {
       for (final usage in _usageCheckpoint.usagesByIntent.values)
         if (usage.cycle == _deckCycle) usage.usageId,
+    };
+    final spentReplayIds = {
+      for (final checkpoint in [_usageCheckpoint, ..._priorCheckpoints])
+        for (final usage in checkpoint.usagesByIntent.values)
+          if (usage.intentId.contains(':corruption:')) ...[
+            usage.usageId,
+            ?usage.sourceUsageId,
+          ],
     };
     final seen = <String>{};
     return [
@@ -470,7 +484,9 @@ final class NetworkGameController extends ChangeNotifier {
         if (record.roundNumber < roundNumber &&
             record.usage.ownerPlayerId == playerId &&
             (recovery || currentCycleUsageIds.contains(record.usageId)) &&
-            (_usageCheckpoint.availableFor(record.cardId) > 0 ||
+            (!corruptionReplay || !spentReplayIds.contains(record.usageId)) &&
+            (corruptionReplay ||
+                _usageCheckpoint.availableFor(record.cardId) > 0 ||
                 _reservedChoices.values.any(
                   (draft) =>
                       draft.sourceUsageId == record.usage.usageId &&
@@ -480,7 +496,11 @@ final class NetworkGameController extends ChangeNotifier {
                 )) &&
             seen.add(record.usage.usageId) &&
             _replayConsentAllowed(record.usage, recovery: recovery) &&
-            (_currentOptions(recovery: recovery)[record.cardId] ?? const [])
+            (_currentOptions(
+                      recovery: recovery,
+                      includeConsumedStages: corruptionReplay,
+                    )[record.cardId] ??
+                    const [])
                 .any((o) => _matchesUsage(o, record.usage)))
           _cardFromUsage(_withPrivateValues(record.usage)),
     ];
@@ -729,6 +749,7 @@ final class NetworkGameController extends ChangeNotifier {
 
   Map<String, List<ConceptActionOption>> _currentOptions({
     bool recovery = false,
+    bool includeConsumedStages = false,
   }) {
     final options = const ConceptActionOptions().evaluate(
       catalog: _conceptCatalog,
@@ -740,6 +761,7 @@ final class NetworkGameController extends ChangeNotifier {
       mediaSendRequired: _context.flags['mediaSendRequired'] == true,
       recovery: recovery,
     );
+    if (includeConsumedStages) return options;
     return {
       for (final entry in options.entries)
         if (entry.value.any((o) => _stageAvailable(entry.key, o)))
@@ -1238,6 +1260,36 @@ final class NetworkGameController extends ChangeNotifier {
     return _sharedUsage(draft);
   }
 
+  NetworkUsageProjection _reserveCorruptionReplay(
+    NetworkUsageProjection source,
+  ) {
+    final intent = '${round!.roundId}:corruption:${source.usageId}';
+    final previous =
+        _usageCheckpoint.usageForIntent(intent) ?? _reservedChoices[intent];
+    if (previous != null) return _sharedUsage(previous);
+    if (!_replayConsentAllowed(source) ||
+        !(_currentOptions(includeConsumedStages: true)[source.conceptId] ??
+                const [])
+            .any((option) => _matchesUsage(option, source))) {
+      throw StateError('Historical replay is no longer eligible');
+    }
+    final original = _savedUsage(source.usageId);
+    final inverted =
+        original.action.direction.name != source.resolvedAction['direction'];
+    final draft = ConceptUsageSnapshot.create(
+      sessionId: session.id,
+      ownerPlayerId: playerId,
+      cycle: _deckCycle,
+      intentId: intent,
+      engagedAt: clock().toUtc(),
+      action: original.reconstruct(inverted: inverted),
+      invertedAction: inverted ? original.action : original.invertedAction,
+      sourceUsageId: source.usageId,
+    );
+    _reservedChoices = {..._reservedChoices, intent: draft};
+    return _sharedUsage(draft);
+  }
+
   void _releaseSecondary(String intent) {
     _usageCheckpoint = _usageCheckpoint.releaseReservation(intent);
     _reservedChoices = {..._reservedChoices}..remove(intent);
@@ -1257,20 +1309,24 @@ final class NetworkGameController extends ChangeNotifier {
     if (draft == null) {
       throw StateError('Accepted usage has no persisted reservation');
     }
-    _usageCheckpoint = _usageCheckpoint.engage(
-      intentId: draft.intentId,
-      conceptId: draft.conceptId,
-      resolveAction: () => draft.action,
-      resolveInvertedAction: draft.invertedAction == null
-          ? null
-          : () => draft.invertedAction!,
-      sourceUsageId: draft.sourceUsageId,
-      clock: clock,
-    );
+    final corruptionReplay = draft.intentId.contains(':corruption:');
+    _usageCheckpoint = corruptionReplay
+        ? _usageCheckpoint.engageReplay(draft)
+        : _usageCheckpoint.engage(
+            intentId: draft.intentId,
+            conceptId: draft.conceptId,
+            resolveAction: () => draft.action,
+            resolveInvertedAction: draft.invertedAction == null
+                ? null
+                : () => draft.invertedAction!,
+            sourceUsageId: draft.sourceUsageId,
+            clock: clock,
+          );
     _reservedChoices = {..._reservedChoices}..remove(draft.intentId);
     _runtime = [
       for (final card in _runtime)
-        if (!(card.cardId == draft.conceptId && card.zone == CardZone.HAND))
+        if (corruptionReplay ||
+            !(card.cardId == draft.conceptId && card.zone == CardZone.HAND))
           card,
       CardRuntimeState(
         cardId: draft.conceptId,
@@ -1286,6 +1342,7 @@ final class NetworkGameController extends ChangeNotifier {
     NetworkGameRoundStateDto value,
   ) async {
     final before = _usageCheckpoint;
+    final beforeChoices = _reservedChoices;
     final finalResult = value.finalResolution;
     if (finalResult != null) {
       final accepted = finalResult.compromise.where(
@@ -1333,7 +1390,10 @@ final class NetworkGameController extends ChangeNotifier {
         }
       }
     }
-    if (!identical(before, _usageCheckpoint)) await _persist();
+    if (!identical(before, _usageCheckpoint) ||
+        !identical(beforeChoices, _reservedChoices)) {
+      await _persist();
+    }
   }
 
   Future<void> _sendSecondary(String kind, JsonMap payload) async {
@@ -1377,6 +1437,7 @@ final class NetworkGameController extends ChangeNotifier {
       }.contains(pending['kind']);
       for (final draft in _reservedChoices.values) {
         if (proposesNewUsage &&
+            !draft.intentId.contains(':corruption:') &&
             _usageCheckpoint.usageForIntent(draft.intentId) == null &&
             !_usageCheckpoint.stageAvailable(
               draft.conceptId,
@@ -1488,7 +1549,8 @@ final class NetworkGameController extends ChangeNotifier {
   }) async {
     if ((viewState != NetworkGameViewState.negotiationProposal &&
             viewState != NetworkGameViewState.corruptionDecision) ||
-        !isNegotiationProposer) {
+        !isNegotiationProposer ||
+        !canAttemptNegotiation) {
       return;
     }
     if (directPa == 0 && !inversion && cardIds.isEmpty) {
@@ -1618,6 +1680,7 @@ final class NetworkGameController extends ChangeNotifier {
         .toList();
     if (viewState != NetworkGameViewState.corruptionDecision ||
         !isCorruptionActor ||
+        !canAttemptCorruption ||
         cards.isEmpty ||
         cards.length != usageIds.length)
       return;
@@ -1631,11 +1694,7 @@ final class NetworkGameController extends ChangeNotifier {
         final source = _publicDiscards
             .singleWhere((r) => r.usageId == card.identity)
             .usage;
-        final projection = _reserveSecondary(
-          card,
-          '${round!.roundId}:corruption:${source.usageId}',
-          source: source,
-        );
+        final projection = _reserveCorruptionReplay(source);
         actions.add(NetworkCorruptionActionDto.fromUsage(projection));
       }
       await _sendSecondary('CORRUPTION_OFFER', {

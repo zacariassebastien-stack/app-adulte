@@ -15,9 +15,11 @@ final class ConceptUsageCheckpoint {
     required Map<String, ConceptUsageSnapshot> usagesByIntent,
     Map<String, String> reservationsByIntent = const {},
     Map<String, String> reservedStagesByIntent = const {},
+    Set<String> replayIntents = const {},
   }) : usagesByIntent = Map.unmodifiable(usagesByIntent),
        reservationsByIntent = Map.unmodifiable(reservationsByIntent),
-       reservedStagesByIntent = Map.unmodifiable(reservedStagesByIntent);
+       reservedStagesByIntent = Map.unmodifiable(reservedStagesByIntent),
+       replayIntents = Set.unmodifiable(replayIntents);
 
   factory ConceptUsageCheckpoint.startCycle({
     required String sessionId,
@@ -56,6 +58,7 @@ final class ConceptUsageCheckpoint {
       'reservations',
       'reserved_stages',
       'legacy_stage_duplicates',
+      'replay_intents',
     });
     final version = reader.integer('schema_version', min: 1, max: 2);
     final sessionId = reader.string('session_id');
@@ -69,6 +72,9 @@ final class ConceptUsageCheckpoint {
       (r) => ConceptUsageSnapshot.fromJson(r.json),
       'ConceptUsageSnapshot',
     );
+    final replayIntents = (json['replay_intents'] as List? ?? const [])
+        .cast<String>()
+        .toSet();
     final byIntent = <String, ConceptUsageSnapshot>{};
     final counts = <String, int>{};
     final consumed = <String, Set<String>>{};
@@ -85,6 +91,7 @@ final class ConceptUsageCheckpoint {
         reader.fail('usages', 'Unknown concept');
       }
       byIntent[usage.intentId] = usage;
+      if (replayIntents.contains(usage.intentId)) continue;
       counts.update(usage.conceptId, (count) => count + 1, ifAbsent: () => 1);
       if (usage.action.stageId case final stage?
           when !_clothing(usage.conceptId)) {
@@ -97,6 +104,9 @@ final class ConceptUsageCheckpoint {
           }
         }
       }
+    }
+    if (replayIntents.any((id) => byIntent[id]?.sourceUsageId == null)) {
+      reader.fail('replay_intents', 'Replay requires its historical source');
     }
     final remaining = <String, int>{};
     for (final entry in stock.capacity.entries) {
@@ -153,6 +163,7 @@ final class ConceptUsageCheckpoint {
       cycle: cycle,
       stock: stock,
       usagesByIntent: byIntent,
+      replayIntents: replayIntents,
       reservationsByIntent: reservations,
       reservedStagesByIntent: reservedStages,
     );
@@ -165,13 +176,17 @@ final class ConceptUsageCheckpoint {
   final Map<String, ConceptUsageSnapshot> usagesByIntent;
   final Map<String, String> reservationsByIntent;
   final Map<String, String> reservedStagesByIntent;
+  final Set<String> replayIntents;
 
   static bool _clothing(String id) => id == '006' || id == '007';
 
   bool stageConsumed(String conceptId, String stageId) =>
       !_clothing(conceptId) &&
       usagesByIntent.values.any(
-        (u) => u.conceptId == conceptId && u.action.stageId == stageId,
+        (u) =>
+            !replayIntents.contains(u.intentId) &&
+            u.conceptId == conceptId &&
+            u.action.stageId == stageId,
       );
 
   bool stageAvailable(String conceptId, String? stageId, {String? intentId}) =>
@@ -216,6 +231,7 @@ final class ConceptUsageCheckpoint {
       cycle: cycle,
       stock: stock,
       usagesByIntent: usagesByIntent,
+      replayIntents: replayIntents,
       reservationsByIntent: {...reservationsByIntent, intentId: conceptId},
       reservedStagesByIntent: {...reservedStagesByIntent, intentId: ?stageId},
     );
@@ -230,6 +246,7 @@ final class ConceptUsageCheckpoint {
       cycle: cycle,
       stock: stock,
       usagesByIntent: usagesByIntent,
+      replayIntents: replayIntents,
       reservationsByIntent: {...reservationsByIntent}..remove(intentId),
       reservedStagesByIntent: {...reservedStagesByIntent}..remove(intentId),
     );
@@ -291,8 +308,26 @@ final class ConceptUsageCheckpoint {
       cycle: cycle,
       stock: stock.consume(conceptId),
       usagesByIntent: {...usagesByIntent, intentId: usage},
+      replayIntents: replayIntents,
       reservationsByIntent: {...reservationsByIntent}..remove(intentId),
       reservedStagesByIntent: {...reservedStagesByIntent}..remove(intentId),
+    );
+  }
+
+  /// A corruption replay is journalled for retries and learning, not drawn
+  /// from normal capacity. Historical checkpoints without this marker retain
+  /// their original accounting.
+  ConceptUsageCheckpoint engageReplay(ConceptUsageSnapshot usage) {
+    if (usagesByIntent.containsKey(usage.intentId)) return this;
+    return ConceptUsageCheckpoint._(
+      sessionId: sessionId,
+      ownerPlayerId: ownerPlayerId,
+      cycle: cycle,
+      stock: stock,
+      usagesByIntent: {...usagesByIntent, usage.intentId: usage},
+      reservationsByIntent: reservationsByIntent,
+      reservedStagesByIntent: reservedStagesByIntent,
+      replayIntents: {...replayIntents, usage.intentId},
     );
   }
 
@@ -303,12 +338,16 @@ final class ConceptUsageCheckpoint {
             'owner_player_id': ownerPlayerId,
             'cycle': cycle,
             'stock': stock.toJson(),
+            if (replayIntents.isNotEmpty)
+              'replay_intents': replayIntents.toList(),
             'reservations': reservationsByIntent,
             'reserved_stages': reservedStagesByIntent,
             if (usagesByIntent.values
                     .where(
                       (u) =>
-                          u.action.stageId != null && !_clothing(u.conceptId),
+                          !replayIntents.contains(u.intentId) &&
+                          u.action.stageId != null &&
+                          !_clothing(u.conceptId),
                     )
                     .map((u) => '${u.conceptId}/${u.action.stageId}')
                     .toSet()
@@ -316,7 +355,9 @@ final class ConceptUsageCheckpoint {
                 usagesByIntent.values
                     .where(
                       (u) =>
-                          u.action.stageId != null && !_clothing(u.conceptId),
+                          !replayIntents.contains(u.intentId) &&
+                          u.action.stageId != null &&
+                          !_clothing(u.conceptId),
                     )
                     .length)
               'legacy_stage_duplicates': true,
