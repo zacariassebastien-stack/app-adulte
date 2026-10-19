@@ -50,6 +50,61 @@ void main() {
     await tester.pump();
   }
 
+  for (final id in ['002', '004', '005']) {
+    for (final zone in ['Pieds', 'LIBRE']) {
+      testWidgets('$id zone badge $zone has no count suffix', (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 330,
+                height: 480,
+                child: CardRenderer(
+                  definition: CardRenderDefinition(
+                    cardId: id,
+                    title: id,
+                    zones: [zone],
+                  ),
+                  state: CardVisualState.full,
+                  bundle: EnchaireSignatureTheme.bundle,
+                ),
+              ),
+            ),
+          ),
+        );
+        expect(find.text(zone), findsOneWidget);
+        expect(find.textContaining(RegExp('$zone\\s+1')), findsNothing);
+        expect(find.text('ZONES'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+  testWidgets('resolution card omits the PA panel even with private values', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 330,
+            height: 480,
+            child: CardRenderer(
+              definition: definition,
+              state: CardVisualState.full,
+              bundle: EnchaireSignatureTheme.bundle,
+              showPa: false,
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.byKey(const Key('card-panel-pa')), findsNothing);
+    expect(find.textContaining('PA'), findsNothing);
+    expect(find.text('VALEUR PERSONNELLE'), findsNothing);
+    expect(find.text('ACTION'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('renders standard and long content without overflow', (
     tester,
   ) async {

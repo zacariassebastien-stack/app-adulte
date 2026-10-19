@@ -469,11 +469,18 @@ Map<String, void Function()> conceptRuntimeChecks() {
             '004 zone spice',
           );
         },
-    'P6 joker borrows compatible rules while retaining 024 identity and quota': () {
-      final borrowed = options()['024']!.first;
+    'P6 joker is a single free 024 action with its own rules and quota': () {
+      final choices = options()['024']!;
+      final borrowed = choices.single;
       _check(
         borrowed.choice.actionId == '024.action' &&
-            borrowed.parameters['practice_concept_id'] != '024' &&
+            borrowed.parameters.isEmpty &&
+            borrowed.choice.zoneId == null &&
+            borrowed.choice.chili == 3 &&
+            borrowed.title ==
+                catalog.concepts.concepts
+                    .singleWhere((c) => c.id == '024')
+                    .actionText &&
             catalog.definitions['024']!.detailsText ==
                 'Les pratiques choisies doivent être consenties par les deux partenaires.',
         'Wrong identity',
@@ -485,6 +492,13 @@ Map<String, void Function()> conceptRuntimeChecks() {
         'Other quota spent',
       );
       _check(!options(chili: 2).containsKey('024'), 'Ceiling bypass');
+      _check(
+        options()['019']!.every((o) => o.choice.actionId.startsWith('019.')) &&
+            options()['025']!.every(
+              (o) => o.choice.actionId.startsWith('025.'),
+            ),
+        'Real practices changed',
+      );
     },
     'P6 outfit uses TENUE and self direction in all contexts': () {
       final choice = options()['013']!.single;

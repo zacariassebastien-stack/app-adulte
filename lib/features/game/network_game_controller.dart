@@ -1117,7 +1117,9 @@ final class NetworkGameController extends ChangeNotifier {
             'parameters': option.variant.effects[i].toJson(),
           },
       ],
-      'action_text': conceptVariant?.freeZone == true
+      'action_text': card.id == '024'
+          ? concept.actionText
+          : conceptVariant?.freeZone == true
           ? option.title
           : concept.kind == ConceptKind.zones && conceptVariant != null
           ? '${concept.actionText} · ${conceptVariant.title}'

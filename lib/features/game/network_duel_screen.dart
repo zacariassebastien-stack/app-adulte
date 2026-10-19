@@ -422,8 +422,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         .where((c) => c.id == card.id)
         .firstOrNull;
     final free =
-        concept?.variants.any((v) => v.id == card.variant.id && v.freeZone) ??
-        false;
+        card.id == '024' ||
+        (concept?.variants.any((v) => v.id == card.variant.id && v.freeZone) ??
+            false);
     final option = controller
         .choicesFor(card.id)
         .where((o) => o.choice.actionId == card.variant.id)
@@ -687,6 +688,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   Widget _actionInProgress() {
     final result = controller.finalResolution!;
     final projection = controller.actionProjection;
+    final cards = projection?.cards.isNotEmpty == true
+        ? projection!.cards
+        : [
+            for (final card in result.compromise)
+              NetworkResolvedActionCardDto.fromUsage(card.usage),
+          ];
     final title = result.mutualAbandon
         ? 'Round abandonné mutuellement'
         : result.retainedPlayerId == controller.playerId
@@ -699,16 +706,13 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         Text(title, style: Theme.of(context).textTheme.headlineSmall),
         if (!result.mutualAbandon) ...[
           const SizedBox(height: 12),
-          if (projection != null && projection.cards.isNotEmpty) ...[
-            for (final card in projection.cards) _resolvedActionTile(card),
-          ] else if (result.compromise.isNotEmpty) ...[
-            for (final card in result.compromise)
-              ListTile(
-                title: Text(_title(card.cardId)),
-                subtitle: Text(
-                  '${card.usage.resolvedAction['action_text']} · 🌶️${card.usage.resolvedAction['effective_chili']}',
-                ),
+          if (cards.isNotEmpty) ...[
+            _ResolutionCards(
+              key: ValueKey(
+                'resolution:${controller.round!.roundId}:${cards.map((card) => card.usageId).join(',')}',
               ),
+              cards: [for (final card in cards) _resolvedActionCard(card)],
+            ),
           ] else if (result.cardId != null) ...[
             Text('Carte : ${_title(result.cardId!)}'),
             Text('Variante : ${result.variantId}'),
@@ -774,34 +778,80 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     builder: (context) => _ClothingCountDialog(initialCount: initialCount),
   );
 
-  Widget _resolvedActionTile(NetworkResolvedActionCardDto card) {
+  Widget _resolvedActionCard(NetworkResolvedActionCardDto card) {
     final action = card.usage.resolvedAction;
-    final accessories = (action['accessories']! as List)
-        .cast<Map<String, Object?>>();
-    return ListTile(
-      title: Text(
-        card.cardId == '032' && card.direction == NetworkCardDirection.RECEVOIR
-            ? card.targetPlayerIds.contains(controller.playerId)
-                  ? "Ton partenaire choisit l’ordre que tu devras suivre."
-                  : "Choisis l’ordre que ton partenaire devra suivre."
-            : action['action_text']! as String,
-      ),
-      subtitle: Text(
-        [
-          card.direction.name,
-          if (card.direction == NetworkCardDirection.RECEVOIR &&
-              card.cardId != '032')
-            card.targetPlayerIds.contains(controller.playerId)
+    final parameters = action['parameters']! as Map;
+    final concept = widget.catalog.concepts?.concepts
+        .where((c) => c.id == card.cardId)
+        .firstOrNull;
+    final variant = concept?.variants
+        .where((v) => v.id == card.variantId)
+        .firstOrNull;
+    final source = widget.catalog.cards
+        .where(
+          (c) =>
+              c.stableId == card.cardId ||
+              c.stableId == 'card.v4.${card.cardId}',
+        )
+        .firstOrNull;
+    final zone = widget.catalog.concepts?.zones
+        .where((z) => z.id == card.zoneId)
+        .firstOrNull;
+    final definition = CardRenderDefinition(
+      cardId: card.cardId,
+      variantId: card.variantId,
+      title: parameters['display_title'] as String? ?? _title(card.cardId),
+      subtitle:
+          concept?.stages
+              .where((s) => s.id == card.variantId)
+              .firstOrNull
+              ?.title ??
+          variant?.title,
+      action: action['action_text']! as String,
+      direction: card.direction.name,
+      spice: card.effectiveSpice,
+      zones: [
+        if (card.zoneId != null)
+          zone?.title ?? card.zoneId!
+        else if (variant?.freeZone == true || card.cardId == '024')
+          'LIBRE',
+      ],
+      details: parameters.containsKey('display_details')
+          ? parameters['display_details'] as String?
+          : concept?.detailsText,
+      illustrationId: parameters.containsKey('display_illustration')
+          ? parameters['display_illustration'] as String?
+          : source?.illustrationKey,
+    );
+    return Column(
+      key: Key('resolved-action-${card.usageId}'),
+      children: [
+        SizedBox(
+          height: 440,
+          child: CardRenderer(
+            definition: definition,
+            state: CardVisualState.full,
+            showPa: false,
+          ),
+        ),
+        if (card.direction == NetworkCardDirection.RECEVOIR)
+          Text(
+            card.cardId == '032'
+                ? card.targetPlayerIds.contains(controller.playerId)
+                      ? "Ton partenaire choisit l’ordre que tu devras suivre."
+                      : "Choisis l’ordre que ton partenaire devra suivre."
+                : card.targetPlayerIds.contains(controller.playerId)
                 ? 'Ton partenaire réalise cette action pour toi.'
                 : 'Tu réalises cette action pour ton partenaire.',
-          'Pour : ${card.targetPlayerIds.map((id) => id == controller.playerId ? 'toi' : 'ton partenaire').join(', ')}',
-          if (card.zoneId != null)
-            'Zone : ${widget.catalog.concepts?.zones.where((z) => z.id == card.zoneId).firstOrNull?.title ?? 'zone indiquée'}',
-          for (final accessory in accessories)
-            'accessoire : ${accessory['label']}',
-          '🌶️ ${card.effectiveSpice}',
-        ].join(' · '),
-      ),
+          ),
+        Text(
+          [
+            'Pour : ${card.targetPlayerIds.map((id) => id == controller.playerId ? 'toi' : 'ton partenaire').join(', ')}',
+            for (final accessory in action['accessories']! as List)
+              'accessoire : ${(accessory as Map)['label']}',
+          ].join(' · '),
+        ),
+      ],
     );
   }
 
@@ -1628,6 +1678,50 @@ class _ClothingCountDialogState extends State<_ClothingCountDialog> {
         },
         child: const Text('Valider'),
       ),
+    ],
+  );
+}
+
+/// Navigation through retained snapshots only; completion remains on the screen.
+class _ResolutionCards extends StatefulWidget {
+  const _ResolutionCards({required this.cards, super.key});
+  final List<Widget> cards;
+
+  @override
+  State<_ResolutionCards> createState() => _ResolutionCardsState();
+}
+
+class _ResolutionCardsState extends State<_ResolutionCards> {
+  int index = 0;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      widget.cards[index],
+      if (widget.cards.length > 1)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              key: const Key('resolution-previous'),
+              tooltip: 'Action précédente',
+              onPressed: index == 0 ? null : () => setState(() => index--),
+              icon: const Icon(Icons.chevron_left),
+            ),
+            Text(
+              '${index + 1}/${widget.cards.length}',
+              key: const Key('resolution-page'),
+            ),
+            IconButton(
+              key: const Key('resolution-next'),
+              tooltip: 'Action suivante',
+              onPressed: index == widget.cards.length - 1
+                  ? null
+                  : () => setState(() => index++),
+              icon: const Icon(Icons.chevron_right),
+            ),
+          ],
+        ),
     ],
   );
 }

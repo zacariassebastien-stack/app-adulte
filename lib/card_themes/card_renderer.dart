@@ -58,6 +58,7 @@ class CardRenderer extends StatelessWidget {
     this.bundle,
     this.state = CardVisualState.normal,
     this.locked = false,
+    this.showPa = true,
     this.playerName,
     this.selectedBlockId,
     this.onBlockSelected,
@@ -70,6 +71,7 @@ class CardRenderer extends StatelessWidget {
   final ThemeBundle? bundle;
   final CardVisualState state;
   final bool locked;
+  final bool showPa;
   final String? playerName, selectedBlockId;
   final ValueChanged<String>? onBlockSelected;
   final ValueChanged<CardLayoutBlock>? onBlockChanged;
@@ -85,7 +87,10 @@ class CardRenderer extends StatelessWidget {
     final skin = theme.skin;
     final blocks =
         (_back ? theme.layout.back : theme.layout.front)
-            .where((block) => block.visible)
+            .where(
+              (block) =>
+                  block.visible && (showPa || block.type != CardBlockType.pa),
+            )
             .toList()
           ..sort((a, b) => a.zIndex.compareTo(b.zIndex));
     return LayoutBuilder(
@@ -426,10 +431,10 @@ class CardRenderer extends StatelessWidget {
         premiumExpanded
             ? _labeledPanelContent(
                 icon: Icons.place_outlined,
-                label: 'ZONES / NOMBRE',
+                label: 'ZONES',
                 value: definition.zones.isEmpty
                     ? 'LIBRE'
-                    : '${definition.zones.join(' · ')}  ${definition.zones.length}',
+                    : definition.zones.join(' · '),
                 skin: skin,
                 scale: scale,
                 maxLines: 2,

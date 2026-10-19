@@ -160,7 +160,7 @@ final class ConceptActionOptions {
         continue;
       // Profiles currently provide no concrete tagged accessory inventory.
       // No hasSextoy/ID/name fallback may authorize these choices.
-      if (concept.kind == ConceptKind.accessory || concept.id == '024') {
+      if (concept.kind == ConceptKind.accessory) {
         continue;
       }
       final engine = const CatalogEngineAdapter.v3().card(
@@ -227,10 +227,11 @@ final class ConceptActionOptions {
             ConceptActionOption(
               choice: choice,
               variant: variant,
-              title:
-                  concept.variants.any(
-                    (v) => v.id == choice.actionId && v.freeZone,
-                  )
+              title: concept.id == '024'
+                  ? concept.actionText
+                  : concept.variants.any(
+                      (v) => v.id == choice.actionId && v.freeZone,
+                    )
                   ? switch (concept.id) {
                       '002' => 'Choisis librement une zone à embrasser.',
                       '004' =>
@@ -249,60 +250,6 @@ final class ConceptActionOptions {
         }
       }
       if (choices.isNotEmpty) result[concept.id] = List.unmodifiable(choices);
-    }
-    // Joker borrows a compatible existing intimate practice, never its quota.
-    const intimate = {
-      '019',
-      '020',
-      '021',
-      '022',
-      '023',
-      '025',
-      '026',
-      '027',
-      '028',
-      '029',
-      '030',
-      '031',
-      '049',
-      '050',
-      '051',
-      '052',
-      '065',
-    };
-    final joker = catalog.definitions['024'];
-    if (joker != null &&
-        (recovery || context.chiliActive >= 3) &&
-        !(profile?.preferences.values.any(
-              (p) =>
-                  p.excluded && catalog.vetoTags('024').contains(p.key.tagId),
-            ) ??
-            false)) {
-      final borrowed = <ConceptActionOption>[];
-      for (final entry in result.entries.where(
-        (e) => intimate.contains(e.key),
-      )) {
-        for (final option in entry.value) {
-          const choice = ConceptDeckChoice(actionId: '024.action', chili: 3);
-          borrowed.add(
-            ConceptActionOption(
-              choice: choice,
-              variant: _variant(option.variant, choice),
-              title:
-                  '${catalog.definitions[entry.key]!.title} · ${option.title}',
-              parameters: {
-                ...option.parameters,
-                'practice_concept_id': entry.key,
-                'practice_action_id': option.choice.actionId,
-                'practice_chili': option.choice.chili,
-                if (option.choice.zoneId != null)
-                  'practice_zone_id': option.choice.zoneId,
-              },
-            ),
-          );
-        }
-      }
-      if (borrowed.isNotEmpty) result['024'] = List.unmodifiable(borrowed);
     }
     return Map.unmodifiable(result);
   }

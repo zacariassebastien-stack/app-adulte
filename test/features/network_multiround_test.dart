@@ -570,47 +570,250 @@ void main() {
     expect(controller.defaultAction('003')!.choice.actionId, '003.stage.3');
   });
 
-  for (final conceptId in ['003','002']) {
-    testWidgets('playing $conceptId commits its displayed action without another selection', (tester) async {
-      SharedPreferences.setMockInitialValues(<String,Object>{});
-      final backend = _Backend()..v4UnlockedSpice = 2;
-      final store = MemoryNetworkDuelSecretStore();
-      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session, playerId: 'alice',
-        repository: backend.repository('alice'), catalog: _catalogWithCards(catalog, {'card.v4.$conceptId'}), secretStore: store)));
-      for (var i=0;i<20;i++) { await tester.pump(const Duration(milliseconds:50)); }
-      var surface = tester.widget<CardHandSurface>(find.byType(CardHandSurface));
-      var item = surface.cards.single;
-      if (conceptId == '003') {
-        expect(item.definition.variantId, '003.stage.3');
-      } else {
-        expect(item.definition.variantId, startsWith('002.zone.'));
-      }
-      if (conceptId == '003') {
-        expect(item.tabs, hasLength(3));
-        surface.onTabChanged!(item, '003.stage.2');
-        await tester.pump();
-        surface = tester.widget<CardHandSurface>(find.byType(CardHandSurface));
-        item = surface.cards.single;
-        expect(item.definition.variantId, '003.stage.2');
-      }
-      final shown = item.definition;
-      surface.onPlay!(item);
-      for (var i=0;i<20;i++) { await tester.pump(const Duration(milliseconds:50)); }
-      expect(find.byType(SimpleDialog), findsNothing);
-      final saved = (await store.loadGame(sessionId: session.id, playerId: 'alice'))!;
-      final usage = saved.activeReveal!.choice.usage!;
-      expect(usage.resolvedAction['stage_id'] ?? usage.resolvedAction['variant_id'], shown.variantId);
-      expect(usage.resolvedAction['action_text'], shown.action);
-      expect(saved.conceptCheckpoint!.usagesByIntent, hasLength(1));
-      if (conceptId == '002') {
-        final isFree = shown.variantId == '002.zone.free';
-        expect(usage.resolvedAction.containsKey('zone_id'), isFree ? isFalse : isTrue);
-        if (isFree) {
-          expect(usage.resolvedAction['effective_chili'], 1);
+  for (final conceptId in ['003', '002', '024']) {
+    testWidgets(
+      'playing $conceptId commits its displayed action without another selection',
+      (tester) async {
+        SharedPreferences.setMockInitialValues(<String, Object>{});
+        final backend = _Backend()
+          ..v4UnlockedSpice = conceptId == '024' ? 3 : 2;
+        final store = MemoryNetworkDuelSecretStore();
+        await tester.pumpWidget(
+          MaterialApp(
+            home: NetworkDuelScreen(
+              session: session,
+              playerId: 'alice',
+              repository: backend.repository('alice'),
+              catalog: _catalogWithCards(catalog, {'card.v4.$conceptId'}),
+              secretStore: store,
+            ),
+          ),
+        );
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 50));
         }
-      }
-      await tester.pumpWidget(const SizedBox.shrink());
-    });
+        var surface = tester.widget<CardHandSurface>(
+          find.byType(CardHandSurface),
+        );
+        var item = surface.cards.single;
+        if (conceptId == '003') {
+          expect(item.definition.variantId, '003.stage.3');
+        } else if (conceptId == '002') {
+          expect(item.definition.variantId, startsWith('002.zone.'));
+        } else {
+          expect(item.definition.variantId, '024.action');
+          expect(item.definition.zones, ['LIBRE']);
+        }
+        if (conceptId == '003') {
+          expect(item.tabs, hasLength(3));
+          surface.onTabChanged!(item, '003.stage.2');
+          await tester.pump();
+          surface = tester.widget<CardHandSurface>(
+            find.byType(CardHandSurface),
+          );
+          item = surface.cards.single;
+          expect(item.definition.variantId, '003.stage.2');
+        }
+        final shown = item.definition;
+        surface.onPlay!(item);
+        for (var i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 50));
+        }
+        expect(find.byType(SimpleDialog), findsNothing);
+        final saved = (await store.loadGame(
+          sessionId: session.id,
+          playerId: 'alice',
+        ))!;
+        final usage = saved.activeReveal!.choice.usage!;
+        expect(
+          usage.resolvedAction['stage_id'] ??
+              usage.resolvedAction['variant_id'],
+          shown.variantId,
+        );
+        expect(usage.resolvedAction['action_text'], shown.action);
+        expect(saved.conceptCheckpoint!.usagesByIntent, hasLength(1));
+        if (conceptId == '024') {
+          expect(usage.conceptId, '024');
+          expect(usage.resolvedAction['effective_chili'], 3);
+          expect(
+            (usage.resolvedAction['parameters'] as Map).keys.where(
+              (k) => (k as String).startsWith('practice_'),
+            ),
+            isEmpty,
+          );
+          expect(usage.resolvedAction.containsKey('zone_id'), isFalse);
+          final learned = const V3LearningTagProjector().project(
+            usageLearningDescriptor(usage),
+          );
+          expect(learned, isNotEmpty);
+          expect(learned.map((e) => e.key.preferenceId).toSet(), {
+            'v3.preference.jeu_intime',
+          });
+        }
+        if (conceptId == '002') {
+          final isFree = shown.variantId == '002.zone.free';
+          expect(
+            usage.resolvedAction.containsKey('zone_id'),
+            isFree ? isFalse : isTrue,
+          );
+          if (isFree) {
+            expect(usage.resolvedAction['effective_chili'], 1);
+          }
+        }
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
+  }
+
+  for (final count in [1, 2]) {
+    for (final useProjection in [true, false]) {
+      testWidgets(
+        'resolution shows $count retained snapshot cards from ${useProjection ? 'projection' : 'compromise'} without PA',
+        (tester) async {
+          SharedPreferences.setMockInitialValues(<String, Object>{});
+          await tester.binding.setSurfaceSize(const Size(600, 1000));
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+          final backend = _Backend();
+          final actions = <NetworkResolvedActionCardDto>[];
+          for (var index = 0; index < count; index++) {
+            final usage = actionUsageFixture(
+              conceptId: index == 0 ? '002' : '003',
+              usageId: 'retained-$index',
+              actionId: index == 0 ? '002.zone.feet' : '003.stage.2',
+              nativeDirection: NetworkCardDirection.RECEVOIR,
+              effectiveSpice: index + 1,
+            );
+            final json = Map<String, Object?>.from(usage.toJson());
+            json['resolved_action'] = {
+              ...usage.resolvedAction,
+              if (index == 0) 'zone_id': 'feet',
+              'action_text': 'Action exacte du snapshot $index',
+              'parameters': {
+                'display_title': 'Titre figé $index',
+                'display_details': 'Précisions figées $index',
+              },
+            };
+            actions.add(
+              NetworkResolvedActionCardDto.fromUsage(
+                NetworkUsageProjection.fromJson(json),
+              ),
+            );
+          }
+          _setProjectedAction(backend, cards: actions);
+          if (!useProjection) {
+            backend.round.actionProjection = null;
+            backend.round.finalResolution = NetworkFinalResolutionDto(
+              retainedPlayerId: 'alice',
+              initialWinnerPlayerId: 'alice',
+              finalWinnerPlayerId: 'alice',
+              compromise: [
+                for (final card in actions)
+                  NetworkCompromiseCardDto.fromUsage(
+                    card.usage,
+                    origin: NetworkCompromiseOrigin.INITIAL_DUEL,
+                  ),
+              ],
+            );
+          }
+          final store = MemoryNetworkDuelSecretStore();
+          Future<void> open() async {
+            await tester.pumpWidget(
+              MaterialApp(
+                home: NetworkDuelScreen(
+                  session: session,
+                  playerId: 'alice',
+                  repository: backend.repository('alice'),
+                  catalog: catalog,
+                  secretStore: store,
+                ),
+              ),
+            );
+            await tester.pumpAndSettle();
+          }
+
+          CardRenderer shown() =>
+              tester.widget<CardRenderer>(find.byType(CardRenderer));
+          await open();
+          final controller =
+              (tester.state(find.byType(NetworkDuelScreen)) as dynamic)
+                      .controller
+                  as NetworkGameController;
+          final checkpoint = controller.usageCheckpoint.encode();
+          final points = Map<String, int>.of(backend.points);
+          final before = backend.round.finalResolution!.toJson();
+          expect(find.byType(CardRenderer), findsOneWidget);
+          expect(shown().showPa, isFalse);
+          expect(shown().definition.personalPa, isNull);
+          expect(shown().definition.oppositePa, isNull);
+          expect(
+            shown().definition.action,
+            actions.first.usage.resolvedAction['action_text'],
+          );
+          expect(shown().definition.zones, ['Pieds']);
+          expect(shown().definition.details, 'Précisions figées 0');
+          expect(
+            find.byKey(const Key('complete-network-action')),
+            findsOneWidget,
+          );
+          expect(
+            find.descendant(
+              of: find.byType(CardRenderer),
+              matching: find.textContaining('PA'),
+            ),
+            findsNothing,
+          );
+          if (count == 1) {
+            expect(find.byKey(const Key('resolution-page')), findsNothing);
+            expect(find.byKey(const Key('resolution-previous')), findsNothing);
+            expect(find.byKey(const Key('resolution-next')), findsNothing);
+          } else {
+            expect(find.text('1/2'), findsOneWidget);
+            expect(
+              tester
+                  .widget<IconButton>(
+                    find.byKey(const Key('resolution-previous')),
+                  )
+                  .onPressed,
+              isNull,
+            );
+            await tester.tap(find.byKey(const Key('resolution-next')));
+            await tester.pump();
+            expect(find.text('2/2'), findsOneWidget);
+            expect(
+              shown().definition.action,
+              actions.last.usage.resolvedAction['action_text'],
+            );
+            expect(shown().definition.variantId, '003.stage.2');
+            expect(shown().definition.spice, 2);
+            expect(
+              tester
+                  .widget<IconButton>(find.byKey(const Key('resolution-next')))
+                  .onPressed,
+              isNull,
+            );
+            backend.notify();
+            await tester.pumpAndSettle();
+            expect(find.text('2/2'), findsOneWidget);
+            await tester.tap(find.byKey(const Key('resolution-previous')));
+            await tester.pump();
+            expect(find.text('1/2'), findsOneWidget);
+          }
+          expect(controller.usageCheckpoint.encode(), checkpoint);
+          expect(backend.points, points);
+          expect(backend.round.finalResolution!.toJson(), before);
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pumpAndSettle();
+          await open();
+          expect(
+            shown().definition.action,
+            actions.first.usage.resolvedAction['action_text'],
+          );
+          expect(shown().definition.zones, ['Pieds']);
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox.shrink());
+        },
+      );
+    }
   }
 
   test('watchRound cancellation detaches without another backend event', () async {
@@ -4496,11 +4699,22 @@ void main() {
           await tester.pump(const Duration(milliseconds: 50));
         }
         expect(tester.takeException(), isNull);
-        for (final card in cards) {
+        for (var i = 0; i < cards.length; i++) {
+          final card = cards[i];
+          if (i > 0) {
+            await _showResolutionControl(tester, 'resolution-next');
+            await tester.tap(find.byKey(const Key('resolution-next')));
+            await tester.pump();
+          }
           expect(
             find.text(card.usage.resolvedAction['action_text']! as String),
             findsOneWidget,
           );
+        }
+        for (var i = 1; i < cards.length; i++) {
+          await _showResolutionControl(tester, 'resolution-previous');
+          await tester.tap(find.byKey(const Key('resolution-previous')));
+          await tester.pump();
         }
         expect(
           find.textContaining('accessoire : Lien historique figé'),
@@ -4700,6 +4914,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Ajuster les vêtements (5)'), findsOneWidget);
+    await _showResolutionControl(tester, 'complete-network-action');
     await tester.tap(find.byKey(const Key('complete-network-action')));
     await tester.pump();
     expect(find.byKey(const Key('clothing-resync-count')), findsNothing);
@@ -4737,6 +4952,7 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
+        await _showResolutionControl(tester, 'adjust-deterministic-clothing-count');
         await tester.tap(
           find.byKey(const Key('adjust-deterministic-clothing-count')),
         );
@@ -4778,6 +4994,7 @@ void main() {
           findsOneWidget,
         );
         // Reopening creates a fresh controller with the saved draft/default.
+        await _showResolutionControl(tester, 'adjust-deterministic-clothing-count');
         await tester.tap(
           find.byKey(const Key('adjust-deterministic-clothing-count')),
         );
@@ -4789,6 +5006,7 @@ void main() {
         );
         await tester.tap(find.widgetWithText(TextButton, 'Annuler'));
         await tester.pumpAndSettle();
+        await _showResolutionControl(tester, 'complete-network-action');
         await tester.tap(find.byKey(const Key('complete-network-action')));
         await tester.pumpAndSettle();
         expect(backend.clothingCounts['alice'], cancel ? 5 : 0);
@@ -4832,7 +5050,8 @@ void main() {
           (tester.state(find.byType(NetworkDuelScreen)) as dynamic).controller
               as NetworkGameController;
       final previousView = controller.viewState;
-      await tester.tap(find.byKey(const Key('complete-network-action')));
+      await _showResolutionControl(tester, 'complete-network-action');
+    await tester.tap(find.byKey(const Key('complete-network-action')));
       await tester.pumpAndSettle();
       final field = find.byKey(const Key('clothing-resync-count'));
       final input = tester.widget<TextField>(field).controller!;
@@ -7306,6 +7525,18 @@ void main() {
       expect(completion, contains('pg_advisory_xact_lock'));
     },
   );
+}
+
+Future<void> _showResolutionControl(WidgetTester tester, String key) async {
+  await tester.scrollUntilVisible(
+    find.byKey(Key(key)),
+    200,
+    scrollable: find.descendant(
+      of: find.byKey(const Key('network-action-in-progress')),
+      matching: find.byType(Scrollable),
+    ).first,
+  );
+  await tester.pumpAndSettle();
 }
 
 final class _Setup {
