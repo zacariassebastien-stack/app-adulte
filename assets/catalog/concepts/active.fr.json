@@ -191,8 +191,8 @@
       "id": "004",
       "title": "Jeu de bouche",
       "kind": "zones",
-      "action_text": "Choisissez une technique avec la bouche et une zone du corps.",
-      "details_text": "La technique est réalisée avec la bouche sur la zone choisie.",
+      "action_text": "Utilisez librement votre bouche sur la zone indiquée.",
+      "details_text": "Vous pouvez embrasser, lécher, sucer, souffler ou varier librement la manière d’utiliser votre bouche.",
       "intrinsic_chili": 1,
       "variants": [
         {
@@ -271,8 +271,8 @@
       "id": "005",
       "title": "Jeu de main",
       "kind": "zones",
-      "action_text": "Choisissez une technique manuelle et une zone du corps.",
-      "details_text": "La technique est réalisée avec les mains sur la zone choisie.",
+      "action_text": "Utilisez librement vos mains sur la zone indiquée.",
+      "details_text": "Vous pouvez caresser, effleurer, masser ou varier librement la manière d’utiliser vos mains.",
       "intrinsic_chili": 1,
       "variants": [
         {
@@ -588,6 +588,7 @@
       "title": "Jeu intime",
       "kind": "action",
       "action_text": "Choisissez une pratique intime.",
+      "details_text": "Les pratiques choisies doivent être consenties par les deux partenaires.",
       "variants": [
         {
           "id": "024.action",

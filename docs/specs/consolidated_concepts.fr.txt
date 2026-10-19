@@ -48,14 +48,14 @@ Ils ne font cependant plus partie du catalogue actif actuel.
 - piments : 1 / 2 / 2
 
 004 Jeu de bouche
-- techniques avec la bouche sur différentes zones
+- utilisation libre de la bouche sur la zone indiquée ; aucune technique demandée par l'application
 - variantes de zones + zone libre
 - aucune évolution
 - base piment 1 + modificateur de zone
 - description UI doit rendre le sens clair
 
 005 Jeu de main
-- techniques manuelles sur différentes zones
+- utilisation libre des mains sur la zone indiquée ; aucune technique demandée par l'application
 - variantes de zones + zone libre
 - aucune évolution
 - base piment 1 + modificateur de zone
@@ -133,6 +133,7 @@ Ils ne font cependant plus partie du catalogue actif actuel.
 - action unique
 - piment 3
 - joker permettant de choisir une pratique intime
+- les pratiques choisies doivent être consenties par les deux partenaires
 
 025 Sexe oral
 - évolutions conservées

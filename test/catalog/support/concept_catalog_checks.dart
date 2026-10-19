@@ -299,9 +299,16 @@ Map<String, void Function()> conceptCatalogChecks() => {
       'Body kissing distinction',
     );
     _check(
-      concepts['004']!.actionText.contains('avec la bouche') &&
-          concepts['005']!.actionText.contains('manuelle'),
+      concepts['004']!.actionText.contains('librement votre bouche') &&
+          concepts['004']!.detailsText!.contains('lécher') &&
+          concepts['005']!.actionText.contains('librement vos mains') &&
+          concepts['005']!.detailsText!.contains('masser'),
       'Mouth/hand distinction',
+    );
+    _check(
+      concepts['024']!.detailsText ==
+          'Les pratiques choisies doivent être consenties par les deux partenaires.',
+      '024 consent wording',
     );
     _check(
       concepts['010']!.detailsText!.contains('rhabiller complètement'),

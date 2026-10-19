@@ -644,6 +644,46 @@ Map<String, void Function()> conceptDeckChecks() => {
       'Remaining quantity was used as multiplicity',
     );
   },
+  'zone variant count does not multiply concept draw probability or stock': () {
+    final catalog = _catalog({'001', '005'});
+    final stock = ConceptDeckStock.startCycle(
+      catalog: catalog,
+      initialClothing: 5,
+    );
+    final pool = _pool(catalog, stock: stock, global: 1);
+    final manual = pool.candidates.singleWhere((c) => c.concept.id == '005');
+    _check(manual.choices.length > 1, 'Zone fixture has no variants');
+    final first = manual.materialize(
+      _RandomAt(0, 0, expectedSize: manual.choices.length),
+    );
+    final free = manual.materialize(
+      _RandomAt(
+        0,
+        manual.choices.length - 1,
+        expectedSize: manual.choices.length,
+      ),
+    );
+    _check(
+      first.zoneId != null && free.zoneId == null,
+      'Fixed/free choices cannot both be materialized',
+    );
+    _check(
+      pool.classes[1]!.length == 2 &&
+          pool.draw(_RandomAt(0, 0, expectedSize: 2))!.concept.id == '001' &&
+          pool.draw(_RandomAt(0, 1, expectedSize: 2))!.concept.id == '005',
+      'Zone variants became draw candidates',
+    );
+    final consumed = stock.consume('005');
+    _check(
+      consumed.remainingFor('005') == 0 &&
+          !_pool(
+            catalog,
+            stock: consumed,
+            global: 1,
+          ).candidates.any((c) => c.concept.id == '005'),
+      'A second zone occurrence bypassed concept stock',
+    );
+  },
   'adding same-chili stages or accessory variants cannot change class probabilities':
       () {
         ConceptCatalog fixture(int count) => _synthetic([

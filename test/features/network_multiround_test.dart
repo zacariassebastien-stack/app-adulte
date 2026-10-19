@@ -156,6 +156,109 @@ void main() {
     },
   );
 
+  test(
+    'drawn zone occurrence keeps its materialized variant in the hand',
+    () async {
+      final store = MemoryNetworkDuelSecretStore();
+      final setup = await _setup(
+        session,
+        _catalogWithCards(catalog, {'card.v4.004'}),
+        aliceSecrets: store,
+      );
+      addTearDown(setup.dispose);
+      final saved = (await store.loadGame(
+        sessionId: session.id,
+        playerId: 'alice',
+      ))!;
+      final handState = saved.cards.singleWhere(
+        (card) => card.cardId == '004' && card.zone == CardZone.HAND,
+      );
+      expect(handState.variantId, isNotNull);
+      final displayed = setup.alice.hand.singleWhere(
+        (card) => card.id == '004',
+      );
+      expect(displayed.variant.id, handState.variantId);
+      setup.alice.selectCard('004');
+      expect(setup.alice.selectedCard!.variant.id, handState.variantId);
+      expect(
+        setup.alice.materializedAction('004')!.choice.actionId,
+        handState.variantId,
+      );
+    },
+  );
+
+  for (final spec in [
+    ('002', '002.zone.neck_nape', 'neck_nape', 1),
+    ('004', '004.zone.neck_nape', 'neck_nape', 1),
+    ('005', '005.zone.neck_nape', 'neck_nape', 1),
+  ]) {
+    test(
+      '${spec.$1} freezes its precise zone occurrence in the snapshot',
+      () async {
+        final store = MemoryNetworkDuelSecretStore();
+        final setup = await _setup(
+          session,
+          _catalogWithCards(catalog, {'card.v4.${spec.$1}'}),
+          aliceSecrets: store,
+        );
+        addTearDown(setup.dispose);
+        final option = setup.alice
+            .choicesFor(spec.$1)
+            .singleWhere((choice) => choice.choice.actionId == spec.$2);
+        setup.alice.selectCard(spec.$1);
+        setup.alice.chooseAction(option);
+        await setup.alice.confirmSelection();
+        final usage = (await store.loadGame(
+          sessionId: session.id,
+          playerId: 'alice',
+        ))!.activeReveal!.choice.usage!;
+        expect(usage.resolvedAction['variant_id'], spec.$2);
+        expect(usage.resolvedAction['zone_id'], spec.$3);
+        expect(usage.resolvedAction['effective_chili'], spec.$4);
+        expect(
+          (usage.resolvedAction['parameters'] as Map).containsKey('technique'),
+          isFalse,
+        );
+      },
+    );
+  }
+
+  for (final id in ['004', '005']) {
+    test(
+      '$id free occurrence stores no anatomical or technique evidence',
+      () async {
+        final store = MemoryNetworkDuelSecretStore();
+        final setup = await _setup(
+          session,
+          _catalogWithCards(catalog, {'card.v4.$id'}),
+          aliceSecrets: store,
+        );
+        addTearDown(setup.dispose);
+        final free = setup.alice
+            .choicesFor(id)
+            .singleWhere((choice) => choice.choice.actionId == '$id.zone.free');
+        setup.alice.selectCard(id);
+        setup.alice.chooseAction(free);
+        await setup.alice.confirmSelection();
+        final usage = (await store.loadGame(
+          sessionId: session.id,
+          playerId: 'alice',
+        ))!.activeReveal!.choice.usage!;
+        expect(usage.resolvedAction['variant_id'], '$id.zone.free');
+        expect(usage.resolvedAction.containsKey('zone_id'), isFalse);
+        expect(usage.resolvedAction['effective_chili'], 1);
+        expect(
+          (usage.resolvedAction['parameters'] as Map).containsKey('technique'),
+          isFalse,
+        );
+        final evidence = const V3LearningTagProjector().project(
+          usageLearningDescriptor(usage),
+        );
+        expect(evidence.every((entry) => entry.key.zoneId == null), isTrue);
+      },
+    );
+  }
+
   for (final player in ['alice', 'bob']) {
     for (final stage in [
       'preparation',
@@ -477,7 +580,11 @@ void main() {
       for (var i=0;i<20;i++) { await tester.pump(const Duration(milliseconds:50)); }
       var surface = tester.widget<CardHandSurface>(find.byType(CardHandSurface));
       var item = surface.cards.single;
-      expect(item.definition.variantId, conceptId == '003' ? '003.stage.3' : '002.zone.free');
+      if (conceptId == '003') {
+        expect(item.definition.variantId, '003.stage.3');
+      } else {
+        expect(item.definition.variantId, startsWith('002.zone.'));
+      }
       if (conceptId == '003') {
         expect(item.tabs, hasLength(3));
         surface.onTabChanged!(item, '003.stage.2');
@@ -496,8 +603,11 @@ void main() {
       expect(usage.resolvedAction['action_text'], shown.action);
       expect(saved.conceptCheckpoint!.usagesByIntent, hasLength(1));
       if (conceptId == '002') {
-        expect(usage.resolvedAction.containsKey('zone_id'), isFalse);
-        expect(usage.resolvedAction['effective_chili'], 1);
+        final isFree = shown.variantId == '002.zone.free';
+        expect(usage.resolvedAction.containsKey('zone_id'), isFree ? isFalse : isTrue);
+        if (isFree) {
+          expect(usage.resolvedAction['effective_chili'], 1);
+        }
       }
       await tester.pumpWidget(const SizedBox.shrink());
     });

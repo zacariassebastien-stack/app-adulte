@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../card_themes/card_renderer.dart';
 import '../../domain/catalog/catalog.dart';
+import '../../domain/catalog/concept_catalog.dart';
 import '../../domain/catalog/enums.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/profile/adaptive_profile.dart';
@@ -268,7 +269,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           .choicesFor(item.id)
           .where(
             (o) =>
-                (concept.stages.isEmpty && !selectedIsFree) ||
+                (concept.kind != ConceptKind.zones &&
+                    concept.stages.isEmpty &&
+                    !selectedIsFree) ||
                 o.choice.actionId == item.definition.variantId,
           )
           .toList();
@@ -352,7 +355,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         options
             .where((o) => o.choice.actionId == _displayedActions[id])
             .firstOrNull ??
-        controller.defaultAction(id);
+        controller.materializedAction(id, options);
     final card = option == null
         ? fallback
         : controller.previewAction(id, option) ?? fallback;
@@ -1430,12 +1433,13 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     final available = recovery
         ? controller.recoveryChoicesFor(conceptId)
         : controller.choicesFor(conceptId);
-    final displayed = controller.defaultAction(conceptId, available);
+    final displayed = controller.materializedAction(conceptId, available);
     final isFree = controller
         .conceptFor(conceptId)
         .variants
         .any((v) => v.id == displayed?.choice.actionId && v.freeZone);
-    final choices = isFree
+    final choices =
+        controller.conceptFor(conceptId).kind == ConceptKind.zones || isFree
         ? available
               .where((o) => o.choice.actionId == displayed!.choice.actionId)
               .toList()

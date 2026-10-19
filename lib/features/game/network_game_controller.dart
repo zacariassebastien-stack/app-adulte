@@ -358,7 +358,11 @@ final class NetworkGameController extends ChangeNotifier {
 
   List<NetworkDuelCard> get hand => [
     for (final item in _runtime.where((card) => card.zone == CardZone.HAND))
-      ?_networkCard(item.cardId, occurrenceId: item.occurrenceId),
+      ?_networkCard(
+        item.cardId,
+        occurrenceId: item.occurrenceId,
+        variantId: item.variantId,
+      ),
   ];
 
   NetworkDuelCard? get personalDuelCard {
@@ -673,7 +677,7 @@ final class NetworkGameController extends ChangeNotifier {
     selectedCard = hand.where((card) => card.identity == conceptId).firstOrNull;
     _selectedOption = selectedCard == null
         ? null
-        : defaultAction(selectedCard!.id);
+        : materializedAction(selectedCard!.id);
     notifyListeners();
   }
 
@@ -787,6 +791,21 @@ final class NetworkGameController extends ChangeNotifier {
             )
             .firstOrNull ??
         choices.firstOrNull;
+  }
+
+  ConceptActionOption? materializedAction(
+    String id, [
+    List<ConceptActionOption>? options,
+  ]) {
+    final choices = options ?? choicesFor(id);
+    final variantId = _runtime
+        .where((card) => card.cardId == id && card.zone == CardZone.HAND)
+        .firstOrNull
+        ?.variantId;
+    return choices
+            .where((option) => option.choice.actionId == variantId)
+            .firstOrNull ??
+        defaultAction(id, choices);
   }
 
   NetworkDuelCard? previewAction(String id, ConceptActionOption option) =>
@@ -998,6 +1017,9 @@ final class NetworkGameController extends ChangeNotifier {
     final concept = _conceptCatalog.concepts.concepts.singleWhere(
       (c) => c.id == card.id,
     );
+    final conceptVariant = concept.variants
+        .where((variant) => variant.id == option.choice.actionId)
+        .firstOrNull;
     return ResolvedConceptAction.fromJson({
       'concept_id': card.id,
       'catalog_version':
@@ -1073,11 +1095,10 @@ final class NetworkGameController extends ChangeNotifier {
             'parameters': option.variant.effects[i].toJson(),
           },
       ],
-      'action_text':
-          concept.variants.any(
-            (v) => v.id == option.choice.actionId && v.freeZone,
-          )
+      'action_text': conceptVariant?.freeZone == true
           ? option.title
+          : concept.kind == ConceptKind.zones && conceptVariant != null
+          ? '${concept.actionText} · ${conceptVariant.title}'
           : '${concept.actionText} · ${option.title}',
     });
   }
@@ -2374,9 +2395,16 @@ final class NetworkGameController extends ChangeNotifier {
     while (needed > 0) {
       final concept = _conceptPool(excludeHeld: true).draw(random);
       if (concept == null) break;
+      final materialized = concept.concept.kind == ConceptKind.zones
+          ? concept.materialize(random)
+          : null;
       _runtime = [
         ..._runtime,
-        CardRuntimeState(cardId: concept.concept.id, zone: CardZone.HAND),
+        CardRuntimeState(
+          cardId: concept.concept.id,
+          variantId: materialized?.actionId,
+          zone: CardZone.HAND,
+        ),
       ];
       needed--;
     }

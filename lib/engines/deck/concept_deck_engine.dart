@@ -139,6 +139,9 @@ final class ConceptDeckCandidate {
   final CardConcept concept;
   final int drawClass;
   final List<ConceptDeckChoice> choices;
+
+  ConceptDeckChoice materialize(Random random) =>
+      choices[random.nextInt(choices.length)];
 }
 
 final class ConceptDeckPool {

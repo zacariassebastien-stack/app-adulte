@@ -171,13 +171,8 @@ final class ConceptActionOptions {
         final base = engine.variants.singleWhere(
           (v) => v.id == choice.actionId,
         );
-        for (final technique
-            in concept.id == '004' ? ['lecher', 'sucer'] : <String?>[null]) {
-          var variant = _variant(
-            base,
-            choice,
-            preference: technique == null ? null : 'v3.preference.$technique',
-          );
+        {
+          var variant = _variant(base, choice);
           final media = {'044', '045', '046', '047'}.contains(concept.id);
           if (media) {
             final photo = concept.id == '044' || concept.id == '045';
@@ -233,14 +228,19 @@ final class ConceptActionOptions {
               choice: choice,
               variant: variant,
               title:
-                  '${concept.variants.any((v) => v.id == choice.actionId && v.freeZone) ? switch (concept.id) {
-                          '002' => 'Choisis librement une zone à embrasser.',
-                          '004' => 'Choisis librement une zone pour ce jeu de bouche.',
-                          '005' => 'Choisis librement une zone à caresser.',
-                          _ => 'Choisis librement une zone.',
-                        } : '${definition.title ?? concept.title}${zone == null ? '' : ' · ${zone.title}'}'}${technique == null ? '' : ' · $technique'}',
+                  concept.variants.any(
+                    (v) => v.id == choice.actionId && v.freeZone,
+                  )
+                  ? switch (concept.id) {
+                      '002' => 'Choisis librement une zone à embrasser.',
+                      '004' =>
+                        'Choisis librement la zone et la manière d’utiliser ta bouche.',
+                      '005' =>
+                        'Choisis librement la zone et la manière d’utiliser tes mains.',
+                      _ => 'Choisis librement une zone.',
+                    }
+                  : '${definition.title ?? concept.title}${zone == null ? '' : ' · ${zone.title}'}',
               parameters: {
-                'technique': ?technique,
                 if (media) 'media_capture_player_id': actor.playerId,
                 if (media) 'media_send': mediaSendRequired,
               },
@@ -307,35 +307,15 @@ final class ConceptActionOptions {
     return Map.unmodifiable(result);
   }
 
-  EngineVariant _variant(
-    EngineVariant base,
-    ConceptDeckChoice choice, {
-    String? preference,
-  }) => EngineVariant(
-    id: choice.actionId,
-    chiliLevel: choice.chili,
-    consentRules: preference == null
-        ? base.consentRules
-        : [
-            ConsentRule(
-              elementId: preference,
-              role: ProfileRole.FAIRE,
-              oneOfGroup: 'direction:$preference',
-            ),
-            ConsentRule(
-              elementId: preference,
-              role: ProfileRole.RECEVOIR,
-              oneOfGroup: 'direction:$preference',
-            ),
-          ],
-    technicalRules: base.technicalRules,
-    technicalAlternatives: base.technicalAlternatives,
-    effects: base.effects,
-    tags: {
-      for (final tag in base.tags)
-        if (preference == null || !tag.startsWith('v3.preference.')) tag,
-      ?preference,
-    },
-    invertible: base.invertible,
-  );
+  EngineVariant _variant(EngineVariant base, ConceptDeckChoice choice) =>
+      EngineVariant(
+        id: choice.actionId,
+        chiliLevel: choice.chili,
+        consentRules: base.consentRules,
+        technicalRules: base.technicalRules,
+        technicalAlternatives: base.technicalAlternatives,
+        effects: base.effects,
+        tags: base.tags,
+        invertible: base.invertible,
+      );
 }

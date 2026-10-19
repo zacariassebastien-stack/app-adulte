@@ -426,54 +426,66 @@ Map<String, void Function()> conceptRuntimeChecks() {
             );
           }
         },
-    'P6 mouth separates techniques and respects individual exclusions': () {
-      final choices = options(chili: 1)['004']!;
-      _check(
-        choices.map((o) => o.parameters['technique']).toSet().containsAll({
-          'lecher',
-          'sucer',
-        }),
-        'Technique missing',
-      );
-      _check(
-        choices.every(
-          (o) =>
-              !o.variant.tags.contains('v3.zone.parties_intimes') &&
-              !o.variant.tags.contains('v3.zone.anal'),
-        ),
-        'Sexual practice copied',
-      );
-      final excluded = options(
-        overrides: {
-          'v3.preference.lecher': const PreferenceValue(
-            status: PreferenceStatus.EXCLUDED,
-          ),
-        },
-      )['004']!;
-      _check(
-        excluded.every((o) => o.parameters['technique'] == 'sucer'),
-        'Exclusion bypass',
-      );
-    },
-    'P6 joker borrows compatible rules while retaining 024 identity and quota':
+    'zone concepts expose fixed and free occurrences without technique parameters':
         () {
-          final borrowed = options()['024']!.first;
+          final all = options();
+          for (final id in ['002', '004', '005']) {
+            final choices = all[id]!;
+            _check(
+              choices.any((o) => o.choice.zoneId != null) &&
+                  choices.any((o) => o.choice.zoneId == null),
+              '$id fixed/free variants',
+            );
+            _check(
+              choices.every(
+                (o) =>
+                    !o.parameters.containsKey('technique') &&
+                    !o.variant.tags.contains('v3.preference.lecher') &&
+                    !o.variant.tags.contains('v3.preference.sucer'),
+              ),
+              '$id technique leaked',
+            );
+          }
+          final mouth = all['004']!;
+          final free = mouth.singleWhere(
+            (o) => o.choice.actionId == '004.zone.free',
+          );
+          final neck = mouth.singleWhere(
+            (o) => o.choice.actionId == '004.zone.neck_nape',
+          );
+          final intimate = mouth.singleWhere(
+            (o) => o.choice.actionId == '004.zone.penis',
+          );
           _check(
-            borrowed.choice.actionId == '024.action' &&
-                borrowed.parameters['practice_concept_id'] != '024',
-            'Wrong identity',
-          );
-          final checkpoint = start().reserve(
-            intentId: 'joker',
-            conceptId: '024',
+            free.choice.zoneId == null && free.choice.chili == 1,
+            '004 free zone semantics',
           );
           _check(
-            checkpoint.availableFor('024') == 0 &&
-                checkpoint.stock.remainingFor('019') == 3,
-            'Other quota spent',
+            neck.choice.zoneId == 'neck_nape' && neck.choice.chili == 1,
+            '004 fixed zone semantics',
           );
-          _check(!options(chili: 2).containsKey('024'), 'Ceiling bypass');
+          _check(
+            intimate.choice.zoneId == 'penis' && intimate.choice.chili == 3,
+            '004 zone spice',
+          );
         },
+    'P6 joker borrows compatible rules while retaining 024 identity and quota': () {
+      final borrowed = options()['024']!.first;
+      _check(
+        borrowed.choice.actionId == '024.action' &&
+            borrowed.parameters['practice_concept_id'] != '024' &&
+            catalog.definitions['024']!.detailsText ==
+                'Les pratiques choisies doivent être consenties par les deux partenaires.',
+        'Wrong identity',
+      );
+      final checkpoint = start().reserve(intentId: 'joker', conceptId: '024');
+      _check(
+        checkpoint.availableFor('024') == 0 &&
+            checkpoint.stock.remainingFor('019') == 3,
+        'Other quota spent',
+      );
+      _check(!options(chili: 2).containsKey('024'), 'Ceiling bypass');
+    },
     'P6 outfit uses TENUE and self direction in all contexts': () {
       final choice = options()['013']!.single;
       _check(

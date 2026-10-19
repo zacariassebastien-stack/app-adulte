@@ -54,7 +54,6 @@ final class ConceptRuntimeCatalog {
       },
     },
     if (conceptId == '022') 'penetration_vaginale',
-    if (conceptId == '004') ...{'lecher', 'sucer'},
     if (concepts.concepts.singleWhere((c) => c.id == conceptId).kind ==
         ConceptKind.zones)
       for (final zone in concepts.zones) zone.id,

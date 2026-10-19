@@ -161,22 +161,25 @@ void main() {
       V4RatingResultKind.rated,
     );
   });
-  test('zone and technique vetoes cover all options of the concept', () {
-    expect(
-      rate(
-        '004',
-        withExcluded(profile(), 'sucer', ProfilePreferenceRole.recevoir),
-      ).kind,
-      V4RatingResultKind.excluded,
-    );
-    expect(
-      rate(
-        '002',
-        withExcluded(profile(), 'anus', ProfilePreferenceRole.general),
-      ).kind,
-      V4RatingResultKind.excluded,
-    );
-  });
+  test(
+    'zone vetoes remain while obsolete mouth techniques do not veto 004',
+    () {
+      expect(
+        rate(
+          '004',
+          withExcluded(profile(), 'sucer', ProfilePreferenceRole.recevoir),
+        ).kind,
+        V4RatingResultKind.rated,
+      );
+      expect(
+        rate(
+          '002',
+          withExcluded(profile(), 'anus', ProfilePreferenceRole.general),
+        ).kind,
+        V4RatingResultKind.excluded,
+      );
+    },
+  );
   test(
     '013 role exception does not create a general SOI to FAIRE fallback',
     () {
