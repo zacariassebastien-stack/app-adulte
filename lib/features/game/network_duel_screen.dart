@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../card_themes/card_renderer.dart';
 import '../../domain/catalog/catalog.dart';
 import '../../domain/catalog/concept_catalog.dart';
+import '../../domain/catalog/concept_editorial.dart';
 import '../../domain/catalog/enums.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/profile/adaptive_profile.dart';
@@ -429,6 +430,21 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         .choicesFor(card.id)
         .where((o) => o.choice.actionId == card.variant.id)
         .firstOrNull;
+    final editorialRenderer = ConceptEditorialRenderer(
+      widget.catalog.concepts!,
+    );
+    final editorial = concept == null ||
+            option == null ||
+            !editorialRenderer.appliesTo(
+              concept: concept,
+              actionId: option.choice.actionId,
+            )
+        ? null
+        : editorialRenderer.render(
+            concept: concept,
+            actionId: option.choice.actionId,
+            direction: card.effectiveDirection,
+          );
     return CardHandItem(
       id: card.identity,
       locked: controller.lockedCardId == card.identity,
@@ -439,9 +455,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         title: card.title,
         action: card.identity != card.id
             ? editorialVariant?.actionText ?? card.definition.actionText
-            : free && option != null
-            ? option.title
-            : '${editorialVariant?.actionText ?? card.definition.actionText ?? card.definition.descriptionKey}${editorialVariant?.title == null ? '' : ' · ${editorialVariant!.title}'}',
+            : editorial?.actionText ??
+                  (free && option != null
+                      ? option.title
+                      : '${editorialVariant?.actionText ?? card.definition.actionText ?? card.definition.descriptionKey}${editorialVariant?.title == null ? '' : ' · ${editorialVariant!.title}'}'),
         zones: [
           if (controller.zoneForCard(card) case final zone?)
             widget.catalog.concepts!.zones
@@ -452,7 +469,11 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           else if (free)
             'LIBRE',
         ],
-        details: editorialVariant?.detailsText ?? card.definition.detailsText,
+        details: card.identity != card.id
+            ? editorialVariant?.detailsText ?? card.definition.detailsText
+            : editorial?.detailsText ??
+                  editorialVariant?.detailsText ??
+                  card.definition.detailsText,
         direction: card.effectiveDirection.name,
         spice: card.chiliLevel,
         personalPa: card.personalValue,

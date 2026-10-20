@@ -118,6 +118,13 @@ final class JsonReader {
     );
   }
 
+  JsonMap? readerObject(String key) {
+    final value = json[key];
+    if (value == null) return null;
+    if (value is! JsonMap) fail(key, 'Expected object');
+    return value;
+  }
+
   DateTime dateTime(String key) {
     final raw = string(key);
     final date = DateTime.tryParse(raw);

@@ -64,15 +64,28 @@ final class ConceptCatalog extends JsonModel {
 
 final class ConceptBodyZone extends JsonModel {
   ConceptBodyZone.read(super.reader) {
-    reader.only({'id', 'title', 'modifier'});
+    reader.only({
+      'id',
+      'title',
+      'modifier',
+      'object_form',
+      'possessive_form',
+      'composed',
+    });
     id;
     title;
     modifier;
+    objectForm;
+    possessiveForm;
+    composed;
   }
 
   String get id => reader.string('id');
   String get title => reader.string('title');
   int get modifier => reader.integer('modifier', min: 0, max: 2);
+  String get objectForm => reader.string('object_form');
+  String get possessiveForm => reader.string('possessive_form');
+  bool get composed => reader.boolean('composed', fallback: false);
 
   /// Applies only to generic zone actions, never to intrinsic intimate practices.
   int effectiveChili(int intrinsicChili) {
@@ -83,25 +96,50 @@ final class ConceptBodyZone extends JsonModel {
 
 final class ConceptStage extends JsonModel {
   ConceptStage.read(super.reader) {
-    reader.only({'id', 'title', 'chili'});
+    reader.only({
+      'id',
+      'title',
+      'chili',
+      'action_text',
+      'details_text',
+      'action_templates',
+    });
     id;
     title;
     chili;
+    actionText;
+    detailsText;
+    actionTemplates;
   }
 
   String get id => reader.string('id');
   String get title => reader.string('title');
   int get chili => reader.integer('chili', min: 1, max: 4);
+  String? get actionText => reader.optionalString('action_text');
+  String? get detailsText => reader.optionalString('details_text');
+  Map<String, String> get actionTemplates => _directionTemplates(reader);
 }
 
 final class ConceptActionVariant extends JsonModel {
   ConceptActionVariant.read(super.reader) {
-    reader.only({'id', 'title', 'chili', 'zone_id', 'free_zone'});
+    reader.only({
+      'id',
+      'title',
+      'chili',
+      'zone_id',
+      'free_zone',
+      'action_text',
+      'details_text',
+      'action_templates',
+    });
     id;
     title;
     chili;
     zoneId;
     freeZone;
+    actionText;
+    detailsText;
+    actionTemplates;
     final forms = [chili != null, zoneId != null, freeZone];
     if (forms.where((present) => present).length != 1) {
       reader.fail(
@@ -116,6 +154,9 @@ final class ConceptActionVariant extends JsonModel {
   int? get chili => reader.optionalInteger('chili', min: 1, max: 4);
   String? get zoneId => reader.optionalString('zone_id');
   bool get freeZone => reader.boolean('free_zone', fallback: false);
+  String? get actionText => reader.optionalString('action_text');
+  String? get detailsText => reader.optionalString('details_text');
+  Map<String, String> get actionTemplates => _directionTemplates(reader);
 }
 
 final class CardConcept extends JsonModel {
@@ -126,6 +167,9 @@ final class CardConcept extends JsonModel {
       'kind',
       'action_text',
       'details_text',
+      'action_templates',
+      'free_action_templates',
+      'composed_details_text',
       'stages',
       'variants',
       'intrinsic_chili',
@@ -139,6 +183,9 @@ final class CardConcept extends JsonModel {
     kind;
     actionText;
     detailsText;
+    actionTemplates;
+    freeActionTemplates;
+    composedDetailsText;
     intrinsicChili;
     capacityRule;
     persistentEffect;
@@ -186,6 +233,18 @@ final class CardConcept extends JsonModel {
         'Only generic zone actions add zone modifiers',
       );
     }
+    if (freeActionTemplates.isNotEmpty && kind != ConceptKind.zones) {
+      reader.fail(
+        'free_action_templates',
+        'Only generic zone actions have a free action template',
+      );
+    }
+    if (composedDetailsText != null && kind != ConceptKind.zones) {
+      reader.fail(
+        'composed_details_text',
+        'Only generic zone actions have composed body parts',
+      );
+    }
     if (kind == ConceptKind.accessory) {
       if (axes.length != 2 ||
           axes.toSet().length != 2 ||
@@ -206,6 +265,11 @@ final class CardConcept extends JsonModel {
   ConceptKind get kind => reader.enumeration('kind', ConceptKind.values);
   String get actionText => reader.string('action_text');
   String? get detailsText => reader.optionalString('details_text');
+  Map<String, String> get actionTemplates => _directionTemplates(reader);
+  Map<String, String> get freeActionTemplates =>
+      _directionTemplates(reader, key: 'free_action_templates');
+  String? get composedDetailsText =>
+      reader.optionalString('composed_details_text');
   int? get intrinsicChili =>
       reader.optionalInteger('intrinsic_chili', min: 1, max: 4);
   ConceptCapacityRule? get capacityRule =>
@@ -227,4 +291,24 @@ final class CardConcept extends JsonModel {
 
   late final List<ConceptStage> stages;
   late final List<ConceptActionVariant> variants;
+}
+
+Map<String, String> _directionTemplates(
+  JsonReader reader, {
+  String key = 'action_templates',
+}) {
+  final raw = reader.readerObject(key);
+  if (raw == null) return const {};
+  const directions = {'FAIRE', 'RECEVOIR', 'MUTUEL', 'SIMULTANE', 'SOLO'};
+  final result = <String, String>{};
+  for (final entry in raw.entries) {
+    if (!directions.contains(entry.key)) {
+      reader.fail(key, 'Unknown editorial direction: ${entry.key}');
+    }
+    if (entry.value is! String || (entry.value! as String).trim().isEmpty) {
+      reader.fail('$key.${entry.key}', 'Expected non-empty string');
+    }
+    result[entry.key] = entry.value! as String;
+  }
+  return Map.unmodifiable(result);
 }

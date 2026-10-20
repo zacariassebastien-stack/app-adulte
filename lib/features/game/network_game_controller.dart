@@ -1042,6 +1042,19 @@ final class NetworkGameController extends ChangeNotifier {
     final conceptVariant = concept.variants
         .where((variant) => variant.id == option.choice.actionId)
         .firstOrNull;
+    final editorialRenderer = ConceptEditorialRenderer(
+      _conceptCatalog.concepts,
+    );
+    final editorial = editorialRenderer.appliesTo(
+      concept: concept,
+      actionId: option.choice.actionId,
+    )
+        ? editorialRenderer.render(
+            concept: concept,
+            actionId: option.choice.actionId,
+            direction: direction,
+          )
+        : null;
     return ResolvedConceptAction.fromJson({
       'concept_id': card.id,
       'catalog_version':
@@ -1065,7 +1078,7 @@ final class NetworkGameController extends ChangeNotifier {
         if (card.id == '013') 'learning_role': 'soi',
         'committed_at': at.toIso8601String(),
         'display_title': card.title,
-        'display_details':
+        'display_details': editorial?.detailsText ??
             card.definition.variants
                 .singleWhere((v) => v.stableId == option.choice.actionId)
                 .detailsText ??
@@ -1117,13 +1130,14 @@ final class NetworkGameController extends ChangeNotifier {
             'parameters': option.variant.effects[i].toJson(),
           },
       ],
-      'action_text': card.id == '024'
-          ? concept.actionText
-          : conceptVariant?.freeZone == true
-          ? option.title
-          : concept.kind == ConceptKind.zones && conceptVariant != null
-          ? '${concept.actionText} · ${conceptVariant.title}'
-          : '${concept.actionText} · ${option.title}',
+      'action_text': editorial?.actionText ??
+          (card.id == '024'
+              ? concept.actionText
+              : conceptVariant?.freeZone == true
+              ? option.title
+              : concept.kind == ConceptKind.zones && conceptVariant != null
+              ? '${concept.actionText} · ${conceptVariant.title}'
+              : '${concept.actionText} · ${option.title}'),
     });
   }
 

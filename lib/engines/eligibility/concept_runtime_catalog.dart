@@ -73,9 +73,22 @@ final class ConceptRuntimeCatalog {
         (raw as JsonMap)['action_id']! as String: raw,
     };
     final actions = [
-      for (final stage in concept.stages) (stage.id, stage.title, stage.chili),
+      for (final stage in concept.stages)
+        (
+          stage.id,
+          stage.title,
+          stage.chili,
+          stage.actionText,
+          stage.detailsText,
+        ),
       for (final variant in concept.variants)
-        (variant.id, variant.title, variant.chili ?? concept.intrinsicChili!),
+        (
+          variant.id,
+          variant.title,
+          variant.chili ?? concept.intrinsicChili!,
+          variant.actionText,
+          variant.detailsText,
+        ),
     ];
     if (actionRules.length != actions.length)
       throw FormatException('Action rules mismatch ${concept.id}');
@@ -112,8 +125,8 @@ final class ConceptRuntimeCatalog {
             'enabled': true,
             'v3_deck_enabled': true,
             'title': action.$2,
-            'action_text': concept.actionText,
-            'details_text': concept.detailsText,
+            'action_text': action.$4 ?? concept.actionText,
+            'details_text': action.$5 ?? concept.detailsText,
             'chili_level': action.$3,
             'technical_requirements':
                 actionRules[action.$1]!['technical_requirements'],

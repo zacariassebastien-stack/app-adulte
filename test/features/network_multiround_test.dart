@@ -131,7 +131,7 @@ void main() {
       expect(usage.resolvedAction['effective_chili'], 1);
       expect(
         usage.resolvedAction['action_text'],
-        'Choisis librement une zone à embrasser.',
+        'Choisis librement une partie du corps de ton partenaire à embrasser.',
       );
       expect(
         (usage.resolvedAction['tags'] as List).where(

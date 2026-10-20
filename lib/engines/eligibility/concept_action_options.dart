@@ -233,12 +233,13 @@ final class ConceptActionOptions {
                       (v) => v.id == choice.actionId && v.freeZone,
                     )
                   ? switch (concept.id) {
-                      '002' => 'Choisis librement une zone à embrasser.',
+                      '002' =>
+                        'Choisis librement une partie du corps à embrasser.',
                       '004' =>
-                        'Choisis librement la zone et la manière d’utiliser ta bouche.',
+                        'Choisis librement la partie du corps et la manière d’utiliser ta bouche.',
                       '005' =>
-                        'Choisis librement la zone et la manière d’utiliser tes mains.',
-                      _ => 'Choisis librement une zone.',
+                        'Choisis librement la partie du corps et la manière d’utiliser tes mains.',
+                      _ => 'Choisis librement une partie du corps.',
                     }
                   : '${definition.title ?? concept.title}${zone == null ? '' : ' · ${zone.title}'}',
               parameters: {

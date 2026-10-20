@@ -295,13 +295,16 @@ Map<String, void Function()> conceptCatalogChecks() => {
   'required distinctions and persistent definitions remain explicit': () {
     final concepts = {for (final c in _load().concepts) c.id: c};
     _check(
-      concepts['002']!.detailsText!.contains('pas d’un baiser bouche-à-bouche'),
-      'Body kissing distinction',
+      concepts['002']!.detailsText ==
+              'À une ou plusieurs reprises, cela dépend de toi.' &&
+          concepts['002']!.composedDetailsText ==
+              'Tu peux choisir l’une des deux ou les deux.',
+      'Body kissing editorial precision',
     );
     _check(
-      concepts['004']!.actionText.contains('librement votre bouche') &&
+      concepts['004']!.actionText.contains('librement ta bouche') &&
           concepts['004']!.detailsText!.contains('lécher') &&
-          concepts['005']!.actionText.contains('librement vos mains') &&
+          concepts['005']!.actionText.contains('librement tes mains') &&
           concepts['005']!.detailsText!.contains('masser'),
       'Mouth/hand distinction',
     );

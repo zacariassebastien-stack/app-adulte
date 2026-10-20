@@ -7,67 +7,98 @@
     {
       "id": "face_hair",
       "title": "Visage / cheveux",
-      "modifier": 0
+      "modifier": 0,
+      "object_form": "le visage et les cheveux",
+      "possessive_form": "ton visage et tes cheveux",
+      "composed": true
     },
     {
       "id": "neck_nape",
       "title": "Cou / nuque",
-      "modifier": 0
+      "modifier": 0,
+      "object_form": "le cou et la nuque",
+      "possessive_form": "ton cou et ta nuque",
+      "composed": true
     },
     {
       "id": "arms_hands",
       "title": "Bras / mains",
-      "modifier": 0
+      "modifier": 0,
+      "object_form": "les bras et les mains",
+      "possessive_form": "tes bras et tes mains",
+      "composed": true
     },
     {
       "id": "back_shoulders",
       "title": "Dos / épaules",
-      "modifier": 0
+      "modifier": 0,
+      "object_form": "le dos et les épaules",
+      "possessive_form": "ton dos et tes épaules",
+      "composed": true
     },
     {
       "id": "belly",
       "title": "Ventre",
-      "modifier": 0
+      "modifier": 0,
+      "object_form": "le ventre",
+      "possessive_form": "ton ventre"
     },
     {
       "id": "legs",
       "title": "Jambes hors cuisses",
-      "modifier": 0
+      "modifier": 0,
+      "object_form": "les jambes, hors cuisses",
+      "possessive_form": "tes jambes, hors cuisses"
     },
     {
       "id": "feet",
       "title": "Pieds",
-      "modifier": 0
+      "modifier": 0,
+      "object_form": "les pieds",
+      "possessive_form": "tes pieds"
     },
     {
       "id": "thighs",
       "title": "Cuisses",
-      "modifier": 1
+      "modifier": 1,
+      "object_form": "les cuisses",
+      "possessive_form": "tes cuisses"
     },
     {
       "id": "buttocks",
       "title": "Fesses",
-      "modifier": 1
+      "modifier": 1,
+      "object_form": "les fesses",
+      "possessive_form": "tes fesses"
     },
     {
       "id": "chest",
       "title": "Poitrine / seins",
-      "modifier": 1
+      "modifier": 1,
+      "object_form": "la poitrine et les seins",
+      "possessive_form": "ta poitrine et tes seins",
+      "composed": true
     },
     {
       "id": "penis",
       "title": "Pénis",
-      "modifier": 2
+      "modifier": 2,
+      "object_form": "le pénis",
+      "possessive_form": "ton pénis"
     },
     {
       "id": "vulva",
       "title": "Vulve",
-      "modifier": 2
+      "modifier": 2,
+      "object_form": "la vulve",
+      "possessive_form": "ta vulve"
     },
     {
       "id": "anus",
       "title": "Anus",
-      "modifier": 2
+      "modifier": 2,
+      "object_form": "l’anus",
+      "possessive_form": "ton anus"
     }
   ],
   "concepts": [
@@ -88,8 +119,17 @@
       "id": "002",
       "title": "Embrasser",
       "kind": "zones",
-      "action_text": "Embrassez une zone du corps choisie.",
-      "details_text": "Il s’agit d’un baiser sur le corps, pas d’un baiser bouche-à-bouche.",
+      "action_text": "Embrasse une partie du corps choisie.",
+      "action_templates": {
+        "FAIRE": "Embrasse {partie_corps} de {ton_partenaire}.",
+        "RECEVOIR": "Laisse {ton_partenaire} embrasser {ta_partie_corps}."
+      },
+      "free_action_templates": {
+        "FAIRE": "Choisis librement une partie du corps de {ton_partenaire} à embrasser.",
+        "RECEVOIR": "Laisse {ton_partenaire} choisir librement une partie de ton corps à embrasser."
+      },
+      "details_text": "À une ou plusieurs reprises, cela dépend de toi.",
+      "composed_details_text": "Tu peux choisir l’une des deux ou les deux.",
       "intrinsic_chili": 1,
       "variants": [
         {
@@ -159,7 +199,7 @@
         },
         {
           "id": "002.zone.free",
-          "title": "Zone libre",
+          "title": "LIBRE",
           "free_zone": true
         }
       ]
@@ -191,8 +231,17 @@
       "id": "004",
       "title": "Jeu de bouche",
       "kind": "zones",
-      "action_text": "Utilisez librement votre bouche sur la zone indiquée.",
-      "details_text": "Vous pouvez embrasser, lécher, sucer, souffler ou varier librement la manière d’utiliser votre bouche.",
+      "action_text": "Utilise librement ta bouche sur la partie du corps indiquée.",
+      "action_templates": {
+        "FAIRE": "Utilise librement ta bouche sur {partie_corps} de {ton_partenaire}.",
+        "RECEVOIR": "Laisse {ton_partenaire} utiliser librement sa bouche sur {ta_partie_corps}."
+      },
+      "free_action_templates": {
+        "FAIRE": "Choisis librement une partie du corps de {ton_partenaire} et la manière d’utiliser ta bouche.",
+        "RECEVOIR": "Laisse {ton_partenaire} choisir librement une partie de ton corps et la manière d’utiliser sa bouche."
+      },
+      "details_text": "Tu peux embrasser, lécher, sucer, souffler ou varier librement la manière d’utiliser ta bouche.",
+      "composed_details_text": "Tu peux choisir l’une des deux ou les deux.",
       "intrinsic_chili": 1,
       "variants": [
         {
@@ -262,7 +311,7 @@
         },
         {
           "id": "004.zone.free",
-          "title": "Zone libre",
+          "title": "LIBRE",
           "free_zone": true
         }
       ]
@@ -271,8 +320,17 @@
       "id": "005",
       "title": "Jeu de main",
       "kind": "zones",
-      "action_text": "Utilisez librement vos mains sur la zone indiquée.",
-      "details_text": "Vous pouvez caresser, effleurer, masser ou varier librement la manière d’utiliser vos mains.",
+      "action_text": "Utilise librement tes mains sur la partie du corps indiquée.",
+      "action_templates": {
+        "FAIRE": "Utilise librement tes mains sur {partie_corps} de {ton_partenaire}.",
+        "RECEVOIR": "Laisse {ton_partenaire} utiliser librement ses mains sur {ta_partie_corps}."
+      },
+      "free_action_templates": {
+        "FAIRE": "Choisis librement une partie du corps de {ton_partenaire} et la manière d’utiliser tes mains.",
+        "RECEVOIR": "Laisse {ton_partenaire} choisir librement une partie de ton corps et la manière d’utiliser ses mains."
+      },
+      "details_text": "Tu peux caresser, effleurer, masser ou varier librement la manière d’utiliser tes mains.",
+      "composed_details_text": "Tu peux choisir l’une des deux ou les deux.",
       "intrinsic_chili": 1,
       "variants": [
         {
@@ -342,7 +400,7 @@
         },
         {
           "id": "005.zone.free",
-          "title": "Zone libre",
+          "title": "LIBRE",
           "free_zone": true
         }
       ]
@@ -456,6 +514,10 @@
       "title": "Imposer une posture",
       "kind": "action",
       "action_text": "Choisissez la posture que l’autre doit prendre.",
+      "action_templates": {
+        "FAIRE": "Choisis la posture que {ton_partenaire} devra prendre.",
+        "RECEVOIR": "Laisse {ton_partenaire} choisir la posture que tu devras prendre."
+      },
       "details_text": "Les vêtements actuels restent tels quels.",
       "variants": [
         {
@@ -675,6 +737,10 @@
       "title": "Choisir une position sexuelle",
       "kind": "action",
       "action_text": "Choisissez une position sexuelle et réalisez-la à deux.",
+      "action_templates": {
+        "FAIRE": "Choisis une position sexuelle et réalise-la avec {ton_partenaire}.",
+        "RECEVOIR": "Laisse {ton_partenaire} choisir une position sexuelle, puis réalisez-la ensemble."
+      },
       "details_text": "Il s’agit de réaliser la position, pas seulement de la nommer.",
       "variants": [
         {
@@ -725,6 +791,10 @@
       "title": "Ordre",
       "kind": "action",
       "action_text": "Choisissez l’ordre que l’autre doit suivre.",
+      "action_templates": {
+        "FAIRE": "Choisis l’ordre que {ton_partenaire} devra suivre.",
+        "RECEVOIR": "Laisse {ton_partenaire} choisir l’ordre que tu devras suivre."
+      },
       "details_text": "Le choix ouvert de l’ordre constitue l’identité de la carte.",
       "variants": [
         {
@@ -815,6 +885,10 @@
       "title": "Danser",
       "kind": "action",
       "action_text": "Dansez.",
+      "action_templates": {
+        "FAIRE": "Danse pour {ton_partenaire}.",
+        "RECEVOIR": "Laisse {ton_partenaire} danser pour toi."
+      },
       "variants": [
         {
           "id": "038.action",
@@ -828,6 +902,10 @@
       "title": "Prendre une pose",
       "kind": "action",
       "action_text": "Choisissez vous-même votre pose et prenez-la.",
+      "action_templates": {
+        "FAIRE": "Choisis ta pose et prends-la devant {ton_partenaire}.",
+        "RECEVOIR": "Laisse {ton_partenaire} choisir une pose et la prendre devant toi."
+      },
       "variants": [
         {
           "id": "039.action",
@@ -1177,6 +1255,10 @@
       "title": "Supplier",
       "kind": "evolution",
       "action_text": "Suppliez au stade choisi.",
+      "action_templates": {
+        "FAIRE": "Supplie {ton_partenaire} : {stade}.",
+        "RECEVOIR": "Laisse {ton_partenaire} te supplier : {stade}."
+      },
       "stages": [
         {
           "id": "057.stage.1",
@@ -1295,6 +1377,10 @@
       "title": "Footjob",
       "kind": "action",
       "action_text": "Réalisez un footjob.",
+      "action_templates": {
+        "FAIRE": "Fais un footjob à {ton_partenaire}.",
+        "RECEVOIR": "Laisse {ton_partenaire} te faire un footjob."
+      },
       "variants": [
         {
           "id": "065.action",
