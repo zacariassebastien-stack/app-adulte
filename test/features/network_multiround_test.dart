@@ -50,6 +50,153 @@ void main() {
     );
   });
 
+
+  V4Profile stageProfile({int? excluded, ProfilePreferenceRole? role}) {
+    final preferences = <String, ProfilePreference>{};
+    for (final r in ProfilePreferenceRole.values) {
+      final key = ProfilePreferenceKey(tagId: 'degradant', role: r);
+      preferences[key.storageKey] = ProfilePreference(profileId: 'alice', key: key, pa: 10,
+        excluded: false, source: ProfilePreferenceSource.initialQuestionnaire);
+    }
+    return V4Profile(profileId: 'alice', preferences: preferences, stageVetoes: [
+      if (excluded != null) for (final r in role == null ? [ProfilePreferenceRole.faire, ProfilePreferenceRole.recevoir] : [role])
+        StageVeto(conceptId: '056', actionId: '056.stage.$excluded', role: r),
+    ]);
+  }
+  for (final excluded in [1,2,3]) {
+    test('V1 veto stage $excluded leaves other stages consumable and survives profile reload', () async {
+      final backend = _Backend()..v4UnlockedSpice = 4;
+      final profile = V4Profile.fromJson(jsonDecode(jsonEncode(stageProfile(excluded: excluded).toJson())) as Map<String,Object?>);
+      final c = NetworkGameController(session: session, playerId: 'alice', repository: backend.repository('alice'),
+        privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: _catalogWithCards(catalog, {'card.v4.056'}), v4Profile: profile);
+      addTearDown(c.dispose);
+      await c.start();
+      expect(c.choicesFor('056').map((o) => o.choice.actionId).toSet(),
+        {for (final n in [1,2,3]) if(n!=excluded) '056.stage.$n'});
+      expect(c.usageCheckpoint.usagesByIntent, isEmpty);
+      final allowed = [1,2,3].firstWhere((n) => n != excluded);
+      c.selectCard('056');
+      c.chooseAction(c.choicesFor('056').singleWhere((o) => o.choice.actionId == '056.stage.$allowed'));
+      await c.confirmSelection();
+      expect(c.usageCheckpoint.stageConsumed('056', '056.stage.$allowed'), isTrue);
+      expect(c.usageCheckpoint.stageConsumed('056', '056.stage.$excluded'), isFalse);
+      expect(c.errorMessage, isNull);
+    });
+  }
+  test('V1 stage veto removes only the excluded direction and inverse', () async {
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    final c = NetworkGameController(session: session, playerId: 'alice', repository: backend.repository('alice'),
+      privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: _catalogWithCards(catalog, {'card.v4.056'}),
+      v4Profile: stageProfile(excluded: 3, role: ProfilePreferenceRole.faire));
+    addTearDown(c.dispose); await c.start(); c.selectCard('056');
+    c.chooseAction(c.choicesFor('056').singleWhere((o) => o.choice.actionId == '056.stage.3'));
+    expect(c.selectedCard!.nativeDirection, CardOccurrenceDirection.RECEVOIR);
+    expect(c.selectedCard!.oppositePersonalValue, isNull);
+    await c.confirmSelection();
+    expect(c.usageCheckpoint.usagesByIntent.values.single.invertedAction, isNull);
+  });
+
+
+  for (final id in ['033','061','034','062','063']) {
+    for (final direction in [CardOccurrenceDirection.FAIRE, CardOccurrenceDirection.RECEVOIR]) {
+      test('V1 frozen $id $direction records correct effect bearer and context', () async {
+        final backend = _Backend()..v4UnlockedSpice = 4;
+        final binding = (catalog.conceptRules!['bindings'] as List).cast<Map<String,Object?>>().singleWhere((b) => b['concept_id'] == id);
+        final ratings = (binding['actions'] as List).cast<Map<String,Object?>>().map((a) => a['rating'] as Map<String,Object?>);
+        final tags = <String>{for (final r in ratings) ...(r['primary_preference_tags'] as List).cast<String>(),
+          for (final r in ratings) ...(r['secondary_preference_tags'] as List).cast<String>()};
+        final preferences = <String,ProfilePreference>{};
+        for(final tag in tags) {
+          final key = ProfilePreferenceKey(tagId: tag, role: ProfilePreferenceRole.parse(direction.name));
+          preferences[key.storageKey] = ProfilePreference(profileId:'alice', key:key, pa:10, excluded:false,
+            source:ProfilePreferenceSource.initialQuestionnaire);
+        }
+        final c = NetworkGameController(session:session, playerId:'alice', repository:backend.repository('alice'),
+          privateStore:MemoryNetworkDuelSecretStore(), learningStore:MemoryNetworkProfileLearningStore(),
+          catalog:_catalogWithCards(catalog, {'card.v4.$id'}),
+          v4Profile:V4Profile(profileId:'alice',preferences:preferences),
+          initialContext:EngineSessionContext(mode:SessionMode.face_to_face, proximity:ProximityState.TOGETHER,
+            chiliActive:4,chiliUnlocked:4,clothesByPlayer:{'alice':6,'bob':6},flags:{'hasConstraintAccessory':true}));
+        addTearDown(c.dispose);await c.start();
+        expect(c.hand, isNotEmpty);c.selectCard(id);await c.confirmSelection();
+        final usage = c.usageCheckpoint.usagesByIntent.values.single;
+        final action = usage.action;
+        final effect = V4PersistentEffect.fromJson(action.effects.first.parameters);
+        final actor = direction==CardOccurrenceDirection.FAIRE ? 'alice':'bob';
+        expect(action.actorPlayerIds,[actor]);
+        expect(effect.targetPlayerId, {'033','061'}.contains(id) ? actor : (actor=='alice'?'bob':'alice'));
+        expect(effect.actorPlayerIds,[actor]);expect(effect.remainingActions,3);
+        expect(effect.stageId, action.stageId);
+        final restored = ConceptUsageCheckpoint.fromJson(jsonDecode(jsonEncode(c.usageCheckpoint.toJson())) as Map<String,Object?>);
+        expect(restored.usagesByIntent.values.single.toJson(),usage.toJson());
+      });
+    }
+  }
+  test('V1 Sexting completion is canonical across retry and empty cache reconnect', () async {
+    final backend = _Backend();
+    _setProjectedAction(backend,cards:[
+      resolvedActionFixture(usageId:'sexting',conceptId:'042',actionId:'042.action',effectiveSpice:2,direction:NetworkCardDirection.MUTUEL,targetPlayerIds:['alice','bob']),
+      _projectedCard(occurrenceId:'parallel',cardId:'001',variantId:'001.stage.1'),
+    ]);
+    final alice = _controller(backend,session,catalog,'alice',MemoryNetworkDuelSecretStore());
+    final bob = _controller(backend,session,catalog,'bob',MemoryNetworkDuelSecretStore());
+    addTearDown(alice.dispose);addTearDown(bob.dispose);
+    await Future.wait([alice.start(),bob.start()]);await alice.completeAction();await bob.completeAction();await _settle();
+    expect(backend.persistentEffects.map((e)=>e.remainingActions),[3,3]);
+    expect(backend.persistentEffects.every((e)=>e.unit=='turns'),isTrue);
+    backend.notifyTwice();await _settle();
+    final reconnect = _controller(backend,session,catalog,'alice',MemoryNetworkDuelSecretStore());
+    addTearDown(reconnect.dispose);await reconnect.start();await reconnect.retryCurrentAction();
+    expect(reconnect.persistentEffects.map((e)=>e.remainingActions),[3,3]);
+    expect(backend.persistentEffectTransitions,1);
+  });
+
+
+  testWidgets('V1 stage exclusion is editable in the existing private profile and persists', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final store = MemoryV4ProfileStore();
+    await store.save(stageProfile());
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    await tester.pumpWidget(MaterialApp(home:NetworkDuelScreen(session:session,playerId:'alice',
+      repository:backend.repository('alice'),catalog:_catalogWithCards(catalog,{'card.v4.056'}),
+      secretStore:MemoryNetworkDuelSecretStore(),profileStore:store,v4Profile:stageProfile())));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('open-private-profile-settings')));await tester.pumpAndSettle();
+    await tester.tap(find.text('Profil privé'));await tester.pumpAndSettle();
+    await tester.tap(find.text('Personnaliser mon profil'));await tester.pumpAndSettle();
+    await Scrollable.ensureVisible(tester.element(find.byKey(const Key('stage-veto-list'))),alignment:.5);await tester.pumpAndSettle();
+    await tester.tap(find.text('Exclure des stades'));await tester.pumpAndSettle();
+    final conceptTile = find.byKey(const Key('stage-veto-concept-056'));
+    await Scrollable.ensureVisible(tester.element(conceptTile),alignment:.5);await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of:conceptTile,matching:find.text('Paroles dégradantes')));await tester.pumpAndSettle();
+    final checkbox = find.byKey(const Key('stage-veto-056.stage.3-FAIRE'));
+    await Scrollable.ensureVisible(tester.element(checkbox),alignment:.5);await tester.pumpAndSettle();await tester.tap(checkbox);await tester.pumpAndSettle();
+    final saved = (await store.load('alice'))!;
+    expect(saved.excludesStage('056','056.stage.3','FAIRE'),isTrue);
+    expect(saved.excludesStage('056','056.stage.2','FAIRE'),isFalse);
+    expect(saved.excludesStage('056','056.stage.3','RECEVOIR'),isFalse);
+    expect(tester.takeException(),isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+
+  test('V1 changing veto before commit refreshes inverse without spending the excluded stage', () async {
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    final c = NetworkGameController(session:session,playerId:'alice',repository:backend.repository('alice'),
+      privateStore:MemoryNetworkDuelSecretStore(),learningStore:MemoryNetworkProfileLearningStore(),
+      catalog:_catalogWithCards(catalog,{'card.v4.056'}),v4Profile:stageProfile());
+    addTearDown(c.dispose);await c.start();c.selectCard('056');
+    final native = c.selectedCard!.nativeDirection;
+    final other = native==CardOccurrenceDirection.FAIRE ? ProfilePreferenceRole.recevoir : ProfilePreferenceRole.faire;
+    await c.applyStageVetoProfile(stageProfile(excluded:3,role:other));
+    expect(c.selectedCard!.oppositePersonalValue,isNull);
+    expect(c.usageCheckpoint.usagesByIntent,isEmpty);
+    await c.confirmSelection();
+    expect(c.usageCheckpoint.usagesByIntent.values.single.invertedAction,isNull);
+  });
+
   for (final last in ['alice', 'bob']) {
     test(
       'next round clears old reveal when $last misses the boundary',
@@ -5379,7 +5526,7 @@ void main() {
         ('normal', 'card.v4.033', null, null),
         ('compromise accepted', 'card.v4.034', true, null),
         ('compromise refused', 'card.v4.035', false, null),
-        ('corruption accepted', 'card.v4.060', null, true),
+        ('corruption accepted', 'card.v4.035', null, true),
         ('corruption refused', 'card.v4.061', null, false),
       ]) {
         final backend = _Backend();
@@ -7970,16 +8117,22 @@ List<V4PersistentEffect> _advancePersistentEffects(
   List<V4PersistentEffect> active,
   List<NetworkResolvedActionCardDto> cards,
 ) {
-  var result = active;
+  var result = const V4PersistentEffectEngine().beginTurnClose(active);
   for (final card in cards) {
-    final duration = card.parameters['duration_actions'] as int?;
+    final duration = card.cardId == '042' ? 3 : card.parameters['duration_actions'] as int?;
     result = const V4PersistentEffectEngine().closeAction(
       activeBeforeAction: result,
       producedEffects: duration != null
           ? const V4PersistentEffectEngine().createForAction(
               cardId: card.cardId,
-              targetPlayerIds: card.targetPlayerIds,
+              targetPlayerIds: const {'033', '061'}.contains(card.cardId)
+                ? (card.usage.resolvedAction['actor_player_ids'] as List).cast<String>() : card.targetPlayerIds,
               durationActions: duration,
+              unit: card.cardId == '042' ? 'turns' : 'actions',
+              stageId: card.usage.resolvedAction['stage_id'] as String?,
+              actorPlayerIds: (card.usage.resolvedAction['actor_player_ids'] as List).cast<String>(),
+              actionText: card.usage.resolvedAction['action_text'] as String?,
+              instruction: card.parameters['persistent_instruction'] as String?,
             )
           : const [],
     );

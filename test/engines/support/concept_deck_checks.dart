@@ -154,11 +154,11 @@ Map<String, void Function()> conceptDeckChecks() => {
     );
     final candidates = _pool(catalog, stock: stock).candidates.toList();
     _check(
-      stock.capacity.length == 56 && candidates.length == 56,
+      stock.capacity.length == 55 && candidates.length == 55,
       'Logical stock size',
     );
     _check(
-      candidates.map((c) => c.concept.id).toSet().length == 56,
+      candidates.map((c) => c.concept.id).toSet().length == 55,
       'Duplicate concepts',
     );
   },
@@ -537,10 +537,10 @@ Map<String, void Function()> conceptDeckChecks() => {
           'Excluded insertion still raised class',
         );
       },
-  'all real-catalog choices respect ceilings with availability 26,37,54,56':
+  'all real-catalog choices respect ceilings with availability 26,36,53,55':
       () {
         final catalog = _catalog();
-        const expected = [26, 37, 54, 56];
+        const expected = [26, 36, 53, 55];
         for (var global = 1; global <= 4; global++) {
           final pool = _pool(catalog, global: global);
           _check(

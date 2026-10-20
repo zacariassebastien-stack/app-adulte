@@ -184,8 +184,67 @@ void main() {
             .length;
       }
     }
-    expect(catalog.concepts, hasLength(56));
-    expect(actionIds, hasLength(147));
-    expect(representations, 270);
+    expect(catalog.concepts, hasLength(55));
+    expect(actionIds, hasLength(146));
+    expect(representations, 268);
   });
+  test(
+    'V1 copy renders stage directions, semantic exceptions and camera subjects',
+    () {
+      String text(
+        String id,
+        String action,
+        CardOccurrenceDirection direction,
+      ) => renderer
+          .render(concept: concept(id), actionId: action, direction: direction)
+          .actionText;
+      expect(
+        text('055', '055.action', CardOccurrenceDirection.FAIRE),
+        startsWith('Lors de ta prochaine éjaculation, choisis'),
+      );
+      expect(
+        text('055', '055.action', CardOccurrenceDirection.RECEVOIR),
+        contains('tu éjaculeras'),
+      );
+      expect(
+        concept('055').detailsText,
+        'Dans tous les cas, le choix doit convenir aux deux partenaires.',
+      );
+      expect(
+        text('033', '033.action', CardOccurrenceDirection.FAIRE),
+        startsWith('Tu ne peux plus toucher'),
+      );
+      expect(
+        text('061', '061.action', CardOccurrenceDirection.FAIRE),
+        startsWith('Garde un silence complet'),
+      );
+      for (final id in ['044', '046']) {
+        expect(
+          text(id, '$id.stage.1', CardOccurrenceDirection.FAIRE),
+          contains('de toi'),
+        );
+        expect(
+          text(id, '$id.stage.1', CardOccurrenceDirection.RECEVOIR),
+          contains('de sa personne'),
+        );
+      }
+      for (final c in catalog.concepts) {
+        for (final a in [
+          ...c.stages.map((a) => a.id),
+          ...c.variants.map((a) => a.id),
+        ]) {
+          for (final d in CardOccurrenceDirection.values) {
+            final rendered = renderer.render(
+              concept: c,
+              actionId: a,
+              direction: d,
+            );
+            expect(rendered.actionText, isNot(contains('{')));
+            expect(rendered.actionText, isNot(contains('miroir sémantique')));
+          }
+        }
+      }
+      expect(catalog.concepts.map((c) => c.id), isNot(contains('060')));
+    },
+  );
 }

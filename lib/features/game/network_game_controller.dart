@@ -165,7 +165,33 @@ final class NetworkGameController extends ChangeNotifier {
   ConceptActionOption? _selectedOption;
   String get _intentId => '${round?.roundId ?? 'opening'}:v$_choiceVersion';
   final PlayerGameProfile? _privateProfile;
-  final V4Profile? _v4Profile;
+  V4Profile? _v4Profile;
+  V4Profile? get editableProfile => _v4Profile;
+  List<CardConcept> get stagedConcepts => _conceptCatalog.concepts.concepts
+      .where((c) => c.stages.isNotEmpty)
+      .toList();
+  bool stageExcluded(String conceptId, String actionId, String direction) =>
+      _v4Profile?.excludesStage(conceptId, actionId, direction) ?? false;
+
+  Future<void> applyStageVetoProfile(V4Profile profile) async {
+    _v4Profile = profile;
+    if (_activeReveal == null &&
+        selectedCard != null &&
+        _selectedOption != null) {
+      if (stageExcluded(
+        selectedCard!.id,
+        _selectedOption!.choice.actionId,
+        selectedCard!.nativeDirection.name,
+      )) {
+        await cancelPendingSelection();
+      } else {
+        // Refresh the uncommitted inverse too; committed snapshots stay frozen.
+        chooseAction(_selectedOption!);
+      }
+    }
+    notifyListeners();
+  }
+
   AdaptiveProfileState? _learnedState;
   V4Profile? get _ratingProfile {
     final base = _v4Profile;
@@ -196,6 +222,7 @@ final class NetworkGameController extends ChangeNotifier {
       preferences: preferences,
       consents: base.consents,
       accessories: base.accessories,
+      stageVetoes: base.stageVetoes,
     );
   }
 
@@ -510,6 +537,17 @@ final class NetworkGameController extends ChangeNotifier {
     NetworkUsageProjection usage, {
     bool recovery = false,
   }) {
+    if (!_definitions.containsKey(usage.conceptId)) return false;
+    if (_v4Profile?.excludesStage(
+          usage.conceptId,
+          (usage.resolvedAction['stage_id'] ??
+                  usage.resolvedAction['variant_id'])!
+              as String,
+          usage.resolvedAction['direction']! as String,
+        ) ??
+        false) {
+      return false;
+    }
     if (!recovery &&
         (usage.resolvedAction['effective_chili']! as int) >
             _context.chiliActive) {
@@ -920,6 +958,7 @@ final class NetworkGameController extends ChangeNotifier {
             'learning_role',
             'clothing_behavior',
             'duration_actions',
+            'persistent_instruction',
             'technique',
             'practice_concept_id',
             'practice_action_id',
@@ -1045,10 +1084,11 @@ final class NetworkGameController extends ChangeNotifier {
     final editorialRenderer = ConceptEditorialRenderer(
       _conceptCatalog.concepts,
     );
-    final editorial = editorialRenderer.appliesTo(
-      concept: concept,
-      actionId: option.choice.actionId,
-    )
+    final editorial =
+        editorialRenderer.appliesTo(
+          concept: concept,
+          actionId: option.choice.actionId,
+        )
         ? editorialRenderer.render(
             concept: concept,
             actionId: option.choice.actionId,
@@ -1078,7 +1118,8 @@ final class NetworkGameController extends ChangeNotifier {
         if (card.id == '013') 'learning_role': 'soi',
         'committed_at': at.toIso8601String(),
         'display_title': card.title,
-        'display_details': editorial?.detailsText ??
+        'display_details':
+            editorial?.detailsText ??
             card.definition.variants
                 .singleWhere((v) => v.stableId == option.choice.actionId)
                 .detailsText ??
@@ -1086,6 +1127,7 @@ final class NetworkGameController extends ChangeNotifier {
         'display_illustration': card.definition.illustrationKey,
         'clothing_behavior': _definitions[card.id]?.v4?.clothingBehavior.name,
         'duration_actions': _definitions[card.id]?.v4?.durationActions,
+        'persistent_instruction': editorial?.detailsText ?? concept.detailsText,
         'clothes_at_engagement': _context.clothesByPlayer,
       },
       'accessories': <Object?>[],
@@ -1111,17 +1153,26 @@ final class NetworkGameController extends ChangeNotifier {
       ],
       'effects': [
         if (_definitions[card.id]?.v4?.durationActions case final duration?)
-          for (final target in const V4ActionTargetResolver().resolve(
-            ownerPlayerId: playerId,
-            playerIds: playerIds,
-            direction: direction,
-          ))
+          for (final target
+              in const {'033', '061'}.contains(card.id)
+                  ? [actor]
+                  : const V4ActionTargetResolver().resolve(
+                      ownerPlayerId: playerId,
+                      playerIds: playerIds,
+                      direction: direction,
+                    ))
             {
               'effect_id': 'duration:${card.id}:$target',
               'parameters': {
                 'card_id': card.id,
                 'target_player_id': target,
                 'remaining_actions': duration,
+                'stage_id': ?(concept.stages.isNotEmpty
+                    ? option.choice.actionId
+                    : null),
+                'actor_player_ids': mutual ? playerIds : [actor],
+                'action_text': editorial?.actionText ?? concept.actionText,
+                'instruction': ?(editorial?.detailsText ?? concept.detailsText),
               },
             },
         for (var i = 0; i < option.variant.effects.length; i++)
@@ -1130,7 +1181,8 @@ final class NetworkGameController extends ChangeNotifier {
             'parameters': option.variant.effects[i].toJson(),
           },
       ],
-      'action_text': editorial?.actionText ??
+      'action_text':
+          editorial?.actionText ??
           (card.id == '024'
               ? concept.actionText
               : conceptVariant?.freeZone == true
@@ -1172,6 +1224,7 @@ final class NetworkGameController extends ChangeNotifier {
           'learning_role',
           'clothing_behavior',
           'duration_actions',
+          'persistent_instruction',
           'technique',
           'practice_concept_id',
           'practice_action_id',
@@ -1266,7 +1319,7 @@ final class NetworkGameController extends ChangeNotifier {
       intentId: intent,
       engagedAt: at,
       action: action,
-      invertedAction: inverse,
+      invertedAction: _eligibleStageInverse(inverse),
       sourceUsageId: source?.usageId,
     );
     _usageCheckpoint = _usageCheckpoint
@@ -1299,7 +1352,9 @@ final class NetworkGameController extends ChangeNotifier {
       intentId: intent,
       engagedAt: clock().toUtc(),
       action: original.reconstruct(inverted: inverted),
-      invertedAction: inverted ? original.action : original.invertedAction,
+      invertedAction: _eligibleStageInverse(
+        inverted ? original.action : original.invertedAction,
+      ),
       sourceUsageId: source.usageId,
     );
     _reservedChoices = {..._reservedChoices, intent: draft};
@@ -1309,6 +1364,17 @@ final class NetworkGameController extends ChangeNotifier {
   void _releaseSecondary(String intent) {
     _usageCheckpoint = _usageCheckpoint.releaseReservation(intent);
     _reservedChoices = {..._reservedChoices}..remove(intent);
+  }
+
+  ResolvedConceptAction? _eligibleStageInverse(ResolvedConceptAction? action) {
+    if (action == null) return null;
+    return stageExcluded(
+          action.conceptId,
+          action.stageId ?? action.variantId!,
+          action.direction.name,
+        )
+        ? null
+        : action;
   }
 
   void _acceptSecondary(NetworkUsageProjection projection) {
@@ -2824,7 +2890,7 @@ final class NetworkGameController extends ChangeNotifier {
   PlayerGameProfile _profile(String id) {
     if (id == playerId && _v4Profile != null) {
       return playerGameProfileFromLearningState(
-        adaptiveProfileFromV4Profile(_v4Profile),
+        adaptiveProfileFromV4Profile(_v4Profile!),
       );
     }
     if (id == playerId && _privateProfile != null) return _privateProfile;
@@ -3621,6 +3687,14 @@ final class NetworkGameController extends ChangeNotifier {
     ConceptActionOption option,
     CardOccurrenceDirection direction,
   ) {
+    if (_v4Profile?.excludesStage(
+          conceptId,
+          option.choice.actionId,
+          direction.name,
+        ) ??
+        false) {
+      return null;
+    }
     final rating = _conceptCatalog.ratingFor(
       option.parameters['practice_concept_id'] as String? ?? conceptId,
       option.parameters['practice_action_id'] as String? ??

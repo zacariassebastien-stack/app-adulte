@@ -89,6 +89,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   late final bool _ownsPreferences;
   bool _historyRecorded = false;
   bool _leavingForNewGame = false;
+  bool _savingStageVeto = false;
   int? _pendingClothingCount;
 
   @override
@@ -433,7 +434,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     final editorialRenderer = ConceptEditorialRenderer(
       widget.catalog.concepts!,
     );
-    final editorial = concept == null ||
+    final editorial =
+        concept == null ||
             option == null ||
             !editorialRenderer.appliesTo(
               concept: concept,
@@ -745,7 +747,11 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           Text('Effets actifs', style: Theme.of(context).textTheme.titleMedium),
           for (final effect in controller.persistentEffects)
             Text(
-              '${_title(effect.cardId)} · ${effect.remainingActions} action(s) restante(s)',
+              '${_title(effect.cardId)}${effect.stageId == null ? '' : ' · ${effect.stageId}'} · ${effect.remainingActions} ${effect.unit == 'turns' ? 'tour(s)' : 'action(s)'} restant(s)\n'
+              'Concerne : ${effect.targetPlayerId == widget.playerId ? 'toi' : 'ton partenaire'}'
+              '${effect.actorPlayerIds.isEmpty ? '' : '\nExécutant : ${effect.actorPlayerIds.map((id) => id == widget.playerId ? 'toi' : 'ton partenaire').join(', ')}'}'
+              '${effect.actionText == null ? '' : '\n${effect.actionText}'}'
+              '${effect.instruction == null ? '' : '\n${effect.instruction}'}',
             ),
         ],
         if (controller.ownClothingResyncRequired &&
@@ -1378,6 +1384,90 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                 onTap: _openAccessoryProfile,
               ),
               const Text('Préférences rencontrées'),
+              if (controller.editableProfile != null)
+                ExpansionTile(
+                  key: const Key('stage-veto-list'),
+                  title: const Text('Exclure des stades'),
+                  subtitle: const Text(
+                    'Chaque exclusion est indépendante des autres stades.',
+                  ),
+                  children: [
+                    for (final concept in controller.stagedConcepts)
+                      ExpansionTile(
+                        key: Key('stage-veto-concept-${concept.id}'),
+                        title: Text(concept.title),
+                        children: [
+                          for (final stage in concept.stages)
+                            for (final direction in _stageDirections(
+                              concept.id,
+                              stage.id,
+                            ))
+                              CheckboxListTile(
+                                key: Key('stage-veto-${stage.id}-$direction'),
+                                title: Text('${stage.title} · $direction'),
+                                subtitle: Text(
+                                  ConceptEditorialRenderer(
+                                        widget.catalog.concepts!,
+                                      )
+                                      .render(
+                                        concept: concept,
+                                        actionId: stage.id,
+                                        direction: CardOccurrenceDirection
+                                            .values
+                                            .byName(direction),
+                                      )
+                                      .actionText,
+                                ),
+                                value: controller.stageExcluded(
+                                  concept.id,
+                                  stage.id,
+                                  direction,
+                                ),
+                                onChanged: _savingStageVeto
+                                    ? null
+                                    : (excluded) async {
+                                        if (_savingStageVeto) return;
+                                        setPanelState(
+                                          () => _savingStageVeto = true,
+                                        );
+                                        try {
+                                          final base =
+                                              controller.editableProfile!;
+                                          final veto = StageVeto(
+                                            conceptId: concept.id,
+                                            actionId: stage.id,
+                                            role: ProfilePreferenceRole.parse(
+                                              direction,
+                                            ),
+                                          );
+                                          final updated = base.copyWith(
+                                            stageVetoes: [
+                                              ...base.stageVetoes.where(
+                                                (v) =>
+                                                    v.storageKey !=
+                                                    veto.storageKey,
+                                              ),
+                                              if (excluded == true) veto,
+                                            ],
+                                          );
+                                          await widget.profileStore.save(
+                                            updated,
+                                          );
+                                          if (!mounted) return;
+                                          await controller
+                                              .applyStageVetoProfile(updated);
+                                        } finally {
+                                          _savingStageVeto = false;
+                                          if (context.mounted) {
+                                            setPanelState(() {});
+                                          }
+                                        }
+                                      },
+                              ),
+                        ],
+                      ),
+                  ],
+                ),
               if (entries.isEmpty)
                 const Text(
                   'Les préférences apparaîtront ici après les premières observations.',
@@ -1408,6 +1498,19 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       },
     ),
   );
+
+  Iterable<String> _stageDirections(String conceptId, String actionId) {
+    final bindings = widget.catalog.conceptRules!['bindings']! as List;
+    final binding = bindings.cast<Map<String, Object?>>().singleWhere(
+      (b) => b['concept_id'] == conceptId,
+    );
+    final action = (binding['actions'] as List)
+        .cast<Map<String, Object?>>()
+        .singleWhere((a) => a['action_id'] == actionId);
+    return (((action['editorial'] as Map)['tags'] as List).cast<String>())
+        .where((t) => t.startsWith('v3.direction.'))
+        .map((t) => t.split('.').last.toUpperCase());
+  }
 
   Future<void> _openProfileCustomization() async {
     await controller.choosePostGameProfile(PostGameProfileChoice.customize);

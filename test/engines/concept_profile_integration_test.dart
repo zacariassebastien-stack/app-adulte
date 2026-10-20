@@ -289,4 +289,76 @@ void main() {
     );
     expect(usageLearningOutcome(old).soloRole, LearningRole.solo);
   });
+  for (final excludedStage in [1, 2, 3]) {
+    test(
+      'stage veto $excludedStage is independent, persisted and direction-specific',
+      () {
+        final base = profile();
+        final actionId = '056.stage.$excludedStage';
+        final veto = StageVeto(
+          conceptId: '056',
+          actionId: actionId,
+          role: ProfilePreferenceRole.faire,
+        );
+        final restored = V4Profile.fromJson(
+          jsonDecode(jsonEncode(base.copyWith(stageVetoes: [veto]).toJson()))
+              as JsonMap,
+        );
+        expect(restored.excludesStage('056', actionId, 'FAIRE'), isTrue);
+        expect(restored.excludesStage('056', actionId, 'RECEVOIR'), isFalse);
+        for (final n in [1, 2, 3].where((n) => n != excludedStage)) {
+          expect(
+            restored.excludesStage('056', '056.stage.$n', 'FAIRE'),
+            isFalse,
+          );
+        }
+        Map<String, List<ConceptActionOption>> choices(V4Profile p) =>
+            const ConceptActionOptions().evaluate(
+              catalog: catalog,
+              profile: p,
+              context: EngineSessionContext(
+                mode: SessionMode.face_to_face,
+                proximity: ProximityState.TOGETHER,
+                chiliActive: 4,
+                chiliUnlocked: 4,
+                clothesByPlayer: {'p': 6, 'other': 6},
+              ),
+              actor: PlayerGameProfile(playerId: 'p', preferences: const {}),
+              partner: PlayerGameProfile(
+                playerId: 'other',
+                preferences: const {},
+              ),
+              hierarchy: ProfileHierarchy(const {}),
+            );
+        // One allowed direction keeps this action available; both vetoes remove only this action.
+        expect(
+          choices(restored)['056']!.map((o) => o.choice.actionId),
+          contains(actionId),
+        );
+        final both = restored.copyWith(
+          stageVetoes: [
+            veto,
+            StageVeto(
+              conceptId: '056',
+              actionId: actionId,
+              role: ProfilePreferenceRole.recevoir,
+            ),
+          ],
+        );
+        expect(choices(both)['056']!.map((o) => o.choice.actionId).toSet(), {
+          for (final n in [1, 2, 3])
+            if (n != excludedStage) '056.stage.$n',
+        });
+        final oldJson = base.toJson()..remove('stage_vetoes');
+        expect(V4Profile.fromJson(oldJson).stageVetoes, isEmpty);
+        final global = withExcluded(
+          both,
+          'degradant',
+          ProfilePreferenceRole.faire,
+        );
+        expect(choices(global).containsKey('056'), isFalse);
+        expect(catalog.definitions.containsKey('060'), isFalse);
+      },
+    );
+  }
 }

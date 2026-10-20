@@ -36,7 +36,7 @@ JsonMap _concept(JsonMap root, String id) => (root['concepts']! as List)
 /// The same pure checks are registered with package:test and the audit CLI.
 /// The CLI needs neither Flutter nor database/network packages.
 Map<String, void Function()> conceptCatalogChecks() => {
-  '56 active identities exclude the six deleted and three reserved concepts':
+  '55 active identities exclude retired and reserved concepts':
       () {
         final ids = _load().concepts.map((concept) => concept.id).toSet();
         final excluded = {
@@ -48,6 +48,7 @@ Map<String, void Function()> conceptCatalogChecks() => {
           '040',
           '041',
           '059',
+          '060',
           '064',
         };
         final expected = {
@@ -56,7 +57,7 @@ Map<String, void Function()> conceptCatalogChecks() => {
               number.toString().padLeft(3, '0'),
         };
         _check(
-          ids.length == 56 && ids.containsAll(expected),
+          ids.length == 55 && ids.containsAll(expected),
           'Wrong active identities',
         );
       },
@@ -154,7 +155,6 @@ Map<String, void Function()> conceptCatalogChecks() => {
       '054': 2,
       '055': 3,
       '058': 1,
-      '060': 2,
       '061': 2,
       '065': 3,
     };
@@ -257,7 +257,7 @@ Map<String, void Function()> conceptCatalogChecks() => {
           );
         }
       },
-  'entry levels give 26/11/17/2 concepts and 26/37/54/56 cumulatively': () {
+  'entry levels give 26/10/17/2 concepts and 26/36/53/55 cumulatively': () {
     final counts = <int, int>{1: 0, 2: 0, 3: 0, 4: 0};
     for (final concept in _load().concepts) {
       final levels = concept.kind == ConceptKind.zones
@@ -269,10 +269,10 @@ Map<String, void Function()> conceptCatalogChecks() => {
       final minimum = levels.reduce((a, b) => a < b ? a : b);
       counts[minimum] = counts[minimum]! + 1;
     }
-    _check(counts.values.join('/') == '26/11/17/2', 'Entry distribution');
+    _check(counts.values.join('/') == '26/10/17/2', 'Entry distribution');
     var cumulative = 0;
     final totals = [for (final count in counts.values) cumulative += count];
-    _check(totals.join('/') == '26/37/54/56', 'Cumulative availability');
+    _check(totals.join('/') == '26/36/53/55', 'Cumulative availability');
   },
   '006 and 007 stay distinct non-evolving concepts with capacity references':
       () {
@@ -344,8 +344,8 @@ Map<String, void Function()> conceptCatalogChecks() => {
       'Exposure scope',
     );
     _check(
-      concepts['062']!.detailsText!.contains('pas d’une strangulation') &&
-          concepts['063']!.detailsText!.contains('pas d’un arrachement'),
+      concepts['062']!.detailsText!.contains('ne doit pas gêner la respiration') &&
+          concepts['063']!.detailsText!.contains('Maintiens cette prise'),
       'Controlled actions',
     );
     _check(
@@ -357,7 +357,7 @@ Map<String, void Function()> conceptCatalogChecks() => {
               .where((c) => c.persistentEffect)
               .map((c) => c.id)
               .join('/') ==
-          '033/035/060/061',
+          '033/034/035/061/062/063',
       'Persistent definitions',
     );
   },

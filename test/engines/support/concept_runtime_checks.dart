@@ -272,8 +272,8 @@ Map<String, void Function()> conceptRuntimeChecks() {
         'Contract marker lost',
       );
     },
-    'all 56 concepts retain new IDs and every validated stage spice': () {
-      _check(catalog.definitions.length == 56, 'Wrong count');
+    'all 55 concepts retain new IDs and every validated stage spice': () {
+      _check(catalog.definitions.length == 55, 'Wrong count');
       for (final concept in concepts.concepts) {
         final engine = const CatalogEngineAdapter.v3().card(
           catalog.definitions[concept.id]!,

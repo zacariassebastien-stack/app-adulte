@@ -70,16 +70,17 @@ final class ConceptActionOptions {
         }
         final rating = catalog.ratingFor(conceptId, variant.id);
         bool rated(String direction) =>
+            !profile.excludesStage(conceptId, variant.id, direction) &&
             const V4CardRatingEngine()
-                .initializeForDirection(
-                  profile: profile,
-                  variant: rating,
-                  conceptId: conceptId,
-                  direction: direction,
-                  vetoTags: tags,
-                )
-                .kind ==
-            V4RatingResultKind.rated;
+                    .initializeForDirection(
+                      profile: profile,
+                      variant: rating,
+                      conceptId: conceptId,
+                      direction: direction,
+                      vetoTags: tags,
+                    )
+                    .kind ==
+                V4RatingResultKind.rated;
         final directions = variant.tags;
         if (directions.contains('v3.direction.faire') &&
             directions.contains('v3.direction.recevoir')) {

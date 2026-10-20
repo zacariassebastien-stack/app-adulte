@@ -213,19 +213,23 @@
         {
           "id": "003.stage.1",
           "title": "Stade 1",
-          "chili": 1
+          "chili": 1,
+          "action_text": "Échangez un simple baiser."
         },
         {
           "id": "003.stage.2",
           "title": "Stade 2",
-          "chili": 2
+          "chili": 2,
+          "action_text": "Échangez un baiser langoureux, en prenant votre temps."
         },
         {
           "id": "003.stage.3",
           "title": "Stade 3",
-          "chili": 2
+          "chili": 2,
+          "action_text": "Embrassez-vous avec fougue et passion."
         }
-      ]
+      ],
+      "details_text": "Laissez le baiser durer aussi longtemps que vous en avez envie."
     },
     {
       "id": "004",
@@ -417,7 +421,12 @@
           "chili": 1
         }
       ],
-      "capacity_rule": "initial_clothing_single"
+      "capacity_rule": "initial_clothing_single",
+      "action_templates": {
+        "FAIRE": "Retire un vêtement à {ton_partenaire} ou demande-lui de l’enlever.",
+        "RECEVOIR": "Retire un de tes vêtements ou demande à {ton_partenaire} de te le retirer."
+      },
+      "details_text": "La personne qui se déshabille choisit le vêtement à retirer."
     },
     {
       "id": "007",
@@ -431,7 +440,12 @@
           "chili": 1
         }
       ],
-      "capacity_rule": "initial_clothing_double"
+      "capacity_rule": "initial_clothing_double",
+      "action_templates": {
+        "FAIRE": "Retire deux vêtements à {ton_partenaire} ou demande-lui de les enlever.",
+        "RECEVOIR": "Retire deux de tes vêtements ou demande à {ton_partenaire} de te les retirer."
+      },
+      "details_text": "La personne qui se déshabille choisit les vêtements à retirer."
     },
     {
       "id": "008",
@@ -444,7 +458,12 @@
           "title": "Être en sous-vêtements",
           "chili": 2
         }
-      ]
+      ],
+      "action_templates": {
+        "FAIRE": "Mets-toi en sous-vêtements pour {ton_partenaire}.",
+        "RECEVOIR": "Demande à {ton_partenaire} de se mettre en sous-vêtements pour toi."
+      },
+      "details_text": "Si nécessaire, cette action peut amener à remettre des vêtements afin de se retrouver en sous-vêtements."
     },
     {
       "id": "009",
@@ -457,29 +476,46 @@
           "title": "Nu",
           "chili": 2
         }
-      ]
+      ],
+      "action_templates": {
+        "FAIRE": "Mets-toi nu(e) pour {ton_partenaire}.",
+        "RECEVOIR": "Demande à {ton_partenaire} de se mettre nu(e) pour toi."
+      },
+      "details_text": "Retire les vêtements nécessaires pour être entièrement nu(e). Si la personne est déjà nue, l’action est satisfaite."
     },
     {
       "id": "010",
       "title": "Strip-tease",
       "kind": "evolution",
       "action_text": "Réalisez un strip-tease à l’intensité choisie.",
-      "details_text": "Vous pouvez vous rhabiller complètement avant de le réaliser, même si vous êtes déjà nu.",
+      "details_text": "Avant de commencer, tu peux te rhabiller complètement si tu le souhaites.",
       "stages": [
         {
           "id": "010.stage.1",
           "title": "Stade 1",
-          "chili": 1
+          "chili": 1,
+          "action_templates": {
+            "FAIRE": "Fais un strip-tease à {ton_partenaire} jusqu’à te retrouver en sous-vêtements.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire un strip-tease pour toi jusqu’à se retrouver en sous-vêtements."
+          }
         },
         {
           "id": "010.stage.2",
           "title": "Stade 2",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Fais un strip-tease en dansant pour {ton_partenaire}. Libre à toi de t’arrêter en sous-vêtements ou d’aller plus loin.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire un strip-tease en dansant pour toi. Libre à cette personne de s’arrêter en sous-vêtements ou d’aller plus loin."
+          }
         },
         {
           "id": "010.stage.3",
           "title": "Stade 3",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Fais un strip-tease en dansant au contact de {ton_partenaire}, jusqu’à te retrouver nu(e).",
+            "RECEVOIR": "Laisse {ton_partenaire} faire un strip-tease en dansant à ton contact, jusqu’à se retrouver nu(e)."
+          }
         }
       ]
     },
@@ -494,7 +530,12 @@
           "title": "Choix de tenue",
           "chili": 1
         }
-      ]
+      ],
+      "action_templates": {
+        "FAIRE": "Choisis la tenue que tu souhaites voir porter à {ton_partenaire}.",
+        "RECEVOIR": "Porte la tenue choisie par {ton_partenaire}."
+      },
+      "details_text": "La tenue est librement choisie parmi les vêtements disponibles."
     },
     {
       "id": "013",
@@ -536,19 +577,32 @@
         {
           "id": "018.stage.1",
           "title": "Stade 1",
-          "chili": 1
+          "chili": 1,
+          "action_templates": {
+            "FAIRE": "Simule un acte doux et suggestif.",
+            "RECEVOIR": "Laisse {ton_partenaire} simuler un acte doux et suggestif."
+          }
         },
         {
           "id": "018.stage.2",
           "title": "Stade 2",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Simule un acte sensuel de manière plus intense.",
+            "RECEVOIR": "Laisse {ton_partenaire} simuler un acte sensuel de manière plus intense."
+          }
         },
         {
           "id": "018.stage.3",
           "title": "Stade 3",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Simule un acte sexuel, seul(e) ou en faisant participer {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} simuler un acte sexuel, seul(e) ou en te faisant participer."
+          }
         }
-      ]
+      ],
+      "details_text": "Mettez-vous d’accord sur l’acte à simuler avant de commencer. Il s’agit uniquement de le simuler, sans obligation de le réaliser réellement."
     },
     {
       "id": "019",
@@ -559,17 +613,29 @@
         {
           "id": "019.stage.1",
           "title": "Stade 1",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Masturbe {ton_partenaire} lentement, en prenant le temps de faire monter son excitation.",
+            "RECEVOIR": "Laisse {ton_partenaire} te masturber lentement, en prenant le temps de faire monter ton excitation."
+          }
         },
         {
           "id": "019.stage.2",
           "title": "Stade 2",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Masturbe {ton_partenaire} en variant les gestes et en utilisant tes deux mains.",
+            "RECEVOIR": "Laisse {ton_partenaire} te masturber en variant les gestes et en utilisant ses deux mains."
+          }
         },
         {
           "id": "019.stage.3",
           "title": "Stade 3",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Masturbe {ton_partenaire} avec envie et énergie, en te laissant guider par ses réactions.",
+            "RECEVOIR": "Laisse {ton_partenaire} te masturber avec envie et énergie, en te laissant pleinement aller."
+          }
         }
       ]
     },
@@ -597,7 +663,10 @@
           "title": "Masturbation solo",
           "chili": 3
         }
-      ]
+      ],
+      "action_templates": {
+        "MUTUEL": "Masturbez-vous chacun de votre côté, en même temps."
+      }
     },
     {
       "id": "022",
@@ -608,17 +677,29 @@
         {
           "id": "022.stage.1",
           "title": "Stade 1",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Doigte doucement {ton_partenaire}, en te limitant à un doigt.",
+            "RECEVOIR": "Laisse {ton_partenaire} te doigter doucement, en se limitant à un doigt."
+          }
         },
         {
           "id": "022.stage.2",
           "title": "Stade 2",
-          "chili": 4
+          "chili": 4,
+          "action_templates": {
+            "FAIRE": "Doigte {ton_partenaire} avec deux doigts, en variant le rythme et les mouvements.",
+            "RECEVOIR": "Laisse {ton_partenaire} te doigter avec deux doigts, en variant le rythme et les mouvements."
+          }
         },
         {
           "id": "022.stage.3",
           "title": "Stade 3",
-          "chili": 4
+          "chili": 4,
+          "action_templates": {
+            "FAIRE": "Doigte {ton_partenaire} avec autant de doigts qu’la personne le souhaite, en te laissant guider par ses réactions.",
+            "RECEVOIR": "Laisse {ton_partenaire} te doigter avec autant de doigts que tu le souhaites, en te laissant guider par tes sensations."
+          }
         }
       ]
     },
@@ -631,17 +712,29 @@
         {
           "id": "023.stage.1",
           "title": "Stade 1",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Doigte doucement l’anus de {ton_partenaire}, en te limitant à un doigt.",
+            "RECEVOIR": "Laisse {ton_partenaire} te doigter doucement l’anus, en se limitant à un doigt."
+          }
         },
         {
           "id": "023.stage.2",
           "title": "Stade 2",
-          "chili": 4
+          "chili": 4,
+          "action_templates": {
+            "FAIRE": "Doigte l’anus de {ton_partenaire} avec deux doigts, en variant le rythme et les mouvements.",
+            "RECEVOIR": "Laisse {ton_partenaire} te doigter l’anus avec deux doigts, en variant le rythme et les mouvements."
+          }
         },
         {
           "id": "023.stage.3",
           "title": "Stade 3",
-          "chili": 4
+          "chili": 4,
+          "action_templates": {
+            "FAIRE": "Doigte l’anus de {ton_partenaire} avec autant de doigts que la personne le souhaite, en te laissant guider par ses réactions.",
+            "RECEVOIR": "Laisse {ton_partenaire} te doigter l’anus avec autant de doigts que tu le souhaites, en te laissant guider par tes sensations."
+          }
         }
       ]
     },
@@ -669,17 +762,29 @@
         {
           "id": "025.stage.1",
           "title": "Stade 1",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Explore doucement le sexe de {ton_partenaire} avec ta bouche, par petites caresses et tâtonnements.",
+            "RECEVOIR": "Laisse {ton_partenaire} explorer doucement ton sexe avec sa bouche, par petites caresses et tâtonnements."
+          }
         },
         {
           "id": "025.stage.2",
           "title": "Stade 2",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Joue avec le sexe de {ton_partenaire} avec ta bouche, en le léchant ou en le suçant.",
+            "RECEVOIR": "Laisse {ton_partenaire} jouer avec ton sexe avec sa bouche, en le léchant ou en le suçant."
+          }
         },
         {
           "id": "025.stage.3",
           "title": "Stade 3",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Donne du plaisir oral à {ton_partenaire}, sans limite imposée sur la manière d’utiliser ta bouche.",
+            "RECEVOIR": "Laisse {ton_partenaire} te donner du plaisir oral, sans limite imposée sur la manière d’utiliser sa bouche."
+          }
         }
       ]
     },
@@ -705,17 +810,29 @@
         {
           "id": "027.stage.1",
           "title": "Stade 1",
-          "chili": 4
+          "chili": 4,
+          "action_templates": {
+            "FAIRE": "Pénètre doucement {ton_partenaire}, avec des mouvements lents et complices.",
+            "RECEVOIR": "Laisse {ton_partenaire} te pénétrer doucement, avec des mouvements lents et complices."
+          }
         },
         {
           "id": "027.stage.2",
           "title": "Stade 2",
-          "chili": 4
+          "chili": 4,
+          "action_templates": {
+            "FAIRE": "Pénètre {ton_partenaire} de manière active et intense.",
+            "RECEVOIR": "Laisse {ton_partenaire} te pénétrer de manière active et intense."
+          }
         },
         {
           "id": "027.stage.3",
           "title": "Stade 3",
-          "chili": 4
+          "chili": 4,
+          "action_templates": {
+            "FAIRE": "Pénètre {ton_partenaire} avec intensité, en variant le rythme et les mouvements.",
+            "RECEVOIR": "Laisse {ton_partenaire} te pénétrer avec intensité, en variant le rythme et les mouvements."
+          }
         }
       ]
     },
@@ -730,7 +847,11 @@
           "title": "Sexe oral anal",
           "chili": 4
         }
-      ]
+      ],
+      "action_templates": {
+        "FAIRE": "Donne du plaisir anal à {ton_partenaire} avec ta bouche et ta langue.",
+        "RECEVOIR": "Laisse {ton_partenaire} te donner du plaisir anal avec sa bouche et sa langue."
+      }
     },
     {
       "id": "029",
@@ -759,17 +880,29 @@
         {
           "id": "030.stage.1",
           "title": "Stade 1",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Assieds-toi doucement sur le visage de {ton_partenaire}, sans le/la brusquer.",
+            "RECEVOIR": "Laisse {ton_partenaire} s’asseoir doucement sur ton visage, sans te brusquer."
+          }
         },
         {
           "id": "030.stage.2",
           "title": "Stade 2",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Assieds-toi franchement sur le visage de {ton_partenaire} et effectue des mouvements d’aller-retour.",
+            "RECEVOIR": "Laisse {ton_partenaire} s’asseoir franchement sur ton visage et effectuer des mouvements d’aller-retour."
+          }
         },
         {
           "id": "030.stage.3",
           "title": "Stade 3",
-          "chili": 4
+          "chili": 4,
+          "action_templates": {
+            "FAIRE": "Assieds-toi franchement sur le visage de {ton_partenaire} et secoue tes fesses autant que tu le souhaites.",
+            "RECEVOIR": "Laisse {ton_partenaire} s’asseoir franchement sur ton visage et secouer ses fesses autant que souhaité."
+          }
         }
       ]
     },
@@ -809,7 +942,7 @@
       "title": "Interdiction de toucher",
       "kind": "action",
       "action_text": "Engagez l’interdiction de toucher.",
-      "details_text": "Effet persistant, sans évolution.",
+      "details_text": "À vous de faire preuve d’imagination pour accomplir les prochaines actions sans utiliser les mains pour toucher l’autre.",
       "variants": [
         {
           "id": "033.action",
@@ -817,7 +950,11 @@
           "chili": 1
         }
       ],
-      "persistent_effect": true
+      "persistent_effect": true,
+      "action_templates": {
+        "FAIRE": "Tu ne peux plus toucher {ton_partenaire} avec tes mains pendant les 3 prochaines actions.",
+        "RECEVOIR": "Pendant les 3 prochaines actions, {ton_partenaire} ne peut plus te toucher avec ses mains."
+      }
     },
     {
       "id": "034",
@@ -828,26 +965,39 @@
         {
           "id": "034.stage.1",
           "title": "Stade 1",
-          "chili": 1
+          "chili": 1,
+          "action_templates": {
+            "FAIRE": "Entrave les poignets ou les chevilles de {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} entraver tes poignets ou tes chevilles."
+          }
         },
         {
           "id": "034.stage.2",
           "title": "Stade 2",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Entrave plus largement le corps de {ton_partenaire} afin de limiter ses mouvements.",
+            "RECEVOIR": "Laisse {ton_partenaire} entraver plus largement ton corps afin de limiter tes mouvements."
+          }
         },
         {
           "id": "034.stage.3",
           "title": "Stade 3",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Entrave {ton_partenaire} de manière à lui imposer une position explicite.",
+            "RECEVOIR": "Laisse {ton_partenaire} t’entraver de manière à t’imposer une position explicite."
+          }
         }
-      ]
+      ],
+      "persistent_effect": true
     },
     {
       "id": "035",
       "title": "Privation visuelle",
       "kind": "action",
       "action_text": "Engagez la privation visuelle.",
-      "details_text": "Un seul effet de privation visuelle, sans évolution. Durée : 3 actions/tours selon le système persistant existant.",
+      "details_text": "La privation reste active pendant les 3 actions suivantes. L’action d’activation ne compte pas.",
       "variants": [
         {
           "id": "035.action",
@@ -855,7 +1005,11 @@
           "chili": 2
         }
       ],
-      "persistent_effect": true
+      "persistent_effect": true,
+      "action_templates": {
+        "FAIRE": "Prive {ton_partenaire} de la vue pour les 3 prochaines actions.",
+        "RECEVOIR": "Laisse {ton_partenaire} te priver de la vue pour les 3 prochaines actions."
+      }
     },
     {
       "id": "037",
@@ -866,17 +1020,29 @@
         {
           "id": "037.stage.1",
           "title": "Stade 1",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Donne de petites fessées à {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} te donner de petites fessées."
+          }
         },
         {
           "id": "037.stage.2",
           "title": "Stade 2",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Donne des fessées à {ton_partenaire} en variant les mouvements et l’intensité.",
+            "RECEVOIR": "Laisse {ton_partenaire} te donner des fessées en variant les mouvements et l’intensité."
+          }
         },
         {
           "id": "037.stage.3",
           "title": "Stade 3",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Donne des fessées intenses à {ton_partenaire}, en variant librement les mouvements et l’intensité dans ses limites.",
+            "RECEVOIR": "Laisse {ton_partenaire} te donner des fessées intenses, en variant librement les mouvements et l’intensité dans tes limites."
+          }
         }
       ]
     },
@@ -919,7 +1085,7 @@
       "title": "Sexting",
       "kind": "action",
       "action_text": "Échangez des messages pendant 3 tours.",
-      "details_text": "Communication suivie ; à distinguer du message ponctuel 043.",
+      "details_text": "Après cette action, continuez à communiquer par messages coquins pendant les 3 tours de jeu suivants, tout en jouant normalement. Le tour d’activation ne compte pas.",
       "variants": [
         {
           "id": "042.action",
@@ -937,17 +1103,29 @@
         {
           "id": "043.stage.1",
           "title": "Stade 1",
-          "chili": 1
+          "chili": 1,
+          "action_templates": {
+            "FAIRE": "Envoie à {ton_partenaire} un petit message coquin pour faire monter la température.",
+            "RECEVOIR": "Laisse {ton_partenaire} t’envoyer un petit message coquin pour faire monter la température."
+          }
         },
         {
           "id": "043.stage.2",
           "title": "Stade 2",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Envoie à {ton_partenaire} un message clairement suggestif et provocant.",
+            "RECEVOIR": "Laisse {ton_partenaire} t’envoyer un message clairement suggestif et provocant."
+          }
         },
         {
           "id": "043.stage.3",
           "title": "Stade 3",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Envoie à {ton_partenaire} un message exprimant clairement ce que tu as envie de lui faire.",
+            "RECEVOIR": "Laisse {ton_partenaire} t’envoyer un message exprimant clairement ce que cette personne a envie de te faire."
+          }
         }
       ]
     },
@@ -960,19 +1138,32 @@
         {
           "id": "044.stage.1",
           "title": "Stade 1",
-          "chili": 1
+          "chili": 1,
+          "action_templates": {
+            "FAIRE": "Fais une photo de toi, soft et séduisante, pour {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire une photo de sa personne, soft et séduisante, pour toi."
+          }
         },
         {
           "id": "044.stage.2",
           "title": "Stade 2",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Fais une photo de toi volontairement provocante ou explicite pour {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire une photo de sa personne volontairement provocante ou explicite pour toi."
+          }
         },
         {
           "id": "044.stage.3",
           "title": "Stade 3",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Fais une photo sexuelle de toi pour {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire une photo sexuelle de sa personne pour toi."
+          }
         }
-      ]
+      ],
+      "details_text": "La photo peut être prise par la personne photographiée ou par son/sa partenaire."
     },
     {
       "id": "045",
@@ -984,17 +1175,20 @@
         {
           "id": "045.stage.1",
           "title": "Stade 1",
-          "chili": 1
+          "chili": 1,
+          "action_text": "Prenez ensemble une photo soft et séduisante."
         },
         {
           "id": "045.stage.2",
           "title": "Stade 2",
-          "chili": 2
+          "chili": 2,
+          "action_text": "Prenez ensemble une photo volontairement provocante ou explicite."
         },
         {
           "id": "045.stage.3",
           "title": "Stade 3",
-          "chili": 4
+          "chili": 4,
+          "action_text": "Prenez ensemble une photo sexuelle."
         }
       ]
     },
@@ -1007,41 +1201,57 @@
         {
           "id": "046.stage.1",
           "title": "Stade 1",
-          "chili": 1
+          "chili": 1,
+          "action_templates": {
+            "FAIRE": "Fais une vidéo de toi, soft et séduisante, pour {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire une vidéo de sa personne, soft et séduisante, pour toi."
+          }
         },
         {
           "id": "046.stage.2",
           "title": "Stade 2",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Fais une vidéo de toi volontairement provocante ou explicite pour {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire une vidéo de sa personne volontairement provocante ou explicite pour toi."
+          }
         },
         {
           "id": "046.stage.3",
           "title": "Stade 3",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Fais une vidéo sexuelle de toi pour {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire une vidéo sexuelle de sa personne pour toi."
+          }
         }
-      ]
+      ],
+      "details_text": "La vidéo peut être filmée par la personne concernée ou par son/sa partenaire. Aucune durée minimale ou maximale n’est imposée."
     },
     {
       "id": "047",
       "title": "Vidéo mutuelle",
       "kind": "evolution",
       "action_text": "Réalisez une vidéo mutuelle au stade choisi.",
-      "details_text": "Le dernier stade suit la même logique que Photo mutuelle.",
+      "details_text": "Aucune durée minimale ou maximale n’est imposée.",
       "stages": [
         {
           "id": "047.stage.1",
           "title": "Stade 1",
-          "chili": 1
+          "chili": 1,
+          "action_text": "Réalisez ensemble une petite vidéo soft de votre choix."
         },
         {
           "id": "047.stage.2",
           "title": "Stade 2",
-          "chili": 2
+          "chili": 2,
+          "action_text": "Réalisez ensemble une vidéo sensuelle ou explicite de votre choix."
         },
         {
           "id": "047.stage.3",
           "title": "Stade 3",
-          "chili": 4
+          "chili": 4,
+          "action_text": "Réalisez ensemble une vidéo sexuelle de votre choix."
         }
       ]
     },
@@ -1224,7 +1434,12 @@
           "title": "Choix de l’éjaculation",
           "chili": 3
         }
-      ]
+      ],
+      "action_templates": {
+        "FAIRE": "Lors de ta prochaine éjaculation, choisis librement où et de quelle manière tu souhaites éjaculer.",
+        "RECEVOIR": "Lors de ta prochaine éjaculation, laisse {ton_partenaire} décider où et de quelle manière tu éjaculeras."
+      },
+      "details_text": "Dans tous les cas, le choix doit convenir aux deux partenaires."
     },
     {
       "id": "056",
@@ -1236,17 +1451,29 @@
         {
           "id": "056.stage.1",
           "title": "Stade 1",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Taquine {ton_partenaire} avec des paroles suggérant ta supériorité et son infériorité.",
+            "RECEVOIR": "Laisse {ton_partenaire} te taquiner avec des paroles suggérant sa supériorité et ton infériorité."
+          }
         },
         {
           "id": "056.stage.2",
           "title": "Stade 2",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Adresse à {ton_partenaire} des paroles directes affirmant que tu domines et que l’autre subit.",
+            "RECEVOIR": "Laisse {ton_partenaire} t’adresser des paroles directes affirmant que l’autre domine et que tu subis."
+          }
         },
         {
           "id": "056.stage.3",
           "title": "Stade 3",
-          "chili": 4
+          "chili": 4,
+          "action_templates": {
+            "FAIRE": "Adresse à {ton_partenaire} des paroles franchement dégradantes, pouvant aller jusqu’aux insultes.",
+            "RECEVOIR": "Laisse {ton_partenaire} t’adresser des paroles franchement dégradantes, pouvant aller jusqu’aux insultes."
+          }
         }
       ]
     },
@@ -1295,26 +1522,11 @@
       ]
     },
     {
-      "id": "060",
-      "title": "Privation auditive",
-      "kind": "action",
-      "action_text": "Engagez la privation auditive.",
-      "details_text": "Effet persistant, sans évolution.",
-      "variants": [
-        {
-          "id": "060.action",
-          "title": "Privation auditive",
-          "chili": 2
-        }
-      ],
-      "persistent_effect": true
-    },
-    {
       "id": "061",
       "title": "Silence",
       "kind": "action",
       "action_text": "Engagez le silence.",
-      "details_text": "Effet persistant, sans évolution.",
+      "details_text": "Le silence peut uniquement être interrompu lorsque vous devez communiquer pour prendre une décision concernant une action.",
       "variants": [
         {
           "id": "061.action",
@@ -1322,55 +1534,85 @@
           "chili": 2
         }
       ],
-      "persistent_effect": true
+      "persistent_effect": true,
+      "action_templates": {
+        "FAIRE": "Garde un silence complet pendant les 3 prochaines actions : ne parle pas, ne gémis pas et ne fais volontairement aucun bruit.",
+        "RECEVOIR": "Pendant les 3 prochaines actions, {ton_partenaire} doit garder un silence complet : ne pas parler, ne pas gémir et ne faire volontairement aucun bruit."
+      }
     },
     {
       "id": "062",
       "title": "Prise au cou",
       "kind": "evolution",
       "action_text": "Réalisez une prise contrôlée au cou à l’intensité choisie.",
-      "details_text": "Il ne s’agit pas d’une strangulation réelle.",
+      "details_text": "Maintiens cette prise, à l’intensité correspondant au stade, pendant les 3 prochaines actions.\nLa prise doit rester contrôlée et ne doit pas gêner la respiration.",
       "stages": [
         {
           "id": "062.stage.1",
           "title": "Stade 1",
-          "chili": 1
+          "chili": 1,
+          "action_templates": {
+            "FAIRE": "Pose légèrement ta main autour du cou de {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} poser légèrement sa main autour de ton cou."
+          }
         },
         {
           "id": "062.stage.2",
           "title": "Stade 2",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Maintiens fermement le cou de {ton_partenaire} avec ta main.",
+            "RECEVOIR": "Laisse {ton_partenaire} maintenir fermement ton cou avec sa main."
+          }
         },
         {
           "id": "062.stage.3",
           "title": "Stade 3",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Prends franchement le cou de {ton_partenaire} avec une prise ferme et contrôlée.",
+            "RECEVOIR": "Laisse {ton_partenaire} prendre franchement ton cou avec une prise ferme et contrôlée."
+          }
         }
-      ]
+      ],
+      "persistent_effect": true
     },
     {
       "id": "063",
       "title": "Tirage des cheveux",
       "kind": "evolution",
       "action_text": "Réalisez un tirage contrôlé des cheveux à l’intensité choisie.",
-      "details_text": "Il ne s’agit pas d’un arrachement.",
+      "details_text": "Maintiens cette prise, à l’intensité correspondant au stade, pendant les 3 prochaines actions.",
       "stages": [
         {
           "id": "063.stage.1",
           "title": "Stade 1",
-          "chili": 1
+          "chili": 1,
+          "action_templates": {
+            "FAIRE": "Agrippe légèrement les cheveux de {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} agripper légèrement tes cheveux."
+          }
         },
         {
           "id": "063.stage.2",
           "title": "Stade 2",
-          "chili": 2
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Agrippe fermement et vigoureusement les cheveux de {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} agripper fermement et vigoureusement tes cheveux."
+          }
         },
         {
           "id": "063.stage.3",
           "title": "Stade 3",
-          "chili": 3
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Agrippe franchement les cheveux de {ton_partenaire}, avec fermeté et vigueur, et autorise-toi quelques tirages contrôlés.",
+            "RECEVOIR": "Laisse {ton_partenaire} agripper franchement tes cheveux, avec fermeté et vigueur, et effectuer quelques tirages contrôlés."
+          }
         }
-      ]
+      ],
+      "persistent_effect": true
     },
     {
       "id": "065",

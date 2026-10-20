@@ -273,23 +273,43 @@ final class V4PersistentEffect {
     required this.cardId,
     required this.targetPlayerId,
     required this.remainingActions,
+    this.unit = 'actions',
+    this.stageId,
+    this.actorPlayerIds = const [],
+    this.actionText,
+    this.instruction,
   });
 
   final String cardId;
   final String targetPlayerId;
   final int remainingActions;
+  final String unit;
+  final String? stageId;
+  final List<String> actorPlayerIds;
+  final String? actionText;
+  final String? instruction;
   String get identity => '$cardId::$targetPlayerId';
 
   V4PersistentEffect withRemaining(int value) => V4PersistentEffect(
     cardId: cardId,
     targetPlayerId: targetPlayerId,
     remainingActions: value,
+    unit: unit,
+    stageId: stageId,
+    actorPlayerIds: actorPlayerIds,
+    actionText: actionText,
+    instruction: instruction,
   );
 
   Map<String, Object?> toJson() => {
     'card_id': cardId,
     'target_player_id': targetPlayerId,
     'remaining_actions': remainingActions,
+    if (unit != 'actions') 'unit': unit,
+    if (stageId != null) 'stage_id': stageId,
+    if (actorPlayerIds.isNotEmpty) 'actor_player_ids': actorPlayerIds,
+    if (actionText != null) 'action_text': actionText,
+    if (instruction != null) 'instruction': instruction,
   };
 
   factory V4PersistentEffect.fromJson(Map<String, Object?> json) =>
@@ -297,6 +317,12 @@ final class V4PersistentEffect {
         cardId: json['card_id']! as String,
         targetPlayerId: json['target_player_id']! as String,
         remainingActions: json['remaining_actions']! as int,
+        unit: json['unit'] as String? ?? 'actions',
+        stageId: json['stage_id'] as String?,
+        actorPlayerIds: ((json['actor_player_ids'] as List?) ?? const [])
+            .cast<String>(),
+        actionText: json['action_text'] as String?,
+        instruction: json['instruction'] as String?,
       );
 }
 
@@ -307,12 +333,22 @@ final class V4PersistentEffectEngine {
     required String cardId,
     required Iterable<String> targetPlayerIds,
     required int durationActions,
+    String unit = 'actions',
+    String? stageId,
+    List<String> actorPlayerIds = const [],
+    String? actionText,
+    String? instruction,
   }) => List.unmodifiable([
     for (final targetPlayerId in targetPlayerIds)
       V4PersistentEffect(
         cardId: cardId,
         targetPlayerId: targetPlayerId,
         remainingActions: durationActions,
+        unit: unit,
+        stageId: stageId,
+        actorPlayerIds: actorPlayerIds,
+        actionText: actionText,
+        instruction: instruction,
       ),
   ]);
 
@@ -323,6 +359,10 @@ final class V4PersistentEffectEngine {
   }) {
     final next = <String, V4PersistentEffect>{};
     for (final effect in activeBeforeAction) {
+      if (effect.unit == 'turns') {
+        next[effect.identity] = effect;
+        continue;
+      }
       final remaining = effect.remainingActions - 1;
       if (remaining > 0) {
         next[effect.identity] = effect.withRemaining(remaining);
@@ -336,6 +376,17 @@ final class V4PersistentEffectEngine {
     }
     return List.unmodifiable(next.values);
   }
+
+  /// Tick pre-existing turn effects exactly once, before installing this turn's effects.
+  List<V4PersistentEffect> beginTurnClose(
+    Iterable<V4PersistentEffect> active,
+  ) => [
+    for (final effect in active)
+      if (effect.unit != 'turns')
+        effect
+      else if (effect.remainingActions > 1)
+        effect.withRemaining(effect.remainingActions - 1),
+  ];
 }
 
 final class V4ActionTargetResolver {

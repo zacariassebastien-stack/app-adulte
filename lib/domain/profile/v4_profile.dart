@@ -207,20 +207,53 @@ final class PracticeConsent {
       );
 }
 
+final class StageVeto {
+  const StageVeto({
+    required this.conceptId,
+    required this.actionId,
+    required this.role,
+  });
+  final String conceptId;
+  final String actionId;
+  final ProfilePreferenceRole role;
+  String get storageKey => '$conceptId|$actionId|${role.name}';
+  Map<String, Object?> toJson() => {
+    'concept_id': conceptId,
+    'action_id': actionId,
+    'role': role.wireName,
+  };
+  factory StageVeto.fromJson(Map<String, Object?> json) => StageVeto(
+    conceptId: json['concept_id']! as String,
+    actionId: json['action_id']! as String,
+    role: ProfilePreferenceRole.parse(json['role']! as String),
+  );
+}
+
 final class V4Profile {
   V4Profile({
     required this.profileId,
     required Map<String, ProfilePreference> preferences,
     Map<String, PracticeConsent> consents = const {},
     List<V4ProfileAccessory> accessories = const [],
+    List<StageVeto> stageVetoes = const [],
   }) : preferences = Map.unmodifiable(preferences),
        consents = Map.unmodifiable(consents),
-       accessories = List.unmodifiable(accessories);
+       accessories = List.unmodifiable(accessories),
+       stageVetoes = List.unmodifiable(stageVetoes);
 
   final String profileId;
   final Map<String, ProfilePreference> preferences;
   final Map<String, PracticeConsent> consents;
   final List<V4ProfileAccessory> accessories;
+  final List<StageVeto> stageVetoes;
+  bool excludesStage(String conceptId, String actionId, String direction) =>
+      stageVetoes.any(
+        (v) =>
+            v.conceptId == conceptId &&
+            v.actionId == actionId &&
+            (v.role == ProfilePreferenceRole.general ||
+                v.role.wireName == direction),
+      );
 
   Map<ProfilePreferenceRole, double?> accessoryPreferencesForExactTags(
     Set<String> tags,
@@ -254,6 +287,7 @@ final class V4Profile {
     'preferences': [for (final value in preferences.values) value.toJson()],
     'consents': [for (final value in consents.values) value.toJson()],
     'accessories': [for (final value in accessories) value.toJson()],
+    'stage_vetoes': [for (final value in stageVetoes) value.toJson()],
   };
 
   factory V4Profile.fromJson(Map<String, Object?> json) {
@@ -275,13 +309,21 @@ final class V4Profile {
         for (final value in (json['accessories'] as List? ?? const []))
           V4ProfileAccessory.fromJson(Map<String, Object?>.from(value as Map)),
       ],
+      stageVetoes: [
+        for (final value in json['stage_vetoes'] as List? ?? const [])
+          StageVeto.fromJson(Map<String, Object?>.from(value as Map)),
+      ],
     );
   }
 
-  V4Profile copyWith({List<V4ProfileAccessory>? accessories}) => V4Profile(
+  V4Profile copyWith({
+    List<V4ProfileAccessory>? accessories,
+    List<StageVeto>? stageVetoes,
+  }) => V4Profile(
     profileId: profileId,
     preferences: preferences,
     consents: consents,
     accessories: accessories ?? this.accessories,
+    stageVetoes: stageVetoes ?? this.stageVetoes,
   );
 }
