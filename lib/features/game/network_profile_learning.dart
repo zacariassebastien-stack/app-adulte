@@ -455,3 +455,37 @@ final class NetworkProfileLearningCoordinator {
     _state = next;
   });
 }
+
+V4Profile mergeV4ProfileLearning(
+  V4Profile base,
+  AdaptiveProfileState? learnedState,
+) {
+  final preferences = {...base.preferences};
+  for (final entry
+      in learnedState?.entries.values ?? <PreferenceLearningEntry>[]) {
+    if (entry.source != AdaptiveProfileSource.autoLearned &&
+        entry.source != AdaptiveProfileSource.manualCustomized)
+      continue;
+    final key = ProfilePreferenceKey(
+      tagId: entry.key.preferenceId.replaceFirst('v3.preference.', ''),
+      role: ProfilePreferenceRole.values.byName(entry.key.role.name),
+      zoneId: entry.key.zoneId,
+    );
+    preferences[key.storageKey] = ProfilePreference(
+      profileId: base.profileId,
+      key: key,
+      pa: entry.currentPa,
+      excluded: entry.excluded,
+      source: entry.source == AdaptiveProfileSource.manualCustomized
+          ? ProfilePreferenceSource.manualCustomized
+          : ProfilePreferenceSource.autoLearned,
+    );
+  }
+  return V4Profile(
+    profileId: base.profileId,
+    preferences: preferences,
+    consents: base.consents,
+    accessories: base.accessories,
+    stageVetoes: base.stageVetoes,
+  );
+}

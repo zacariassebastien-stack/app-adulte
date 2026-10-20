@@ -4,6 +4,7 @@ import 'package:couple_cards/card_themes/card_renderer.dart';
 import 'package:couple_cards/card_themes/card_theme_models.dart';
 import 'package:couple_cards/card_themes/signature_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const definition = CardRenderDefinition(
@@ -22,6 +23,45 @@ const definition = CardRenderDefinition(
 );
 
 void main() {
+  for (final width in [100.0, 180.0, 320.0]) {
+    testWidgets(
+      'long title and body-zone labels fit at width $width with enlarged system text',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MediaQuery(
+              data: const MediaQueryData(textScaler: TextScaler.linear(1.6)),
+              child: Scaffold(
+                body: Center(
+                  child: SizedBox(
+                    width: width,
+                    height: width / .68,
+                    child: const CardRenderer(
+                      definition: CardRenderDefinition(
+                        cardId: 'long',
+                        title: 'Retirer un vêtement',
+                        zones: ['Jambes hors cuisses'],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        for (final label in ['Retirer un vêtement', 'Jambes hors cuisses']) {
+          final text = tester.widget<Text>(find.text(label));
+          expect(text.overflow, isNot(TextOverflow.ellipsis));
+          final paragraph = tester.renderObject<RenderParagraph>(
+            find.text(label),
+          );
+          expect(paragraph.didExceedMaxLines, isFalse);
+        }
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
   Future<void> render(
     WidgetTester tester, {
     required Size size,

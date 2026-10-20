@@ -35,6 +35,7 @@ final class ConceptActionOptions {
     required PlayerGameProfile partner,
     required ProfileHierarchy hierarchy,
     V4Profile? profile,
+    CardSpecificLearningStore? cardRatings,
     bool mediaSendRequired = false,
     bool recovery = false,
   }) {
@@ -69,18 +70,33 @@ final class ConceptActionOptions {
           return false;
         }
         final rating = catalog.ratingFor(conceptId, variant.id);
-        bool rated(String direction) =>
-            !profile.excludesStage(conceptId, variant.id, direction) &&
-            const V4CardRatingEngine()
-                    .initializeForDirection(
-                      profile: profile,
-                      variant: rating,
-                      conceptId: conceptId,
-                      direction: direction,
-                      vetoTags: tags,
-                    )
-                    .kind ==
-                V4RatingResultKind.rated;
+        bool rated(String direction) {
+          if (profile.excludesStage(conceptId, variant.id, direction)) {
+            return false;
+          }
+          final result = const V4CardRatingEngine().initializeForDirection(
+            profile: profile,
+            variant: rating,
+            conceptId: conceptId,
+            direction: direction,
+            vetoTags: tags,
+          );
+          if (result.kind == V4RatingResultKind.excluded ||
+              result.kind == V4RatingResultKind.unavailable) {
+            return false;
+          }
+          return result.kind == V4RatingResultKind.rated ||
+              cardRatings?.explicitEstimate(
+                    CardRatingKey(
+                      profileId: profile.profileId,
+                      cardId: conceptId,
+                      variantId: variant.id,
+                      role: ProfilePreferenceRole.parse(direction),
+                    ),
+                  ) !=
+                  null;
+        }
+
         final directions = variant.tags;
         if (directions.contains('v3.direction.faire') &&
             directions.contains('v3.direction.recevoir')) {

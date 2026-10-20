@@ -19,6 +19,8 @@ import '../lobby/lobby_models.dart';
 import '../lobby/active_session_store.dart';
 import '../lobby/game_history.dart';
 import '../profile/v4_accessory_profile_screen.dart';
+import '../profile/catalog_profile_controller.dart';
+import '../profile/catalog_profile_screen.dart';
 import 'game_preferences.dart';
 import 'network_duel_secret_store.dart';
 import 'network_duel_controller.dart' show NetworkDuelCard;
@@ -48,6 +50,7 @@ class NetworkDuelScreen extends StatefulWidget {
     this.initialClothingCounts = const {},
     this.profileAccessories = const [],
     this.profileStore = const SharedPreferencesV4ProfileStore(),
+    this.cardLearningStore = const SharedPreferencesV4CardLearningStore(),
     super.key,
   });
 
@@ -66,6 +69,7 @@ class NetworkDuelScreen extends StatefulWidget {
   final Map<String, int> initialClothingCounts;
   final List<V4Accessory> profileAccessories;
   final V4ProfileStore profileStore;
+  final V4CardLearningStore cardLearningStore;
 
   @override
   State<NetworkDuelScreen> createState() => _NetworkDuelScreenState();
@@ -107,6 +111,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       catalog: widget.catalog,
       privateProfile: widget.privateProfile,
       v4Profile: widget.v4Profile,
+      cardLearningStore: widget.cardLearningStore,
       scoringCatalog: widget.scoringCatalog,
       sessionMode: widget.sessionMode,
       initialClothingCounts: widget.initialClothingCounts,
@@ -255,6 +260,78 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     NetworkGameViewState.error => _error(),
   };
 
+  Future<void> _handMenu(CardHandItem item) async {
+    final concept = controller.conceptFor(item.definition.cardId);
+    final actionId = item.definition.variantId;
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(
+                item.locked ? 'Déverrouiller la carte' : 'Verrouiller la carte',
+              ),
+              onTap: () => Navigator.pop(context, 'lock'),
+            ),
+            if (concept.stages.length > 1 && actionId != null)
+              ListTile(
+                title: const Text('Exclure ce stade'),
+                onTap: () => Navigator.pop(context, 'stage'),
+              ),
+            ListTile(
+              title: const Text('Exclure la carte'),
+              onTap: () => Navigator.pop(context, 'card'),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(12),
+              child: Text(
+                'Ces exclusions restent privées. Le verrouillage concerne uniquement cette partie.',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (choice == null || !mounted) return;
+    if (choice == 'lock') {
+      controller.toggleLock(item.id);
+      return;
+    }
+    final editor = CatalogProfileController(
+      catalog: widget.catalog,
+      playerId: widget.playerId,
+      profileStore: widget.profileStore,
+      ratingStore: widget.cardLearningStore,
+    );
+    try {
+      await editor.load();
+      if (choice == 'card') {
+        await editor.excludeCard(concept.id);
+      } else {
+        final target = editor.items.singleWhere(
+          (i) =>
+              i.concept.id == concept.id &&
+              i.actionId == actionId &&
+              i.direction.name == item.definition.direction,
+        );
+        await editor.rate(target, DetailedPreferenceCategory.excluded);
+      }
+      if (!mounted) return;
+      await controller.applyStageVetoProfile(editor.profile);
+      await controller.reloadPrivateCardRatings();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Exclusion non enregistrée. Réessaie.')),
+        );
+      }
+    } finally {
+      editor.dispose();
+    }
+  }
+
   Widget _choosing() => CardHandSurface(
     key: const Key('network-game-hand'),
     cards: _conceptHandItems(),
@@ -262,6 +339,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       if (mounted) setState(() => _handStage = stage);
     },
     onLockChanged: (item) => controller.toggleLock(item.id),
+    onLongPressCard: _handMenu,
     onTabChanged: (item, actionId) =>
         setState(() => _displayedActions[item.id] = actionId),
     animationsEnabled: preferences.value.animations,
@@ -1378,6 +1456,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                 PostGameProfileChoice.customize) ...[
               const Divider(),
               ListTile(
+                title: const Text('Catalogue et appréciations'),
+                onTap: _openCatalogProfile,
+              ),
+              ListTile(
                 key: const Key('customize-v4-accessories'),
                 leading: const Icon(Icons.extension),
                 title: const Text('Gérer mes accessoires'),
@@ -1510,6 +1592,25 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     return (((action['editorial'] as Map)['tags'] as List).cast<String>())
         .where((t) => t.startsWith('v3.direction.'))
         .map((t) => t.split('.').last.toUpperCase());
+  }
+
+  Future<void> _openCatalogProfile() async {
+    final editor = CatalogProfileController(
+      catalog: widget.catalog,
+      playerId: widget.playerId,
+      profileStore: widget.profileStore,
+      ratingStore: widget.cardLearningStore,
+    );
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => CatalogProfileScreen(controller: editor),
+      ),
+    );
+    if (!mounted) return;
+    final profile = await widget.profileStore.load(widget.playerId);
+    if (!mounted || profile == null) return;
+    await controller.applyStageVetoProfile(profile);
+    await controller.reloadPrivateCardRatings();
   }
 
   Future<void> _openProfileCustomization() async {

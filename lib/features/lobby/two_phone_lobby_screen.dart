@@ -14,17 +14,21 @@ import 'lobby_controller.dart';
 import 'lobby_repository.dart';
 import 'game_history.dart';
 import 'game_history_screen.dart';
+import '../profile/catalog_profile_controller.dart';
+import '../profile/catalog_profile_screen.dart';
 
 class TwoPhoneLobbyScreen extends StatefulWidget {
   const TwoPhoneLobbyScreen({
     required this.repository,
     this.activeSessionStore = const SharedPreferencesActiveSessionStore(),
     this.historyStore = const SharedPreferencesGameHistoryStore(),
+    this.profileCatalogLoader = loadAssetCatalog,
     super.key,
   });
   final LobbyRepository repository;
   final ActiveSessionStore activeSessionStore;
   final GameHistoryStore historyStore;
+  final Future<Catalog> Function() profileCatalogLoader;
 
   @override
   State<TwoPhoneLobbyScreen> createState() => _TwoPhoneLobbyScreenState();
@@ -114,6 +118,13 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
         key: const Key('show-join-lobby'),
         onPressed: () => setState(() => joining = true),
         child: const Text('Rejoindre une partie'),
+      ),
+      const SizedBox(height: 12),
+      OutlinedButton.icon(
+        key: const Key('open-catalog-profile'),
+        icon: const Icon(Icons.person_outline),
+        label: const Text('Personnaliser mon profil'),
+        onPressed: _openCatalogProfile,
       ),
       const SizedBox(height: 12),
       TextButton.icon(
@@ -216,6 +227,35 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
         ],
       ],
     );
+  }
+
+  Future<void> _openCatalogProfile() async {
+    try {
+      final repository = widget.repository;
+      if (repository is! NetworkLobbyRepository) {
+        throw StateError('Connexion indisponible.');
+      }
+      final playerId = await repository.currentPlayerId();
+      final catalog = await widget.profileCatalogLoader();
+      if (!mounted) return;
+      final editor = CatalogProfileController(
+        catalog: catalog,
+        playerId: playerId,
+      );
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => CatalogProfileScreen(controller: editor),
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Impossible d’ouvrir le profil pour le moment.'),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _launchDuel() async {

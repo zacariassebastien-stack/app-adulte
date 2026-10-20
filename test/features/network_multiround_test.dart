@@ -1,3 +1,4 @@
+import 'package:couple_cards/features/profile/catalog_profile_controller.dart';
 import 'package:couple_cards/features/game/ui/card_hand_surface.dart';
 import 'package:couple_cards/card_themes/card_renderer.dart';
 import 'package:flutter/services.dart';
@@ -195,6 +196,50 @@ void main() {
     expect(c.usageCheckpoint.usagesByIntent,isEmpty);
     await c.confirmSelection();
     expect(c.usageCheckpoint.usagesByIntent.values.single.invertedAction,isNull);
+  });
+
+
+  test('explicit private card-stage-role estimates drive PA without changing an engaged snapshot', () async {
+    final backend=_Backend()..v4UnlockedSpice=4;
+    final focused=_catalogWithCards(catalog,{'card.v4.056'});
+    final profiles=MemoryV4ProfileStore();await profiles.save(stageProfile());
+    final ratings=MemoryV4CardLearningStore();
+    final editor=CatalogProfileController(catalog:focused,playerId:'alice',profileStore:profiles,
+      ratingStore:ratings,learningStore:MemoryNetworkProfileLearningStore());
+    await editor.load();
+    for(final i in editor.items.where((i)=>i.actionId=='056.stage.3')) {
+      await editor.rate(i,i.direction==CardOccurrenceDirection.FAIRE?DetailedPreferenceCategory.love:DetailedPreferenceCategory.atMyLimit);
+    }
+    final c=NetworkGameController(session:session,playerId:'alice',repository:backend.repository('alice'),
+      privateStore:MemoryNetworkDuelSecretStore(),learningStore:MemoryNetworkProfileLearningStore(),
+      cardLearningStore:ratings,catalog:focused,v4Profile:editor.profile);
+    addTearDown(c.dispose);addTearDown(editor.dispose);await c.start();c.selectCard('056');
+    final selected=c.selectedCard!;
+    expect(selected.personalValue,selected.nativeDirection==CardOccurrenceDirection.FAIRE?4:18);
+    await c.confirmSelection();
+    final frozen=c.usageCheckpoint.usagesByIntent.values.single.toJson();
+    await editor.rate(editor.items.firstWhere((i)=>i.actionId=='056.stage.3'&&i.direction==selected.nativeDirection),DetailedPreferenceCategory.essential);
+    await c.reloadPrivateCardRatings();
+    expect(c.usageCheckpoint.usagesByIntent.values.single.toJson(),frozen);
+  });
+  testWidgets('hand long press offers separate lock stage and whole-card exclusions', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final backend=_Backend()..v4UnlockedSpice=4;
+    final profiles=MemoryV4ProfileStore();await profiles.save(stageProfile());
+    await tester.pumpWidget(MaterialApp(home:NetworkDuelScreen(session:session,playerId:'alice',
+      repository:backend.repository('alice'),catalog:_catalogWithCards(catalog,{'card.v4.056'}),
+      secretStore:MemoryNetworkDuelSecretStore(),profileStore:profiles,v4Profile:stageProfile(),cardLearningStore:MemoryV4CardLearningStore())));
+    await tester.pumpAndSettle();
+    final box=tester.getRect(find.byKey(const Key('network-game-hand')));
+    await tester.longPressAt(Offset(box.center.dx,box.bottom-20));await tester.pumpAndSettle();
+    expect(find.text('Verrouiller la carte'),findsOneWidget);
+    expect(find.text('Exclure ce stade'),findsOneWidget);expect(find.text('Exclure la carte'),findsOneWidget);
+    await tester.tap(find.text('Exclure ce stade'));await tester.pumpAndSettle();
+    final saved=(await profiles.load('alice'))!;
+    expect(saved.stageVetoes.single.actionId,'056.stage.3');
+    expect(backend.round.commits,isEmpty);
+    expect(backend.state('bob').toJson().toString(),isNot(contains('stage_vetoes')));
+    expect(tester.takeException(),isNull);await tester.pumpWidget(const SizedBox.shrink());
   });
 
   for (final last in ['alice', 'bob']) {

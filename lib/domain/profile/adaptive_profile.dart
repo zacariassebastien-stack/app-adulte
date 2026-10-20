@@ -55,6 +55,18 @@ enum LearningRole {
 enum ProposalDecision { pending, accepted, declined }
 
 extension DetailedPreferenceCategoryRules on DetailedPreferenceCategory {
+  double? get personalPa => switch (this) {
+    DetailedPreferenceCategory.essential => 1.5,
+    DetailedPreferenceCategory.love => 3.5,
+    DetailedPreferenceCategory.likeALot => 5.5,
+    DetailedPreferenceCategory.like => 7.5,
+    DetailedPreferenceCategory.tempted => 10.0,
+    DetailedPreferenceCategory.depends => 13.0,
+    DetailedPreferenceCategory.occasional => 15.5,
+    DetailedPreferenceCategory.atMyLimit => 18.0,
+    DetailedPreferenceCategory.unsure => 20.0,
+    DetailedPreferenceCategory.excluded => null,
+  };
   static DetailedPreferenceCategory fromPa(
     double? pa, {
     bool excluded = false,

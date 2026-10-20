@@ -45,6 +45,7 @@ class CardHandSurface extends StatefulWidget {
     this.onTabChanged,
     this.onCancelCommitted,
     this.onLockChanged,
+    this.onLongPressCard,
     this.onStageChanged,
     super.key,
   });
@@ -57,6 +58,7 @@ class CardHandSurface extends StatefulWidget {
   final void Function(CardHandItem card, String tabId)? onTabChanged;
   final VoidCallback? onCancelCommitted;
   final ValueChanged<CardHandItem>? onLockChanged;
+  final ValueChanged<CardHandItem>? onLongPressCard;
   final ValueChanged<CardHandStage>? onStageChanged;
 
   @override
@@ -171,12 +173,23 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
     _stageAtPointerDown = _stage;
     _longPressTimer?.cancel();
     _longPressTimer = Timer(const Duration(milliseconds: 500), () {
-      if (!mounted || _dragging || _focused == null) return;
+      if (!mounted || _dragging) return;
+      if (_stage == CardHandStage.resting && widget.onLongPressCard != null) {
+        final size = context.size;
+        if (size == null ||
+            _start == null ||
+            _start!.dy < size.height * 2 / 3) {
+          return;
+        }
+        _focus(_indexAt(_start!.dx, size.width));
+      }
+      if (_focused == null) return;
       if (_stage != CardHandStage.focused && _stage != CardHandStage.open) {
         return;
       }
       _longPressTriggered = true;
-      widget.onLockChanged?.call(widget.cards[_focused!]);
+      final callback = widget.onLongPressCard ?? widget.onLockChanged;
+      callback?.call(widget.cards[_focused!]);
     });
   }
 

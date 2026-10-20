@@ -5,6 +5,68 @@ import 'package:flutter/material.dart';
 import 'card_theme_models.dart';
 import 'card_theme_registry.dart';
 
+/// Fits the complete label within its layout block, including system text scaling.
+class _FittingCardText extends StatelessWidget {
+  const _FittingCardText({
+    required this.value,
+    required this.style,
+    this.maxLines,
+    this.textAlign = TextAlign.start,
+  });
+  final String value;
+  final TextStyle style;
+  final int? maxLines;
+  final TextAlign textAlign;
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final base = style.fontSize ?? 14;
+      var low = base / 8, high = base;
+      final scaler = MediaQuery.textScalerOf(context);
+      TextStyle sized(double size) => style.copyWith(
+        fontSize: size,
+        letterSpacing: (style.letterSpacing ?? 0) * size / base,
+      );
+      bool fits(double size) {
+        final painter = TextPainter(
+          text: TextSpan(text: value, style: sized(size)),
+          textDirection: Directionality.of(context),
+          textAlign: textAlign,
+          textScaler: scaler,
+          maxLines: maxLines,
+        )..layout(maxWidth: constraints.maxWidth);
+        final result =
+            !painter.didExceedMaxLines &&
+            painter.height <= constraints.maxHeight &&
+            painter.width <= constraints.maxWidth;
+        painter.dispose();
+        return result;
+      }
+
+      if (fits(high)) {
+        low = high;
+      } else {
+        for (var i = 0; i < 12; i++) {
+          final middle = (low + high) / 2;
+          if (fits(middle)) {
+            low = middle;
+          } else {
+            high = middle;
+          }
+        }
+      }
+      return Text(
+        value,
+        style: sized(low),
+        textAlign: textAlign,
+        textScaler: scaler,
+        maxLines: maxLines,
+        overflow: TextOverflow.clip,
+      );
+    },
+  );
+}
+
 final class CardRenderDefinition {
   const CardRenderDefinition({
     required this.cardId,
@@ -364,28 +426,28 @@ class CardRenderer extends StatelessWidget {
     double cardWidth,
   ) {
     final skin = theme.skin;
-    final scale = (cardWidth / 300).clamp(.35, 1.4);
+    final scale = (cardWidth / 300).clamp(.1, 1.4);
     final alignment = switch (block.alignment) {
       CardTextAlign.start => TextAlign.start,
       CardTextAlign.center => TextAlign.center,
       CardTextAlign.end => TextAlign.end,
     };
-    Text text(String value, CardTextStyleSpec spec, {int? maxLines}) => Text(
-      value,
-      textAlign: alignment,
-      maxLines: maxLines,
-      overflow: TextOverflow.ellipsis,
-      style: TextStyle(
-        color: Color(spec.color),
-        fontSize: spec.size * scale,
-        fontWeight:
-            FontWeight.values[((spec.weight / 100).round() - 1).clamp(0, 8)],
-        fontFamily: spec.fontFamily,
-        fontFamilyFallback: spec.fontFamilyFallback,
-        letterSpacing: spec.letterSpacing * scale,
-        height: spec.height,
-      ),
-    );
+    Widget text(String value, CardTextStyleSpec spec, {int? maxLines}) =>
+        _FittingCardText(
+          value: value,
+          textAlign: alignment,
+          maxLines: maxLines,
+          style: TextStyle(
+            color: Color(spec.color),
+            fontSize: spec.size * scale,
+            fontWeight: FontWeight
+                .values[((spec.weight / 100).round() - 1).clamp(0, 8)],
+            fontFamily: spec.fontFamily,
+            fontFamilyFallback: spec.fontFamilyFallback,
+            letterSpacing: spec.letterSpacing * scale,
+            height: spec.height,
+          ),
+        );
     final lockedAtRest = locked || state == CardVisualState.locked;
     final expanded =
         state == CardVisualState.focused || state == CardVisualState.full;
@@ -439,7 +501,7 @@ class CardRenderer extends StatelessWidget {
                 scale: scale,
                 maxLines: 2,
               )
-            : text(definition.zones.join(' · '), skin.badgeStyle, maxLines: 1),
+            : text(definition.zones.join(' · '), skin.badgeStyle, maxLines: 2),
       CardBlockType.spice =>
         premiumExpanded
             ? _spiceBlock(skin, scale)
@@ -617,10 +679,9 @@ class CardRenderer extends StatelessWidget {
       ),
       SizedBox(height: 5 * scale),
       Expanded(
-        child: Text(
-          value,
+        child: _FittingCardText(
+          value: value,
           maxLines: maxLines,
-          overflow: TextOverflow.ellipsis,
           style: _textStyle(
             muted ? (skin.panelStyle ?? skin.bodyStyle) : skin.bodyStyle,
             scale,
@@ -630,15 +691,17 @@ class CardRenderer extends StatelessWidget {
     ],
   );
 
-  Widget _spiceBlock(CardSkin skin, double scale) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisSize: MainAxisSize.max,
-    children: [
-      Text('PIMENT', style: _textStyle(skin.badgeStyle, scale)),
-      const Spacer(),
-      FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Row(
+  Widget _spiceBlock(CardSkin skin, double scale) => FittedBox(
+    fit: BoxFit.scaleDown,
+    alignment: Alignment.topLeft,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('PIMENT', style: _textStyle(skin.badgeStyle, scale)),
+        SizedBox(height: 4 * scale),
+        Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               List.filled(definition.spice, '🌶').join(),
@@ -654,8 +717,8 @@ class CardRenderer extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    ],
+      ],
+    ),
   );
 
   Widget _backIdentity(CardSkin skin, double scale) => FittedBox(

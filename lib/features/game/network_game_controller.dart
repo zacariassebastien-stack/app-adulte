@@ -52,6 +52,7 @@ final class NetworkGameController extends ChangeNotifier {
     this.lifecycleEngine = const LifecycleEngine(),
     this.recoveryEngine = const RecoveryEngine(),
     NetworkProfileLearningStore? learningStore,
+    V4CardLearningStore? cardLearningStore,
     PostGameProfileChoiceStore? profileChoiceStore,
     PlayerGameProfile? privateProfile,
     EngineSessionContext? initialContext,
@@ -134,6 +135,11 @@ final class NetworkGameController extends ChangeNotifier {
         (learningStore is MemoryNetworkProfileLearningStore
             ? MemoryPostGameProfileChoiceStore()
             : const SharedPreferencesPostGameProfileChoiceStore());
+    _cardLearningStore =
+        cardLearningStore ??
+        (learningStore is MemoryNetworkProfileLearningStore
+            ? MemoryV4CardLearningStore()
+            : const SharedPreferencesV4CardLearningStore());
   }
 
   final LobbySession session;
@@ -149,6 +155,26 @@ final class NetworkGameController extends ChangeNotifier {
   final String Function() nonceFactory;
   late final NetworkProfileLearningCoordinator learning;
   late final PostGameProfileChoiceStore _profileChoiceStore;
+  late final V4CardLearningStore _cardLearningStore;
+  CardSpecificLearningStore _cardRatings = CardSpecificLearningStore();
+  Future<void> reloadPrivateCardRatings() async {
+    _cardRatings = await _cardLearningStore.load(playerId);
+    if (_disposed) return;
+    if (_activeReveal == null &&
+        selectedCard != null &&
+        _selectedOption != null) {
+      final current = choicesFor(
+        selectedCard!.id,
+      ).where((o) => o.key == _selectedOption!.key).firstOrNull;
+      if (current == null) {
+        await cancelPendingSelection();
+      } else {
+        chooseAction(current);
+      }
+    }
+    notifyListeners();
+  }
+
   final Catalog _catalog;
   late final ConceptRuntimeCatalog _conceptCatalog;
   late ConceptUsageCheckpoint _usageCheckpoint;
@@ -195,35 +221,7 @@ final class NetworkGameController extends ChangeNotifier {
   AdaptiveProfileState? _learnedState;
   V4Profile? get _ratingProfile {
     final base = _v4Profile;
-    if (base == null) return null;
-    final preferences = {...base.preferences};
-    for (final entry
-        in _learnedState?.entries.values ?? <PreferenceLearningEntry>[]) {
-      if (entry.source != AdaptiveProfileSource.autoLearned &&
-          entry.source != AdaptiveProfileSource.manualCustomized)
-        continue;
-      final key = ProfilePreferenceKey(
-        tagId: entry.key.preferenceId.replaceFirst('v3.preference.', ''),
-        role: ProfilePreferenceRole.values.byName(entry.key.role.name),
-        zoneId: entry.key.zoneId,
-      );
-      preferences[key.storageKey] = ProfilePreference(
-        profileId: base.profileId,
-        key: key,
-        pa: entry.currentPa,
-        excluded: entry.excluded,
-        source: entry.source == AdaptiveProfileSource.manualCustomized
-            ? ProfilePreferenceSource.manualCustomized
-            : ProfilePreferenceSource.autoLearned,
-      );
-    }
-    return V4Profile(
-      profileId: base.profileId,
-      preferences: preferences,
-      consents: base.consents,
-      accessories: base.accessories,
-      stageVetoes: base.stageVetoes,
-    );
+    return base == null ? null : mergeV4ProfileLearning(base, _learnedState);
   }
 
   late final V4SessionMode _sessionMode;
@@ -619,6 +617,7 @@ final class NetworkGameController extends ChangeNotifier {
     try {
       postGameProfileChoice = await _profileChoiceStore.load(playerId);
       _learnedState = await learning.state();
+      _cardRatings = await _cardLearningStore.load(playerId);
       final current = await repository.openCurrentRound(
         command: _command('OPEN', roundId: null, roundNumber: 0),
       );
@@ -651,18 +650,7 @@ final class NetworkGameController extends ChangeNotifier {
     PreferenceLearningKey key,
     DetailedPreferenceCategory category,
   ) async {
-    final pa = switch (category) {
-      DetailedPreferenceCategory.essential => 1.5,
-      DetailedPreferenceCategory.love => 3.5,
-      DetailedPreferenceCategory.likeALot => 5.5,
-      DetailedPreferenceCategory.like => 7.5,
-      DetailedPreferenceCategory.tempted => 10.0,
-      DetailedPreferenceCategory.depends => 13.0,
-      DetailedPreferenceCategory.occasional => 15.5,
-      DetailedPreferenceCategory.atMyLimit => 18.0,
-      DetailedPreferenceCategory.unsure => 20.0,
-      DetailedPreferenceCategory.excluded => null,
-    };
+    final pa = category.personalPa;
     await learning.manuallyCustomize(
       key: key,
       pa: pa,
@@ -792,6 +780,7 @@ final class NetworkGameController extends ChangeNotifier {
     final options = const ConceptActionOptions().evaluate(
       catalog: _conceptCatalog,
       profile: _ratingProfile,
+      cardRatings: _cardRatings,
       context: _context,
       actor: _profile(playerId),
       partner: _profile(opponentId),
@@ -3709,7 +3698,19 @@ final class NetworkGameController extends ChangeNotifier {
         direction: direction.name,
         vetoTags: _conceptCatalog.vetoTags(conceptId),
       );
-      return result.rawScore?.toInt();
+      if (result.kind == V4RatingResultKind.excluded ||
+          result.kind == V4RatingResultKind.unavailable) {
+        return null;
+      }
+      final explicit = _cardRatings.explicitEstimate(
+        CardRatingKey(
+          profileId: profile.profileId,
+          cardId: conceptId,
+          variantId: option.choice.actionId,
+          role: ProfilePreferenceRole.parse(direction.name),
+        ),
+      );
+      return explicit?.round().clamp(1, 20) ?? result.rawScore?.toInt();
     }
     // Existing private-profile test/local flow, using the same classified weights.
     final role = _profileRole(direction, fallback: ProfileRole.GENERAL);

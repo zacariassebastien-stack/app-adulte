@@ -373,6 +373,10 @@ final class CardSpecificLearningStore {
   final Map<String, CardRatingStateV4> _values = {};
 
   CardRatingStateV4? read(CardRatingKey key) => _values[key.storageKey];
+  bool explicitlyRated(CardRatingKey key) =>
+      read(key)?.source == 'CARD_ESTIMATE';
+  double? explicitEstimate(CardRatingKey key) =>
+      explicitlyRated(key) ? read(key)?.currentEstimate : null;
 
   void write(CardRatingStateV4 value) {
     _values[value.key.storageKey] = value;

@@ -250,7 +250,7 @@ final class V4Profile {
       stageVetoes.any(
         (v) =>
             v.conceptId == conceptId &&
-            v.actionId == actionId &&
+            (v.actionId == actionId || v.actionId == '*') &&
             (v.role == ProfilePreferenceRole.general ||
                 v.role.wireName == direction),
       );
