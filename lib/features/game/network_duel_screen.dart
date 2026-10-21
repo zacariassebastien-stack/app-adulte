@@ -29,6 +29,7 @@ import 'network_game_controller.dart';
 import 'network_profile_learning.dart';
 import '../../engines/eligibility/concept_action_options.dart';
 import 'ui/card_hand_surface.dart';
+import 'ui/resolution_wording.dart';
 import 'ui/discard_gallery_screen.dart';
 import 'ui/gameplay_hud.dart';
 import 'ui/game_settings_panel.dart';
@@ -46,6 +47,7 @@ class NetworkDuelScreen extends StatefulWidget {
     this.privateProfile,
     this.v4Profile,
     this.scoringCatalog,
+    this.participantNames = const {},
     this.sessionMode = V4SessionMode.presentiel,
     this.initialClothingCounts = const {},
     this.profileAccessories = const [],
@@ -54,6 +56,7 @@ class NetworkDuelScreen extends StatefulWidget {
     super.key,
   });
 
+  final Map<String, String> participantNames;
   final LobbySession session;
   final String playerId;
   final NetworkGameRepository repository;
@@ -897,9 +900,15 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             for (final card in result.compromise)
               NetworkResolvedActionCardDto.fromUsage(card.usage),
           ];
+    final winner = controller.initialResolution?.winnerPlayerId ??
+        result.initialWinnerPlayerId;
     final title = result.mutualAbandon
         ? 'Round abandonné mutuellement'
-        : 'Action à réaliser';
+        : winner == null
+        ? 'Action à réaliser'
+        : winner == widget.playerId
+        ? 'Tu as gagné !'
+        : 'Tu as perdu';
     return ListView(
       key: const Key('network-action-in-progress'),
       padding: const EdgeInsets.all(16),
@@ -983,6 +992,11 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     builder: (context) => _ClothingCountDialog(initialCount: initialCount),
   );
 
+  ResolutionWording get _resolutionWording => ResolutionWording(
+    localPlayerId: widget.playerId,
+    names: widget.participantNames,
+  );
+
   Widget _resolvedActionCard(NetworkResolvedActionCardDto card) {
     final action = card.usage.resolvedAction;
     final parameters = action['parameters']! as Map;
@@ -1031,18 +1045,18 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     return Column(
       key: Key('resolved-action-${card.usageId}'),
       children: [
-        Text(switch (card.direction) {
-          NetworkCardDirection.MUTUEL => 'Vous jouez ensemble',
-          NetworkCardDirection.SIMULTANE => 'Vous jouez simultanément',
-          NetworkCardDirection.SOLO =>
-            card.targetPlayerIds.contains(controller.playerId)
-                ? 'Tu joues'
-                : 'Ton partenaire joue',
-          _ =>
-            card.targetPlayerIds.contains(controller.playerId)
-                ? 'Ton partenaire joue'
-                : 'Tu joues',
-        }, style: Theme.of(context).textTheme.titleLarge),
+        Text(
+          _resolutionWording.retained(card.usage.ownerPlayerId),
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        Text(definition.title, style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 8),
+        Text(
+          _resolutionWording.describe(card, definition.title),
+          key: Key('resolution-description-${card.usageId}'),
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         SizedBox(
           height: 440,
           child: CardRenderer(
@@ -1051,15 +1065,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             showPa: false,
           ),
         ),
-        Text(switch (card.direction) {
-          NetworkCardDirection.MUTUEL => 'ENSEMBLE',
-          NetworkCardDirection.SIMULTANE => 'CHACUN DE SON CÔTÉ',
-          NetworkCardDirection.SOLO => 'SUR SOI',
-          _ =>
-            card.targetPlayerIds.contains(controller.playerId)
-                ? 'SUR TOI'
-                : 'SUR TON PARTENAIRE',
-        }),
         Text(
           [
             for (final accessory in action['accessories']! as List)

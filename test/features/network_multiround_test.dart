@@ -827,47 +827,82 @@ void main() {
       );
     }
   }
-  for (final id in ['alice', 'bob']) {
-    testWidgets('RECEVOIR order gives the correct instruction to $id', (
-      tester,
-    ) async {
-      SharedPreferences.setMockInitialValues(<String, Object>{});
-      final backend = _Backend();
-      final usage = nativeUsageFixture(
-        owner: 'alice',
-        conceptId: '032',
-        direction: 'RECEVOIR',
-      );
-      _setProjectedAction(
-        backend,
-        cards: [NetworkResolvedActionCardDto.fromUsage(usage)],
-      );
-      await tester.pumpWidget(
-        MaterialApp(
-          home: NetworkDuelScreen(
-            session: session,
-            playerId: id,
-            repository: backend.repository(id),
-            catalog: catalog,
-            secretStore: MemoryNetworkDuelSecretStore(),
-          ),
-        ),
-      );
-      for (var i = 0; i < 20; i++) {
-        await tester.pump(const Duration(milliseconds: 50));
+  testWidgets('miniature replacement uses existing refill and spends zero PA', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final preferences = <String, ProfilePreference>{};
+    for (final b in catalog.conceptRules!['bindings'] as List) {
+      for (final a in (b as Map)['actions'] as List) {
+        final rating = (a as Map)['rating'];
+        if (rating is! Map) continue;
+        for (final tag in [...rating['primary_preference_tags'] as List, ...rating['secondary_preference_tags'] as List]) {
+          for (final role in ProfilePreferenceRole.values) {
+            final key = ProfilePreferenceKey(tagId: tag as String, role: role);
+            preferences[key.storageKey] = ProfilePreference(profileId: 'alice', key: key,
+              pa: 10, excluded: false, source: ProfilePreferenceSource.initialQuestionnaire);
+          }
+        }
       }
-      expect(
-        find.text(
-          id == 'alice'
-              ? 'Ton partenaire joue'
-              : 'Tu joues',
-        ),
-        findsOneWidget,
-      );
-      expect(find.text(id == 'alice' ? 'SUR TOI' : 'SUR TON PARTENAIRE'), findsOneWidget);
-      expect(find.textContaining('cible :'), findsNothing);
-      await tester.pumpWidget(const SizedBox.shrink());
-    });
+    }
+    final profile = V4Profile(profileId: 'alice', preferences: preferences);
+    final profiles = MemoryV4ProfileStore(); await profiles.save(profile);
+    final secrets = MemoryNetworkDuelSecretStore();
+    final backend = _Backend();
+    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session, playerId: 'alice',
+      repository: backend.repository('alice'), catalog: catalog, v4Profile: profile,
+      profileStore: profiles, secretStore: secrets)));
+    await tester.pumpAndSettle();
+    var surface = tester.widget<CardHandSurface>(find.byType(CardHandSurface));
+    final oldIds = surface.cards.map((c) => c.id).toSet();
+    final target = surface.cards.first;
+    surface.onLongPressCard!(target); await tester.pumpAndSettle();
+    await tester.tap(find.text('Exclure la carte')); await tester.pumpAndSettle();
+    final points = Map<String, int>.of(backend.points);
+    final commands = Set<String>.of(backend.commands);
+    await tester.tap(find.byKey(Key('replace-excluded-${target.id}')));
+    await tester.pumpAndSettle();
+    surface = tester.widget<CardHandSurface>(find.byType(CardHandSurface));
+    expect(surface.cards.map((c) => c.id), isNot(contains(target.id)));
+    expect(surface.cards.length, oldIds.length);
+    expect(surface.cards.any((c) => !oldIds.contains(c.id)), isTrue);
+    expect(backend.points, points);
+    expect(backend.commands, commands);
+    final saved = (await secrets.loadGame(sessionId: session.id, playerId: 'alice'))!;
+    expect(saved.conceptCheckpoint!.usagesByIntent, isEmpty);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  for (final id in ['alice', 'bob']) {
+    for (final direction in ['FAIRE', 'RECEVOIR']) {
+      for (final named in [false, true]) {
+        testWidgets('resolution $id $direction names=$named preserves actual roles', (tester) async {
+          SharedPreferences.setMockInitialValues(<String, Object>{});
+          await tester.binding.setSurfaceSize(const Size(320, 568));
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+          final backend = _Backend();
+          final usage = nativeUsageFixture(owner: 'alice', conceptId: '032', direction: direction);
+          _setProjectedAction(backend, cards: [NetworkResolvedActionCardDto.fromUsage(usage)]);
+          await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+            session: session, playerId: id, repository: backend.repository(id), catalog: catalog,
+            participantNames: named ? {'alice': 'Sébastien', 'bob': 'Julie'} : const {},
+            secretStore: MemoryNetworkDuelSecretStore())));
+          await tester.pumpAndSettle();
+          expect(find.text(id == 'alice' ? 'Tu as gagné !' : 'Tu as perdu'), findsOneWidget);
+          expect(find.text(named && id == 'bob' ? 'La carte de Sébastien est retenue.' :
+            id == 'alice' ? 'Ta carte est retenue.' : 'La carte de ton partenaire est retenue.'), findsOneWidget);
+          final description = tester.widget<Text>(find.byKey(const Key('resolution-description-usage-test'))).data!;
+          if (named) {
+            expect(description, direction == 'FAIRE' ? 'Sébastien réalise « Ordre » pour Julie.' : 'Julie réalise « Ordre » pour Sébastien.');
+          } else {
+            final actorIsLocal = (direction == 'FAIRE') == (id == 'alice');
+            expect(description, actorIsLocal ? 'Tu réalises « Ordre » pour ton partenaire.' : 'Ton partenaire réalise « Ordre » pour toi.');
+          }
+          expect(find.text('SUR TOI'), findsNothing);
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox.shrink());
+        });
+      }
+    }
   }
 
   test(

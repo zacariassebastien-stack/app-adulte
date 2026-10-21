@@ -26,6 +26,7 @@ void main() {
     bool animations = true,
     ValueChanged<CardHandItem>? onPlay,
     ValueChanged<CardHandItem>? onLock,
+    ValueChanged<CardHandItem>? onReplace,
     void Function(CardHandItem, String)? onTab,
     VoidCallback? onCancel,
     Size size = const Size(800, 800),
@@ -43,12 +44,68 @@ void main() {
               onPlay: onPlay,
               onTabChanged: onTab,
               onLockChanged: onLock,
+              onReplace: onReplace,
               onCancelCommitted: onCancel,
             ),
           ),
         ),
       ),
     );
+  }
+
+  for (final open in [false, true]) {
+    testWidgets('excluded replacement is directly tappable open=$open', (
+      tester,
+    ) async {
+      CardHandItem? replaced;
+      final item = CardHandItem(
+        id: 'excluded',
+        definition: cards.first.definition,
+        available: false,
+        excluded: true,
+        replaceable: true,
+        locked: true,
+      );
+      await pumpHand(
+        tester,
+        items: [item, ...cards],
+        size: const Size(320, 568),
+        onReplace: (item) => replaced = item,
+      );
+      if (open) {
+        await tester.tapAt(
+          tester.getTopLeft(find.byKey(const Key('hand-card-excluded'))) +
+              const Offset(30, 12),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          tester.widget<CardRenderer>(find.byType(CardRenderer).first).state,
+          CardVisualState.focused,
+        );
+        await tester.tapAt(
+          tester.getCenter(find.byKey(const Key('hand-card-excluded'))),
+        );
+        await tester.pumpAndSettle();
+      }
+      final control = find.byKey(const Key('replace-excluded-excluded'));
+      expect(control, findsOneWidget);
+      expect(
+        tester.getSize(control).height,
+        greaterThanOrEqualTo(open ? 56 : 48),
+      );
+      await tester.tap(control);
+      await tester.pumpAndSettle();
+      expect(replaced, same(item));
+      if (!open) {
+        expect(
+          tester.widget<CardRenderer>(find.byType(CardRenderer).first).state,
+          isNot(CardVisualState.full),
+        );
+      }
+      expect(find.byKey(const Key('replace-excluded-card-0')), findsNothing);
+      expect(find.text('🔒 VERROUILLÉE'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
   }
 
   testWidgets('tapping the selected central card opens form 3', (tester) async {

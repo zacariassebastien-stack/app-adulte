@@ -79,6 +79,7 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
   int? _focused;
   Offset? _start;
   bool _dragging = false;
+  bool _replacementPointer = false;
   bool _showBlockedLock = false;
   bool _back = false;
   double _committedDy = 0;
@@ -174,6 +175,7 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
   }
 
   void _pointerDown(PointerDownEvent event) {
+    if (_replacementPointer) return;
     _start = event.localPosition;
     _dragging = false;
     _longPressTriggered = false;
@@ -274,6 +276,12 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
           children: [
             for (var i = 0; i < widget.cards.length; i++)
               _positionedCard(constraints, i),
+            for (var i = 0; i < widget.cards.length; i++)
+              if (widget.cards[i].excluded &&
+                  widget.cards[i].replaceable &&
+                  widget.onReplace != null &&
+                  !(_focused == i && _stage == CardHandStage.open))
+                _positionedCard(constraints, i, replacementOnly: true),
             if (_showBlockedLock && _focused != null)
               Center(
                 child: Icon(
@@ -289,7 +297,11 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
     },
   );
 
-  Widget _positionedCard(BoxConstraints box, int index) {
+  Widget _positionedCard(
+    BoxConstraints box,
+    int index, {
+    bool replacementOnly = false,
+  }) {
     final count = widget.cards.length;
     final card = widget.cards[index];
     final selected = _focused == index;
@@ -329,6 +341,13 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
         ? centerOffset * .012
         : centerOffset * .095;
     final scale = !selected && _stage == CardHandStage.focused ? .9 : 1.0;
+    if (replacementOnly) {
+      return Positioned(
+        left: (left + 4).clamp(0.0, math.max(0.0, box.maxWidth - 48)),
+        top: math.min(top + 28, box.maxHeight - 52),
+        child: _replacementControl(card, compact: true),
+      );
+    }
     return AnimatedPositioned(
       key: Key('hand-card-${card.id}'),
       duration: widget.animationsEnabled
@@ -352,104 +371,126 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
             duration: widget.animationsEnabled
                 ? const Duration(milliseconds: 160)
                 : Duration.zero,
-            child: Opacity(
-              opacity: card.available ? 1 : .48,
-              child: Column(
-                children: [
-                  if (open && card.tabs.isNotEmpty)
-                    SizedBox(
-                      height: 38,
-                      child: Row(
-                        children: [
-                          for (final tab in card.tabs)
-                            Expanded(
-                              child: TextButton(
-                                key: Key('stage-tab-${card.id}-${tab.id}'),
-                                onPressed: tab.enabled
-                                    ? () => widget.onTabChanged?.call(
-                                        card,
-                                        tab.id,
-                                      )
-                                    : null,
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 2,
-                                  ),
-                                  backgroundColor:
-                                      card.definition.variantId == tab.id
-                                      ? Theme.of(
-                                          context,
-                                        ).colorScheme.primaryContainer
-                                      : null,
-                                ),
-                                child: Text(
-                                  '${tab.label}${tab.consumed
-                                      ? ' ✓ joué'
-                                      : tab.excluded
-                                      ? ' 🚫'
-                                      : tab.enabled
-                                      ? ''
-                                      : ' —'}',
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  Expanded(
-                    child: Stack(
-                      fit: StackFit.expand,
+            child: Column(
+              children: [
+                if (open && card.tabs.isNotEmpty)
+                  SizedBox(
+                    height: 38,
+                    child: Row(
                       children: [
-                        CardRenderer(
-                          definition: card.definition,
-                          locked: card.locked,
-                          state: open
-                              ? CardVisualState.full
-                              : focused
-                              ? CardVisualState.focused
-                              : card.locked
-                              ? CardVisualState.locked
-                              : CardVisualState.normal,
-                        ),
-                        if (card.locked || card.excluded)
-                          Align(
-                            alignment: Alignment.topCenter,
-                            child: Container(
-                              color: Theme.of(context).colorScheme.surface,
-                              padding: const EdgeInsets.all(3),
-                              child: FittedBox(
-                                child: Text(
-                                  card.excluded
-                                      ? '🚫 EXCLUE'
-                                      : '🔒 VERROUILLÉE',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                        for (final tab in card.tabs)
+                          Expanded(
+                            child: TextButton(
+                              key: Key('stage-tab-${card.id}-${tab.id}'),
+                              onPressed: tab.enabled
+                                  ? () =>
+                                        widget.onTabChanged?.call(card, tab.id)
+                                  : null,
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 2,
                                 ),
+                                backgroundColor:
+                                    card.definition.variantId == tab.id
+                                    ? Theme.of(
+                                        context,
+                                      ).colorScheme.primaryContainer
+                                    : null,
                               ),
-                            ),
-                          ),
-                        if (card.replaceable && widget.onReplace != null)
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: IconButton(
-                              key: Key('replace-excluded-${card.id}'),
-                              tooltip: 'Remplacer gratuitement',
-                              onPressed: () => widget.onReplace?.call(card),
-                              icon: const Icon(Icons.swap_horiz),
+                              child: Text(
+                                '${tab.label}${tab.consumed
+                                    ? ' ✓ joué'
+                                    : tab.excluded
+                                    ? ' 🚫'
+                                    : tab.enabled
+                                    ? ''
+                                    : ' —'}',
+                              ),
                             ),
                           ),
                       ],
                     ),
                   ),
-                ],
-              ),
+                Expanded(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Opacity(
+                        opacity: card.available ? 1 : .48,
+                        child: CardRenderer(
+                          definition: card.definition,
+                          locked: card.locked && !card.excluded,
+                          state: open
+                              ? CardVisualState.full
+                              : focused
+                              ? CardVisualState.focused
+                              : card.locked && !card.excluded
+                              ? CardVisualState.locked
+                              : CardVisualState.normal,
+                        ),
+                      ),
+                      if (card.locked || card.excluded)
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: Container(
+                            color: Theme.of(context).colorScheme.surface,
+                            padding: const EdgeInsets.all(3),
+                            child: FittedBox(
+                              child: Text(
+                                card.excluded ? '🚫 EXCLUE' : '🔒 VERROUILLÉE',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (open &&
+                    card.excluded &&
+                    card.replaceable &&
+                    widget.onReplace != null)
+                  _replacementControl(card, compact: false),
+              ],
             ),
           ),
         ),
       ),
     );
   }
+
+  Widget _replacementControl(CardHandItem card, {required bool compact}) =>
+      Listener(
+        onPointerDown: (_) {
+          _replacementPointer = true;
+        },
+        onPointerUp: (_) {
+          _replacementPointer = false;
+        },
+        onPointerCancel: (_) {
+          _replacementPointer = false;
+        },
+        child: compact
+            ? IconButton.filled(
+                key: Key('replace-excluded-${card.id}'),
+                tooltip: 'Remplacer gratuitement · 0 PA',
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                iconSize: 32,
+                onPressed: () => widget.onReplace?.call(card),
+                icon: const Icon(Icons.swap_horiz),
+              )
+            : FilledButton.icon(
+                key: Key('replace-excluded-${card.id}'),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(56),
+                ),
+                onPressed: () => widget.onReplace?.call(card),
+                icon: const Icon(Icons.swap_horiz, size: 32),
+                label: const Text('Remplacer · 0 PA'),
+              ),
+      );
 
   Widget _committed(
     BuildContext context,
