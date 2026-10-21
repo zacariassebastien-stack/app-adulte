@@ -83,6 +83,8 @@ enum NetworkDuelExit { finished, newGame }
 
 enum _PostDuelChoice { compromise, corruption }
 
+const _inversionHelp = 'Inverse FAIRE ↔ RECEVOIR pour la carte retenue.';
+
 class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   late final NetworkGameController controller;
   final auctionForm = NetworkAuctionFormController();
@@ -695,9 +697,26 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     );
   }
 
+  String _waitingName(String? playerId, {bool subject = false}) {
+    final name = (widget.participantNames[playerId] ??
+        widget.session.participantNames[playerId])?.trim();
+    return name != null && name.isNotEmpty
+        ? name
+        : subject ? 'Ton partenaire' : 'ton partenaire';
+  }
+
+  String? _otherParticipantId(String playerId) => widget.session.players
+      .where((player) => player.userId != playerId)
+      .map((player) => player.userId).firstOrNull;
+
+  String? get _negotiationProposerId => controller.finalResolution == null
+      ? controller.initialResolution?.loserPlayerId : controller.finalLoserId;
+  String? get _negotiationResponderId => controller.finalResolution == null
+      ? controller.initialResolution?.winnerPlayerId : controller.finalWinnerId;
+
   Widget _negotiationProposal() => _negotiationEditor(
     title: 'Proposer un compromis',
-    waiting: 'Ton partenaire prépare une proposition…',
+    waiting: '${_waitingName(_negotiationProposerId, subject: true)} prépare une proposition…',
     buttonLabel: 'Envoyer la proposition',
     onSubmit: () => _submitNegotiation(adaptation: false),
   );
@@ -706,7 +725,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     final response = controller.negotiation!.response!;
     return _negotiationEditor(
       title: 'Adapter ma proposition',
-      waiting: 'Ton partenaire adapte sa proposition…',
+      waiting: '${_waitingName(controller.initialResolution?.loserPlayerId, subject: true)} adapte sa proposition…',
       buttonLabel: 'Envoyer le choix final',
       allowInversion: response.acceptInversion,
       allowAuction: response.acceptAuction,
@@ -741,6 +760,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             value: _requestInversion,
             onChanged: (value) => setState(() => _requestInversion = value),
             title: const Text('Proposer une inversion'),
+            subtitle: const Text(_inversionHelp, key: Key('negotiation-inversion-help')),
           ),
         if (allowAuction) ...[
           TextField(
@@ -796,7 +816,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       children: [
         _initialResult(controller.initialResolution!),
         if (!controller.isNegotiationResponder)
-          _waitingCard('Ton partenaire répond à ta proposition…')
+          _waitingCard('${_waitingName(_negotiationResponderId, subject: true)} répond à ta proposition…')
         else ...[
           Text(
             'Proposition de compromis',
@@ -828,14 +848,16 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       children: [
         _initialResult(controller.initialResolution!),
         if (!controller.isInitialWinner)
-          _waitingCard('Ton partenaire valide le compromis…')
+          _waitingCard('${_waitingName(controller.initialResolution?.winnerPlayerId, subject: true)} valide le compromis…')
         else ...[
           Text(
             'Compromis final',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
-          if (offer.inversionRequested)
+          if (offer.inversionRequested) ...[
             const Text('• Inversion de la carte initiale'),
+            const Text(_inversionHelp),
+          ],
           if (offer.directPa > 0) Text('• ${offer.directPa} PA personnels'),
           for (final card in offer.cards)
             Text(
@@ -1119,7 +1141,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       if (controller.round?.cycleStyleProposal != null) ...[
         Text('Style proposé : ${controller.round!.cycleStyleProposal!.name}'),
         if (controller.round!.cycleStyleProposer == controller.playerId)
-          const Text('En attente de l’accord de ton partenaire…')
+          Text('En attente de l’accord de ${_waitingName(_otherParticipantId(controller.round!.cycleStyleProposer!))}…')
         else ...[
           FilledButton(
             key: const Key('accept-cycle-style'),
@@ -1176,7 +1198,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           _waitingCard(
-            'Tu as gagné le duel.\nEn attente de la réponse de ton partenaire…',
+            'Tu as gagné le duel.\nEn attente de la réponse de ${_waitingName(controller.corruptionActorId)}…',
           ),
         ],
       );
@@ -1184,7 +1206,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     if (_postDuelChoice == _PostDuelChoice.compromise) {
       return _negotiationEditor(
         title: 'Tenter un compromis',
-        waiting: 'Ton partenaire prépare une proposition…',
+        waiting: '${_waitingName(_negotiationProposerId, subject: true)} prépare une proposition…',
         buttonLabel: 'Envoyer la proposition',
         onSubmit: () => _submitNegotiation(adaptation: false),
         canEdit: controller.isFinalLoser,
@@ -1312,7 +1334,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           ),
         const SizedBox(height: 16),
         if (offer.offeredBy == controller.playerId)
-          _waitingCard('En attente de la réponse du partenaire…')
+          _waitingCard('En attente de la réponse de ${_waitingName(_otherParticipantId(offer.offeredBy))}…')
         else ...[
           FilledButton(
             key: const Key('accept-network-corruption'),
@@ -1386,7 +1408,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           '${proposal.usage.resolvedAction['action_text']} · 🌶️${proposal.usage.resolvedAction['effective_chili']}',
         ),
         if (proposal.playerId == controller.playerId)
-          _waitingCard('En attente du consentement du partenaire…')
+          _waitingCard('En attente du consentement de ${_waitingName(_otherParticipantId(proposal.playerId))}…')
         else ...[
           FilledButton(
             key: const Key('accept-network-recovery'),
@@ -1413,7 +1435,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       children: [
         const Text('Recovery accepté'),
         if (proposal.playerId != controller.playerId)
-          _waitingCard('Le partenaire exécute l’action Recovery…')
+          _waitingCard('${_waitingName(proposal.playerId, subject: true)} exécute l’action Recovery…')
         else ...[
           FilledButton(
             key: const Key('complete-network-recovery'),
@@ -1927,8 +1949,10 @@ class NetworkNegotiationOfferSummary extends StatelessWidget {
     key: const Key('negotiation-offer-summary'),
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      if (offer.inversionRequested)
+      if (offer.inversionRequested) ...[
         const Text('• Inversion de la carte initiale'),
+        const Text(_inversionHelp),
+      ],
       if (offer.directPa > 0) Text('• ${offer.directPa} PA personnels'),
       if (offer.cards.isNotEmpty) ...[
         const SizedBox(height: 8),

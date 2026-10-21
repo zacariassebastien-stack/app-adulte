@@ -52,6 +52,90 @@ void main() {
   });
 
 
+  for (final scenario in [
+    (NetworkGamePhase.corruptionDecision, 'alice', 'alice', 'bob', 'response'),
+    (NetworkGamePhase.corruptionDecision, 'bob', 'bob', 'alice', 'response'),
+    (NetworkGamePhase.negotiationProposal, 'alice', 'alice', 'bob', 'proposal'),
+    (NetworkGamePhase.negotiationResponse, 'bob', 'alice', 'alice', 'negotiation-response'),
+    (NetworkGamePhase.negotiationAdaptation, 'alice', 'alice', 'bob', 'adaptation'),
+    (NetworkGamePhase.negotiationValidation, 'bob', 'alice', 'alice', 'validation'),
+    (NetworkGamePhase.corruptionResponse, 'bob', 'alice', 'alice', 'response'),
+    (NetworkGamePhase.recoveryResponse, 'bob', 'alice', 'alice', 'consent'),
+    (NetworkGamePhase.recoveryExecution, 'alice', 'alice', 'bob', 'execution'),
+  ]) {
+    for (final names in scenario.$1 == NetworkGamePhase.corruptionDecision
+        ? ['named', 'legacy', 'blank'] : ['named']) {
+      testWidgets('waiting nickname ${scenario.$1.name} viewer=${scenario.$2} $names', (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final namedSession = LobbySession(id: session.id, joinCode: session.joinCode,
+          status: session.status, expiresAt: session.expiresAt, players: [
+            // Deliberately reverse role order: names are bound to IDs.
+            LobbyPlayer(userId: 'bob', role: LobbyPlayerRole.player1,
+              gameNickname: names == 'named' ? 'Sexgirl' : names == 'blank' ? '  ' : null),
+            LobbyPlayer(userId: 'alice', role: LobbyPlayerRole.player2,
+              gameNickname: names == 'named' ? 'Seblegenie' : names == 'blank' ? '  ' : null),
+          ]);
+        final backend = _Backend();
+        final offer = NetworkNegotiationOfferDto(inversionRequested: true, directPa: 0);
+        backend.round
+          ..phase = scenario.$1
+          ..initial = NetworkInitialResolutionDto(tied: false, gap: 1, gapCost: 1,
+            actionPoints: backend.points, winnerPlayerId: scenario.$3,
+            loserPlayerId: scenario.$3 == 'alice' ? 'bob' : 'alice', inversionAllowed: true)
+          ..negotiation = NetworkNegotiationDto(proposal: offer, finalOffer: offer,
+            response: const NetworkNegotiationResponseDto(accepted: true, acceptInversion: true))
+          ..corruption = NetworkCorruptionDto(offeredBy: 'bob',
+            objective: CorruptionObjective.OWN_INITIAL_ACTION, actions: const []);
+        if (scenario.$1 == NetworkGamePhase.recoveryResponse ||
+            scenario.$1 == NetworkGamePhase.recoveryExecution) {
+          backend.round.recoveries['bob'] = NetworkRecoveryDto.fromUsage(
+            nativeUsageFixture(owner: 'bob'), source: RecoverySource.HAND,
+            response: scenario.$1 == NetworkGamePhase.recoveryExecution ? RecoveryResponse.ACCEPT : null);
+        }
+        await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: namedSession,
+          playerId: scenario.$2, repository: backend.repository(scenario.$2), catalog: catalog,
+          secretStore: MemoryNetworkDuelSecretStore())));
+        await tester.pumpAndSettle();
+        final name = names != 'named' ? 'ton partenaire' : scenario.$4 == 'alice' ? 'Seblegenie' : 'Sexgirl';
+        final subject = names != 'named' ? 'Ton partenaire' : name;
+        final expected = switch (scenario.$5) {
+          'response' => 'En attente de la réponse de $name…',
+          'proposal' => '$subject prépare une proposition…',
+          'negotiation-response' => '$subject répond à ta proposition…',
+          'adaptation' => '$subject adapte sa proposition…',
+          'validation' => '$subject valide le compromis…',
+          'consent' => 'En attente du consentement de $name…',
+          _ => '$subject exécute l’action Recovery…',
+        };
+        expect(find.textContaining(expected), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
+    }
+  }
+
+  testWidgets('inversion help explains only FAIRE RECEVOIR and fits small viewport', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final backend = _Backend();
+    backend.round
+      ..phase = NetworkGamePhase.negotiationProposal
+      ..initial = NetworkInitialResolutionDto(tied: false, gap: 1, gapCost: 1,
+        actionPoints: backend.points, winnerPlayerId: 'alice', loserPlayerId: 'bob', inversionAllowed: true);
+    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session, playerId: 'bob',
+      repository: backend.repository('bob'), catalog: catalog, secretStore: MemoryNetworkDuelSecretStore())));
+    await tester.pumpAndSettle();
+    final help = find.byKey(const Key('negotiation-inversion-help'));
+    await tester.ensureVisible(help); await tester.pumpAndSettle();
+    expect(find.text('Inverse FAIRE ↔ RECEVOIR pour la carte retenue.'), findsOneWidget);
+    expect(tester.widget<SwitchListTile>(find.byKey(const Key('negotiation-inversion'))).value, isFalse);
+    expect(backend.round.negotiation, isNull);
+    expect(backend.round.commits, isEmpty);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   V4Profile stageProfile({int? excluded, ProfilePreferenceRole? role}) {
     final preferences = <String, ProfilePreference>{};
     for (final r in ProfilePreferenceRole.values) {
