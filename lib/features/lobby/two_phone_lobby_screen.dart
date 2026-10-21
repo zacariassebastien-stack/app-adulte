@@ -281,6 +281,11 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
         playerId,
       );
       if (!mounted) return;
+      if (repository is SessionNicknameRepository && v4Profile?.gameNickname != null) {
+        await (repository as SessionNicknameRepository).setGameNickname(
+          sessionId: controller.session!.id, nickname: v4Profile!.gameNickname!);
+      }
+      if (!mounted) return;
       final gameRepository = repository.gameRepository;
       if (gameRepository is! NetworkSessionSetupRepository) {
         throw StateError('V4 session setup is unavailable');
@@ -302,10 +307,14 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
         return;
       }
       if (!setup.complete) return;
+      // Both participants publish before setup agreement. Read their explicit
+      // IDs/names again after agreement, including on a restored session.
+      final namedSession = await repository.getSession(controller.session!.id);
+      if (!mounted) return;
       final exit = await Navigator.of(context).push<NetworkDuelExit>(
         MaterialPageRoute<NetworkDuelExit>(
           builder: (_) => NetworkDuelScreen(
-            session: controller.session!,
+            session: namedSession,
             playerId: playerId,
             repository: gameRepository,
             catalog: results[1] as Catalog,

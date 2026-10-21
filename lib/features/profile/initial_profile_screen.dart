@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/catalog/v4_catalog.dart';
 import '../../engines/profile/initial_questionnaire_engine.dart';
 import '../game/network_profile_learning.dart';
+import 'game_nickname_form.dart';
 
 class InitialProfileScreen extends StatefulWidget {
   const InitialProfileScreen({
@@ -27,6 +28,7 @@ class InitialProfileScreen extends StatefulWidget {
 class _InitialProfileScreenState extends State<InitialProfileScreen> {
   final Map<String, InitialQuestionResponse> _responses = {};
   var _index = 0;
+  String? _nickname;
   var _saving = false;
 
   ProfileQuestion get _question => widget.questionnaire.questions[_index];
@@ -42,11 +44,13 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
       return;
     }
     setState(() => _saving = true);
-    final profile = const InitialQuestionnaireEngine().initialize(
-      profileId: widget.playerId,
-      questionnaire: widget.questionnaire,
-      responses: _responses,
-    );
+    final profile = const InitialQuestionnaireEngine()
+        .initialize(
+          profileId: widget.playerId,
+          questionnaire: widget.questionnaire,
+          responses: _responses,
+        )
+        .copyWith(gameNickname: _nickname);
     await widget.profileStore.save(profile);
     await widget.adaptiveStore.save(adaptiveProfileFromV4Profile(profile));
     if (mounted) widget.onCompleted();
@@ -54,6 +58,24 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_nickname == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Créer mon profil')),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: GameNicknameForm(
+                onSaved: (name) async {
+                  setState(() => _nickname = name);
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     final question = _question;
     return Scaffold(
       appBar: AppBar(title: const Text('Créer mon profil')),

@@ -3,9 +3,14 @@ enum LobbyStatus { waiting, ready, closed }
 enum LobbyPlayerRole { player1, player2 }
 
 final class LobbyPlayer {
-  const LobbyPlayer({required this.userId, required this.role});
+  const LobbyPlayer({
+    required this.userId,
+    required this.role,
+    this.gameNickname,
+  });
 
   final String userId;
+  final String? gameNickname;
   final LobbyPlayerRole role;
 }
 
@@ -24,6 +29,12 @@ final class LobbySession {
   final DateTime expiresAt;
   final List<LobbyPlayer> players;
 
+  Map<String, String> get participantNames => {
+    for (final player in players)
+      if (player.gameNickname?.trim().isNotEmpty == true)
+        player.userId: player.gameNickname!.trim(),
+  };
+
   bool get ready => status == LobbyStatus.ready && players.length == 2;
 
   factory LobbySession.fromSupabaseJson(Map<String, Object?> json) {
@@ -38,6 +49,7 @@ final class LobbySession {
           if (Map<String, Object?>.from(value! as Map) case final player)
             LobbyPlayer(
               userId: player['user_id']! as String,
+              gameNickname: player['game_nickname'] as String?,
               role: switch (player['role']! as String) {
                 'PLAYER_1' => LobbyPlayerRole.player1,
                 'PLAYER_2' => LobbyPlayerRole.player2,

@@ -30,6 +30,7 @@ import 'network_profile_learning.dart';
 import '../../engines/eligibility/concept_action_options.dart';
 import 'ui/card_hand_surface.dart';
 import 'ui/resolution_wording.dart';
+import 'ui/adaptive_card_page.dart';
 import 'ui/discard_gallery_screen.dart';
 import 'ui/gameplay_hud.dart';
 import 'ui/game_settings_panel.dart';
@@ -221,22 +222,16 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       NetworkGameViewState.negotiationValidation,
     }.contains(controller.viewState);
     if (!decision || card == null) return body;
-    return LayoutBuilder(
-      builder: (context, bounds) => Column(
-        children: [
-          Expanded(child: body),
-          SizedBox(
-            height: bounds.maxHeight / 3,
-            child: IgnorePointer(
-              child: CardRenderer(
-                key: const Key('personal-duel-card'),
-                definition: _handItem(card).definition,
-                state: CardVisualState.full,
-              ),
-            ),
-          ),
-        ],
-      ),
+    if (body is! _DecisionContent) return body;
+    return AdaptiveCardPage(
+      key: body.key,
+      before: body.children,
+      card: IgnorePointer(child: FittedActionCard(child: CardRenderer(
+        key: const Key('personal-duel-card'),
+        definition: _handItem(card).definition,
+        state: CardVisualState.full,
+      ))),
+      after: const [],
     );
   }
 
@@ -729,7 +724,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     bool? canEdit,
     bool requireNonEmpty = false,
     Widget? leading,
-  }) => ListView(
+  }) => _DecisionContent(
     key: Key(title),
     padding: const EdgeInsets.all(16),
     children: [
@@ -795,7 +790,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
 
   Widget _negotiationResponse() {
     final proposal = controller.negotiation!.proposal!;
-    return ListView(
+    return _DecisionContent(
       key: const Key('negotiation-response'),
       padding: const EdgeInsets.all(16),
       children: [
@@ -827,7 +822,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
 
   Widget _negotiationValidation() {
     final offer = controller.negotiation!.finalOffer!;
-    return ListView(
+    return _DecisionContent(
       key: const Key('negotiation-validation'),
       padding: const EdgeInsets.all(16),
       children: [
@@ -909,26 +904,18 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         : winner == widget.playerId
         ? 'Tu as gagné !'
         : 'Tu as perdu';
-    return ListView(
+    return AdaptiveCardPage(
       key: const Key('network-action-in-progress'),
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(title, style: Theme.of(context).textTheme.headlineSmall),
-        if (!result.mutualAbandon) ...[
-          const SizedBox(height: 12),
-          if (cards.isNotEmpty) ...[
-            _ResolutionCards(
-              key: ValueKey(
-                'resolution:${controller.round!.roundId}:${cards.map((card) => card.usageId).join(',')}',
-              ),
-              cards: [for (final card in cards) _resolvedActionCard(card)],
-            ),
-          ] else if (result.cardId != null) ...[
-            Text('Carte : ${_title(result.cardId!)}'),
-            Text('Variante : ${result.variantId}'),
-            if (result.inverted) const Text('Rôles physiques inversés'),
-          ],
-        ],
+      before: [
+        Text(title, textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+      ],
+      card: !result.mutualAbandon && cards.isNotEmpty ? _ResolutionCards(
+        key: ValueKey('resolution:${controller.round!.roundId}:${cards.map((card) => card.usageId).join(',')}'),
+        cards: [for (final card in cards) _resolvedActionCard(card)],
+      ) : null,
+      after: [
         if (controller.persistentEffects.isNotEmpty) ...[
           const SizedBox(height: 16),
           Text('Effets actifs', style: Theme.of(context).textTheme.titleMedium),
@@ -994,7 +981,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
 
   ResolutionWording get _resolutionWording => ResolutionWording(
     localPlayerId: widget.playerId,
-    names: widget.participantNames,
+    names: {...widget.session.participantNames, ...widget.participantNames},
   );
 
   Widget _resolvedActionCard(NetworkResolvedActionCardDto card) {
@@ -1044,27 +1031,26 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     );
     return Column(
       key: Key('resolved-action-${card.usageId}'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           _resolutionWording.retained(card.usage.ownerPlayerId),
+          textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
-        Text(definition.title, style: Theme.of(context).textTheme.headlineSmall),
+        Text(definition.title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 8),
         Text(
           _resolutionWording.describe(card, definition.title),
           key: Key('resolution-description-${card.usageId}'),
+          textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        SizedBox(
-          height: 440,
-          child: CardRenderer(
-            definition: definition,
-            state: CardVisualState.full,
-            showPa: false,
-          ),
-        ),
+        const SizedBox(height: 12),
+        Expanded(child: FittedActionCard(child: CardRenderer(
+          definition: definition, state: CardVisualState.full, showPa: false,
+        ))),
         Text(
           [
             for (final accessory in action['accessories']! as List)
@@ -1185,7 +1171,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
 
   Widget _corruptionDecision() {
     if (!controller.isCorruptionActor) {
-      return ListView(
+      return _DecisionContent(
         key: const Key('network-post-duel-waiting'),
         padding: const EdgeInsets.all(16),
         children: [
@@ -1215,7 +1201,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       );
     }
     if (_postDuelChoice == null) {
-      return ListView(
+      return _DecisionContent(
         key: const Key('network-post-duel-choice'),
         padding: const EdgeInsets.all(16),
         children: [
@@ -1250,7 +1236,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         ],
       );
     }
-    return ListView(
+    return _DecisionContent(
       key: const Key('network-corruption-decision'),
       padding: const EdgeInsets.all(16),
       children: [
@@ -1312,7 +1298,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
 
   Widget _corruptionResponse() {
     final offer = controller.corruption!;
-    return ListView(
+    return _DecisionContent(
       key: const Key('network-corruption-response'),
       padding: const EdgeInsets.all(16),
       children: [
@@ -2043,7 +2029,7 @@ class _ResolutionCardsState extends State<_ResolutionCards> {
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      widget.cards[index],
+      Expanded(child: widget.cards[index]),
       if (widget.cards.length > 1)
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -2070,4 +2056,13 @@ class _ResolutionCardsState extends State<_ResolutionCards> {
         ),
     ],
   );
+}
+
+/// Decision controls keep their natural height so the retained card can use the rest.
+class _DecisionContent extends StatelessWidget {
+  const _DecisionContent({required this.children, this.padding, super.key});
+  final List<Widget> children;
+  final EdgeInsetsGeometry? padding;
+  @override
+  Widget build(BuildContext context) => ListView(padding: padding, children: children);
 }

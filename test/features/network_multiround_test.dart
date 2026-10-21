@@ -827,6 +827,36 @@ void main() {
       );
     }
   }
+  testWidgets('final resolution fits long session names and grows with available height', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final named = LobbySession(id: session.id, joinCode: session.joinCode, status: session.status,
+      expiresAt: session.expiresAt, players: const [
+        LobbyPlayer(userId: 'alice', role: LobbyPlayerRole.player1, gameNickname: 'ABCDEFGHIJKLMNOPQRST'),
+        LobbyPlayer(userId: 'bob', role: LobbyPlayerRole.player2, gameNickname: 'UVWXYZABCDEFGHIJKLMN'),
+      ]);
+    double? previous;
+    for (final size in [const Size(320, 420), const Size(600, 1100)]) {
+      await tester.binding.setSurfaceSize(size);
+      final backend = _Backend();
+      _setProjectedAction(backend, cards: [NetworkResolvedActionCardDto.fromUsage(nativeUsageFixture())]);
+      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: named, playerId: 'alice',
+        repository: backend.repository('alice'), catalog: catalog, secretStore: MemoryNetworkDuelSecretStore())));
+      await tester.pumpAndSettle();
+      final card = tester.getSize(find.byType(CardRenderer));
+      expect(card.width / card.height, closeTo(.68, .01));
+      if (previous != null) expect(card.height, greaterThan(previous));
+      previous = card.height;
+      final description = tester.widget<Text>(find.byKey(const Key('resolution-description-usage-test')));
+      expect(description.textAlign, TextAlign.center);
+      expect(description.data, contains('ABCDEFGHIJKLMNOPQRST'));
+      expect(description.data, contains('UVWXYZABCDEFGHIJKLMN'));
+      await tester.ensureVisible(find.byKey(const Key('complete-network-action')));
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    }
+    await tester.binding.setSurfaceSize(null);
+  });
+
   testWidgets('miniature replacement uses existing refill and spends zero PA', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final preferences = <String, ProfilePreference>{};
@@ -883,8 +913,11 @@ void main() {
           final usage = nativeUsageFixture(owner: 'alice', conceptId: '032', direction: direction);
           _setProjectedAction(backend, cards: [NetworkResolvedActionCardDto.fromUsage(usage)]);
           await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
-            session: session, playerId: id, repository: backend.repository(id), catalog: catalog,
-            participantNames: named ? {'alice': 'Sébastien', 'bob': 'Julie'} : const {},
+            session: named ? LobbySession(id: session.id, joinCode: session.joinCode, status: session.status,
+              expiresAt: session.expiresAt, players: [
+                const LobbyPlayer(userId: 'alice', role: LobbyPlayerRole.player1, gameNickname: 'Sébastien'),
+                const LobbyPlayer(userId: 'bob', role: LobbyPlayerRole.player2, gameNickname: 'Julie'),
+              ]) : session, playerId: id, repository: backend.repository(id), catalog: catalog,
             secretStore: MemoryNetworkDuelSecretStore())));
           await tester.pumpAndSettle();
           expect(find.text(id == 'alice' ? 'Tu as gagné !' : 'Tu as perdu'), findsOneWidget);
@@ -963,10 +996,13 @@ void main() {
     },
   );
 
+  for (final size in [const Size(320, 420), const Size(600, 1100)]) {
   for (final id in ['alice', 'bob']) {
-    testWidgets('post duel shows only the complete personal card for $id', (
+    testWidgets('post duel shows only the complete personal card for $id at $size', (
       tester,
     ) async {
+      await tester.binding.setSurfaceSize(size);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final backend = await tester.runAsync(() async {
         final setup = await _setup(session, catalog);
@@ -1007,12 +1043,8 @@ void main() {
       final bounds = tester.getRect(
         find.byKey(const Key('personal-duel-card')),
       );
-      expect(
-        bounds.top,
-        greaterThan(
-          tester.view.physicalSize.height / tester.view.devicePixelRatio * .6,
-        ),
-      );
+      expect(bounds.width / bounds.height, closeTo(.68, .01));
+      expect(bounds.height, greaterThan(0));
       expect(
         find.byKey(const Key('choose-negotiation')),
         winner ? findsNothing : findsOneWidget,
@@ -1029,6 +1061,7 @@ void main() {
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
     });
+  }
   }
   test('stage defaults follow highest available stage and consumed stages stay unavailable', () async {
     final backend = _Backend()..v4UnlockedSpice = 2;

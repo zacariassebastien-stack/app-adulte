@@ -10,7 +10,7 @@ import '../../sync/rounds/network_game.dart';
 import 'supabase_network_game_repository.dart';
 import 'supabase_network_round_repository.dart';
 
-final class SupabaseLobbyRepository implements NetworkLobbyRepository {
+final class SupabaseLobbyRepository implements NetworkLobbyRepository, SessionNicknameRepository {
   SupabaseLobbyRepository({
     required this.client,
     JoinCodeGenerator? codeGenerator,
@@ -82,6 +82,14 @@ final class SupabaseLobbyRepository implements NetworkLobbyRepository {
     } on AuthException {
       throw const LobbyNetworkException();
     }
+  }
+
+  @override
+  Future<LobbySession> setGameNickname({required String sessionId, required String nickname}) async {
+    await _identity();
+    return _map(await client.rpc<Map<String, dynamic>>('set_session_game_nickname', params: {
+      'p_session_id': sessionId, 'p_nickname': nickname,
+    }));
   }
 
   @override

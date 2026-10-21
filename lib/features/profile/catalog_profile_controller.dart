@@ -102,6 +102,13 @@ final class CatalogProfileController extends ChangeNotifier {
     super.dispose();
   }
 
+  Future<void> setGameNickname(String value) async {
+    final updated = profile.copyWith(gameNickname: GameNickname.normalize(value));
+    await profileStore.save(updated);
+    profile = updated;
+    _changed();
+  }
+
   Future<void> load() async {
     profile =
         await profileStore.load(playerId) ??

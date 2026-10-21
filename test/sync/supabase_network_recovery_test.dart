@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:couple_cards/data/remote/supabase_network_game_repository.dart';
+import 'package:couple_cards/data/remote/supabase_lobby_repository.dart';
 import 'package:couple_cards/sync/sync.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -106,6 +107,36 @@ void main() {
       // its read-only verification; it cannot complete the expired future again.
       // The shared caller adds no extra read.
       expect(reads, 4);
+    },
+  );
+
+  test(
+    'session nickname RPC and restored session keep explicit player IDs',
+    () async {
+      final calls = <String>[];
+      final session = {
+        'id': 'session',
+        'join_code': 'ABCDEF',
+        'status': 'ready',
+        'expires_at': '2027-01-01T00:00:00Z',
+        'players': [
+          {'user_id': 'bob', 'role': 'PLAYER_2', 'game_nickname': 'Julie'},
+          {'user_id': 'alice', 'role': 'PLAYER_1', 'game_nickname': 'Seb'},
+        ],
+      };
+      handle = (request) async {
+        calls.add(request.uri.path.split('/').last);
+        await reply(request, session);
+      };
+      final lobby = SupabaseLobbyRepository(client: client);
+      final updated = await lobby.setGameNickname(
+        sessionId: 'session',
+        nickname: 'Julie',
+      );
+      final restored = await lobby.getSession('session');
+      expect(updated.participantNames, {'alice': 'Seb', 'bob': 'Julie'});
+      expect(restored.participantNames, updated.participantNames);
+      expect(calls, ['set_session_game_nickname', 'get_game_session']);
     },
   );
 

@@ -38,3 +38,8 @@ final class UnavailableLobbyRepository implements LobbyRepository {
   Stream<LobbySession> watchSession(String sessionId) =>
       Stream.error(const LobbyConfigurationException());
 }
+
+/// Optional identity metadata; independent of the game command protocol.
+abstract interface class SessionNicknameRepository {
+  Future<LobbySession> setGameNickname({required String sessionId, required String nickname});
+}

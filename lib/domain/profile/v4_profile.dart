@@ -232,6 +232,7 @@ final class StageVeto {
 final class V4Profile {
   V4Profile({
     required this.profileId,
+    this.gameNickname,
     required Map<String, ProfilePreference> preferences,
     Map<String, PracticeConsent> consents = const {},
     List<V4ProfileAccessory> accessories = const [],
@@ -242,6 +243,7 @@ final class V4Profile {
        stageVetoes = List.unmodifiable(stageVetoes);
 
   final String profileId;
+  final String? gameNickname;
   final Map<String, ProfilePreference> preferences;
   final Map<String, PracticeConsent> consents;
   final List<V4ProfileAccessory> accessories;
@@ -284,6 +286,7 @@ final class V4Profile {
   Map<String, Object?> toJson() => {
     'schema_version': 1,
     'profile_id': profileId,
+    if (gameNickname != null) 'game_nickname': gameNickname,
     'preferences': [for (final value in preferences.values) value.toJson()],
     'consents': [for (final value in consents.values) value.toJson()],
     'accessories': [for (final value in accessories) value.toJson()],
@@ -301,6 +304,7 @@ final class V4Profile {
     ];
     return V4Profile(
       profileId: json['profile_id']! as String,
+      gameNickname: json['game_nickname'] as String?,
       preferences: {
         for (final value in preferences) value.key.storageKey: value,
       },
@@ -317,13 +321,30 @@ final class V4Profile {
   }
 
   V4Profile copyWith({
+    String? gameNickname,
     List<V4ProfileAccessory>? accessories,
     List<StageVeto>? stageVetoes,
   }) => V4Profile(
     profileId: profileId,
+    gameNickname: gameNickname ?? this.gameNickname,
     preferences: preferences,
     consents: consents,
     accessories: accessories ?? this.accessories,
     stageVetoes: stageVetoes ?? this.stageVetoes,
   );
+}
+
+/// Identity metadata, independent of questionnaire and preference scoring.
+abstract final class GameNickname {
+  static String? error(String? value) {
+    final length = (value ?? '').trim().runes.length;
+    return length < 2 || length > 20
+        ? 'Choisis un pseudo de 2 à 20 caractères.'
+        : null;
+  }
+
+  static String normalize(String value) {
+    if (error(value) != null) throw ArgumentError('Invalid game nickname');
+    return value.trim();
+  }
 }

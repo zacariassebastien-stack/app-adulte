@@ -6,6 +6,7 @@ import '../../domain/catalog/concept_editorial.dart';
 import '../../domain/profile/adaptive_profile.dart';
 import 'catalog_profile_controller.dart';
 import 'radial_appreciation.dart';
+import 'game_nickname_form.dart';
 
 class CatalogProfileScreen extends StatefulWidget {
   const CatalogProfileScreen({required this.controller, super.key});
@@ -211,7 +212,20 @@ class _CatalogProfileScreenState extends State<CatalogProfileScreen> {
   );
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Personnaliser mon profil')),
+    appBar: AppBar(title: const Text('Personnaliser mon profil'), actions: [
+      IconButton(key: const Key('edit-game-nickname'), tooltip: 'Modifier le pseudo de jeu',
+        icon: const Icon(Icons.badge_outlined), onPressed: () async {
+          if (!model.ready) return;
+          await showDialog<void>(context: context, builder: (dialogContext) => AlertDialog(
+            content: SingleChildScrollView(child: GameNicknameForm(
+              initialValue: model.profile.gameNickname, buttonText: 'Enregistrer',
+              onSaved: (name) async {
+                await model.setGameNickname(name);
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
+              })),
+          ));
+        }),
+    ]),
     body: _error != null
         ? Center(child: Text(_error!))
         : AnimatedBuilder(
