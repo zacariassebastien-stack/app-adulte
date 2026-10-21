@@ -141,7 +141,21 @@ final class SupabaseNetworkGameRepository
   @override
   Future<NetworkGameRoundStateDto> getCurrentRound({
     required String sessionId,
-  }) async {
+  }) {
+    final pending = _currentReads[sessionId];
+    if (pending != null) return pending;
+    final read = _readCurrentRound(sessionId);
+    _currentReads[sessionId] = read;
+    return read.whenComplete(() {
+      if (identical(_currentReads[sessionId], read)) {
+        _currentReads.remove(sessionId);
+      }
+    });
+  }
+
+  final Map<String, Future<NetworkGameRoundStateDto>> _currentReads = {};
+
+  Future<NetworkGameRoundStateDto> _readCurrentRound(String sessionId) async {
     final playerId = await _identity();
     final current = await _call('get_current_network_game_round', {
       'p_session_id': sessionId,

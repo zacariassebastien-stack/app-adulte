@@ -66,10 +66,11 @@ final class SharedPreferencesV4ProfileStore implements V4ProfileStore {
   @override
   Future<void> save(V4Profile profile) async {
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(
+    final saved = await preferences.setString(
       'profile_preferences_v4.${profile.profileId}',
       jsonEncode(profile.toJson()),
     );
+    if (!saved) throw StateError('Profile persistence failed');
   }
 }
 
@@ -106,10 +107,11 @@ final class SharedPreferencesV4CardLearningStore
   @override
   Future<void> save(String playerId, CardSpecificLearningStore state) async {
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(
+    final saved = await preferences.setString(
       'card_learning_v4.$playerId',
       jsonEncode(state.toJson()),
     );
+    if (!saved) throw StateError('Card appreciation persistence failed');
   }
 }
 

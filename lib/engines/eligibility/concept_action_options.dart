@@ -69,7 +69,8 @@ final class ConceptActionOptions {
         )) {
           return false;
         }
-        final rating = catalog.ratingFor(conceptId, variant.id);
+        final rating = catalog.optionalRatingFor(conceptId, variant.id);
+        if (rating == null) return false;
         bool rated(String direction) {
           if (profile.excludesStage(conceptId, variant.id, direction)) {
             return false;

@@ -32,12 +32,23 @@ final class ConceptRuntimeCatalog {
   }
   final ConceptCatalog concepts;
   late final Map<String, CardDefinition> definitions;
-  V4VariantRatingDefinition ratingFor(String conceptId, String actionId) {
-    final variant = definitions[conceptId]!.variants.singleWhere(
+  V4VariantRatingDefinition ratingFor(String conceptId, String actionId) =>
+      optionalRatingFor(conceptId, actionId) ??
+      (throw StateError('No rating metadata for $conceptId/$actionId'));
+
+  V4VariantRatingDefinition? optionalRatingFor(
+    String conceptId,
+    String actionId,
+  ) {
+    final definition = definitions[conceptId];
+    if (definition == null) throw ArgumentError.value(conceptId, 'conceptId');
+    final variant = definition.variants.singleWhere(
       (v) => v.stableId == actionId,
     );
+    final metadata = variant.reader.json['v4'];
+    if (metadata == null) return null;
     return V4VariantRatingDefinition.fromJson({
-      ...variant.reader.json['v4']! as JsonMap,
+      ...metadata as JsonMap,
       'variant_id': actionId,
       'stage': null,
       'scope': 'concept',

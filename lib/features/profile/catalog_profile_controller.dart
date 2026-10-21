@@ -136,7 +136,7 @@ final class CatalogProfileController extends ChangeNotifier {
       );
   bool cardExcluded(String id) =>
       profile.stageVetoes.any((v) => v.conceptId == id && v.actionId == '*');
-  DetailedPreferenceCategory category(ProfileCatalogItem item) {
+  DetailedPreferenceCategory? category(ProfileCatalogItem item) {
     if (profile.excludesStage(
       item.concept.id,
       item.actionId,
@@ -148,9 +148,11 @@ final class CatalogProfileController extends ChangeNotifier {
     if (estimate != null) {
       return DetailedPreferenceCategoryRules.fromPa(estimate);
     }
+    final rating = runtime.optionalRatingFor(item.concept.id, item.actionId);
+    if (rating == null) return null;
     final prior = const V4CardRatingEngine().initializeForDirection(
       profile: effectiveProfile,
-      variant: runtime.ratingFor(item.concept.id, item.actionId),
+      variant: rating,
       conceptId: item.concept.id,
       direction: item.direction.name,
       vetoTags: runtime.vetoTags(item.concept.id),
@@ -202,10 +204,36 @@ final class CatalogProfileController extends ChangeNotifier {
       // CARD_ESTIMATE is the existing explicit card-specific estimate marker.
       final updatedRatings = CardSpecificLearningStore()
         ..restore(ratings.toJson());
-      updatedRatings.write(old.withOwnEstimate(category.personalPa ?? 20));
+      if (category.personalPa case final score?) {
+        updatedRatings.write(old.withOwnEstimate(score));
+      }
       await profileStore.save(next);
       await ratingStore.save(playerId, updatedRatings);
       ratings = updatedRatings;
+      profile = next;
+    } finally {
+      saving = false;
+      _changed();
+    }
+  }
+
+  Future<void> allowStage(ProfileCatalogItem item) async {
+    if (saving) return;
+    saving = true;
+    _changed();
+    try {
+      final role = ProfilePreferenceRole.parse(item.direction.name);
+      final next = profile.copyWith(
+        stageVetoes: [
+          for (final veto in profile.stageVetoes)
+            if (!(veto.conceptId == item.concept.id &&
+                veto.actionId == item.actionId &&
+                (veto.role == role ||
+                    veto.role == ProfilePreferenceRole.general)))
+              veto,
+        ],
+      );
+      await profileStore.save(next);
       profile = next;
     } finally {
       saving = false;

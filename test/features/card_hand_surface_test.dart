@@ -76,7 +76,7 @@ void main() {
   });
 
   testWidgets(
-    'stage tabs distinguish played from locked and only available tabs select',
+    'stage tabs distinguish played from excluded and only available tabs select',
     (tester) async {
       String? selected;
       final item = CardHandItem(
@@ -94,7 +94,7 @@ void main() {
             consumed: true,
           ),
           CardHandTab(id: 'stage-2', label: '2', enabled: true),
-          CardHandTab(id: 'stage-3', label: '3', enabled: false),
+          CardHandTab(id: 'stage-3', label: '3', enabled: false, excluded: true),
         ],
       );
       await pumpHand(tester, items: [item], onTab: (_, id) => selected = id);
@@ -105,7 +105,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('1 ✓ joué'), findsOneWidget);
-      expect(find.text('3 🔒'), findsOneWidget);
+      expect(find.text('3 🚫'), findsOneWidget);
       for (final id in ['stage-1', 'stage-3']) {
         expect(
           tester

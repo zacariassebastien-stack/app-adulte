@@ -103,6 +103,17 @@ class _CatalogProfileScreenState extends State<CatalogProfileScreen> {
         variantId: item.actionId,
         title: item.concept.title,
         subtitle: item.actionTitle,
+        zones: [
+          for (final variant in item.concept.variants.where(
+            (v) => v.id == item.actionId,
+          ))
+            if (variant.zoneId case final zoneId?)
+              model.catalog.concepts!.zones
+                  .singleWhere((z) => z.id == zoneId)
+                  .title
+            else if (variant.freeZone)
+              'LIBRE',
+        ],
         action: copy.actionText,
         details: copy.detailsText,
         direction: item.direction.name,
@@ -146,7 +157,7 @@ class _CatalogProfileScreenState extends State<CatalogProfileScreen> {
     mainAxisSize: MainAxisSize.min,
     children: [
       Text(
-        '${item.actionTitle} · ${item.direction.name} · ${model.category(item).label}',
+        '${item.actionTitle} · ${item.direction.name} · ${model.category(item)?.label ?? 'À renseigner'}',
       ),
       if (!model.explicit(item))
         const Text('Estimation du profil — pas encore évalué explicitement'),
@@ -311,7 +322,7 @@ class _CatalogProfileScreenState extends State<CatalogProfileScreen> {
                                   '${item.concept.title} · ${item.actionTitle}',
                                 ),
                                 subtitle: Text(
-                                  '${item.direction.name} · ${model.category(item).label}${model.globalTagVeto(item) ? ' · Veto global actif' : ''}',
+                                  '${item.direction.name} · ${model.category(item)?.label ?? 'À renseigner'}${model.globalTagVeto(item) ? ' · Veto global actif' : ''}',
                                 ),
                                 onTap: () => _consult(item),
                                 trailing: PopupMenuButton<Object>(

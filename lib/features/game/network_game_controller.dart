@@ -64,6 +64,8 @@ final class NetworkGameController extends ChangeNotifier {
     Iterable<V4Accessory> profileAccessories = const [],
     Iterable<String> disabledAccessoryIds = const [],
     Iterable<V4Accessory> temporaryAccessories = const [],
+    this.reconciliationInterval = const Duration(seconds: 8),
+    this.watchRetryDelay = const Duration(seconds: 2),
     DateTime Function()? clock,
     String Function()? nonceFactory,
   }) : _catalog = catalog,
@@ -176,6 +178,81 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   final Catalog _catalog;
+  final Duration reconciliationInterval;
+  final Duration watchRetryDelay;
+  Timer? _reconciliationTimer;
+  Timer? _watchRetryTimer;
+  bool _refreshingCanonical = false;
+  int _watchGeneration = 0;
+  Object? lastSynchronizationError;
+
+  void _ensureReconciliation() {
+    _reconciliationTimer ??= Timer.periodic(reconciliationInterval, (_) {
+      final phase = round?.phase;
+      if (phase == NetworkGamePhase.commit ||
+          phase == NetworkGamePhase.reveal ||
+          phase == NetworkGamePhase.ready) {
+        unawaited(_refreshCanonical());
+      }
+    });
+  }
+
+  Future<void> _refreshCanonical() async {
+    if (_disposed || _localSessionCleared || _refreshingCanonical) return;
+    _refreshingCanonical = true;
+    try {
+      final value = await repository.getCurrentRound(sessionId: session.id);
+      if (!_disposed) await _apply(value);
+    } catch (error, stack) {
+      lastSynchronizationError = error;
+      debugPrint('Canonical round reconciliation failed: $error');
+      debugPrint(stack.toString());
+    } finally {
+      _refreshingCanonical = false;
+    }
+  }
+
+  void _watchRound(NetworkGameRoundStateDto value) {
+    if (_disposed || _localSessionCleared) return;
+    final generation = ++_watchGeneration;
+    _watchRetryTimer?.cancel();
+    final previous = _subscription;
+    _subscription = null;
+    if (previous != null) unawaited(previous.cancel());
+    void restart([Object? error, StackTrace? stack]) {
+      if (_disposed || generation != _watchGeneration) return;
+      if (error != null) {
+        lastSynchronizationError = error;
+        debugPrint('Round surveillance interrupted: $error');
+        if (stack != null) debugPrint(stack.toString());
+      }
+      final ended = _subscription;
+      _subscription = null;
+      if (ended != null) unawaited(ended.cancel());
+      if (_watchRetryTimer?.isActive == true) return;
+      _watchRetryTimer = Timer(watchRetryDelay, () {
+        if (_disposed || generation != _watchGeneration) return;
+        _watchRound(round ?? value);
+        unawaited(_refreshCanonical());
+      });
+    }
+
+    _subscription = repository
+        .watchRound(sessionId: session.id, roundId: value.roundId)
+        .listen(
+          (update) => unawaited(
+            _apply(update).catchError((Object error, StackTrace stack) {
+              lastSynchronizationError = error;
+              debugPrint('Round snapshot application failed: $error');
+              debugPrint(stack.toString());
+              _fail(error);
+            }),
+          ),
+          onError: (Object error, StackTrace stack) => restart(error, stack),
+          onDone: restart,
+        );
+  }
+
   late final ConceptRuntimeCatalog _conceptCatalog;
   late ConceptUsageCheckpoint _usageCheckpoint;
   bool _cycleInitialized = false;
@@ -198,9 +275,39 @@ final class NetworkGameController extends ChangeNotifier {
       .toList();
   bool stageExcluded(String conceptId, String actionId, String direction) =>
       _v4Profile?.excludesStage(conceptId, actionId, direction) ?? false;
+  bool cardExcluded(String conceptId) =>
+      _v4Profile?.stageVetoes.any(
+        (v) => v.conceptId == conceptId && v.actionId == '*',
+      ) ??
+      false;
+
+  bool _fullyExcluded(String conceptId) {
+    if (cardExcluded(conceptId)) return true;
+    final variants = _definitions[conceptId]?.variants;
+    if (variants == null || variants.isEmpty) return false;
+    return variants.every((variant) {
+      final directions =
+          variant.v3?.tags
+              .where((t) => t.startsWith('v3.direction.'))
+              .toList() ??
+          <String>[];
+      return directions.isNotEmpty &&
+          directions.every(
+            (tag) => stageExcluded(
+              conceptId,
+              variant.stableId,
+              tag.split('.').last.toUpperCase(),
+            ),
+          );
+    });
+  }
 
   Future<void> applyStageVetoProfile(V4Profile profile) async {
     _v4Profile = profile;
+    _runtime = [
+      for (final card in _runtime)
+        _fullyExcluded(card.cardId) ? card.copyWith(locked: false) : card,
+    ];
     if (_activeReveal == null &&
         selectedCard != null &&
         _selectedOption != null) {
@@ -361,7 +468,8 @@ final class NetworkGameController extends ChangeNotifier {
     try {
       await _persist();
       if (_pendingSecondaryCommand != null) await _replaySecondaryCommand();
-      await _apply(await repository.getCurrentRound(sessionId: session.id));
+      if (_subscription == null && round != null) _watchRound(round!);
+      await _refreshCanonical();
     } catch (error) {
       _fail(error);
     }
@@ -631,6 +739,7 @@ final class NetworkGameController extends ChangeNotifier {
       _followOrientation(current.hybridOrientation);
       await _restoreOrCreatePrivateState(current);
       _privateStateReady = true;
+      _ensureReconciliation();
       await _switchRound(current);
       if (_pendingSecondaryCommand != null) await _replaySecondaryCommand();
     } catch (error) {
@@ -860,7 +969,10 @@ final class NetworkGameController extends ChangeNotifier {
   NetworkDuelCard? previewAction(String id, ConceptActionOption option) =>
       _networkCard(id, option: option);
 
-  ConceptDeckPool _conceptPool({bool excludeHeld = false}) {
+  ConceptDeckPool _conceptPool({
+    bool excludeHeld = false,
+    Set<String> excluded = const {},
+  }) {
     final options = _currentOptions();
     return const ConceptDeckEngine().prepare(
       catalog: _conceptCatalog.concepts,
@@ -868,6 +980,9 @@ final class NetworkGameController extends ChangeNotifier {
       globalChili: _context.chiliActive,
       style: _deckStyle,
       unavailableConceptIds: {
+        ...excluded,
+        for (final concept in _conceptCatalog.concepts.concepts)
+          if (_fullyExcluded(concept.id)) concept.id,
         for (final entry in _usageCheckpoint.stock.remaining.entries)
           if (_usageCheckpoint.availableFor(entry.key) == 0) entry.key,
         if (excludeHeld)
@@ -927,6 +1042,13 @@ final class NetworkGameController extends ChangeNotifier {
       ).where((o) => o.key == _selectedOption?.key).firstOrNull;
       if (option == null) {
         throw StateError('Selected action is no longer eligible');
+      }
+      if (stageExcluded(
+        card.id,
+        option.choice.actionId,
+        card.nativeDirection.name,
+      )) {
+        throw StateError('Selected stage is excluded');
       }
       final engagedAt = clock().toUtc();
       final engagedCheckpoint = _usageCheckpoint.engage(
@@ -1960,15 +2082,7 @@ final class NetworkGameController extends ChangeNotifier {
     bool applyImmediately = false,
   }) async {
     final changed = round?.roundId != value.roundId;
-    if (changed) {
-      await _subscription?.cancel();
-      _subscription = repository
-          .watchRound(sessionId: session.id, roundId: value.roundId)
-          .listen(
-            (update) => unawaited(_apply(update)),
-            onError: (Object error) => _fail(error),
-          );
-    }
+    if (changed || _subscription == null) _watchRound(value);
     if (applyImmediately) {
       await _applyNow(value, roundBound: true);
     } else {
@@ -2283,7 +2397,13 @@ final class NetworkGameController extends ChangeNotifier {
 
   Future<void> _prepareNextRound({int? targetRound}) async {
     if (_nextRoundPrepared) return;
-    _runtime = _runtime.where((c) => c.zone != CardZone.ENGAGED).toList();
+    _runtime = _runtime
+        .where(
+          (c) =>
+              c.zone != CardZone.ENGAGED &&
+              !(c.zone == CardZone.HAND && _fullyExcluded(c.cardId)),
+        )
+        .toList();
     final nextNumber = targetRound ?? roundNumber + 1;
     _refill(nextNumber);
     _activeReveal = null;
@@ -2516,14 +2636,17 @@ final class NetworkGameController extends ChangeNotifier {
     }
   }
 
-  void _refill(int targetRound) {
+  void _refill(int targetRound, {Set<String> excluded = const {}}) {
     var needed =
         const BalanceConfig().handSize -
         _runtime.where((c) => c.zone == CardZone.HAND).length;
     if (needed <= 0) return;
     final random = Random(_stableHash('$playerId/$targetRound/$_deckCycle'));
     while (needed > 0) {
-      final concept = _conceptPool(excludeHeld: true).draw(random);
+      final concept = _conceptPool(
+        excludeHeld: true,
+        excluded: excluded,
+      ).draw(random);
       if (concept == null) break;
       final materialized = concept.concept.kind == ConceptKind.zones
           ? concept.materialize(random)
@@ -3263,6 +3386,10 @@ final class NetworkGameController extends ChangeNotifier {
   DeckExhaustionChoice? get sessionClosureIntent => _sessionClosureIntent;
   Future<void> clearLocalSessionState() async {
     _localSessionCleared = true;
+    _watchGeneration++;
+    _watchRetryTimer?.cancel();
+    _reconciliationTimer?.cancel();
+    _reconciliationTimer = null;
     final subscription = _subscription;
     _subscription = null;
     if (subscription != null) {
@@ -3430,6 +3557,14 @@ final class NetworkGameController extends ChangeNotifier {
       return;
     }
     round = value;
+    if (value.phase == NetworkGamePhase.commit ||
+        value.phase == NetworkGamePhase.reveal ||
+        value.phase == NetworkGamePhase.ready) {
+      _ensureReconciliation();
+    } else {
+      _reconciliationTimer?.cancel();
+      _reconciliationTimer = null;
+    }
     await _reconcileSecondaryChoices(value);
     _capturePublicDiscards(value);
     await _closeNormalRoundForRecovery(value);
@@ -3684,11 +3819,12 @@ final class NetworkGameController extends ChangeNotifier {
         false) {
       return null;
     }
-    final rating = _conceptCatalog.ratingFor(
+    final rating = _conceptCatalog.optionalRatingFor(
       option.parameters['practice_concept_id'] as String? ?? conceptId,
       option.parameters['practice_action_id'] as String? ??
           option.choice.actionId,
     );
+    if (rating == null) return null;
     if (_ratingProfile case final profile?) {
       final result = const V4CardRatingEngine().initializeForDirection(
         profile: profile,
@@ -3732,15 +3868,15 @@ final class NetworkGameController extends ChangeNotifier {
     String conceptId,
     ConceptActionOption option,
   ) {
-    final rating = _conceptCatalog.ratingFor(
+    final rating = _conceptCatalog.optionalRatingFor(
       option.parameters['practice_concept_id'] as String? ?? conceptId,
       option.parameters['practice_action_id'] as String? ??
           option.choice.actionId,
     );
     return [
       for (final tag in [
-        ...rating.primaryPreferenceTags,
-        ...rating.secondaryPreferenceTags,
+        ...?rating?.primaryPreferenceTags,
+        ...?rating?.secondaryPreferenceTags,
       ])
         'v3.preference.$tag',
     ];
@@ -3750,19 +3886,44 @@ final class NetworkGameController extends ChangeNotifier {
     String conceptId,
     ConceptActionOption option,
   ) {
-    final rating = _conceptCatalog.ratingFor(
+    final rating = _conceptCatalog.optionalRatingFor(
       option.parameters['practice_concept_id'] as String? ?? conceptId,
       option.parameters['practice_action_id'] as String? ??
           option.choice.actionId,
     );
     return [
-      for (final tag in rating.primaryPreferenceTags) 'v3.preference.$tag',
+      for (final tag in rating?.primaryPreferenceTags ?? <String>[])
+        'v3.preference.$tag',
     ];
   }
 
   bool isCardPlayable(NetworkDuelCard card) =>
-      choicesFor(card.id).isNotEmpty &&
+      !stageExcluded(card.id, card.variant.id, card.nativeDirection.name) &&
+      choicesFor(card.id).any((o) => o.choice.actionId == card.variant.id) &&
       _usageCheckpoint.availableFor(card.id) > 0;
+
+  Future<void> replaceExcludedCard(String conceptId) async {
+    if (viewState != NetworkGameViewState.choosing ||
+        _activeReveal != null ||
+        _committing) {
+      return;
+    }
+    final held = _runtime
+        .where((c) => c.cardId == conceptId && c.zone == CardZone.HAND)
+        .firstOrNull;
+    if (held == null ||
+        !(_v4Profile?.stageVetoes.any((v) => v.conceptId == conceptId) ??
+            false)) {
+      return;
+    }
+    await cancelPendingSelection();
+    _runtime = _runtime.where((c) => c != held).toList();
+    // Refill through the regular private pool, excluding the voluntarily released card.
+    _refill(roundNumber, excluded: {conceptId});
+    await _persist();
+    notifyListeners();
+  }
+
   bool isAuctionCardPlayable(NetworkDuelCard card) =>
       auctionCards.any((c) => c.identity == card.identity);
   bool isCorruptionCardPlayable(NetworkDuelCard card) =>
@@ -3771,6 +3932,9 @@ final class NetworkGameController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _watchGeneration++;
+    _watchRetryTimer?.cancel();
+    _reconciliationTimer?.cancel();
     _subscription?.cancel();
     super.dispose();
   }

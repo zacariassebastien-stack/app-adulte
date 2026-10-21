@@ -64,6 +64,80 @@ void main() {
         StageVeto(conceptId: '056', actionId: '056.stage.$excluded', role: r),
     ]);
   }
+  test('excluding selected stage prevents commit and consumption; undo restores it', () async {
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    final c = NetworkGameController(session: session, playerId: 'alice',
+      repository: backend.repository('alice'), privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: _catalogWithCards(catalog, {'card.v4.056'}), v4Profile: stageProfile());
+    addTearDown(c.dispose);
+    await c.start();
+    c.selectCard('056');
+    c.chooseAction(c.choicesFor('056').singleWhere((o) => o.choice.actionId == '056.stage.2'));
+    await c.reserveSelection();
+    await c.applyStageVetoProfile(stageProfile(excluded: 2));
+    await c.confirmSelection();
+    expect(c.usageCheckpoint.stageConsumed('056', '056.stage.2'), isFalse);
+    expect(c.usageCheckpoint.usagesByIntent, isEmpty);
+    expect(backend.round.commits, isEmpty);
+    await c.applyStageVetoProfile(stageProfile());
+    c.selectCard('056');
+    c.chooseAction(c.choicesFor('056').singleWhere((o) => o.choice.actionId == '056.stage.2'));
+    await c.confirmSelection();
+    expect(c.usageCheckpoint.stageConsumed('056', '056.stage.2'), isTrue);
+  });
+
+  test('whole-card veto keeps the held card until replacement and overrides locking', () async {
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    final base = stageProfile();
+    final c = NetworkGameController(session: session, playerId: 'alice',
+      repository: backend.repository('alice'), privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: _catalogWithCards(catalog, {'card.v4.056'}), v4Profile: base);
+    addTearDown(c.dispose);
+    await c.start();
+    c.toggleLock('056');
+    expect(c.lockedCardId, '056');
+    final before = c.usageCheckpoint.stock.toJson();
+    await c.applyStageVetoProfile(base.copyWith(stageVetoes: [
+      StageVeto(conceptId: '056', actionId: '*', role: ProfilePreferenceRole.general),
+    ]));
+    expect(c.heldConcepts.map((c) => c.id), contains('056'));
+    expect(c.lockedCardId, isNull);
+    expect(c.decksEmpty, isTrue);
+    await c.replaceExcludedCard('056');
+    expect(c.heldConcepts, isEmpty);
+    expect(c.usageCheckpoint.stock.toJson(), before);
+    expect(backend.points['alice'], 100);
+    expect(backend.round.commits, isEmpty);
+  });
+
+  for (final interrupted in ['lost', 'error', 'done']) {
+    test('canonical reconciliation recovers $interrupted REVEAL without double engagement', () async {
+      final backend = _Backend();
+      final repo = _InterruptedRepository(backend, 'alice');
+      final alice = NetworkGameController(session: session, playerId: 'alice', repository: repo,
+        privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog, reconciliationInterval: const Duration(milliseconds: 100),
+        watchRetryDelay: const Duration(milliseconds: 20));
+      final bob = _controller(backend, session, catalog, 'bob', MemoryNetworkDuelSecretStore());
+      addTearDown(() async { alice.dispose(); bob.dispose(); await repo.close(); });
+      await alice.start(); await bob.start();
+      alice.selectCard(alice.hand.first.identity); await alice.confirmSelection();
+      final usage = alice.usageCheckpoint.usagesByIntent.values.single;
+      if (interrupted == 'error') repo.updates.addError(StateError('simulated connection loss'));
+      if (interrupted != 'lost') await repo.updates.close();
+      bob.selectCard(bob.hand.first.identity); await bob.confirmSelection();
+      for (var i = 0; i < 60 && backend.round.initial == null; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+      expect(backend.round.reveals, hasLength(2));
+      expect(backend.round.initial, isNotNull);
+      expect(alice.usageCheckpoint.usagesByIntent, hasLength(1));
+      expect(alice.usageCheckpoint.usagesByIntent.values.single.usageId, usage.usageId);
+      expect(repo.watchCount, interrupted == 'lost' ? 1 : greaterThan(1));
+    });
+  }
   for (final excluded in [1,2,3]) {
     test('V1 veto stage $excluded leaves other stages consumable and survives profile reload', () async {
       final backend = _Backend()..v4UnlockedSpice = 4;
@@ -239,6 +313,31 @@ void main() {
     expect(saved.stageVetoes.single.actionId,'056.stage.3');
     expect(backend.round.commits,isEmpty);
     expect(backend.state('bob').toJson().toString(),isNot(contains('stage_vetoes')));
+    var surface = tester.widget<CardHandSurface>(find.byType(CardHandSurface));
+    expect(surface.cards.single.definition.variantId, '056.stage.3');
+    expect(surface.cards.single.available, isFalse);
+    surface.onLongPressCard!(surface.cards.single);
+    await tester.pumpAndSettle();
+    expect(find.text('Annuler l’exclusion de ce stade'), findsOneWidget);
+    await tester.tap(find.text('Annuler l’exclusion de ce stade'));
+    await tester.pumpAndSettle();
+    expect((await profiles.load('alice'))!.stageVetoes, isEmpty);
+    surface = tester.widget<CardHandSurface>(find.byType(CardHandSurface));
+    expect(surface.cards.single.available, isTrue);
+    surface.onLongPressCard!(surface.cards.single);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Exclure la carte'));
+    await tester.pumpAndSettle();
+    surface = tester.widget<CardHandSurface>(find.byType(CardHandSurface));
+    expect(surface.cards.single.excluded, isTrue);
+    expect(surface.cards.single.replaceable, isTrue);
+    surface.onLongPressCard!(surface.cards.single);
+    await tester.pumpAndSettle();
+    expect(find.text('Annuler l’exclusion de la carte'), findsOneWidget);
+    expect(find.text('Exclure la carte'), findsNothing);
+    await tester.tap(find.text('Annuler l’exclusion de la carte'));
+    await tester.pumpAndSettle();
+    expect((await profiles.load('alice'))!.stageVetoes, isEmpty);
     expect(tester.takeException(),isNull);await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -608,11 +707,12 @@ void main() {
       expect(
         find.text(
           id == 'alice'
-              ? "Ton partenaire choisit l’ordre que tu devras suivre."
-              : "Choisis l’ordre que ton partenaire devra suivre.",
+              ? 'Ton partenaire joue'
+              : 'Tu joues',
         ),
         findsOneWidget,
       );
+      expect(find.text(id == 'alice' ? 'SUR TOI' : 'SUR TON PARTENAIRE'), findsOneWidget);
       expect(find.textContaining('cible :'), findsNothing);
       await tester.pumpWidget(const SizedBox.shrink());
     });
@@ -5105,6 +5205,7 @@ void main() {
       find.text('Retirez un vêtement. · Retirer un vêtement'),
       findsOneWidget,
     );
+    await _showResolutionControl(tester, 'adjust-deterministic-clothing-count');
     expect(find.text('Ajuster les vêtements (5)'), findsOneWidget);
     await _showResolutionControl(tester, 'complete-network-action');
     await tester.tap(find.byKey(const Key('complete-network-action')));
@@ -9069,6 +9170,19 @@ class _Repository
     );
     return controller.stream;
   }
+}
+
+final class _InterruptedRepository extends _Repository {
+  _InterruptedRepository(super.backend, super.player);
+  StreamController<NetworkGameRoundStateDto> updates = StreamController.broadcast();
+  int watchCount = 0;
+  @override
+  Stream<NetworkGameRoundStateDto> watchRound({required String sessionId, required String roundId}) {
+    watchCount++;
+    if (updates.isClosed) updates = StreamController.broadcast();
+    return updates.stream;
+  }
+  Future<void> close() => updates.close();
 }
 
 final class _RevisionRepository extends _Repository {

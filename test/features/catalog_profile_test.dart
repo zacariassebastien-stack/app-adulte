@@ -15,6 +15,7 @@ import 'package:couple_cards/features/game/network_profile_learning.dart';
 import 'package:couple_cards/features/profile/catalog_profile_controller.dart';
 import 'package:couple_cards/features/profile/catalog_profile_screen.dart';
 import 'package:couple_cards/features/profile/radial_appreciation.dart';
+import 'package:couple_cards/card_themes/card_renderer.dart';
 import 'package:couple_cards/features/lobby/two_phone_lobby_screen.dart';
 import 'package:couple_cards/features/lobby/lobby_repository.dart';
 import 'package:couple_cards/engines/eligibility/concept_action_options.dart';
@@ -95,6 +96,50 @@ void main() {
         DetailedPreferenceCategory.love,
       );
       expect(reopened.remaining.map((i) => i.id), isNot(contains(target.id)));
+      c.dispose();
+      reopened.dispose();
+    },
+  );
+  test(
+    'every random successor has a valid nullable prior after persistence',
+    () async {
+      final c = editor();
+      await c.load();
+      while (c.remaining.isNotEmpty) {
+        final next = c.randomNext(random: math.Random(42));
+        expect(next, isNotNull);
+        expect(() => c.category(next!), returnsNormally);
+        await c.rate(next!, DetailedPreferenceCategory.like);
+        expect(c.remaining.map((i) => i.id), isNot(contains(next.id)));
+        final following = c.randomNext(random: math.Random(42));
+        if (following != null) {
+          expect(() => c.category(following), returnsNormally);
+        }
+      }
+      c.dispose();
+    },
+  );
+
+  test(
+    'lifting a stage veto preserves its previous appreciation and survives reload',
+    () async {
+      final c = editor();
+      await c.load();
+      final target = item(c, '056.stage.2');
+      await c.rate(target, DetailedPreferenceCategory.like);
+      await c.rate(target, DetailedPreferenceCategory.excluded);
+      final estimate = c.ratings.explicitEstimate(target.ratingKey('p'));
+      await c.allowStage(target);
+      final reopened = editor();
+      await reopened.load();
+      expect(
+        reopened.profile.excludesStage('056', target.actionId, 'FAIRE'),
+        isFalse,
+      );
+      expect(
+        reopened.ratings.explicitEstimate(target.ratingKey('p')),
+        estimate,
+      );
       c.dispose();
       reopened.dispose();
     },
@@ -330,6 +375,59 @@ void main() {
       await tester.tap(find.text('Aléatoire'));
       await tester.pumpAndSettle();
       expect(find.byType(RadialAppreciation), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+  testWidgets('profile cards receive the exact anatomical occurrence', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(home: CatalogProfileScreen(controller: editor())),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('profile-catalog-search')),
+      'Embrasser',
+    );
+    await tester.pumpAndSettle();
+    final neck = find.widgetWithText(ListTile, 'Embrasser · Cou / nuque').first;
+    await tester.ensureVisible(neck);
+    await tester.tap(neck);
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<CardRenderer>(find.byType(CardRenderer)).definition.zones,
+      ['Cou / nuque'],
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+  testWidgets(
+    'random appreciation renders its successor immediately without a null crash',
+    (tester) async {
+      final c = editor();
+      await tester.pumpWidget(
+        MaterialApp(home: CatalogProfileScreen(controller: c)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Aléatoire'));
+      await tester.pumpAndSettle();
+      final radial = tester.widget<RadialAppreciation>(
+        find.byType(RadialAppreciation),
+      );
+      final before = c.remaining.length;
+      final previous = tester
+          .widget<CardRenderer>(find.byType(CardRenderer))
+          .definition;
+      radial.onSelected(DetailedPreferenceCategory.like);
+      await tester.pumpAndSettle();
+      expect(c.remaining.length, before - 1);
+      final next = tester
+          .widget<CardRenderer>(find.byType(CardRenderer))
+          .definition;
+      expect(
+        '${next.cardId}/${next.variantId}/${next.direction}',
+        isNot('${previous.cardId}/${previous.variantId}/${previous.direction}'),
+      );
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
     },

@@ -89,6 +89,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   String? actionError;
   CardHandStage _handStage = CardHandStage.resting;
   final Map<String, String> _displayedActions = {};
+  final Map<String, String> _displayedDirections = {};
   late final GamePreferencesController preferences;
   late final bool _ownsPreferences;
   bool _historyRecorded = false;
@@ -132,6 +133,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       }
       if (changedRound) {
         _displayedActions.clear();
+        _displayedDirections.clear();
         actionError = null;
         _negotiationCards.clear();
         _corruptionCards.clear();
@@ -263,6 +265,18 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   Future<void> _handMenu(CardHandItem item) async {
     final concept = controller.conceptFor(item.definition.cardId);
     final actionId = item.definition.variantId;
+    if (actionId != null) _displayedActions[concept.id] = actionId;
+    if (item.definition.direction case final direction?) {
+      _displayedDirections[concept.id] = direction;
+    }
+    final cardExcluded = controller.cardExcluded(concept.id);
+    final stageExcluded =
+        actionId != null &&
+        controller.stageExcluded(
+          concept.id,
+          actionId,
+          item.definition.direction ?? 'GENERAL',
+        );
     final choice = await showModalBottomSheet<String>(
       context: context,
       builder: (context) => SafeArea(
@@ -273,15 +287,26 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               title: Text(
                 item.locked ? 'Déverrouiller la carte' : 'Verrouiller la carte',
               ),
+              subtitle: const Text(
+                'Conserver cette carte dans votre main au tour suivant.',
+              ),
               onTap: () => Navigator.pop(context, 'lock'),
             ),
-            if (concept.stages.length > 1 && actionId != null)
+            if (!cardExcluded && concept.stages.length > 1 && actionId != null)
               ListTile(
-                title: const Text('Exclure ce stade'),
+                title: Text(
+                  stageExcluded
+                      ? 'Annuler l’exclusion de ce stade'
+                      : 'Exclure ce stade',
+                ),
                 onTap: () => Navigator.pop(context, 'stage'),
               ),
             ListTile(
-              title: const Text('Exclure la carte'),
+              title: Text(
+                cardExcluded
+                    ? 'Annuler l’exclusion de la carte'
+                    : 'Exclure la carte',
+              ),
               onTap: () => Navigator.pop(context, 'card'),
             ),
             const Padding(
@@ -308,7 +333,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     try {
       await editor.load();
       if (choice == 'card') {
-        await editor.excludeCard(concept.id);
+        await editor.excludeCard(concept.id, excluded: !cardExcluded);
       } else {
         final target = editor.items.singleWhere(
           (i) =>
@@ -316,7 +341,11 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               i.actionId == actionId &&
               i.direction.name == item.definition.direction,
         );
-        await editor.rate(target, DetailedPreferenceCategory.excluded);
+        if (stageExcluded) {
+          await editor.allowStage(target);
+        } else {
+          await editor.rate(target, DetailedPreferenceCategory.excluded);
+        }
       }
       if (!mounted) return;
       await controller.applyStageVetoProfile(editor.profile);
@@ -340,8 +369,11 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     },
     onLockChanged: (item) => controller.toggleLock(item.id),
     onLongPressCard: _handMenu,
-    onTabChanged: (item, actionId) =>
-        setState(() => _displayedActions[item.id] = actionId),
+    onReplace: (item) => controller.replaceExcludedCard(item.definition.cardId),
+    onTabChanged: (item, actionId) => setState(() {
+      _displayedActions[item.id] = actionId;
+      _displayedDirections.remove(item.id);
+    }),
     animationsEnabled: preferences.value.animations,
     onPlay: (item) async {
       if (controller.viewState != NetworkGameViewState.choosing) return;
@@ -406,6 +438,17 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           CardHandItem(
             id: concept.id,
             available: false,
+            excluded:
+                controller.cardExcluded(concept.id) ||
+                (controller.editableProfile?.stageVetoes.any(
+                      (v) => v.conceptId == concept.id,
+                    ) ??
+                    false),
+            replaceable:
+                controller.editableProfile?.stageVetoes.any(
+                  (v) => v.conceptId == concept.id,
+                ) ??
+                false,
             locked: controller.lockedCardId == concept.id,
             tabs: [
               for (var i = 0; i < concept.stages.length; i++)
@@ -413,6 +456,18 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                   id: concept.stages[i].id,
                   label: '${i + 1}',
                   enabled: false,
+                  excluded:
+                      controller.stageExcluded(
+                        concept.id,
+                        concept.stages[i].id,
+                        'GENERAL',
+                      ) ||
+                      (controller.editableProfile?.stageVetoes.any(
+                            (v) =>
+                                v.conceptId == concept.id &&
+                                v.actionId == concept.stages[i].id,
+                          ) ??
+                          false),
                   consumed: controller.stageConsumed(
                     concept.id,
                     concept.stages[i].id,
@@ -421,6 +476,11 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             ],
             definition: CardRenderDefinition(
               cardId: concept.id,
+              variantId:
+                  _displayedActions[concept.id] ??
+                  concept.stages.lastOrNull?.id ??
+                  concept.variants.firstOrNull?.id,
+              direction: _displayedDirections[concept.id] ?? 'GENERAL',
               title: concept.title,
               action: 'Indisponible dans le contexte actuel.',
               spice:
@@ -446,20 +506,62 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         ? fallback
         : controller.previewAction(id, option) ?? fallback;
     final item = _handItem(card);
+    final displayedId = _displayedActions[id] ?? item.definition.variantId;
+    final displayedDirection =
+        _displayedDirections[id] ?? card.nativeDirection.name;
+    final displayedExcluded =
+        displayedId != null &&
+        controller.stageExcluded(id, displayedId, displayedDirection);
+    final stage = concept.stages.where((s) => s.id == displayedId).firstOrNull;
+    final displayedCopy = displayedExcluded && stage != null
+        ? ConceptEditorialRenderer(widget.catalog.concepts!).render(
+            concept: concept,
+            actionId: stage.id,
+            direction: CardOccurrenceDirection.values.byName(
+              displayedDirection,
+            ),
+          )
+        : null;
     return CardHandItem(
       id: item.id,
-      definition: item.definition,
-      available: item.available,
+      definition: displayedCopy == null
+          ? item.definition
+          : CardRenderDefinition(
+              cardId: id,
+              variantId: displayedId,
+              title: concept.title,
+              subtitle: stage?.title,
+              action: displayedCopy.actionText,
+              details: displayedCopy.detailsText,
+              direction: displayedDirection,
+              spice: stage?.chili ?? item.definition.spice,
+            ),
+      available: item.available && !displayedExcluded,
+      excluded: controller.cardExcluded(id) || displayedExcluded,
+      replaceable:
+          controller.editableProfile?.stageVetoes.any(
+            (v) => v.conceptId == id,
+          ) ??
+          false,
       locked: item.locked,
       tabs: [
         for (var i = 0; i < concept.stages.length; i++)
           CardHandTab(
             id: concept.stages[i].id,
             label: '${i + 1}',
-            enabled: options.any(
-              (o) => o.choice.actionId == concept.stages[i].id,
-            ),
+            enabled:
+                options.any((o) => o.choice.actionId == concept.stages[i].id) &&
+                !controller.stageExcluded(
+                  id,
+                  concept.stages[i].id,
+                  displayedDirection,
+                ),
             consumed: controller.stageConsumed(id, concept.stages[i].id),
+            excluded: controller.stageExcluded(
+              id,
+              concept.stages[i].id,
+              displayedDirection,
+            ),
           ),
       ],
     );
@@ -797,9 +899,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           ];
     final title = result.mutualAbandon
         ? 'Round abandonné mutuellement'
-        : result.retainedPlayerId == controller.playerId
-        ? 'Ton action est retenue'
-        : 'Action du partenaire retenue';
+        : 'Action à réaliser';
     return ListView(
       key: const Key('network-action-in-progress'),
       padding: const EdgeInsets.all(16),
@@ -931,6 +1031,18 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     return Column(
       key: Key('resolved-action-${card.usageId}'),
       children: [
+        Text(switch (card.direction) {
+          NetworkCardDirection.MUTUEL => 'Vous jouez ensemble',
+          NetworkCardDirection.SIMULTANE => 'Vous jouez simultanément',
+          NetworkCardDirection.SOLO =>
+            card.targetPlayerIds.contains(controller.playerId)
+                ? 'Tu joues'
+                : 'Ton partenaire joue',
+          _ =>
+            card.targetPlayerIds.contains(controller.playerId)
+                ? 'Ton partenaire joue'
+                : 'Tu joues',
+        }, style: Theme.of(context).textTheme.titleLarge),
         SizedBox(
           height: 440,
           child: CardRenderer(
@@ -939,19 +1051,17 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             showPa: false,
           ),
         ),
-        if (card.direction == NetworkCardDirection.RECEVOIR)
-          Text(
-            card.cardId == '032'
-                ? card.targetPlayerIds.contains(controller.playerId)
-                      ? "Ton partenaire choisit l’ordre que tu devras suivre."
-                      : "Choisis l’ordre que ton partenaire devra suivre."
-                : card.targetPlayerIds.contains(controller.playerId)
-                ? 'Ton partenaire réalise cette action pour toi.'
-                : 'Tu réalises cette action pour ton partenaire.',
-          ),
+        Text(switch (card.direction) {
+          NetworkCardDirection.MUTUEL => 'ENSEMBLE',
+          NetworkCardDirection.SIMULTANE => 'CHACUN DE SON CÔTÉ',
+          NetworkCardDirection.SOLO => 'SUR SOI',
+          _ =>
+            card.targetPlayerIds.contains(controller.playerId)
+                ? 'SUR TOI'
+                : 'SUR TON PARTENAIRE',
+        }),
         Text(
           [
-            'Pour : ${card.targetPlayerIds.map((id) => id == controller.playerId ? 'toi' : 'ton partenaire').join(', ')}',
             for (final accessory in action['accessories']! as List)
               'accessoire : ${(accessory as Map)['label']}',
           ].join(' · '),

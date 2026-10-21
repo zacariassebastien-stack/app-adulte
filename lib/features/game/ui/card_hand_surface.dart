@@ -14,9 +14,11 @@ final class CardHandTab {
     required this.label,
     required this.enabled,
     this.consumed = false,
+    this.excluded = false,
   });
   final String id, label;
   final bool enabled, consumed;
+  final bool excluded;
 }
 
 final class CardHandItem {
@@ -25,6 +27,8 @@ final class CardHandItem {
     required this.definition,
     this.locked = false,
     this.available = true,
+    this.excluded = false,
+    this.replaceable = false,
     this.tabs = const [],
   });
 
@@ -32,6 +36,7 @@ final class CardHandItem {
   final CardRenderDefinition definition;
   final bool locked;
   final bool available;
+  final bool excluded, replaceable;
   final List<CardHandTab> tabs;
 }
 
@@ -46,6 +51,7 @@ class CardHandSurface extends StatefulWidget {
     this.onCancelCommitted,
     this.onLockChanged,
     this.onLongPressCard,
+    this.onReplace,
     this.onStageChanged,
     super.key,
   });
@@ -59,6 +65,7 @@ class CardHandSurface extends StatefulWidget {
   final VoidCallback? onCancelCommitted;
   final ValueChanged<CardHandItem>? onLockChanged;
   final ValueChanged<CardHandItem>? onLongPressCard;
+  final ValueChanged<CardHandItem>? onReplace;
   final ValueChanged<CardHandStage>? onStageChanged;
 
   @override
@@ -378,9 +385,11 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
                                 child: Text(
                                   '${tab.label}${tab.consumed
                                       ? ' ✓ joué'
+                                      : tab.excluded
+                                      ? ' 🚫'
                                       : tab.enabled
                                       ? ''
-                                      : ' 🔒'}',
+                                      : ' —'}',
                                 ),
                               ),
                             ),
@@ -388,16 +397,49 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
                       ),
                     ),
                   Expanded(
-                    child: CardRenderer(
-                      definition: card.definition,
-                      locked: card.locked,
-                      state: open
-                          ? CardVisualState.full
-                          : focused
-                          ? CardVisualState.focused
-                          : card.locked
-                          ? CardVisualState.locked
-                          : CardVisualState.normal,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CardRenderer(
+                          definition: card.definition,
+                          locked: card.locked,
+                          state: open
+                              ? CardVisualState.full
+                              : focused
+                              ? CardVisualState.focused
+                              : card.locked
+                              ? CardVisualState.locked
+                              : CardVisualState.normal,
+                        ),
+                        if (card.locked || card.excluded)
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: Container(
+                              color: Theme.of(context).colorScheme.surface,
+                              padding: const EdgeInsets.all(3),
+                              child: FittedBox(
+                                child: Text(
+                                  card.excluded
+                                      ? '🚫 EXCLUE'
+                                      : '🔒 VERROUILLÉE',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (card.replaceable && widget.onReplace != null)
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: IconButton(
+                              key: Key('replace-excluded-${card.id}'),
+                              tooltip: 'Remplacer gratuitement',
+                              onPressed: () => widget.onReplace?.call(card),
+                              icon: const Icon(Icons.swap_horiz),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ],
