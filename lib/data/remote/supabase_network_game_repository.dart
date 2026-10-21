@@ -20,9 +20,13 @@ final class SupabaseNetworkGameRepository
         NetworkV4ActionRepository,
         NetworkCommitCancellationRepository,
         NetworkSessionClosureRepository {
-  SupabaseNetworkGameRepository({required this.client});
+  SupabaseNetworkGameRepository({
+    required this.client,
+    this.requestTimeout = const Duration(seconds: 10),
+  });
 
   final SupabaseClient client;
+  final Duration requestTimeout;
 
   Future<String> _identity() async {
     final existing = client.auth.currentUser;
@@ -144,7 +148,9 @@ final class SupabaseNetworkGameRepository
   }) {
     final pending = _currentReads[sessionId];
     if (pending != null) return pending;
-    final read = _readCurrentRound(sessionId);
+    // Bound the shared future itself: a stalled offline request must not keep
+    // every later reconciliation/retry attached to that request indefinitely.
+    final read = _readCurrentRound(sessionId).timeout(requestTimeout);
     _currentReads[sessionId] = read;
     return read.whenComplete(() {
       if (identical(_currentReads[sessionId], read)) {
@@ -483,6 +489,12 @@ final class SupabaseNetworkGameRepository
   }
 
   Future<NetworkGameRoundStateDto> _rpc(
+    String function,
+    NetworkCommandDto command, {
+    Map<String, Object?> extra = const {},
+  }) => _executeRpc(function, command, extra: extra).timeout(requestTimeout);
+
+  Future<NetworkGameRoundStateDto> _executeRpc(
     String function,
     NetworkCommandDto command, {
     Map<String, Object?> extra = const {},

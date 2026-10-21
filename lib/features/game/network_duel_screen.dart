@@ -1493,8 +1493,14 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           'Impossible de poursuivre la partie.\n${controller.errorMessage ?? ''}',
         ),
         TextButton(
-          onPressed: controller.retryCurrentAction,
-          child: const Text('Réessayer'),
+          onPressed: controller.retrying ? null : controller.retryCurrentAction,
+          child: controller.retrying
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Réessayer'),
         ),
       ],
     ),

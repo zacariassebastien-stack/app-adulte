@@ -112,6 +112,158 @@ void main() {
     expect(backend.round.commits, isEmpty);
   });
 
+  for (final recorded in [false, true]) {
+    test('offline retry recovers ${recorded ? 'recorded' : 'missing'} commit and rebuilds silent watch', () async {
+      final backend = _Backend();
+      final repo = _OfflineRepository(backend, 'bob');
+      final bob = NetworkGameController(session: session, playerId: 'bob', repository: repo,
+        privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(),
+        catalog: catalog);
+      final alice = _controller(backend, session, catalog, 'alice', MemoryNetworkDuelSecretStore());
+      addTearDown(() { alice.dispose(); bob.dispose(); });
+      await alice.start(); await bob.start();
+      alice.selectCard(alice.hand.first.identity); await alice.confirmSelection();
+      final aliceCommit = backend.round.commits['alice'];
+      repo.offline = true; repo.recordBeforeFailure = recorded;
+      bob.selectCard(bob.hand.first.identity); await bob.confirmSelection();
+      expect(bob.viewState, NetworkGameViewState.error);
+      final frozen = bob.usageCheckpoint.encode();
+      final watches = repo.watchCount;
+      repo.offline = false;
+      await bob.retryCurrentAction(); await _settle();
+      expect(repo.watchCount, greaterThan(watches));
+      expect(repo.readCount, greaterThan(0));
+      expect(bob.viewState, isNot(NetworkGameViewState.error));
+      expect(bob.errorMessage, isNull);
+      expect(backend.round.commits['alice'], aliceCommit);
+      expect(repo.commitAttempts, recorded ? 1 : 2);
+      expect(bob.usageCheckpoint.encode(), frozen);
+      expect(backend.round.commits, hasLength(2));
+      expect(backend.round.reveals, hasLength(2));
+      expect(backend.round.initial, isNotNull);
+      expect(backend.roundCreations, 1);
+      final commands = Set<String>.of(backend.commands);
+      await bob.retryCurrentAction(); await _settle();
+      expect(backend.commands, commands);
+      expect(repo.commitAttempts, recorded ? 1 : 2);
+    });
+  }
+
+  test('retry waits for an in-flight canonical read and ignores repeated clicks', () async {
+    final backend = _Backend();
+    final repo = _OfflineRepository(backend, 'bob');
+    final bob = NetworkGameController(session: session, playerId: 'bob', repository: repo,
+      privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: catalog, reconciliationInterval: const Duration(milliseconds: 20));
+    addTearDown(bob.dispose);
+    await bob.start();
+    repo.offline = true;
+    bob.selectCard(bob.hand.first.identity); await bob.confirmSelection();
+    repo.readGate = Completer<void>();
+    await Future<void>.delayed(const Duration(milliseconds: 30));
+    expect(repo.readCount, 1);
+    var finished = false;
+    final retry = bob.retryCurrentAction().then((_) { finished = true; });
+    await _settle();
+    expect(finished, isFalse);
+    await bob.retryCurrentAction();
+    expect(repo.readCount, 1);
+    repo.offline = false; repo.readGate!.complete();
+    await retry; await _settle();
+    expect(bob.viewState, NetworkGameViewState.waitingForPartner);
+    expect(bob.errorMessage, isNull);
+    expect(repo.commitAttempts, 2);
+    expect(bob.usageCheckpoint.usagesByIntent, hasLength(1));
+  });
+
+  test('retry read failure remains recoverable on the next attempt', () async {
+    final backend = _Backend();
+    final repo = _OfflineRepository(backend, 'bob');
+    final bob = NetworkGameController(session: session, playerId: 'bob', repository: repo,
+      privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(), catalog: catalog);
+    addTearDown(bob.dispose);
+    await bob.start(); repo.offline = true;
+    bob.selectCard(bob.hand.first.identity); await bob.confirmSelection();
+    await bob.retryCurrentAction();
+    expect(bob.viewState, NetworkGameViewState.error);
+    expect(bob.retrying, isFalse);
+    repo.offline = false;
+    await bob.retryCurrentAction();
+    expect(bob.viewState, NetworkGameViewState.waitingForPartner);
+    expect(repo.commitAttempts, 2);
+  });
+
+  test('retry after a recorded REVEAL with lost response never resends it', () async {
+    final backend = _Backend();
+    final repo = _OfflineRepository(backend, 'bob')..loseRevealResponse = true;
+    final bob = NetworkGameController(session: session, playerId: 'bob', repository: repo,
+      privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(), catalog: catalog);
+    final alice = _controller(backend, session, catalog, 'alice', MemoryNetworkDuelSecretStore());
+    addTearDown(() { alice.dispose(); bob.dispose(); });
+    await alice.start(); await bob.start();
+    alice.selectCard(alice.hand.first.identity); await alice.confirmSelection();
+    bob.selectCard(bob.hand.first.identity); await bob.confirmSelection(); await _settle();
+    expect(bob.viewState, NetworkGameViewState.error);
+    expect(backend.round.reveals, hasLength(2));
+    final frozen = bob.usageCheckpoint.encode();
+    await bob.retryCurrentAction(); await _settle();
+    expect(bob.viewState, isNot(NetworkGameViewState.error));
+    expect(repo.revealAttempts, 1);
+    expect(bob.usageCheckpoint.encode(), frozen);
+    expect(backend.roundCreations, 1);
+  });
+
+  test('periodic reconciliation recovers offline commit without a manual retry', () async {
+    final backend = _Backend();
+    final repo = _OfflineRepository(backend, 'bob');
+    final bob = NetworkGameController(session: session, playerId: 'bob', repository: repo,
+      privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: catalog, reconciliationInterval: const Duration(milliseconds: 20));
+    addTearDown(bob.dispose);
+    await bob.start();
+    repo.offline = true;
+    bob.selectCard(bob.hand.first.identity); await bob.confirmSelection();
+    expect(bob.viewState, NetworkGameViewState.error);
+    repo.offline = false;
+    for (var i = 0; i < 30 && bob.viewState == NetworkGameViewState.error; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
+    expect(bob.viewState, NetworkGameViewState.waitingForPartner);
+    expect(bob.usageCheckpoint.usagesByIntent, hasLength(1));
+    expect(repo.commitAttempts, 2);
+    expect(backend.roundCreations, 1);
+  });
+
+  testWidgets('offline retry button shows progress, disables duplicates and restores the round', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final backend = _Backend();
+    final repo = _OfflineRepository(backend, 'bob');
+    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session,
+      playerId: 'bob', repository: repo, catalog: _catalogWithCards(catalog, {'card.v4.001'}),
+      secretStore: MemoryNetworkDuelSecretStore())));
+    await tester.pumpAndSettle();
+    repo.offline = true;
+    final surface = tester.widget<CardHandSurface>(find.byType(CardHandSurface));
+    surface.onPlay!(surface.cards.single);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('network-game-error')), findsOneWidget);
+    repo.readGate = Completer<void>();
+    await tester.tap(find.text('Réessayer'));
+    await tester.pump();
+    final button = tester.widget<TextButton>(find.descendant(
+      of: find.byKey(const Key('network-game-error')), matching: find.byType(TextButton)));
+    expect(button.onPressed, isNull);
+    expect(find.descendant(of: find.byKey(const Key('network-game-error')),
+      matching: find.byType(CircularProgressIndicator)), findsOneWidget);
+    repo.offline = false; repo.readGate!.complete();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('network-game-error')), findsNothing);
+    expect(repo.watchCount, 2);
+    expect(repo.commitAttempts, 2);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   for (final interrupted in ['lost', 'error', 'done']) {
     test('canonical reconciliation recovers $interrupted REVEAL without double engagement', () async {
       final backend = _Backend();
@@ -9169,6 +9321,54 @@ class _Repository
       },
     );
     return controller.stream;
+  }
+}
+
+final class _OfflineRepository extends _Repository {
+  _OfflineRepository(super.backend, super.player);
+  bool offline = false;
+  bool recordBeforeFailure = false;
+  int commitAttempts = 0;
+  int readCount = 0;
+  int watchCount = 0;
+  Completer<void>? readGate;
+  bool loseRevealResponse = false;
+  int revealAttempts = 0;
+
+  @override
+  Future<NetworkGameRoundStateDto> submitReveal({required NetworkCommandDto command, required ChoiceRevealDto reveal}) async {
+    revealAttempts++;
+    final result = await super.submitReveal(command: command, reveal: reveal);
+    if (loseRevealResponse) {
+      loseRevealResponse = false;
+      throw StateError('lost reveal response');
+    }
+    return result;
+  }
+
+  @override
+  Stream<NetworkGameRoundStateDto> watchRound({required String sessionId, required String roundId}) {
+    watchCount++;
+    // A stream may remain open without delivering either data or an error.
+    return Stream<NetworkGameRoundStateDto>.multi((_) {});
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> getCurrentRound({required String sessionId}) async {
+    readCount++;
+    await readGate?.future;
+    if (offline) throw StateError('offline read');
+    return super.getCurrentRound(sessionId: sessionId);
+  }
+
+  @override
+  Future<NetworkGameRoundStateDto> submitCommit({required NetworkCommandDto command, required ChoiceCommitmentDto commitment}) async {
+    commitAttempts++;
+    if (offline) {
+      if (recordBeforeFailure) await super.submitCommit(command: command, commitment: commitment);
+      throw StateError('offline commit or lost response');
+    }
+    return super.submitCommit(command: command, commitment: commitment);
   }
 }
 

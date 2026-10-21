@@ -182,7 +182,9 @@ final class NetworkGameController extends ChangeNotifier {
   final Duration watchRetryDelay;
   Timer? _reconciliationTimer;
   Timer? _watchRetryTimer;
-  bool _refreshingCanonical = false;
+  Future<void>? _canonicalRefresh;
+  bool _retrying = false;
+  bool get retrying => _retrying;
   int _watchGeneration = 0;
   Object? lastSynchronizationError;
 
@@ -197,19 +199,25 @@ final class NetworkGameController extends ChangeNotifier {
     });
   }
 
-  Future<void> _refreshCanonical() async {
-    if (_disposed || _localSessionCleared || _refreshingCanonical) return;
-    _refreshingCanonical = true;
+  Future<void> _refreshCanonical({bool reportFailure = false}) async {
+    if (_disposed || _localSessionCleared) return;
+    // A manual retry must await the shared read, not silently skip it.
+    final refresh = _canonicalRefresh ??= _readAndApplyCanonical();
     try {
-      final value = await repository.getCurrentRound(sessionId: session.id);
-      if (!_disposed) await _apply(value);
+      await refresh;
     } catch (error, stack) {
       lastSynchronizationError = error;
       debugPrint('Canonical round reconciliation failed: $error');
       debugPrint(stack.toString());
+      if (reportFailure) rethrow;
     } finally {
-      _refreshingCanonical = false;
+      if (identical(_canonicalRefresh, refresh)) _canonicalRefresh = null;
     }
+  }
+
+  Future<void> _readAndApplyCanonical() async {
+    final value = await repository.getCurrentRound(sessionId: session.id);
+    if (!_disposed) await _apply(value);
   }
 
   void _watchRound(NetworkGameRoundStateDto value) {
@@ -240,14 +248,18 @@ final class NetworkGameController extends ChangeNotifier {
     _subscription = repository
         .watchRound(sessionId: session.id, roundId: value.roundId)
         .listen(
-          (update) => unawaited(
-            _apply(update).catchError((Object error, StackTrace stack) {
-              lastSynchronizationError = error;
-              debugPrint('Round snapshot application failed: $error');
-              debugPrint(stack.toString());
-              _fail(error);
-            }),
-          ),
+          (update) {
+            if (_disposed || generation != _watchGeneration) return;
+            unawaited(
+              _apply(update).catchError((Object error, StackTrace stack) {
+                if (_disposed || generation != _watchGeneration) return;
+                lastSynchronizationError = error;
+                debugPrint('Round snapshot application failed: $error');
+                debugPrint(stack.toString());
+                _fail(error);
+              }),
+            );
+          },
           onError: (Object error, StackTrace stack) => restart(error, stack),
           onDone: restart,
         );
@@ -460,18 +472,30 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   Future<void> retryCurrentAction() async {
-    if (_stagingSecondary || _sendingSecondary) return;
-    if (!_privateStateReady) {
-      await start();
+    if (_disposed ||
+        _localSessionCleared ||
+        _retrying ||
+        _stagingSecondary ||
+        _sendingSecondary) {
       return;
     }
+    _retrying = true;
+    notifyListeners();
     try {
+      if (!_privateStateReady) {
+        await start();
+        return;
+      }
       await _persist();
+      // A non-null subscription can still be silent after a connection loss.
+      if (round != null) _watchRound(round!);
+      await _refreshCanonical(reportFailure: true);
       if (_pendingSecondaryCommand != null) await _replaySecondaryCommand();
-      if (_subscription == null && round != null) _watchRound(round!);
-      await _refreshCanonical();
     } catch (error) {
       _fail(error);
+    } finally {
+      _retrying = false;
+      if (!_disposed) notifyListeners();
     }
   }
 
@@ -3557,6 +3581,8 @@ final class NetworkGameController extends ChangeNotifier {
       return;
     }
     round = value;
+    errorMessage = null;
+    lastSynchronizationError = null;
     if (value.phase == NetworkGamePhase.commit ||
         value.phase == NetworkGamePhase.reveal ||
         value.phase == NetworkGamePhase.ready) {
