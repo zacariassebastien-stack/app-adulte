@@ -55,20 +55,36 @@ final class ConceptRuntimeCatalog {
     });
   }
 
-  Set<String> vetoTags(String conceptId) => {
-    for (final variant in definitions[conceptId]!.variants) ...{
-      for (final tag in variant.v3!.tags) tag.split('.').last,
-      if (variant.reader.json['v4'] case final Map<String, Object?> rating) ...{
-        ...(rating['primary_preference_tags'] as List).cast<String>(),
-        ...(rating['secondary_preference_tags'] as List).cast<String>(),
-        ...(rating['non_preference_data'] as List).cast<String>(),
+  Set<String> vetoTags(String conceptId, {String? actionId}) {
+    final tags = <String>{
+      for (final variant in definitions[conceptId]!.variants.where(
+        (v) => actionId == null || v.stableId == actionId,
+      )) ...{
+        for (final tag in variant.v3!.tags) tag.split('.').last,
+        if (variant.reader.json['v4']
+            case final Map<String, Object?> rating) ...{
+          ...(rating['primary_preference_tags'] as List).cast<String>(),
+          ...(rating['secondary_preference_tags'] as List).cast<String>(),
+          ...(rating['non_preference_data'] as List).cast<String>(),
+        },
       },
-    },
-    if (conceptId == '022') 'penetration_vaginale',
-    if (concepts.concepts.singleWhere((c) => c.id == conceptId).kind ==
-        ConceptKind.zones)
-      for (final zone in concepts.zones) zone.id,
-  };
+      if (conceptId == '022') 'penetration_vaginale',
+      if (concepts.concepts.singleWhere((c) => c.id == conceptId).kind ==
+          ConceptKind.zones)
+        for (final zone in concepts.zones) zone.id,
+    };
+    if (actionId != null && concepts.concepts.singleWhere((c) => c.id == conceptId).kind == ConceptKind.zones) {
+      tags.removeAll(concepts.zones.map((z) => z.id));
+      final zone = concepts.concepts
+          .singleWhere((c) => c.id == conceptId)
+          .variants
+          .where((v) => v.id == actionId)
+          .firstOrNull
+          ?.zoneId;
+      if (zone != null) tags.add(zone);
+    }
+    return tags;
+  }
 
   CardDefinition _definition(
     CardConcept concept,

@@ -15,6 +15,8 @@ import 'network_duel_secret_store.dart';
 import 'network_profile_learning.dart';
 import '../../engines/eligibility/concept_runtime_catalog.dart';
 import '../../engines/eligibility/concept_action_options.dart';
+import '../../engines/eligibility/session_occurrence_consent.dart';
+import '../../sync/rounds/session_consent.dart';
 
 enum NetworkGameViewState {
   loading,
@@ -178,6 +180,260 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   final Catalog _catalog;
+  SessionConsentState? _sessionConsent;
+  Set<String>? _localConsent;
+  String? _publishedConsent;
+  String? _pendingConsentPayload;
+  String? _pendingConsentCommand;
+  int _consentPublication = 0;
+  Future<void>? _consentRead;
+  Timer? _consentTimer;
+  StreamSubscription<int>? _consentSubscription;
+  bool _waitingForInitialConsent = false;
+  bool get sessionConsentReady =>
+      repository is! NetworkSessionConsentRepository ||
+      _sessionConsent?.ready == true;
+  String? heldDirection(String id) => _runtime
+      .where((c) => c.cardId == id && c.zone == CardZone.HAND)
+      .firstOrNull
+      ?.nativeDirection
+      .name;
+
+  Iterable<CardOccurrenceDirection> _directions(String concept, String action) {
+    final variant = _definitions[concept]!.variants.singleWhere(
+      (v) => v.stableId == action,
+    );
+    final tags = variant.v3!.tags;
+    return CardOccurrenceDirection.values.where(
+      (d) => tags.contains('v3.direction.${d.name.toLowerCase()}'),
+    );
+  }
+
+  Set<String> _consentContribution() {
+    final legacy = _privateProfile;
+    final profile =
+        _v4Profile ??
+        (legacy == null
+            ? null
+            : V4Profile(
+                profileId: playerId,
+                preferences: {
+                  for (final entry in legacy.preferences.entries)
+                    if (entry.value.status == PreferenceStatus.EXCLUDED)
+                      ProfilePreferenceKey(
+                        tagId: entry.key.replaceFirst('v3.preference.', ''),
+                        role: ProfilePreferenceRole.general,
+                      ).storageKey: ProfilePreference(
+                        profileId: playerId,
+                        key: ProfilePreferenceKey(
+                          tagId: entry.key.replaceFirst('v3.preference.', ''),
+                          role: ProfilePreferenceRole.general,
+                        ),
+                        pa: null,
+                        excluded: true,
+                        source: ProfilePreferenceSource.manualCustomized,
+                      ),
+                },
+              ));
+    return {
+      for (final owner in playerIds)
+        for (final concept in _definitions.entries)
+          for (final action in concept.value.variants)
+            for (final direction in _directions(concept.key, action.stableId))
+              if (profile == null ||
+                  const SessionOccurrenceConsent().allows(
+                    catalog: _conceptCatalog,
+                    profile: profile,
+                    subjectId: playerId,
+                    ownerId: owner,
+                    playerIds: playerIds,
+                    conceptId: concept.key,
+                    actionId: action.stableId,
+                    direction: direction,
+                  ))
+                sessionConsentKey(
+                  owner,
+                  concept.key,
+                  action.stableId,
+                  direction.name,
+                ),
+    };
+  }
+
+  /// Missing partner permission is never interpreted as permission.
+  bool occurrenceConsentAllowed(
+    String concept,
+    String action,
+    String direction, {
+    String? ownerId,
+  }) {
+    final owner = ownerId ?? playerId;
+    final key = sessionConsentKey(owner, concept, action, direction);
+    _localConsent ??= _consentContribution();
+    if (!_localConsent!.contains(key)) return false;
+    if (repository is! NetworkSessionConsentRepository) return true;
+    return _sessionConsent?.ready == true &&
+        _sessionConsent!.allowed.contains(key);
+  }
+
+  Future<void> synchronizeConsent() {
+    final pending = _consentRead;
+    if (pending != null) return pending.then((_) => synchronizeConsent());
+    final read = _synchronizeConsent();
+    _consentRead = read;
+    return read.whenComplete(() {
+      if (identical(_consentRead, read)) _consentRead = null;
+    });
+  }
+
+  Future<void> _synchronizeConsent() async {
+    if (repository is! NetworkSessionConsentRepository ||
+        _disposed ||
+        _localSessionCleared) {
+      return;
+    }
+    final remote = repository as NetworkSessionConsentRepository;
+    _watchConsent();
+    _localConsent ??= _consentContribution();
+    final encoded = (_localConsent!.toList()..sort()).join('\n');
+    if (_pendingConsentPayload != encoded) {
+      _pendingConsentPayload = encoded;
+      _pendingConsentCommand = 'consent:$playerId:${nonceFactory()}:${_consentPublication++}';
+    }
+    final state = _publishedConsent == encoded
+        ? await remote.getSessionConsent(session.id)
+        : await remote.publishSessionConsent(
+            sessionId: session.id,
+            allowed: _localConsent!,
+            commandId: _pendingConsentCommand!,
+          );
+    if (_disposed || _localSessionCleared) return;
+    _publishedConsent = encoded;
+    if (state.revision < (_sessionConsent?.revision ?? -1)) return;
+    final changed = state.revision != _sessionConsent?.revision;
+    _sessionConsent = state;
+    if (state.ready && _privateStateReady) {
+      if (_waitingForInitialConsent) {
+        _waitingForInitialConsent = false;
+        _refill(roundNumber);
+      }
+      _rememberHandDirections();
+      _runtime = [
+        for (final card in _runtime)
+          consentBlocksHeldCard(card.cardId)
+              ? card.copyWith(locked: false)
+              : card,
+      ];
+      if (selectedCard case final card? when _activeReveal == null) {
+        if (!occurrenceConsentAllowed(
+          card.id,
+          card.variant.id,
+          card.nativeDirection.name,
+        )) {
+          await cancelPendingSelection();
+        }
+      }
+      if (changed) await _persist();
+    }
+    if (changed && !_disposed) notifyListeners();
+  }
+
+  void _watchConsent() {
+    if (_consentSubscription != null ||
+        repository is! NetworkSessionConsentEvents) {
+      return;
+    }
+    _consentSubscription = (repository as NetworkSessionConsentEvents)
+        .watchSessionConsent(session.id)
+        .listen(
+          (_) => _refreshConsentInBackground(),
+          onError: (Object error, StackTrace stack) {
+            lastSynchronizationError = error;
+            final old = _consentSubscription;
+            _consentSubscription = null;
+            if (old != null) unawaited(old.cancel());
+            debugPrint('Session permission events interrupted: $error');
+          },
+          onDone: () {
+            _consentSubscription = null;
+          },
+        );
+  }
+
+  void _refreshConsentInBackground() {
+    if (_consentRead != null || _disposed || _localSessionCleared) return;
+    unawaited(
+      synchronizeConsent().catchError((Object error, StackTrace stack) {
+        lastSynchronizationError = error;
+        debugPrint('Session permission synchronization failed: $error');
+      }),
+    );
+  }
+
+  bool consentBlocksHeldCard(String id) {
+    if (repository is NetworkSessionConsentRepository &&
+        _sessionConsent?.ready != true) {
+      return true;
+    }
+    final held = _runtime
+        .where((c) => c.cardId == id && c.zone == CardZone.HAND)
+        .firstOrNull;
+    final actions = held?.variantId == null
+        ? _definitions[id]!.variants
+        : _definitions[id]!.variants.where(
+            (v) => v.stableId == held!.variantId,
+          );
+    return actions.every((a) {
+      final directions =
+          held != null &&
+              held.nativeDirection != CardOccurrenceDirection.GENERAL
+          ? [held.nativeDirection]
+          : _directions(id, a.stableId);
+      return !directions.any(
+        (d) => occurrenceConsentAllowed(id, a.stableId, d.name),
+      );
+    });
+  }
+
+  bool canReplaceForConsent(String id) {
+    final held = _runtime
+        .where((c) => c.cardId == id && c.zone == CardZone.HAND)
+        .firstOrNull;
+    if (held == null) return false;
+    return _definitions[id]!.variants.any(
+      (a) =>
+          (held.variantId == null || held.variantId == a.stableId) &&
+          (held.nativeDirection == CardOccurrenceDirection.GENERAL
+              ? _directions(id, a.stableId).every(
+                  (d) => !occurrenceConsentAllowed(id, a.stableId, d.name),
+                )
+              : !occurrenceConsentAllowed(
+                  id,
+                  a.stableId,
+                  held.nativeDirection.name,
+                )),
+    );
+  }
+
+  void _rememberHandDirections() {
+    _runtime = _runtime.map((held) {
+      if (held.zone != CardZone.HAND ||
+          held.nativeDirection != CardOccurrenceDirection.GENERAL) {
+        return held;
+      }
+      final card = _networkCard(held.cardId, variantId: held.variantId);
+      if (card == null) return held;
+      return CardRuntimeState(
+        cardId: held.cardId,
+        variantId: held.variantId,
+        occurrenceId: held.occurrenceId,
+        zone: held.zone,
+        locked: held.locked,
+        nativeDirection: card.nativeDirection,
+      );
+    }).toList();
+  }
+
   final Duration reconciliationInterval;
   final Duration watchRetryDelay;
   Timer? _reconciliationTimer;
@@ -316,6 +572,7 @@ final class NetworkGameController extends ChangeNotifier {
 
   Future<void> applyStageVetoProfile(V4Profile profile) async {
     _v4Profile = profile;
+    _localConsent = null;
     _runtime = [
       for (final card in _runtime)
         _fullyExcluded(card.cardId) ? card.copyWith(locked: false) : card,
@@ -335,6 +592,7 @@ final class NetworkGameController extends ChangeNotifier {
       }
     }
     notifyListeners();
+    await synchronizeConsent();
   }
 
   AdaptiveProfileState? _learnedState;
@@ -668,6 +926,14 @@ final class NetworkGameController extends ChangeNotifier {
     bool recovery = false,
   }) {
     if (!_definitions.containsKey(usage.conceptId)) return false;
+    if (!occurrenceConsentAllowed(
+      usage.conceptId,
+      (usage.resolvedAction['stage_id'] ?? usage.resolvedAction['variant_id'])!
+          as String,
+      usage.resolvedAction['direction']! as String,
+      ownerId: usage.ownerPlayerId,
+    ))
+      return false;
     if (_v4Profile?.excludesStage(
           usage.conceptId,
           (usage.resolvedAction['stage_id'] ??
@@ -683,12 +949,7 @@ final class NetworkGameController extends ChangeNotifier {
             _context.chiliActive) {
       return false;
     }
-    if (_ratingProfile case final profile?) {
-      final tags = _conceptCatalog.vetoTags(usage.conceptId);
-      return !profile.preferences.values.any(
-        (p) => p.excluded && tags.contains(p.key.tagId),
-      );
-    }
+    if (_ratingProfile != null) return true;
     final role = _profileRole(
       CardOccurrenceDirection.values.byName(
         usage.resolvedAction['direction']! as String,
@@ -729,20 +990,31 @@ final class NetworkGameController extends ChangeNotifier {
     ),
   );
 
-  List<NetworkDuelCard> get recoveryCards => [
-    for (final id in _currentOptions(recovery: true).keys)
-      if (!heldConcepts.any((c) => c.id == id) &&
-          _usageCheckpoint.availableFor(id) > 0)
-        if (_networkCard(id, recovery: true) case final card?) card,
-    for (final item in _runtime.where((c) => c.zone == CardZone.HAND))
-      if (_usageCheckpoint.availableFor(item.cardId) > 0)
-        ?_networkCard(
-          item.cardId,
-          option: _currentOptions(recovery: true)[item.cardId]?.firstOrNull,
-          recovery: true,
-        ),
-    ..._replayableDiscards(recovery: true),
-  ];
+  List<NetworkDuelCard> get recoveryCards =>
+      [
+            for (final id in _currentOptions(recovery: true).keys)
+              if (!heldConcepts.any((c) => c.id == id) &&
+                  _usageCheckpoint.availableFor(id) > 0)
+                ?_networkCard(id, recovery: true),
+            for (final item in _runtime.where((c) => c.zone == CardZone.HAND))
+              if (_usageCheckpoint.availableFor(item.cardId) > 0)
+                ?_networkCard(
+                  item.cardId,
+                  option: _currentOptions(
+                    recovery: true,
+                  )[item.cardId]?.firstOrNull,
+                  recovery: true,
+                ),
+            ..._replayableDiscards(recovery: true),
+          ]
+          .where(
+            (c) => occurrenceConsentAllowed(
+              c.id,
+              c.variant.id,
+              c.nativeDirection.name,
+            ),
+          )
+          .toList();
 
   Future<void> start() async {
     if (_subscription != null) return;
@@ -761,8 +1033,19 @@ final class NetworkGameController extends ChangeNotifier {
         chiliUnlocked: current.v4UnlockedSpice,
       );
       _followOrientation(current.hybridOrientation);
+      await synchronizeConsent();
       await _restoreOrCreatePrivateState(current);
       _privateStateReady = true;
+      _waitingForInitialConsent =
+          repository is NetworkSessionConsentRepository &&
+          _sessionConsent?.ready != true;
+      _rememberHandDirections();
+      if (repository is NetworkSessionConsentRepository) {
+        _consentTimer ??= Timer.periodic(const Duration(seconds: 2), (_) {
+          _refreshConsentInBackground();
+        });
+      }
+      await _persist(roundNumber: current.roundNumber);
       _ensureReconciliation();
       await _switchRound(current);
       if (_pendingSecondaryCommand != null) await _replaySecondaryCommand();
@@ -909,21 +1192,41 @@ final class NetworkGameController extends ChangeNotifier {
   Map<String, List<ConceptActionOption>> _currentOptions({
     bool recovery = false,
     bool includeConsumedStages = false,
+    EngineSessionContext? context,
   }) {
     final options = const ConceptActionOptions().evaluate(
       catalog: _conceptCatalog,
       profile: _ratingProfile,
       cardRatings: _cardRatings,
-      context: _context,
+      context: context ?? _context,
       actor: _profile(playerId),
       partner: _profile(opponentId),
       hierarchy: _hierarchy,
       mediaSendRequired: _context.flags['mediaSendRequired'] == true,
       recovery: recovery,
     );
-    if (includeConsumedStages) return options;
-    return {
+    final permitted = {
       for (final entry in options.entries)
+        entry.key: entry.value
+            .where(
+              (o) => _directions(entry.key, o.choice.actionId).any(
+                (d) => occurrenceConsentAllowed(
+                  entry.key,
+                  o.choice.actionId,
+                  d.name,
+                ),
+              ),
+            )
+            .toList(),
+    };
+    if (includeConsumedStages) {
+      return {
+        for (final entry in permitted.entries)
+          if (entry.value.isNotEmpty) entry.key: entry.value,
+      };
+    }
+    return {
+      for (final entry in permitted.entries)
         if (entry.value.any((o) => _stageAvailable(entry.key, o)))
           entry.key: entry.value
               .where((o) => _stageAvailable(entry.key, o))
@@ -1059,6 +1362,7 @@ final class NetworkGameController extends ChangeNotifier {
     viewState = NetworkGameViewState.committing;
     notifyListeners();
     try {
+      await synchronizeConsent();
       await reserveSelection();
       if (round?.roundId != current.roundId) return;
       final option = choicesFor(
@@ -1066,6 +1370,13 @@ final class NetworkGameController extends ChangeNotifier {
       ).where((o) => o.key == _selectedOption?.key).firstOrNull;
       if (option == null) {
         throw StateError('Selected action is no longer eligible');
+      }
+      if (!occurrenceConsentAllowed(
+        card.id,
+        card.variant.id,
+        card.nativeDirection.name,
+      )) {
+        throw StateError('Occurrence is no longer available');
       }
       if (stageExcluded(
         card.id,
@@ -1079,7 +1390,13 @@ final class NetworkGameController extends ChangeNotifier {
         intentId: _intentId,
         conceptId: card.id,
         resolveAction: () => _freezeAction(card, option, engagedAt),
-        resolveInvertedAction: card.oppositePersonalValue == null
+        resolveInvertedAction:
+            card.oppositePersonalValue == null ||
+                !occurrenceConsentAllowed(
+                  card.id,
+                  card.variant.id,
+                  const CardDirectionEngine().invert(card.nativeDirection).name,
+                )
             ? null
             : () => _freezeAction(card, option, engagedAt, inverted: true),
         clock: () => engagedAt,
@@ -1426,7 +1743,12 @@ final class NetworkGameController extends ChangeNotifier {
       option: resolvedOption,
       recovery: recovery,
     );
-    if (currentCard == null) {
+    if (currentCard == null ||
+        !occurrenceConsentAllowed(
+          card.id,
+          resolvedOption.choice.actionId,
+          currentCard.nativeDirection.name,
+        )) {
       throw StateError('Secondary direction unavailable');
     }
     final at = clock().toUtc();
@@ -1503,11 +1825,16 @@ final class NetworkGameController extends ChangeNotifier {
 
   ResolvedConceptAction? _eligibleStageInverse(ResolvedConceptAction? action) {
     if (action == null) return null;
-    return stageExcluded(
-          action.conceptId,
-          action.stageId ?? action.variantId!,
-          action.direction.name,
-        )
+    return !occurrenceConsentAllowed(
+              action.conceptId,
+              action.stageId ?? action.variantId!,
+              action.direction.name,
+            ) ||
+            stageExcluded(
+              action.conceptId,
+              action.stageId ?? action.variantId!,
+              action.direction.name,
+            )
         ? null
         : action;
   }
@@ -1764,6 +2091,7 @@ final class NetworkGameController extends ChangeNotifier {
     Set<String> cardIds = const {},
     Map<String, ConceptActionOption> actionChoices = const {},
   }) async {
+    await synchronizeConsent();
     if ((viewState != NetworkGameViewState.negotiationProposal &&
             viewState != NetworkGameViewState.corruptionDecision) ||
         !isNegotiationProposer ||
@@ -1822,6 +2150,7 @@ final class NetworkGameController extends ChangeNotifier {
     Set<String> cardIds = const {},
     Map<String, ConceptActionOption> actionChoices = const {},
   }) async {
+    await synchronizeConsent();
     if (viewState != NetworkGameViewState.negotiationAdaptation ||
         !isInitialLoser) {
       return;
@@ -1892,6 +2221,7 @@ final class NetworkGameController extends ChangeNotifier {
     Set<String> usageIds,
     CorruptionObjective objective,
   ) async {
+    await synchronizeConsent();
     final cards = corruptionCards
         .where((c) => usageIds.contains(c.identity))
         .toList();
@@ -1967,6 +2297,7 @@ final class NetworkGameController extends ChangeNotifier {
     String identity, {
     ConceptActionOption? option,
   }) async {
+    await synchronizeConsent();
     if (viewState != NetworkGameViewState.recovery || !recoveryAvailable) {
       return;
     }
@@ -2685,6 +3016,7 @@ final class NetworkGameController extends ChangeNotifier {
       ];
       needed--;
     }
+    _rememberHandDirections();
   }
 
   void _buildDeckCycle() {
@@ -2743,6 +3075,19 @@ final class NetworkGameController extends ChangeNotifier {
         .toList();
     if (preferenceIds.isEmpty) return null;
     bool allows(ProfileRole role) {
+      final direction = role == ProfileRole.FAIRE
+          ? 'FAIRE'
+          : role == ProfileRole.RECEVOIR
+          ? 'RECEVOIR'
+          : 'GENERAL';
+      if ((role == ProfileRole.FAIRE || role == ProfileRole.RECEVOIR) &&
+          !occurrenceConsentAllowed(
+            cardId,
+            selected.choice.actionId,
+            direction,
+          )) {
+        return false;
+      }
       if (_v4Profile != null) {
         return _conceptPersonalValue(
               cardId,
@@ -2773,15 +3118,28 @@ final class NetworkGameController extends ChangeNotifier {
         : _fixedDirection(definition, variant);
     CardDirectionSelection direction;
     try {
-      direction = const CardDirectionEngine().select(
-        reversible: reversible,
-        fixedDirection: fixed,
-        faireAllowed: allows(ProfileRole.FAIRE),
-        recevoirAllowed: allows(ProfileRole.RECEVOIR),
-        chooseFaire: Random(
-          _stableHash('${session.id}/$playerId/$_deckCycle/$cardId/direction'),
-        ).nextBool(),
-      );
+      final heldDirection = _runtime
+          .where((c) => c.cardId == cardId && c.zone == CardZone.HAND)
+          .firstOrNull
+          ?.nativeDirection;
+      direction =
+          heldDirection != null &&
+              heldDirection != CardOccurrenceDirection.GENERAL
+          ? CardDirectionSelection(
+              nativeDirection: heldDirection,
+              effectiveDirection: heldDirection,
+            )
+          : const CardDirectionEngine().select(
+              reversible: reversible,
+              fixedDirection: fixed,
+              faireAllowed: allows(ProfileRole.FAIRE),
+              recevoirAllowed: allows(ProfileRole.RECEVOIR),
+              chooseFaire: Random(
+                _stableHash(
+                  '${session.id}/$playerId/$_deckCycle/$cardId/direction',
+                ),
+              ).nextBool(),
+            );
     } on StateError {
       return null;
     }
@@ -3410,6 +3768,9 @@ final class NetworkGameController extends ChangeNotifier {
   DeckExhaustionChoice? get sessionClosureIntent => _sessionClosureIntent;
   Future<void> clearLocalSessionState() async {
     _localSessionCleared = true;
+    _consentTimer?.cancel();
+    await _consentSubscription?.cancel();
+    _consentSubscription = null;
     _watchGeneration++;
     _watchRetryTimer?.cancel();
     _reconciliationTimer?.cancel();
@@ -3768,13 +4129,7 @@ final class NetworkGameController extends ChangeNotifier {
           ? ProximityState.TOGETHER
           : ProximityState.SEPARATED,
     );
-    final options = const ConceptActionOptions().evaluate(
-      catalog: _conceptCatalog,
-      context: context,
-      actor: _profile(playerId),
-      partner: _profile(opponentId),
-      hierarchy: _hierarchy,
-    );
+    final options = _currentOptions(context: context);
     return options.keys
         .where(
           (id) =>
@@ -3858,7 +4213,10 @@ final class NetworkGameController extends ChangeNotifier {
         conceptId:
             option.parameters['practice_concept_id'] as String? ?? conceptId,
         direction: direction.name,
-        vetoTags: _conceptCatalog.vetoTags(conceptId),
+        vetoTags: _conceptCatalog.vetoTags(
+          conceptId,
+          actionId: option.choice.actionId,
+        ),
       );
       if (result.kind == V4RatingResultKind.excluded ||
           result.kind == V4RatingResultKind.unavailable) {
@@ -3924,11 +4282,17 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   bool isCardPlayable(NetworkDuelCard card) =>
+      occurrenceConsentAllowed(
+        card.id,
+        card.variant.id,
+        card.nativeDirection.name,
+      ) &&
       !stageExcluded(card.id, card.variant.id, card.nativeDirection.name) &&
       choicesFor(card.id).any((o) => o.choice.actionId == card.variant.id) &&
       _usageCheckpoint.availableFor(card.id) > 0;
 
   Future<void> replaceExcludedCard(String conceptId) async {
+    await synchronizeConsent();
     if (viewState != NetworkGameViewState.choosing ||
         _activeReveal != null ||
         _committing) {
@@ -3938,8 +4302,9 @@ final class NetworkGameController extends ChangeNotifier {
         .where((c) => c.cardId == conceptId && c.zone == CardZone.HAND)
         .firstOrNull;
     if (held == null ||
-        !(_v4Profile?.stageVetoes.any((v) => v.conceptId == conceptId) ??
-            false)) {
+        !(canReplaceForConsent(conceptId) ||
+            _v4Profile?.stageVetoes.any((v) => v.conceptId == conceptId) ==
+                true)) {
       return;
     }
     await cancelPendingSelection();
@@ -3958,6 +4323,8 @@ final class NetworkGameController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _consentTimer?.cancel();
+    _consentSubscription?.cancel();
     _watchGeneration++;
     _watchRetryTimer?.cancel();
     _reconciliationTimer?.cancel();

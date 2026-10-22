@@ -263,6 +263,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   };
 
   Future<void> _handMenu(CardHandItem item) async {
+    if (controller.viewState != NetworkGameViewState.choosing ||
+        !controller.heldConcepts.any((c) => c.id == item.definition.cardId)) {
+      return;
+    }
     final concept = controller.conceptFor(item.definition.cardId);
     final actionId = item.definition.variantId;
     if (actionId != null) _displayedActions[concept.id] = actionId;
@@ -320,6 +324,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       ),
     );
     if (choice == null || !mounted) return;
+    if (controller.viewState != NetworkGameViewState.choosing ||
+        !controller.heldConcepts.any((c) => c.id == item.definition.cardId)) {
+      return;
+    }
     if (choice == 'lock') {
       controller.toggleLock(item.id);
       return;
@@ -361,7 +369,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     }
   }
 
-  Widget _choosing() => CardHandSurface(
+  Widget _choosing() => controller.sessionConsentReady
+      ? _handSurface()
+      : _centerMessage('Synchronisation des cartes disponibles…',
+          key: const Key('session-consent-waiting'));
+
+  Widget _handSurface() => CardHandSurface(
     key: const Key('network-game-hand'),
     cards: _conceptHandItems(),
     onStageChanged: (stage) {
@@ -439,16 +452,18 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             id: concept.id,
             available: false,
             excluded:
+                controller.consentBlocksHeldCard(concept.id) ||
                 controller.cardExcluded(concept.id) ||
                 (controller.editableProfile?.stageVetoes.any(
                       (v) => v.conceptId == concept.id,
                     ) ??
                     false),
             replaceable:
+                controller.canReplaceForConsent(concept.id) ||
                 controller.editableProfile?.stageVetoes.any(
-                  (v) => v.conceptId == concept.id,
-                ) ??
-                false,
+                      (v) => v.conceptId == concept.id,
+                    ) ==
+                    true,
             locked: controller.lockedCardId == concept.id,
             tabs: [
               for (var i = 0; i < concept.stages.length; i++)
@@ -457,6 +472,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                   label: '${i + 1}',
                   enabled: false,
                   excluded:
+                      !controller.occurrenceConsentAllowed(concept.id,
+                        concept.stages[i].id,
+                        controller.heldDirection(concept.id) ?? 'GENERAL') ||
                       controller.stageExcluded(
                         concept.id,
                         concept.stages[i].id,
@@ -480,7 +498,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                   _displayedActions[concept.id] ??
                   concept.stages.lastOrNull?.id ??
                   concept.variants.firstOrNull?.id,
-              direction: _displayedDirections[concept.id] ?? 'GENERAL',
+              direction:
+                  _displayedDirections[concept.id] ??
+                  controller.heldDirection(concept.id) ??
+                  'GENERAL',
               title: concept.title,
               action: 'Indisponible dans le contexte actuel.',
               spice:
@@ -495,6 +516,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   CardHandItem _conceptHandItem(String id, NetworkDuelCard fallback) {
+    // A consent update disables what was displayed; it must not silently
+    // substitute another stage or reverse the roles of the held occurrence.
+    _displayedActions.putIfAbsent(id, () => fallback.variant.id);
+    _displayedDirections.putIfAbsent(id, () => fallback.nativeDirection.name);
     final concept = controller.conceptFor(id);
     final options = controller.choicesFor(id);
     final option =
@@ -511,7 +536,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         _displayedDirections[id] ?? card.nativeDirection.name;
     final displayedExcluded =
         displayedId != null &&
-        controller.stageExcluded(id, displayedId, displayedDirection);
+        (controller.stageExcluded(id, displayedId, displayedDirection) ||
+            !controller.occurrenceConsentAllowed(
+              id,
+              displayedId,
+              displayedDirection,
+            ));
     final stage = concept.stages.where((s) => s.id == displayedId).firstOrNull;
     final displayedCopy = displayedExcluded && stage != null
         ? ConceptEditorialRenderer(widget.catalog.concepts!).render(
@@ -539,10 +569,11 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       available: item.available && !displayedExcluded,
       excluded: controller.cardExcluded(id) || displayedExcluded,
       replaceable:
+          displayedExcluded ||
           controller.editableProfile?.stageVetoes.any(
-            (v) => v.conceptId == id,
-          ) ??
-          false,
+                (v) => v.conceptId == id,
+              ) ==
+              true,
       locked: item.locked,
       tabs: [
         for (var i = 0; i < concept.stages.length; i++)
@@ -551,13 +582,13 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             label: '${i + 1}',
             enabled:
                 options.any((o) => o.choice.actionId == concept.stages[i].id) &&
-                !controller.stageExcluded(
+                controller.occurrenceConsentAllowed(
                   id,
                   concept.stages[i].id,
                   displayedDirection,
                 ),
             consumed: controller.stageConsumed(id, concept.stages[i].id),
-            excluded: controller.stageExcluded(
+            excluded: !controller.occurrenceConsentAllowed(
               id,
               concept.stages[i].id,
               displayedDirection,

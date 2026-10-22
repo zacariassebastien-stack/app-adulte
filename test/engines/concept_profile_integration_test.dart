@@ -59,7 +59,7 @@ void main() {
     ),
     conceptId: id,
     direction: direction,
-    vetoTags: catalog.vetoTags(id),
+    vetoTags: catalog.vetoTags(id, actionId: action ?? catalog.definitions[id]!.variants.first.stableId),
   );
   V4Profile withExcluded(V4Profile p, String tag, ProfilePreferenceRole role) {
     final key = ProfilePreferenceKey(tagId: tag, role: role);
@@ -142,20 +142,26 @@ void main() {
       rate(
         '022',
         withExcluded(p, 'vaginal', ProfilePreferenceRole.recevoir),
+        direction: 'RECEVOIR',
       ).kind,
       V4RatingResultKind.excluded,
     );
+    expect(rate('022', withExcluded(p, 'vaginal', ProfilePreferenceRole.recevoir)).kind,
+      V4RatingResultKind.rated);
   });
-  test('veto is global across directions and inaccessible stages', () {
+  test('role veto applies across stages but not to the opposite direction', () {
     final p = withExcluded(
       profile(),
       'immobiliser',
       ProfilePreferenceRole.recevoir,
     );
     expect(
-      rate('034', p, action: '034.stage.1').kind,
+      rate('034', p, action: '034.stage.3', direction: 'RECEVOIR').kind,
       V4RatingResultKind.excluded,
     );
+    expect(rate('034', p, action: '034.stage.1').kind, V4RatingResultKind.rated);
+    expect(rate('034', p, action: '034.stage.1', direction: 'RECEVOIR').kind,
+      V4RatingResultKind.rated, reason: 'The lower stage does not include immobilisation');
     expect(
       rate('034', profile(), action: '034.stage.1').kind,
       V4RatingResultKind.rated,
@@ -175,6 +181,7 @@ void main() {
         rate(
           '002',
           withExcluded(profile(), 'anus', ProfilePreferenceRole.general),
+          action: '002.zone.anus',
         ).kind,
         V4RatingResultKind.excluded,
       );
@@ -234,7 +241,7 @@ void main() {
     },
   );
   test(
-    'production options use classified priors and ban a whole concept across directions',
+    'production options preserve the opposite role but reject incompatible mutual participation',
     () {
       Map<String, List<ConceptActionOption>> options(
         V4Profile p,
@@ -264,7 +271,7 @@ void main() {
       final banned = options(
         withExcluded(profile(), 'embrasser', ProfilePreferenceRole.recevoir),
       );
-      expect(banned.containsKey('002'), isFalse);
+      expect(banned.containsKey('002'), isTrue);
       expect(banned.containsKey('003'), isFalse);
     },
   );
@@ -354,7 +361,7 @@ void main() {
         final global = withExcluded(
           both,
           'degradant',
-          ProfilePreferenceRole.faire,
+          ProfilePreferenceRole.general,
         );
         expect(choices(global).containsKey('056'), isFalse);
         expect(catalog.definitions.containsKey('060'), isFalse);

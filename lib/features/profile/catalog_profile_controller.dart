@@ -139,7 +139,14 @@ final class CatalogProfileController extends ChangeNotifier {
       effectiveProfile.preferences.values.any(
         (p) =>
             p.excluded &&
-            runtime.vetoTags(item.concept.id).contains(p.key.tagId),
+            (p.key.role == ProfilePreferenceRole.general ||
+                V4CardRatingEngine.rolesForDirection(
+                  item.concept.id,
+                  item.direction.name,
+                ).contains(p.key.role)) &&
+            runtime
+                .vetoTags(item.concept.id, actionId: item.actionId)
+                .contains(p.key.tagId),
       );
   bool cardExcluded(String id) =>
       profile.stageVetoes.any((v) => v.conceptId == id && v.actionId == '*');
@@ -162,7 +169,7 @@ final class CatalogProfileController extends ChangeNotifier {
       variant: rating,
       conceptId: item.concept.id,
       direction: item.direction.name,
-      vetoTags: runtime.vetoTags(item.concept.id),
+      vetoTags: runtime.vetoTags(item.concept.id, actionId: item.actionId),
     );
     return DetailedPreferenceCategoryRules.fromPa(
       prior.rawScore,

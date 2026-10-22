@@ -63,12 +63,7 @@ final class ConceptActionOptions {
     );
     bool allowed(String conceptId, EngineVariant variant) {
       if (profile != null) {
-        final tags = catalog.vetoTags(conceptId);
-        if (profile.preferences.values.any(
-          (p) => p.excluded && tags.contains(p.key.tagId),
-        )) {
-          return false;
-        }
+        final tags = catalog.vetoTags(conceptId, actionId: variant.id);
         final rating = catalog.optionalRatingFor(conceptId, variant.id);
         if (rating == null) return false;
         bool rated(String direction) {

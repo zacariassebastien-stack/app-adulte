@@ -280,7 +280,7 @@ void main() {
     },
   );
   test(
-    'explicit positive estimate never bypasses the existing global tag veto',
+    'explicit positive estimate cannot authorize its vetoed role but preserves the opposite role',
     () async {
       const key = ProfilePreferenceKey(
         tagId: 'degradant',
@@ -320,7 +320,10 @@ void main() {
         partner: PlayerGameProfile(playerId: 'other', preferences: const {}),
         hierarchy: ProfileHierarchy(const {}),
       );
-      expect(options.containsKey('056'), isFalse);
+      expect(options.containsKey('056'), isTrue,
+        reason: 'RECEVOIR remains allowed; an estimate does not lift the FAIRE veto');
+      expect(c.globalTagVeto(item(c, '056.stage.1', 'RECEVOIR')), isFalse);
+      expect(c.profile.preferences[key.storageKey]!.excluded, isTrue);
       c.dispose();
     },
   );

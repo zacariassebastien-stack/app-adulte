@@ -22,7 +22,9 @@ import 'package:couple_cards/features/lobby/lobby_models.dart';
 import 'package:couple_cards/features/lobby/active_session_store.dart';
 import 'package:couple_cards/features/lobby/game_history.dart';
 import 'package:couple_cards/sync/sync.dart';
+import 'package:couple_cards/sync/rounds/session_consent.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -147,6 +149,244 @@ void main() {
       if (excluded != null) for (final r in role == null ? [ProfilePreferenceRole.faire, ProfilePreferenceRole.recevoir] : [role])
         StageVeto(conceptId: '056', actionId: '056.stage.$excluded', role: r),
     ]);
+  }
+  V4Profile consentProfile(String id, {ProfilePreferenceRole? excluded,
+    String? stage, bool preference = false}) {
+    final base = stageProfile();
+    final values = Map<String, ProfilePreference>.of(base.preferences);
+    if (preference && excluded != null) {
+      final key = ProfilePreferenceKey(tagId: 'degradant', role: excluded);
+      values[key.storageKey] = ProfilePreference(profileId: id, key: key,
+        pa: null, excluded: true, source: ProfilePreferenceSource.manualCustomized);
+    }
+    return V4Profile(profileId: id, preferences: values, stageVetoes: [
+      if (stage != null) StageVeto(conceptId: '056', actionId: stage,
+        role: excluded ?? ProfilePreferenceRole.general),
+    ]);
+  }
+  Future<(_Backend, _ConsentBackend, NetworkGameController, NetworkGameController,
+      MemoryNetworkDuelSecretStore)> jointPair({V4Profile? initialA}) async {
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    final consent = _ConsentBackend();
+    final store = MemoryNetworkDuelSecretStore();
+    NetworkGameController player(String id, V4Profile profile) => NetworkGameController(
+      session: session, playerId: id, repository: _ConsentRepository(backend, id, consent),
+      privateStore: id == 'bob' ? store : MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore(), v4Profile: profile,
+      catalog: _catalogWithCards(catalog, {'card.v4.056'}));
+    final a = player('alice', initialA ?? consentProfile('alice'));
+    final b = player('bob', consentProfile('bob'));
+    addTearDown(() async { a.dispose(); b.dispose(); await consent.close(); });
+    await a.start();
+    expect(a.hand, isEmpty, reason: 'Missing partner consent must fail closed');
+    await b.start();
+    await a.synchronizeConsent();
+    expect(a.errorMessage, isNull);
+    expect(b.errorMessage, isNull);
+    return (backend, consent, a, b, store);
+  }
+  test('joint consent initial partner profile veto preserves actual FAIRE only', () async {
+    final pair = await jointPair(initialA: consentProfile('alice',
+      excluded: ProfilePreferenceRole.recevoir, preference: true));
+    final a = pair.$3;
+    final b = pair.$4;
+    expect(a.hand, isNotEmpty);
+    expect(b.hand, isNotEmpty);
+    expect(a.hand.every((c) => c.nativeDirection == CardOccurrenceDirection.FAIRE), isTrue);
+    expect(b.hand.every((c) => c.nativeDirection == CardOccurrenceDirection.RECEVOIR), isTrue);
+    expect(a.hand.single.oppositePersonalValue, isNull);
+    expect(b.hand.single.oppositePersonalValue, isNull);
+  });
+  test('joint consent update blocks held occurrence, clears draft, replaces at zero PA and undo does not refill', () async {
+    final pair = await jointPair();
+    final a = pair.$3;
+    final b = pair.$4;
+    final original = b.hand.single;
+    b.selectCard('056');
+    await b.reserveSelection();
+    final role = original.nativeDirection == CardOccurrenceDirection.FAIRE
+      ? ProfilePreferenceRole.recevoir : ProfilePreferenceRole.faire;
+    final stock = b.usageCheckpoint.stock.toJson();
+    await a.applyStageVetoProfile(consentProfile('alice', excluded: role,
+      stage: original.variant.id));
+    await b.synchronizeConsent();
+    expect(b.heldConcepts.map((c) => c.id), contains('056'));
+    expect(b.hand.single.nativeDirection, original.nativeDirection);
+    expect(b.isCardPlayable(b.hand.single), isFalse);
+    expect(b.canReplaceForConsent('056'), isTrue);
+    expect(b.selectedCard, isNull);
+    expect(b.usageCheckpoint.usagesByIntent, isEmpty);
+    await b.replaceExcludedCard('056');
+    expect(b.heldConcepts, isEmpty);
+    expect(pair.$1.points['bob'], 100);
+    expect(b.usageCheckpoint.stock.toJson(), stock);
+    await a.applyStageVetoProfile(consentProfile('alice'));
+    await b.synchronizeConsent();
+    expect(b.choicesFor('056'), isNotEmpty);
+    expect(b.heldConcepts, isEmpty, reason: 'Undo does not resurrect a released card');
+  });
+  test('joint consent whole-card veto filters replacement and Recovery and survives reconstruction', () async {
+    final pair = await jointPair();
+    await pair.$3.applyStageVetoProfile(consentProfile('alice', stage: '*'));
+    await pair.$4.synchronizeConsent();
+    expect(pair.$4.choicesFor('056'), isEmpty);
+    expect(pair.$4.recoveryCards, isEmpty);
+    await pair.$4.replaceExcludedCard('056');
+    expect(pair.$4.hand, isEmpty);
+    final restored = NetworkGameController(session: session, playerId: 'bob',
+      repository: _ConsentRepository(pair.$1, 'bob', pair.$2), privateStore: pair.$5,
+      learningStore: MemoryNetworkProfileLearningStore(), v4Profile: consentProfile('bob'),
+      catalog: _catalogWithCards(catalog, {'card.v4.056'}));
+    addTearDown(restored.dispose);
+    await restored.start();
+    expect(restored.errorMessage, isNull);
+    expect(restored.choicesFor('056'), isEmpty);
+    expect(restored.recoveryCards, isEmpty);
+  });
+  test('joint consent projection has no source, note, tag or partner-owned permissions', () async {
+    final pair = await jointPair();
+    final projection = pair.$2.read('alice');
+    expect(projection.allowed.every((k) => k.startsWith('alice/')), isTrue);
+    final wire = jsonEncode({'revision': projection.revision,
+      'ready': projection.ready, 'allowed': projection.allowed.toList()});
+    for (final private in ['degradant', 'preferences', 'stage_vetoes', 'pa', 'reason', 'source']) {
+      expect(wire, isNot(contains(private)));
+    }
+  });
+  test('joint consent idempotent publication and lost acknowledgement cannot resurrect an older veto state', () async {
+    final backend = _Backend();
+    final consent = _ConsentBackend();
+    addTearDown(consent.close);
+    final repo = _ConsentRepository(backend, 'alice', consent);
+    const key = 'alice/056/056.stage.3/FAIRE';
+    await repo.publishSessionConsent(sessionId: session.id, allowed: {key}, commandId: 'first');
+    final revision = consent.revision;
+    await repo.publishSessionConsent(sessionId: session.id, allowed: {key}, commandId: 'first');
+    expect(consent.revision, revision);
+    await repo.publishSessionConsent(sessionId: session.id, allowed: {}, commandId: 'veto');
+    await repo.publishSessionConsent(sessionId: session.id, allowed: {key}, commandId: 'first');
+    expect(consent.contributions['alice'], isEmpty);
+    expect(consent.revision, revision + 1);
+    await expectLater(repo.publishSessionConsent(sessionId: session.id,
+      allowed: {}, commandId: 'first'), throwsStateError);
+  });
+  test('joint consent SQL isolates contributions and publishes revision-only invalidations', () {
+    final sql = File('supabase/migrations/202610220001_session_occurrence_consent.sql').readAsStringSync();
+    expect(sql, contains('alter table public.network_session_consent enable row level security'));
+    expect(sql, contains('revoke all on public.network_session_consent, public.network_session_consent_revisions'));
+    expect(sql, contains('grant select on public.network_session_consent_revisions to authenticated'));
+    expect(sql, isNot(contains('grant select on public.network_session_consent to authenticated')));
+    expect(sql, contains("split_part(key,'/',1)=auth.uid()::text"));
+    expect(sql, contains('v_previous.allowed<>p_allowed'));
+    expect(sql, contains('return public.get_session_consent(p_session_id)'));
+    expect(sql, contains('alter publication supabase_realtime add table public.network_session_consent_revisions'));
+  });
+  test('joint consent MUTUEL evaluates both participants and keeps immutable action semantics', () async {
+    final consent = _ConsentBackend();
+    final setup = await _setupCorruption(session, catalog,
+      firstLifeConcept: '003', consent: consent);
+    addTearDown(setup.dispose);
+    expect(setup.alice.occurrenceConsentAllowed('003', '003.stage.1', 'MUTUEL'), isTrue);
+    await setup.bob.applyStageVetoProfile(V4Profile(profileId: 'bob', preferences: {},
+      stageVetoes: [StageVeto(conceptId: '003', actionId: '003.stage.1',
+        role: ProfilePreferenceRole.recevoir)]));
+    await setup.alice.synchronizeConsent();
+    expect(setup.alice.occurrenceConsentAllowed('003', '003.stage.1', 'MUTUEL'), isFalse);
+    expect(setup.bob.occurrenceConsentAllowed('003', '003.stage.1', 'MUTUEL'), isFalse);
+    expect(setup.alice.occurrenceConsentAllowed('003', '003.stage.2', 'MUTUEL'), isTrue);
+  });
+  test('joint consent refresh fails visibly before engagement and recovers after connectivity returns', () async {
+    final pair = await jointPair();
+    pair.$4.selectCard('056');
+    pair.$2.offline = true;
+    await pair.$4.confirmSelection();
+    expect(pair.$1.round.commits, isEmpty);
+    expect(pair.$4.usageCheckpoint.usagesByIntent, isEmpty);
+    pair.$2.offline = false;
+    await pair.$4.synchronizeConsent();
+    expect(pair.$2.read('bob').ready, isTrue);
+  });
+  test('joint consent catches up automatically after Realtime channel termination', () async {
+    final pair = await jointPair();
+    pair.$2.events.addError(StateError('simulated Realtime close 1006'));
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    await pair.$3.applyStageVetoProfile(consentProfile('alice', stage: '*'));
+    for (var i = 0; i < 120 && pair.$4.choicesFor('056').isNotEmpty; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 25));
+    }
+    expect(pair.$4.choicesFor('056'), isEmpty);
+    expect(pair.$4.heldConcepts.map((c) => c.id), contains('056'));
+    expect(pair.$4.canReplaceForConsent('056'), isTrue);
+    expect(pair.$2.watchCount, greaterThan(2));
+  });
+  testWidgets('joint consent UI preserves blocked stage and offers private free replacement', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    final consent = _ConsentBackend();
+    final focused = _catalogWithCards(catalog, {'card.v4.056'});
+    final alice = NetworkGameController(session: session, playerId: 'alice',
+      repository: _ConsentRepository(backend, 'alice', consent),
+      privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore(),
+      v4Profile: consentProfile('alice'), catalog: focused);
+    try {
+    await alice.start();
+    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+      session: session, playerId: 'bob', repository: _ConsentRepository(backend, 'bob', consent),
+      catalog: focused, v4Profile: consentProfile('bob'),
+      secretStore: MemoryNetworkDuelSecretStore(),
+      cardLearningStore: MemoryV4CardLearningStore())));
+    await tester.pumpAndSettle();
+    final before = tester.widget<CardHandSurface>(find.byType(CardHandSurface)).cards.single;
+    expect(before.definition.variantId, '056.stage.3');
+    expect(before.available, isTrue);
+    await alice.applyStageVetoProfile(consentProfile('alice', stage: '056.stage.3'));
+    await tester.pumpAndSettle();
+    final after = tester.widget<CardHandSurface>(find.byType(CardHandSurface)).cards.single;
+    expect(after.definition.variantId, before.definition.variantId);
+    expect(after.definition.direction, before.definition.direction);
+    expect(after.available, isFalse);
+    expect(after.excluded, isTrue);
+    expect(after.replaceable, isTrue);
+    expect(after.tabs.singleWhere((t) => t.id == '056.stage.3').excluded, isTrue);
+    expect(tester.takeException(), isNull);
+    } finally {
+    await tester.pumpWidget(const SizedBox.shrink());
+    alice.dispose();
+    await consent.close();
+    }
+  });
+  for (final wholeCard in [false, true]) {
+    test('joint consent veto before next proposal removes historical Corruption Recovery and compromise whole=$wholeCard', () async {
+      final consent = _ConsentBackend();
+      final setup = await _setupCorruption(session, catalog, consent: consent);
+      addTearDown(setup.dispose);
+      await _playUnequal(setup, forceAliceCard: '006', requireRepeatable: true);
+      final source = setup.alice.usageCheckpoint.usagesByIntent.values.single;
+      final firstBob = setup.bob.usageCheckpoint.usagesByIntent.values.single.conceptId;
+      final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+      await loser.skipCorruption();
+      await _settle();
+      await _completeResolvedAction(setup);
+      await _cycleController(setup).completeAction();
+      await _settle();
+      expect(setup.alice.viewState, NetworkGameViewState.choosing);
+      expect(setup.alice.corruptionCards.any((c) => c.identity == source.usageId), isTrue);
+      final recipientRole = source.action.direction == CardOccurrenceDirection.FAIRE
+        ? ProfilePreferenceRole.recevoir : ProfilePreferenceRole.faire;
+      // This is an already-existing veto by the next proposal, not a new veto
+      // during Corruption or an attempt to cancel the completed action.
+      await setup.bob.applyStageVetoProfile(V4Profile(profileId: 'bob', preferences: {},
+        stageVetoes: [StageVeto(conceptId: '006',
+          actionId: wholeCard ? '*' : source.action.stageId ?? source.action.variantId!,
+          role: wholeCard ? ProfilePreferenceRole.general : recipientRole)]));
+      await setup.alice.synchronizeConsent();
+      expect(setup.alice.corruptionCards.any((c) => c.identity == source.usageId), isFalse);
+      expect(setup.alice.recoveryCards.any((c) => c.identity == source.usageId), isFalse);
+      expect(setup.alice.auctionCards.any((c) => c.identity == source.usageId), isFalse);
+      expect(setup.alice.usageCheckpoint.usagesByIntent.values.single.toJson(), source.toJson());
+      expect(firstBob, isNotEmpty);
+    });
   }
   test('excluding selected stage prevents commit and consumption; undo restores it', () async {
     final backend = _Backend()..v4UnlockedSpice = 4;
@@ -3819,7 +4059,7 @@ void main() {
       }
     },
   );
-  test('V4 exclusion vetoes the whole concept across directions', () async {
+  test('V4 role exclusion preserves the opposite authorized direction', () async {
     final focusedCatalog = _catalogWithCards(catalog, {'card.v4.002'});
     for (final excludedRole in [
       ProfilePreferenceRole.faire,
@@ -3852,14 +4092,18 @@ void main() {
       );
       addTearDown(controller.dispose);
       await controller.start();
-      expect(controller.hand, isEmpty);
-      expect(controller.choicesFor('002'), isEmpty);
+      expect(controller.hand, isNotEmpty);
+      expect(controller.choicesFor('002'), isNotEmpty);
+      final expectedDirection = excludedRole == ProfilePreferenceRole.faire
+        ? CardOccurrenceDirection.RECEVOIR : CardOccurrenceDirection.FAIRE;
+      expect(controller.hand.single.nativeDirection, expectedDirection);
+      expect(controller.hand.single.oppositePersonalValue, isNull);
       controller.selectCard('002');
       await controller.confirmSelection();
-      expect(controller.usageCheckpoint.usagesByIntent, isEmpty);
+      expect(controller.usageCheckpoint.usagesByIntent, hasLength(1));
       expect(controller.usageCheckpoint.reservationsByIntent, isEmpty);
-      expect(controller.usageCheckpoint.stock.remainingFor('002'), 1);
-      expect(backend.round.commits, isEmpty);
+      expect(controller.usageCheckpoint.stock.remainingFor('002'), 0);
+      expect(backend.round.commits, hasLength(1));
     }
   });
   test('production catalog resolver imposes the canonical intimate zone', () {
@@ -3890,7 +4134,7 @@ void main() {
         (1, 1.0, 1.0, false, null),
         (2, 1.0, 1.0, false, 1),
         (2, 5.0, 12.0, false, 7),
-        (2, 5.0, 12.0, true, null),
+        (2, 5.0, 12.0, true, 7),
       ]) {
         final preferences = <String, ProfilePreference>{};
         void add(
@@ -8338,6 +8582,7 @@ Future<_Setup> _setupCorruption(
   Catalog catalog, {
   MemoryNetworkProfileLearningStore? learning,
   String firstLifeConcept = '006',
+  _ConsentBackend? consent,
 }) async {
   final backend = _Backend();
   final stores = {
@@ -8371,7 +8616,7 @@ Future<_Setup> _setupCorruption(
   NetworkGameController player(String id, int value) => NetworkGameController(
     session: session,
     playerId: id,
-    repository: backend.repository(id),
+    repository: consent == null ? backend.repository(id) : _ConsentRepository(backend, id, consent),
     privateStore: stores[id]!,
     learningStore: learning ?? MemoryNetworkProfileLearningStore(),
     catalog: catalog,
@@ -8388,11 +8633,16 @@ Future<_Setup> _setupCorruption(
           ),
       },
     ),
-    nonceFactory: () => 'nonce-$id-${backend.currentRound}',
+    nonceFactory: consent == null ? () => 'nonce-$id-${backend.currentRound}' : null,
     clock: () => DateTime.utc(2026, 9, 30, 12, backend.currentRound),
   );
   final setup = _Setup(backend, player('alice', 8), player('bob', 12));
   await Future.wait([setup.alice.start(), setup.bob.start()]);
+  if (consent != null) {
+    addTearDown(consent.close);
+    await setup.alice.synchronizeConsent();
+    await setup.bob.synchronizeConsent();
+  }
   await _settle();
   return setup;
 }
@@ -9521,6 +9771,52 @@ final class _OfflineRepository extends _Repository {
       throw StateError('offline commit or lost response');
     }
     return super.submitCommit(command: command, commitment: commitment);
+  }
+}
+
+final class _ConsentBackend {
+  final contributions = <String, Set<String>>{};
+  final commands = <String, String>{};
+  int revision = 0;
+  bool offline = false;
+  final events = StreamController<int>.broadcast();
+  Future<void> close() => events.close();
+  int watchCount = 0;
+  SessionConsentState read(String player) {
+    if (offline) throw StateError('simulated offline consent transport');
+    return SessionConsentState(revision: revision, ready: contributions.length == 2,
+      allowed: contributions.length != 2 ? <String>{} :
+        contributions.values.first.intersection(contributions.values.last)
+          .where((key) => key.startsWith('$player/')));
+  }
+}
+
+final class _ConsentRepository extends _Repository implements NetworkSessionConsentRepository, NetworkSessionConsentEvents {
+  _ConsentRepository(super.backend, super.player, this.consent);
+  final _ConsentBackend consent;
+  @override
+  Stream<int> watchSessionConsent(String sessionId) {
+    consent.watchCount++;
+    return consent.events.stream;
+  }
+  @override
+  Future<SessionConsentState> getSessionConsent(String sessionId) async => consent.read(player);
+  @override
+  Future<SessionConsentState> publishSessionConsent({required String sessionId,
+    required Set<String> allowed, required String commandId}) async {
+    if (consent.offline) throw StateError('simulated offline consent transport');
+    final payload = '$player/${(allowed.toList()..sort()).join(',')}';
+    final previous = consent.commands[commandId];
+    if (previous != null && previous != payload) throw StateError('command conflict');
+    if (previous == null) {
+      consent.commands[commandId] = payload;
+      if (!setEquals(consent.contributions[player], allowed)) {
+        consent.contributions[player] = Set.of(allowed);
+        consent.revision++;
+        consent.events.add(consent.revision);
+      }
+    }
+    return consent.read(player);
   }
 }
 

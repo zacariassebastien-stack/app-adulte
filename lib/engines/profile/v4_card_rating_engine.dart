@@ -90,7 +90,10 @@ final class V4CardRatingEngine {
     ];
     final allTags = {...tags, ...variant.nonPreferenceData, ...?vetoTags};
     for (final preference in profile.preferences.values) {
-      if (preference.excluded && allTags.contains(preference.key.tagId)) {
+      if (preference.excluded &&
+          allTags.contains(preference.key.tagId) &&
+          (preference.key.role == ProfilePreferenceRole.general ||
+              preference.key.role == effectiveRole)) {
         return V4RatingResult.excluded(preference.key.tagId);
       }
     }
@@ -142,32 +145,7 @@ final class V4CardRatingEngine {
     required String direction,
     Set<String>? vetoTags,
   }) {
-    final roles = switch (conceptId) {
-      '013' => const [ProfilePreferenceRole.soi],
-      '021' => const [
-        ProfilePreferenceRole.solo,
-        ProfilePreferenceRole.observer,
-      ],
-      '053' => const [ProfilePreferenceRole.recevoir],
-      '045' || '047' => const [ProfilePreferenceRole.mutuel],
-      _ => switch (direction) {
-        'FAIRE' => const [ProfilePreferenceRole.faire],
-        'RECEVOIR' => const [ProfilePreferenceRole.recevoir],
-        'MUTUEL' || 'SIMULTANE' =>
-          const {'003', '020', '026'}.contains(conceptId)
-              ? const [
-                  ProfilePreferenceRole.faire,
-                  ProfilePreferenceRole.recevoir,
-                ]
-              : const [ProfilePreferenceRole.mutuel],
-        // Q05 explicitly uses FAIRE for the person whose clothing changes.
-        'SOLO' =>
-          const {'008', '009', '010'}.contains(conceptId)
-              ? const [ProfilePreferenceRole.faire]
-              : const [ProfilePreferenceRole.solo],
-        _ => const [ProfilePreferenceRole.general],
-      },
-    };
+    final roles = rolesForDirection(conceptId, direction);
     final results = [
       for (final role in roles)
         initialize(
@@ -201,6 +179,34 @@ final class V4CardRatingEngine {
       componentValues: values,
     );
   }
+
+  /// Shared participation semantics for rating and consent; no second role map.
+  static List<ProfilePreferenceRole> rolesForDirection(
+    String conceptId,
+    String direction,
+  ) => switch (conceptId) {
+    '013' => const [ProfilePreferenceRole.soi],
+    '021' => const [ProfilePreferenceRole.solo, ProfilePreferenceRole.observer],
+    '053' => const [ProfilePreferenceRole.recevoir],
+    '045' || '047' => const [ProfilePreferenceRole.mutuel],
+    _ => switch (direction) {
+      'FAIRE' => const [ProfilePreferenceRole.faire],
+      'RECEVOIR' => const [ProfilePreferenceRole.recevoir],
+      'MUTUEL' || 'SIMULTANE' =>
+        const {'003', '020', '026'}.contains(conceptId)
+            ? const [
+                ProfilePreferenceRole.faire,
+                ProfilePreferenceRole.recevoir,
+              ]
+            : const [ProfilePreferenceRole.mutuel],
+      // Q05 explicitly uses FAIRE for the person whose clothing changes.
+      'SOLO' =>
+        const {'008', '009', '010'}.contains(conceptId)
+            ? const [ProfilePreferenceRole.faire]
+            : const [ProfilePreferenceRole.solo],
+      _ => const [ProfilePreferenceRole.general],
+    },
+  };
 
   ProfilePreference? _resolve(
     V4Profile profile,

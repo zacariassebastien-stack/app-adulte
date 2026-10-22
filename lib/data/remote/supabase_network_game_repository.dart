@@ -9,6 +9,7 @@ import '../../engines/deck/deck_cycle_state.dart';
 import '../../engines/recovery/recovery_engine.dart';
 import '../../engines/runtime/v4_runtime_engine.dart';
 import '../../sync/sync.dart';
+import '../../sync/rounds/session_consent.dart';
 
 final class SupabaseNetworkGameRepository
     implements
@@ -16,6 +17,8 @@ final class SupabaseNetworkGameRepository
         NetworkNegotiationRepository,
         NetworkSessionFlowRepository,
         NetworkSessionSetupRepository,
+        NetworkSessionConsentRepository,
+        NetworkSessionConsentEvents,
         NetworkPrivateInitialResolutionRepository,
         NetworkV4ActionRepository,
         NetworkCommitCancellationRepository,
@@ -27,6 +30,50 @@ final class SupabaseNetworkGameRepository
 
   final SupabaseClient client;
   final Duration requestTimeout;
+
+  @override
+  Stream<int> watchSessionConsent(String sessionId) async* {
+    await _identity();
+    await for (final rows
+        in client
+            .from('network_session_consent_revisions')
+            .stream(primaryKey: ['session_id'])
+            .eq('session_id', sessionId)) {
+      if (rows.isNotEmpty) yield rows.single['revision'] as int;
+    }
+  }
+
+  @override
+  Future<SessionConsentState> publishSessionConsent({
+    required String sessionId,
+    required Set<String> allowed,
+    required String commandId,
+  }) async {
+    await _identity();
+    final result = await client
+        .rpc<Map<String, dynamic>>(
+          'publish_session_consent',
+          params: {
+            'p_session_id': sessionId,
+            'p_allowed': allowed.toList()..sort(),
+            'p_command_id': commandId,
+          },
+        )
+        .timeout(requestTimeout);
+    return SessionConsentState.fromJson(result);
+  }
+
+  @override
+  Future<SessionConsentState> getSessionConsent(String sessionId) async {
+    await _identity();
+    final result = await client
+        .rpc<Map<String, dynamic>>(
+          'get_session_consent',
+          params: {'p_session_id': sessionId},
+        )
+        .timeout(requestTimeout);
+    return SessionConsentState.fromJson(result);
+  }
 
   Future<String> _identity() async {
     final existing = client.auth.currentUser;
