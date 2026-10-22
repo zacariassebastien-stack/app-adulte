@@ -147,6 +147,14 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         _requestInversion = false;
         _pendingClothingCount = null;
       }
+      final held = controller.heldConcepts.map((c) => c.id).toSet();
+      final stale = _displayedActions.keys.where((id) => !held.contains(id) ||
+        (controller.displayedHandAction(id) != null &&
+         controller.displayedHandAction(id) != _displayedActions[id]) ||
+        (_displayedDirections[id] != null &&
+         controller.heldDirection(id) != _displayedDirections[id])).toSet();
+      _displayedActions.removeWhere((id, _) => stale.contains(id));
+      _displayedDirections.removeWhere((id, _) => !held.contains(id) || stale.contains(id));
     });
   }
 
@@ -273,7 +281,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     if (item.definition.direction case final direction?) {
       _displayedDirections[concept.id] = direction;
     }
-    final cardExcluded = controller.cardExcluded(concept.id);
+    final cardExcluded = controller.cardExcluded(concept.id,
+      direction: item.definition.direction);
     final stageExcluded =
         actionId != null &&
         controller.stageExcluded(
@@ -341,7 +350,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     try {
       await editor.load();
       if (choice == 'card') {
-        await editor.excludeCard(concept.id, excluded: !cardExcluded);
+        await editor.excludeCard(concept.id, excluded: !cardExcluded,
+          role: controller.cardExcluded(concept.id)
+              ? ProfilePreferenceRole.general
+              : ProfilePreferenceRole.parse(item.definition.direction ?? 'GENERAL'));
       } else {
         final target = editor.items.singleWhere(
           (i) =>
@@ -385,6 +397,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     onReplace: (item) => controller.replaceExcludedCard(item.definition.cardId),
     onTabChanged: (item, actionId) => setState(() {
       _displayedActions[item.id] = actionId;
+      controller.recordDisplayedHandAction(item.id, actionId, persist: true);
       _displayedDirections.remove(item.id);
     }),
     animationsEnabled: preferences.value.animations,
@@ -453,7 +466,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             available: false,
             excluded:
                 controller.consentBlocksHeldCard(concept.id) ||
-                controller.cardExcluded(concept.id) ||
+                controller.cardExcluded(concept.id, direction: controller.heldDirection(concept.id)) ||
                 (controller.editableProfile?.stageVetoes.any(
                       (v) => v.conceptId == concept.id,
                     ) ??
@@ -472,7 +485,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                   label: '${i + 1}',
                   enabled: false,
                   excluded:
-                      !controller.occurrenceConsentAllowed(concept.id,
+                      !controller.localConsentAllowed(concept.id,
                         concept.stages[i].id,
                         controller.heldDirection(concept.id) ?? 'GENERAL') ||
                       controller.stageExcluded(
@@ -516,9 +529,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   CardHandItem _conceptHandItem(String id, NetworkDuelCard fallback) {
-    // A consent update disables what was displayed; it must not silently
-    // substitute another stage or reverse the roles of the held occurrence.
-    _displayedActions.putIfAbsent(id, () => fallback.variant.id);
+    // Keep the consulted occurrence stable until the controller replaces it;
+    // the owner's own exclusions remain visible on that occurrence.
+    _displayedActions.putIfAbsent(id, () => controller.displayedHandAction(id) ?? fallback.variant.id);
     _displayedDirections.putIfAbsent(id, () => fallback.nativeDirection.name);
     final concept = controller.conceptFor(id);
     final options = controller.choicesFor(id);
@@ -532,12 +545,13 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         : controller.previewAction(id, option) ?? fallback;
     final item = _handItem(card);
     final displayedId = _displayedActions[id] ?? item.definition.variantId;
+    if (displayedId != null) controller.recordDisplayedHandAction(id, displayedId);
     final displayedDirection =
         _displayedDirections[id] ?? card.nativeDirection.name;
     final displayedExcluded =
         displayedId != null &&
         (controller.stageExcluded(id, displayedId, displayedDirection) ||
-            !controller.occurrenceConsentAllowed(
+            !controller.localConsentAllowed(
               id,
               displayedId,
               displayedDirection,
@@ -567,7 +581,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               spice: stage?.chili ?? item.definition.spice,
             ),
       available: item.available && !displayedExcluded,
-      excluded: controller.cardExcluded(id) || displayedExcluded,
+      excluded: controller.cardExcluded(id, direction: displayedDirection) || displayedExcluded,
       replaceable:
           displayedExcluded ||
           controller.editableProfile?.stageVetoes.any(
@@ -588,7 +602,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                   displayedDirection,
                 ),
             consumed: controller.stageConsumed(id, concept.stages[i].id),
-            excluded: !controller.occurrenceConsentAllowed(
+            excluded: !controller.localConsentAllowed(
               id,
               concept.stages[i].id,
               displayedDirection,

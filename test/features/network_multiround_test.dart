@@ -16,6 +16,7 @@ import 'package:couple_cards/domain/domain.dart';
 import 'package:couple_cards/engines/engines.dart';
 import 'package:couple_cards/features/game/network_duel_secret_store.dart';
 import 'package:couple_cards/features/game/network_game_controller.dart';
+import 'package:couple_cards/features/game/network_duel_controller.dart' show NetworkDuelCard;
 import 'package:couple_cards/features/game/network_duel_screen.dart';
 import 'package:couple_cards/features/game/network_profile_learning.dart';
 import 'package:couple_cards/features/lobby/lobby_models.dart';
@@ -165,7 +166,8 @@ void main() {
     ]);
   }
   Future<(_Backend, _ConsentBackend, NetworkGameController, NetworkGameController,
-      MemoryNetworkDuelSecretStore)> jointPair({V4Profile? initialA}) async {
+      MemoryNetworkDuelSecretStore)> jointPair({V4Profile? initialA,
+        V4Profile? initialB, bool fullCatalog = false}) async {
     final backend = _Backend()..v4UnlockedSpice = 4;
     final consent = _ConsentBackend();
     final store = MemoryNetworkDuelSecretStore();
@@ -173,9 +175,10 @@ void main() {
       session: session, playerId: id, repository: _ConsentRepository(backend, id, consent),
       privateStore: id == 'bob' ? store : MemoryNetworkDuelSecretStore(),
       learningStore: MemoryNetworkProfileLearningStore(), v4Profile: profile,
-      catalog: _catalogWithCards(catalog, {'card.v4.056'}));
+      initialClothingCounts: fullCatalog ? const {'alice': 6, 'bob': 6} : const {},
+      catalog: fullCatalog ? catalog : _catalogWithCards(catalog, {'card.v4.056'}));
     final a = player('alice', initialA ?? consentProfile('alice'));
-    final b = player('bob', consentProfile('bob'));
+    final b = player('bob', initialB ?? consentProfile('bob'));
     addTearDown(() async { a.dispose(); b.dispose(); await consent.close(); });
     await a.start();
     expect(a.hand, isEmpty, reason: 'Missing partner consent must fail closed');
@@ -185,6 +188,309 @@ void main() {
     expect(b.errorMessage, isNull);
     return (backend, consent, a, b, store);
   }
+  V4Profile completeConsentProfile(String id) {
+    final questionnaire = ProfileQuestionnaire.decode(
+      File('assets/catalog/source/profile_questions.v1.fr.json').readAsStringSync());
+    return const InitialQuestionnaireEngine().initialize(profileId: id,
+      questionnaire: questionnaire, responses: {
+        for (final question in questionnaire.questions)
+          for (final axis in question.axes)
+            '${question.stableId}|${axis.axisId}': InitialQuestionResponse.like,
+      });
+  }
+  String occurrenceSignature(NetworkDuelCard card) =>
+      '${card.id}/${card.variant.id}/${card.nativeDirection.name}';
+  Future<(_ConsentBackend, NetworkGameController, NetworkGameController,
+      MemoryV4ProfileStore)> rolePair(String concept, String action,
+      CardOccurrenceDirection aDirection, CardOccurrenceDirection bDirection,
+      {bool handScreen = false}) async {
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    final consent = _ConsentBackend();
+    final profiles = MemoryV4ProfileStore();
+    Future<NetworkGameController> player(String id, CardOccurrenceDirection direction) async {
+      final profile = completeConsentProfile(id);
+      await profiles.save(profile);
+      final store = MemoryNetworkDuelSecretStore();
+      await store.saveGame(sessionId: session.id, playerId: id,
+        state: NetworkPrivateGameState(roundNumber: 1,
+          cards: [CardRuntimeState(cardId: concept, variantId: action,
+            zone: CardZone.HAND, nativeDirection: direction)],
+          displayedHandActions: {concept: action},
+          conceptCheckpoint: ConceptUsageCheckpoint.startCycle(sessionId: session.id,
+            ownerPlayerId: id, cycle: 1, catalog: catalog.concepts!, initialClothing: 5)));
+      return NetworkGameController(session: session, playerId: id,
+        repository: _ConsentRepository(backend, id, consent), privateStore: store,
+        learningStore: MemoryNetworkProfileLearningStore(), v4Profile: profile,
+        catalog: catalog);
+    }
+    final a = await player('alice', aDirection);
+    final b = await player('bob', bDirection);
+    addTearDown(() async {
+      if (!handScreen) a.dispose();
+      b.dispose();
+      await consent.close();
+    });
+    await a.start();
+    await b.start();
+    await a.synchronizeConsent();
+    expect(a.hand.singleWhere((c) => c.id == concept).nativeDirection, aDirection);
+    expect(b.hand.singleWhere((c) => c.id == concept).nativeDirection, bDirection);
+    return (consent, a, b, profiles);
+  }
+  for (final example in [('004', '004.zone.free'), ('012', '012.action')]) {
+    for (final scenario in [
+      ('A', CardOccurrenceDirection.FAIRE, CardOccurrenceDirection.FAIRE, ProfilePreferenceRole.faire, true),
+      ('B', CardOccurrenceDirection.RECEVOIR, CardOccurrenceDirection.FAIRE, ProfilePreferenceRole.recevoir, false),
+      ('C', CardOccurrenceDirection.FAIRE, CardOccurrenceDirection.RECEVOIR, ProfilePreferenceRole.faire, false),
+      ('D', CardOccurrenceDirection.FAIRE, CardOccurrenceDirection.FAIRE, ProfilePreferenceRole.faire, true),
+      ('E', CardOccurrenceDirection.RECEVOIR, CardOccurrenceDirection.RECEVOIR, ProfilePreferenceRole.recevoir, true),
+    ]) {
+      test('role-scoped consent ${example.$1} case ${scenario.$1} keeps participant roles independent', () async {
+        final pair = await rolePair(example.$1, example.$2, scenario.$2, scenario.$3);
+        final originalB = occurrenceSignature(pair.$3.hand.singleWhere((c) => c.id == example.$1));
+        final editor = CatalogProfileController(catalog: catalog, playerId: 'alice',
+          profileStore: pair.$4, ratingStore: MemoryV4CardLearningStore(),
+          learningStore: MemoryNetworkProfileLearningStore());
+        addTearDown(editor.dispose);
+        await editor.load();
+        await editor.excludeCard(example.$1, role: scenario.$4);
+        expect(editor.profile.stageVetoes.single.role, scenario.$4);
+        await pair.$2.applyStageVetoProfile(editor.profile);
+        await pair.$3.synchronizeConsent();
+        final faire = sessionConsentKey('alice', example.$1, example.$2, 'FAIRE');
+        final recevoir = sessionConsentKey('alice', example.$1, example.$2, 'RECEVOIR');
+        final partnerFaire = sessionConsentKey('bob', example.$1, example.$2, 'FAIRE');
+        final partnerRecevoir = sessionConsentKey('bob', example.$1, example.$2, 'RECEVOIR');
+        final excludesFaire = scenario.$4 == ProfilePreferenceRole.faire;
+        // Inspect the exact publication AND the server-shaped intersection.
+        final contribution = pair.$1.contributions['alice']!;
+        expect(contribution.contains(faire), !excludesFaire);
+        expect(contribution.contains(recevoir), excludesFaire);
+        expect(contribution.contains(partnerFaire), excludesFaire);
+        expect(contribution.contains(partnerRecevoir), !excludesFaire);
+        expect(pair.$1.read('alice').allowed.contains(faire), !excludesFaire);
+        expect(pair.$1.read('bob').allowed.contains(partnerFaire), excludesFaire);
+        expect(pair.$3.occurrenceConsentAllowed(example.$1, example.$2, 'FAIRE'), excludesFaire);
+        expect(pair.$3.occurrenceConsentAllowed(example.$1, example.$2, 'RECEVOIR'), !excludesFaire);
+        expect(pair.$2.cardExcluded(example.$1, direction: scenario.$2.name), isTrue);
+        expect(pair.$2.heldConcepts.any((c) => c.id == example.$1), isTrue);
+        if (scenario.$5) {
+          expect(pair.$3.hand.map(occurrenceSignature), contains(originalB));
+        } else {
+          expect(pair.$3.hand.map(occurrenceSignature), isNot(contains(originalB)));
+          expect(pair.$3.hand.every(pair.$3.isCardPlayable), isTrue);
+          expect(pair.$3.hand.every((c) => !pair.$3.canReplaceForConsent(c.id)), isTrue);
+        }
+        expect(pair.$2.actionPoints['alice'], 100);
+        expect(pair.$3.actionPoints['bob'], 100);
+        await editor.excludeCard(example.$1, role: scenario.$4, excluded: false);
+        await pair.$2.applyStageVetoProfile(editor.profile);
+        final after = pair.$3.hand.map(occurrenceSignature).toList();
+        await pair.$3.synchronizeConsent();
+        expect(pair.$3.hand.map(occurrenceSignature), after);
+        // Freeze a real committed action after undo, not just a permission key.
+        pair.$2.selectCard(example.$1);
+        await pair.$2.confirmSelection();
+        expect(pair.$2.errorMessage, isNull);
+        final resolved = pair.$2.usageCheckpoint.usagesByIntent.values.single.action;
+        final receiving = scenario.$2 == CardOccurrenceDirection.RECEVOIR;
+        expect(resolved.actorPlayerIds, [receiving ? 'bob' : 'alice']);
+        expect(resolved.targetPlayerIds, [receiving ? 'alice' : 'bob']);
+      });
+    }
+  }
+  for (final example in [('004', '004.zone.free'), ('012', '012.action')]) {
+    testWidgets('role-scoped consent hand menu ${example.$1} excludes FAIRE only with both players holding FAIRE', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final pair = await tester.runAsync(() => rolePair(example.$1, example.$2,
+        CardOccurrenceDirection.FAIRE, CardOccurrenceDirection.FAIRE, handScreen: true));
+      final a = pair!.$2;
+      final b = pair.$3;
+      final original = occurrenceSignature(b.hand.singleWhere((c) => c.id == example.$1));
+      a.dispose();
+      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+        session: session, playerId: 'alice', repository: a.repository,
+        catalog: catalog, v4Profile: completeConsentProfile('alice'),
+        profileStore: pair.$4, secretStore: a.privateStore,
+        cardLearningStore: MemoryV4CardLearningStore())));
+      await tester.pumpAndSettle();
+      CardHandSurface surface() => tester.widget<CardHandSurface>(find.byType(CardHandSurface));
+      final card = surface().cards.singleWhere((c) => c.definition.cardId == example.$1);
+      expect(card.definition.direction, 'FAIRE');
+      surface().onLongPressCard!(card);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Exclure la carte'));
+      await tester.pumpAndSettle();
+      await tester.runAsync(b.synchronizeConsent);
+      final saved = await tester.runAsync(() => pair.$4.load('alice'));
+      expect(saved!.stageVetoes.single.role, ProfilePreferenceRole.faire);
+      expect(saved.excludesStage(example.$1, example.$2, 'RECEVOIR'), isFalse);
+      expect(surface().cards.singleWhere((c) => c.definition.cardId == example.$1).excluded, isTrue);
+      expect(b.hand.map(occurrenceSignature), contains(original));
+      expect(b.occurrenceConsentAllowed(example.$1, example.$2, 'FAIRE'), isTrue);
+      surface().onLongPressCard!(surface().cards.singleWhere((c) => c.definition.cardId == example.$1));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Annuler l’exclusion de la carte'));
+      await tester.pumpAndSettle();
+      expect(surface().cards.singleWhere((c) => c.definition.cardId == example.$1).excluded, isFalse);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+  test('private hand remote veto refills four cards atomically without PA stock usage or round changes', () async {
+    final own = completeConsentProfile('alice');
+    final pair = await jointPair(initialA: own,
+      initialB: completeConsentProfile('bob'), fullCatalog: true);
+    final bob = pair.$4;
+    expect(bob.hand, hasLength(4));
+    final original = bob.hand.firstWhere((c) => c.nativeDirection != CardOccurrenceDirection.SOLO);
+    final signature = occurrenceSignature(original);
+    final points = Map<String, int>.of(bob.actionPoints);
+    final stock = bob.usageCheckpoint.stock.toJson();
+    final roundId = bob.round!.roundId;
+    bob.selectCard(original.id);
+    await bob.reserveSelection();
+    final observed = <bool>[];
+    bob.addListener(() => observed.add(bob.hand.length == 4 && bob.hand.every((c) =>
+      bob.occurrenceConsentAllowed(c.id, c.variant.id, c.nativeDirection.name))));
+    await pair.$3.applyStageVetoProfile(own.copyWith(stageVetoes: [
+      StageVeto(conceptId: original.id, actionId: '*', role: ProfilePreferenceRole.general),
+    ]));
+    await bob.synchronizeConsent();
+    expect(bob.hand, hasLength(4));
+    expect(bob.hand.map(occurrenceSignature), isNot(contains(signature)));
+    expect(bob.hand.every(bob.isCardPlayable), isTrue);
+    expect(observed, isNotEmpty);
+    expect(observed.every((valid) => valid), isTrue,
+      reason: 'No notification may expose an incompatible intermediate hand');
+    expect(bob.actionPoints, points);
+    expect(bob.usageCheckpoint.stock.toJson(), stock);
+    expect(bob.usageCheckpoint.usagesByIntent, isEmpty);
+    expect(bob.usageCheckpoint.reservationsByIntent, isEmpty);
+    expect(bob.selectedCard, isNull);
+    expect(bob.round!.roundId, roundId);
+    expect(bob.roundNumber, 1);
+    expect(pair.$1.round.commits, isEmpty);
+    expect(bob.viewState, NetworkGameViewState.choosing);
+    expect(bob.hand.every((c) => !bob.canReplaceForConsent(c.id)), isTrue);
+  });
+  test('private hand batches simultaneous remote exclusions, keeps an unrelated draft and does not churn on polling or undo', () async {
+    final own = completeConsentProfile('alice');
+    final pair = await jointPair(initialA: own,
+      initialB: completeConsentProfile('bob'), fullCatalog: true);
+    final bob = pair.$4;
+    final affected = bob.hand.where((c) => c.nativeDirection != CardOccurrenceDirection.SOLO).take(2).toList();
+    expect(affected, hasLength(2));
+    final signatures = affected.map(occurrenceSignature).toSet();
+    final unaffected = bob.hand.firstWhere((c) => !affected.any((a) => a.id == c.id));
+    bob.selectCard(unaffected.id);
+    await bob.reserveSelection();
+    final quota = bob.usageCheckpoint.toJson();
+    await pair.$3.applyStageVetoProfile(own.copyWith(stageVetoes: [
+      for (final card in affected)
+        StageVeto(conceptId: card.id, actionId: '*', role: ProfilePreferenceRole.general),
+    ]));
+    await bob.synchronizeConsent();
+    expect(bob.hand, hasLength(4));
+    expect(bob.hand.map(occurrenceSignature).toSet().intersection(signatures), isEmpty);
+    expect(bob.selectedCard?.id, unaffected.id);
+    expect(bob.usageCheckpoint.toJson(), quota);
+    final after = bob.hand.map(occurrenceSignature).toList();
+    await bob.synchronizeConsent();
+    await bob.synchronizeConsent();
+    expect(bob.hand.map(occurrenceSignature), after);
+    await pair.$3.applyStageVetoProfile(own);
+    await bob.synchronizeConsent();
+    expect(bob.hand.map(occurrenceSignature), after);
+  });
+  test('private hand periodic catch-up replaces remote-incompatible cards with no Realtime event', () async {
+    final own = completeConsentProfile('alice');
+    final pair = await jointPair(initialA: own,
+      initialB: completeConsentProfile('bob'), fullCatalog: true);
+    final original = pair.$4.hand.firstWhere((c) => c.nativeDirection != CardOccurrenceDirection.SOLO);
+    final signature = occurrenceSignature(original);
+    pair.$2.emitEvents = false;
+    await pair.$3.applyStageVetoProfile(own.copyWith(stageVetoes: [
+      StageVeto(conceptId: original.id, actionId: '*', role: ProfilePreferenceRole.general),
+    ]));
+    for (var i = 0; i < 160 && pair.$4.hand.map(occurrenceSignature).contains(signature); i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 25));
+    }
+    expect(pair.$4.hand, hasLength(4));
+    expect(pair.$4.hand.map(occurrenceSignature), isNot(contains(signature)));
+    expect(pair.$4.hand.every(pair.$4.isCardPlayable), isTrue);
+    expect(pair.$1.points['bob'], 100);
+  });
+  test('private hand reconstruction replaces stale saved occurrences before display and persists the replacement', () async {
+    final own = completeConsentProfile('alice');
+    final profileB = completeConsentProfile('bob');
+    final pair = await jointPair(initialA: own, initialB: profileB, fullCatalog: true);
+    final original = pair.$4.hand.firstWhere((c) => c.nativeDirection != CardOccurrenceDirection.SOLO);
+    final signature = occurrenceSignature(original);
+    final before = await pair.$5.loadGame(sessionId: session.id, playerId: 'bob');
+    final copy = NetworkPrivateGameState.fromJson(jsonDecode(jsonEncode(before!.toJson())) as Map<String, Object?>);
+    final store = MemoryNetworkDuelSecretStore();
+    await store.saveGame(sessionId: session.id, playerId: 'bob', state: copy);
+    await pair.$3.applyStageVetoProfile(own.copyWith(stageVetoes: [
+      StageVeto(conceptId: original.id, actionId: '*', role: ProfilePreferenceRole.general),
+    ]));
+    NetworkGameController restored() => NetworkGameController(session: session,
+      playerId: 'bob', repository: _ConsentRepository(pair.$1, 'bob', pair.$2),
+      privateStore: store, learningStore: MemoryNetworkProfileLearningStore(),
+      v4Profile: profileB, catalog: catalog);
+    final first = restored();
+    addTearDown(first.dispose);
+    await first.start();
+    expect(first.errorMessage, isNull);
+    expect(first.hand, hasLength(4));
+    expect(first.hand.map(occurrenceSignature), isNot(contains(signature)));
+    expect(first.hand.every(first.isCardPlayable), isTrue);
+    final after = first.hand.map(occurrenceSignature).toList();
+    final second = restored();
+    addTearDown(second.dispose);
+    await second.start();
+    expect(second.hand.map(occurrenceSignature), after);
+    expect(second.usageCheckpoint.toJson(), copy.conceptCheckpoint!.toJson());
+  });
+  test('private hand own exclusion stays visible even if the partner also disallows it', () async {
+    final pair = await jointPair();
+    final original = pair.$4.hand.single;
+    await pair.$4.applyStageVetoProfile(consentProfile('bob', stage: '*'));
+    await pair.$3.applyStageVetoProfile(consentProfile('alice', stage: '*'));
+    await pair.$4.synchronizeConsent();
+    expect(pair.$4.heldConcepts.map((c) => c.id), ['056']);
+    expect(pair.$4.runtime.single.nativeDirection, original.nativeDirection);
+    expect(pair.$4.canReplaceForConsent('056'), isTrue);
+    expect(pair.$4.cardExcluded('056'), isTrue);
+    await pair.$4.replaceExcludedCard('056');
+    expect(pair.$4.heldConcepts, isEmpty);
+    expect(pair.$1.points['bob'], 100);
+  });
+  test('private hand replacement stage survives persistence and undo does not restore the old stage', () async {
+    final pair = await jointPair();
+    await pair.$3.applyStageVetoProfile(consentProfile('alice', stage: '056.stage.3'));
+    await pair.$4.synchronizeConsent();
+    expect(pair.$4.hand.single.variant.id, '056.stage.2');
+    final saved = await pair.$5.loadGame(sessionId: session.id, playerId: 'bob');
+    final encoded = jsonDecode(jsonEncode(saved!.toJson())) as Map<String, Object?>;
+    final roundTrip = NetworkPrivateGameState.fromJson(encoded);
+    expect(roundTrip.displayedHandActions['056'], '056.stage.2');
+    final store = MemoryNetworkDuelSecretStore();
+    await store.saveGame(sessionId: session.id, playerId: 'bob', state: roundTrip);
+    final restored = NetworkGameController(session: session, playerId: 'bob',
+      repository: _ConsentRepository(pair.$1, 'bob', pair.$2), privateStore: store,
+      learningStore: MemoryNetworkProfileLearningStore(), v4Profile: consentProfile('bob'),
+      catalog: _catalogWithCards(catalog, {'card.v4.056'}));
+    addTearDown(restored.dispose);
+    await restored.start();
+    expect(restored.hand.single.variant.id, '056.stage.2');
+    await pair.$3.applyStageVetoProfile(consentProfile('alice'));
+    await restored.synchronizeConsent();
+    expect(restored.hand.single.variant.id, '056.stage.2');
+    expect(restored.choicesFor('056').map((o) => o.choice.actionId), contains('056.stage.3'));
+    encoded.remove('displayed_hand_actions');
+    expect(NetworkPrivateGameState.fromJson(encoded).displayedHandActions, isEmpty);
+  });
   test('joint consent initial partner profile veto preserves actual FAIRE only', () async {
     final pair = await jointPair(initialA: consentProfile('alice',
       excluded: ProfilePreferenceRole.recevoir, preference: true));
@@ -197,7 +503,7 @@ void main() {
     expect(a.hand.single.oppositePersonalValue, isNull);
     expect(b.hand.single.oppositePersonalValue, isNull);
   });
-  test('joint consent update blocks held occurrence, clears draft, replaces at zero PA and undo does not refill', () async {
+  test('joint consent remote update silently replaces occurrence, clears draft and undo preserves new hand', () async {
     final pair = await jointPair();
     final a = pair.$3;
     final b = pair.$4;
@@ -211,19 +517,21 @@ void main() {
       stage: original.variant.id));
     await b.synchronizeConsent();
     expect(b.heldConcepts.map((c) => c.id), contains('056'));
-    expect(b.hand.single.nativeDirection, original.nativeDirection);
-    expect(b.isCardPlayable(b.hand.single), isFalse);
-    expect(b.canReplaceForConsent('056'), isTrue);
+    final replacement = b.hand.single;
+    expect(replacement.variant.id != original.variant.id ||
+      replacement.nativeDirection != original.nativeDirection, isTrue);
+    expect(b.isCardPlayable(replacement), isTrue);
+    expect(b.canReplaceForConsent('056'), isFalse);
     expect(b.selectedCard, isNull);
     expect(b.usageCheckpoint.usagesByIntent, isEmpty);
-    await b.replaceExcludedCard('056');
-    expect(b.heldConcepts, isEmpty);
     expect(pair.$1.points['bob'], 100);
     expect(b.usageCheckpoint.stock.toJson(), stock);
     await a.applyStageVetoProfile(consentProfile('alice'));
     await b.synchronizeConsent();
     expect(b.choicesFor('056'), isNotEmpty);
-    expect(b.heldConcepts, isEmpty, reason: 'Undo does not resurrect a released card');
+    expect(b.hand.single.variant.id, replacement.variant.id);
+    expect(b.hand.single.nativeDirection, replacement.nativeDirection,
+      reason: 'Undo does not restore the previous occurrence');
   });
   test('joint consent whole-card veto filters replacement and Recovery and survives reconstruction', () async {
     final pair = await jointPair();
@@ -231,8 +539,10 @@ void main() {
     await pair.$4.synchronizeConsent();
     expect(pair.$4.choicesFor('056'), isEmpty);
     expect(pair.$4.recoveryCards, isEmpty);
-    await pair.$4.replaceExcludedCard('056');
     expect(pair.$4.hand, isEmpty);
+    expect(pair.$3.heldConcepts.map((c) => c.id), contains('056'),
+      reason: 'The owner keeps their own excluded card for manual replacement');
+    expect(pair.$3.canReplaceForConsent('056'), isTrue);
     final restored = NetworkGameController(session: session, playerId: 'bob',
       repository: _ConsentRepository(pair.$1, 'bob', pair.$2), privateStore: pair.$5,
       learningStore: MemoryNetworkProfileLearningStore(), v4Profile: consentProfile('bob'),
@@ -315,15 +625,17 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 25));
     }
     expect(pair.$4.choicesFor('056'), isEmpty);
-    expect(pair.$4.heldConcepts.map((c) => c.id), contains('056'));
-    expect(pair.$4.canReplaceForConsent('056'), isTrue);
+    expect(pair.$4.heldConcepts, isEmpty);
+    expect(pair.$4.canReplaceForConsent('056'), isFalse);
     expect(pair.$2.watchCount, greaterThan(2));
   });
-  testWidgets('joint consent UI preserves blocked stage and offers private free replacement', (tester) async {
+  testWidgets('joint consent UI silently replaces remote-blocked stage without an exclusion badge', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final backend = _Backend()..v4UnlockedSpice = 4;
     final consent = _ConsentBackend();
     final focused = _catalogWithCards(catalog, {'card.v4.056'});
+    final profiles = MemoryV4ProfileStore();
+    await profiles.save(consentProfile('bob'));
     final alice = NetworkGameController(session: session, playerId: 'alice',
       repository: _ConsentRepository(backend, 'alice', consent),
       privateStore: MemoryNetworkDuelSecretStore(),
@@ -334,6 +646,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
       session: session, playerId: 'bob', repository: _ConsentRepository(backend, 'bob', consent),
       catalog: focused, v4Profile: consentProfile('bob'),
+      profileStore: profiles,
       secretStore: MemoryNetworkDuelSecretStore(),
       cardLearningStore: MemoryV4CardLearningStore())));
     await tester.pumpAndSettle();
@@ -343,12 +656,24 @@ void main() {
     await alice.applyStageVetoProfile(consentProfile('alice', stage: '056.stage.3'));
     await tester.pumpAndSettle();
     final after = tester.widget<CardHandSurface>(find.byType(CardHandSurface)).cards.single;
-    expect(after.definition.variantId, before.definition.variantId);
-    expect(after.definition.direction, before.definition.direction);
-    expect(after.available, isFalse);
-    expect(after.excluded, isTrue);
-    expect(after.replaceable, isTrue);
-    expect(after.tabs.singleWhere((t) => t.id == '056.stage.3').excluded, isTrue);
+    expect(after.definition.variantId, isNot(before.definition.variantId));
+    expect(after.available, isTrue);
+    expect(after.excluded, isFalse);
+    expect(after.replaceable, isFalse);
+    expect(after.tabs.singleWhere((t) => t.id == '056.stage.3').excluded, isFalse);
+    expect(find.textContaining('EXCLUE'), findsNothing);
+    expect(find.byKey(const Key('replace-excluded-056')), findsNothing);
+    final surface = tester.widget<CardHandSurface>(find.byType(CardHandSurface));
+    surface.onLongPressCard!(after);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Exclure ce stade'));
+    await tester.pumpAndSettle();
+    final local = tester.widget<CardHandSurface>(find.byType(CardHandSurface)).cards.single;
+    expect(local.definition.variantId, after.definition.variantId);
+    expect(local.available, isFalse);
+    expect(local.excluded, isTrue);
+    expect(local.replaceable, isTrue);
+    expect(find.textContaining('EXCLUE'), findsWidgets);
     expect(tester.takeException(), isNull);
     } finally {
     await tester.pumpWidget(const SizedBox.shrink());
@@ -9779,6 +10104,7 @@ final class _ConsentBackend {
   final commands = <String, String>{};
   int revision = 0;
   bool offline = false;
+  bool emitEvents = true;
   final events = StreamController<int>.broadcast();
   Future<void> close() => events.close();
   int watchCount = 0;
@@ -9813,7 +10139,7 @@ final class _ConsentRepository extends _Repository implements NetworkSessionCons
       if (!setEquals(consent.contributions[player], allowed)) {
         consent.contributions[player] = Set.of(allowed);
         consent.revision++;
-        consent.events.add(consent.revision);
+        if (consent.emitEvents) consent.events.add(consent.revision);
       }
     }
     return consent.read(player);

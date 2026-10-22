@@ -144,6 +144,24 @@ void main() {
       reopened.dispose();
     },
   );
+  test('role-scoped whole-card vetoes persist independently without rating the opposite role', () async {
+    final c = editor();
+    await c.load();
+    await c.excludeCard('012', role: ProfilePreferenceRole.faire);
+    expect(c.profile.excludesStage('012', '012.action', 'FAIRE'), isTrue);
+    expect(c.profile.excludesStage('012', '012.action', 'RECEVOIR'), isFalse);
+    final receive = c.items.singleWhere((i) => i.concept.id == '012' && i.direction.name == 'RECEVOIR');
+    expect(c.ratings.explicitEstimate(receive.ratingKey('p')), isNull);
+    expect(c.cardExcluded('012'), isFalse, reason: 'Not a global veto');
+    await c.excludeCard('012', role: ProfilePreferenceRole.recevoir);
+    final reopened = editor();
+    await reopened.load();
+    await reopened.excludeCard('012', role: ProfilePreferenceRole.faire, excluded: false);
+    expect(reopened.profile.excludesStage('012', '012.action', 'FAIRE'), isFalse);
+    expect(reopened.profile.excludesStage('012', '012.action', 'RECEVOIR'), isTrue);
+    c.dispose();
+    reopened.dispose();
+  });
   test(
     'stage and whole-card exclusions reuse vetoes and remain private and reversible',
     () async {

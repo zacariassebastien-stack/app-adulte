@@ -190,6 +190,22 @@ final class NetworkGameController extends ChangeNotifier {
   Timer? _consentTimer;
   StreamSubscription<int>? _consentSubscription;
   bool _waitingForInitialConsent = false;
+  // Consultation only: never exported and never an engaged usage.
+  final Map<String, String> _displayedHandActions = {};
+  String? displayedHandAction(String id) => _displayedHandActions[id];
+
+  void recordDisplayedHandAction(
+    String id,
+    String actionId, {
+    bool persist = false,
+  }) {
+    if (_runtime.any((c) => c.cardId == id && c.zone == CardZone.HAND)) {
+      final changed = _displayedHandActions[id] != actionId;
+      _displayedHandActions[id] = actionId;
+      if (changed && persist) unawaited(_persist());
+    }
+  }
+
   bool get sessionConsentReady =>
       repository is! NetworkSessionConsentRepository ||
       _sessionConsent?.ready == true;
@@ -269,11 +285,74 @@ final class NetworkGameController extends ChangeNotifier {
   }) {
     final owner = ownerId ?? playerId;
     final key = sessionConsentKey(owner, concept, action, direction);
-    _localConsent ??= _consentContribution();
-    if (!_localConsent!.contains(key)) return false;
+    if (!localConsentAllowed(concept, action, direction, ownerId: owner)) {
+      return false;
+    }
     if (repository is! NetworkSessionConsentRepository) return true;
     return _sessionConsent?.ready == true &&
         _sessionConsent!.allowed.contains(key);
+  }
+
+  /// Only the owner's own constraints may produce an exclusion badge/menu.
+  bool localConsentAllowed(
+    String concept,
+    String action,
+    String direction, {
+    String? ownerId,
+  }) {
+    _localConsent ??= _consentContribution();
+    return _localConsent!.contains(
+      sessionConsentKey(ownerId ?? playerId, concept, action, direction),
+    );
+  }
+
+  bool _replaceRemoteHandOccurrences({int? targetRound}) {
+    if (!sessionConsentReady ||
+        repository is! NetworkSessionConsentRepository) {
+      return false;
+    }
+    final localOptions = _currentOptions(localConsentOnly: true);
+    final removed = <String>{};
+    for (final held in _runtime.where((c) => c.zone == CardZone.HAND)) {
+      final action =
+          _displayedHandActions[held.cardId] ??
+          held.variantId ??
+          defaultAction(
+            held.cardId,
+            localOptions[held.cardId] ?? const [],
+          )?.choice.actionId;
+      // Older saves did not retain the consulted stage. Prefer preserving an
+      // owner's explicit local exclusion rather than replacing it on inference.
+      if (!_displayedHandActions.containsKey(held.cardId) &&
+          canReplaceForConsent(held.cardId)) {
+        continue;
+      }
+      if (action == null) continue;
+      final direction = held.nativeDirection.name;
+      // Keep an owner's own excluded occurrence visible, even when the joint
+      // permission also rejects it. Never infer or expose the partner's veto.
+      if (localConsentAllowed(held.cardId, action, direction) &&
+          !occurrenceConsentAllowed(held.cardId, action, direction)) {
+        removed.add(held.cardId);
+      }
+    }
+    if (removed.isEmpty) return false;
+    if (_activeReveal == null && removed.contains(selectedCard?.id)) {
+      _usageCheckpoint = _usageCheckpoint.releaseReservation(_intentId);
+      selectedCard = null;
+      _selectedOption = null;
+    }
+    _runtime = _runtime
+        .where((c) => c.zone != CardZone.HAND || !removed.contains(c.cardId))
+        .toList();
+    for (final id in removed) {
+      _displayedHandActions.remove(id);
+    }
+    // One bounded refill for the entire batch. The common pool excludes the
+    // forbidden occurrence, but may still offer another valid stage/direction
+    // of that concept. No quota is consumed by releasing or drawing a hand card.
+    _refill(targetRound ?? roundNumber);
+    return true;
   }
 
   Future<void> synchronizeConsent() {
@@ -298,7 +377,8 @@ final class NetworkGameController extends ChangeNotifier {
     final encoded = (_localConsent!.toList()..sort()).join('\n');
     if (_pendingConsentPayload != encoded) {
       _pendingConsentPayload = encoded;
-      _pendingConsentCommand = 'consent:$playerId:${nonceFactory()}:${_consentPublication++}';
+      _pendingConsentCommand =
+          'consent:$playerId:${nonceFactory()}:${_consentPublication++}';
     }
     final state = _publishedConsent == encoded
         ? await remote.getSessionConsent(session.id)
@@ -312,12 +392,14 @@ final class NetworkGameController extends ChangeNotifier {
     if (state.revision < (_sessionConsent?.revision ?? -1)) return;
     final changed = state.revision != _sessionConsent?.revision;
     _sessionConsent = state;
+    var handChanged = false;
     if (state.ready && _privateStateReady) {
       if (_waitingForInitialConsent) {
         _waitingForInitialConsent = false;
         _refill(roundNumber);
       }
       _rememberHandDirections();
+      handChanged = _replaceRemoteHandOccurrences();
       _runtime = [
         for (final card in _runtime)
           consentBlocksHeldCard(card.cardId)
@@ -333,9 +415,9 @@ final class NetworkGameController extends ChangeNotifier {
           await cancelPendingSelection();
         }
       }
-      if (changed) await _persist();
+      if (changed || handChanged) await _persist();
     }
-    if (changed && !_disposed) notifyListeners();
+    if ((changed || handChanged) && !_disposed) notifyListeners();
   }
 
   void _watchConsent() {
@@ -371,10 +453,6 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   bool consentBlocksHeldCard(String id) {
-    if (repository is NetworkSessionConsentRepository &&
-        _sessionConsent?.ready != true) {
-      return true;
-    }
     final held = _runtime
         .where((c) => c.cardId == id && c.zone == CardZone.HAND)
         .firstOrNull;
@@ -390,7 +468,7 @@ final class NetworkGameController extends ChangeNotifier {
           ? [held.nativeDirection]
           : _directions(id, a.stableId);
       return !directions.any(
-        (d) => occurrenceConsentAllowed(id, a.stableId, d.name),
+        (d) => localConsentAllowed(id, a.stableId, d.name),
       );
     });
   }
@@ -404,10 +482,11 @@ final class NetworkGameController extends ChangeNotifier {
       (a) =>
           (held.variantId == null || held.variantId == a.stableId) &&
           (held.nativeDirection == CardOccurrenceDirection.GENERAL
-              ? _directions(id, a.stableId).every(
-                  (d) => !occurrenceConsentAllowed(id, a.stableId, d.name),
-                )
-              : !occurrenceConsentAllowed(
+              ? _directions(
+                  id,
+                  a.stableId,
+                ).every((d) => !localConsentAllowed(id, a.stableId, d.name))
+              : !localConsentAllowed(
                   id,
                   a.stableId,
                   held.nativeDirection.name,
@@ -417,6 +496,13 @@ final class NetworkGameController extends ChangeNotifier {
 
   void _rememberHandDirections() {
     _runtime = _runtime.map((held) {
+      if (held.zone == CardZone.HAND &&
+          !_displayedHandActions.containsKey(held.cardId)) {
+        final action = materializedAction(held.cardId);
+        if (action != null) {
+          _displayedHandActions[held.cardId] = action.choice.actionId;
+        }
+      }
       if (held.zone != CardZone.HAND ||
           held.nativeDirection != CardOccurrenceDirection.GENERAL) {
         return held;
@@ -543,9 +629,13 @@ final class NetworkGameController extends ChangeNotifier {
       .toList();
   bool stageExcluded(String conceptId, String actionId, String direction) =>
       _v4Profile?.excludesStage(conceptId, actionId, direction) ?? false;
-  bool cardExcluded(String conceptId) =>
+  bool cardExcluded(String conceptId, {String? direction}) =>
       _v4Profile?.stageVetoes.any(
-        (v) => v.conceptId == conceptId && v.actionId == '*',
+        (v) =>
+            v.conceptId == conceptId &&
+            v.actionId == '*' &&
+            (v.role == ProfilePreferenceRole.general ||
+                (direction != null && v.role.wireName == direction)),
       ) ??
       false;
 
@@ -1040,6 +1130,7 @@ final class NetworkGameController extends ChangeNotifier {
           repository is NetworkSessionConsentRepository &&
           _sessionConsent?.ready != true;
       _rememberHandDirections();
+      _replaceRemoteHandOccurrences(targetRound: current.roundNumber);
       if (repository is NetworkSessionConsentRepository) {
         _consentTimer ??= Timer.periodic(const Duration(seconds: 2), (_) {
           _refreshConsentInBackground();
@@ -1193,6 +1284,7 @@ final class NetworkGameController extends ChangeNotifier {
     bool recovery = false,
     bool includeConsumedStages = false,
     EngineSessionContext? context,
+    bool localConsentOnly = false,
   }) {
     final options = const ConceptActionOptions().evaluate(
       catalog: _conceptCatalog,
@@ -1210,11 +1302,13 @@ final class NetworkGameController extends ChangeNotifier {
         entry.key: entry.value
             .where(
               (o) => _directions(entry.key, o.choice.actionId).any(
-                (d) => occurrenceConsentAllowed(
-                  entry.key,
-                  o.choice.actionId,
-                  d.name,
-                ),
+                (d) => localConsentOnly
+                    ? localConsentAllowed(entry.key, o.choice.actionId, d.name)
+                    : occurrenceConsentAllowed(
+                        entry.key,
+                        o.choice.actionId,
+                        d.name,
+                      ),
               ),
             )
             .toList(),
@@ -1283,10 +1377,12 @@ final class NetworkGameController extends ChangeNotifier {
     List<ConceptActionOption>? options,
   ]) {
     final choices = options ?? choicesFor(id);
-    final variantId = _runtime
+    final held = _runtime
         .where((card) => card.cardId == id && card.zone == CardZone.HAND)
-        .firstOrNull
-        ?.variantId;
+        .firstOrNull;
+    final variantId = held == null
+        ? null
+        : _displayedHandActions[id] ?? held.variantId;
     return choices
             .where((option) => option.choice.actionId == variantId)
             .firstOrNull ??
@@ -2678,6 +2774,9 @@ final class NetworkGameController extends ChangeNotifier {
             saved.roundNumber == current.roundNumber + 1 ||
             saved.roundNumber == current.roundNumber - 1)) {
       _runtime = List.of(saved.cards);
+      _displayedHandActions
+        ..clear()
+        ..addAll(saved.displayedHandActions);
       _activeReveal = saved.activeReveal;
       _nextRoundPrepared = saved.nextRoundPrepared;
       _learningRecordedRounds = Set.of(saved.learningRecordedRounds);
@@ -2752,6 +2851,7 @@ final class NetworkGameController extends ChangeNotifier {
 
   Future<void> _prepareNextRound({int? targetRound}) async {
     if (_nextRoundPrepared) return;
+    _displayedHandActions.clear();
     _runtime = _runtime
         .where(
           (c) =>
@@ -3014,6 +3114,13 @@ final class NetworkGameController extends ChangeNotifier {
           zone: CardZone.HAND,
         ),
       ];
+      final drawn = _networkCard(
+        concept.concept.id,
+        variantId: materialized?.actionId,
+      );
+      if (drawn != null) {
+        _displayedHandActions[concept.concept.id] = drawn.variant.id;
+      }
       needed--;
     }
     _rememberHandDirections();
@@ -3063,7 +3170,7 @@ final class NetworkGameController extends ChangeNotifier {
     final selected =
         option ??
         (variantId == null
-            ? defaultAction(cardId, options)
+            ? materializedAction(cardId, options)
             : options.where((o) => o.choice.actionId == variantId).firstOrNull);
     if (selected == null) return null;
     final eligible = selected.variant;
@@ -3422,6 +3529,7 @@ final class NetworkGameController extends ChangeNotifier {
       state: NetworkPrivateGameState(
         roundNumber: roundNumber ?? this.roundNumber,
         cards: _runtime,
+        displayedHandActions: _displayedHandActions,
         activeReveal: _activeReveal,
         nextRoundPrepared: _nextRoundPrepared,
         learningRecordedRounds: _learningRecordedRounds,

@@ -148,8 +148,12 @@ final class CatalogProfileController extends ChangeNotifier {
                 .vetoTags(item.concept.id, actionId: item.actionId)
                 .contains(p.key.tagId),
       );
-  bool cardExcluded(String id) =>
-      profile.stageVetoes.any((v) => v.conceptId == id && v.actionId == '*');
+  bool cardExcluded(String id) => profile.stageVetoes.any(
+    (v) =>
+        v.conceptId == id &&
+        v.actionId == '*' &&
+        v.role == ProfilePreferenceRole.general,
+  );
   DetailedPreferenceCategory? category(ProfileCatalogItem item) {
     if (profile.excludesStage(
       item.concept.id,
@@ -255,7 +259,11 @@ final class CatalogProfileController extends ChangeNotifier {
     }
   }
 
-  Future<void> excludeCard(String conceptId, {bool excluded = true}) async {
+  Future<void> excludeCard(
+    String conceptId, {
+    bool excluded = true,
+    ProfilePreferenceRole role = ProfilePreferenceRole.general,
+  }) async {
     if (saving) return;
     saving = true;
     _changed();
@@ -263,14 +271,13 @@ final class CatalogProfileController extends ChangeNotifier {
       final next = profile.copyWith(
         stageVetoes: [
           ...profile.stageVetoes.where(
-            (v) => !(v.conceptId == conceptId && v.actionId == '*'),
+            (v) =>
+                !(v.conceptId == conceptId &&
+                    v.actionId == '*' &&
+                    (role == ProfilePreferenceRole.general || v.role == role)),
           ),
           if (excluded)
-            StageVeto(
-              conceptId: conceptId,
-              actionId: '*',
-              role: ProfilePreferenceRole.general,
-            ),
+            StageVeto(conceptId: conceptId, actionId: '*', role: role),
         ],
       );
       final updatedRatings = CardSpecificLearningStore()
@@ -279,7 +286,12 @@ final class CatalogProfileController extends ChangeNotifier {
         // A whole-card decision explicitly covers its current presentations too.
         // Keep that evidence if the user later lifts the veto: random mode must
         // not offer already assessed elements again.
-        for (final item in items.where((i) => i.concept.id == conceptId)) {
+        for (final item in items.where(
+          (i) =>
+              i.concept.id == conceptId &&
+              (role == ProfilePreferenceRole.general ||
+                  i.direction.name == role.wireName),
+        )) {
           final key = item.ratingKey(playerId);
           final old =
               updatedRatings.read(key) ??

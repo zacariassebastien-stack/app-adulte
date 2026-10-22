@@ -41,6 +41,7 @@ final class NetworkPrivateGameState {
   NetworkPrivateGameState({
     required this.roundNumber,
     required List<CardRuntimeState> cards,
+    Map<String, String> displayedHandActions = const {},
     this.activeReveal,
     this.nextRoundPrepared = false,
     Set<int> learningRecordedRounds = const {},
@@ -71,6 +72,7 @@ final class NetworkPrivateGameState {
            ? null
            : freezeJson(pendingSecondaryCommand) as JsonMap,
        cards = List.unmodifiable(cards),
+       displayedHandActions = Map.unmodifiable(displayedHandActions),
        learningRecordedRounds = Set.unmodifiable(learningRecordedRounds),
        publicDiscards = List.unmodifiable(publicDiscards),
        clothesByPlayer = Map.unmodifiable(clothesByPlayer),
@@ -83,6 +85,7 @@ final class NetworkPrivateGameState {
 
   final int roundNumber;
   final List<CardRuntimeState> cards;
+  final Map<String, String> displayedHandActions;
   final ChoiceRevealDto? activeReveal;
   final bool nextRoundPrepared;
   final Set<int> learningRecordedRounds;
@@ -109,6 +112,7 @@ final class NetworkPrivateGameState {
 
   Map<String, Object?> toJson() => {
     'round_number': roundNumber,
+    'displayed_hand_actions': displayedHandActions,
     'cards': [
       for (final card in cards)
         {
@@ -153,6 +157,9 @@ final class NetworkPrivateGameState {
     Map<String, Object?> json,
   ) => NetworkPrivateGameState(
     roundNumber: json['round_number']! as int,
+    displayedHandActions: Map<String, String>.from(
+      (json['displayed_hand_actions'] as Map?) ?? const {},
+    ),
     cards: [
       for (final value in json['cards']! as List)
         if (Map<String, Object?>.from(value! as Map) case final card)
