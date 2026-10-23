@@ -208,6 +208,11 @@ void main() {
       await editor.load();
       await tester.pumpWidget(MaterialApp(home: CatalogProfileScreen(controller: editor)));
       await tester.pumpAndSettle();
+      final sexSummary = find.byKey(const Key('profile-sex-summary'));
+      expect(sexSummary, findsOneWidget);
+      expect(find.descendant(of: sexSummary, matching: find.text('Homme')), findsOneWidget);
+      expect(find.descendant(of: find.byKey(const Key('profile-sex')),
+        matching: find.byIcon(locked ? Icons.lock_outline : Icons.person_outline)), findsOneWidget);
       await tester.tap(find.byKey(const Key('profile-sex')));
       await tester.pumpAndSettle();
       expect(find.text('Sexe : Homme'), findsOneWidget);
@@ -220,7 +225,13 @@ void main() {
         await tester.tap(find.byKey(const Key('profile-sex-FEMME')));
         await tester.pumpAndSettle();
         expect((await profiles.load('p'))!.sex, ProfileSex.FEMME);
+        expect(find.descendant(of: sexSummary, matching: find.text('Femme')), findsOneWidget);
         expect((await profiles.load('p'))!.toJson()..remove('sex'), base.toJson()..remove('sex'));
+        await tester.tap(find.byKey(const Key('profile-sex')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('profile-sex-HOMME')));
+        await tester.pumpAndSettle();
+        expect((await profiles.load('p'))!.toJson(), base.toJson());
       }
       expect(jsonEncode((await learning.load('p'))!.toJson()), beforeLearning);
       expect(jsonEncode((await ratings.load('p')).toJson()), beforeRatings);

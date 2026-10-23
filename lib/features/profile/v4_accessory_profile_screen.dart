@@ -145,6 +145,14 @@ class _V4AccessoryProfileScreenState extends State<V4AccessoryProfileScreen> {
     body: ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        ListTile(
+          key: const Key('profile-sex-summary'),
+          title: const Text('Sexe du profil'),
+          subtitle: Text(widget.profile.sex.label),
+          trailing: const Icon(Icons.lock_outline),
+          enabled: false,
+        ),
+        const Text('Non modifiable pendant la partie.'),
         const Text(
           'Les préférences sont propres à l’ensemble exact de tags. PHALLUS désigne un usage sur ou autour d’un pénis/phallus.',
         ),

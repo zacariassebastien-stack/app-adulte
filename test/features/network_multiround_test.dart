@@ -1119,6 +1119,200 @@ void main() {
   });
 
 
+  for (final sex in ProfileSex.values) {
+  testWidgets('in-game sex $sex is visible locked while private profile and accessories remain editable', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final store = MemoryV4ProfileStore();
+    final profile = stageProfile().copyWith(sex: sex);
+    await store.save(profile);
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+      session: session, playerId: 'alice', repository: backend.repository('alice'),
+      catalog: catalog, secretStore: MemoryNetworkDuelSecretStore(),
+      profileStore: store, v4Profile: profile)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('open-private-profile-settings')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profil privé'));
+    await tester.pumpAndSettle();
+    final summary = find.byKey(const Key('in-game-profile-sex'));
+    expect(summary, findsOneWidget);
+    expect(find.descendant(of: summary, matching: find.text(sex.label)), findsOneWidget);
+    expect(tester.widget<ListTile>(summary).enabled, isFalse);
+    await tester.ensureVisible(find.text('Personnaliser mon profil'));
+    await tester.tap(find.text('Personnaliser mon profil'));
+    await tester.pumpAndSettle();
+    final accessories = find.byKey(const Key('customize-v4-accessories'));
+    await tester.ensureVisible(accessories);
+    await tester.tap(accessories);
+    await tester.pumpAndSettle();
+    final accessorySex = find.byKey(const Key('profile-sex-summary'));
+    expect(find.descendant(of: accessorySex, matching: find.text(sex.label)), findsOneWidget);
+    expect(tester.widget<ListTile>(accessorySex).enabled, isFalse);
+    expect(find.text('Non modifiable pendant la partie.'), findsWidgets);
+    expect(find.byKey(const Key('add-custom-profile-accessory')), findsOneWidget);
+    expect((await store.load('alice'))!.toJson(), profile.toJson());
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+  }
+
+  for (final count in [0, 1, 2]) {
+    for (final restore in [false, true]) {
+      test('clothing eligibility canonical count=$count restored=$restore rejects dead new hands', () async {
+        final backend = _Backend()..clothingCounts.updateAll((_, _) => count);
+        final store = MemoryNetworkDuelSecretStore();
+        if (restore) {
+          await store.saveGame(sessionId: session.id, playerId: 'alice',
+            state: privateGameFixture(roundNumber: 1,
+              cards: const [CardRuntimeState(cardId: '006', zone: CardZone.HAND)],
+              clothesByPlayer: const {'alice': 6, 'bob': 6}));
+        }
+        final controller = NetworkGameController(
+          anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+          session: session, playerId: 'alice', repository: backend.repository('alice'),
+          catalog: _catalogWithCards(catalog, {'card.v4.006', 'card.v4.001'}),
+          privateStore: store, learningStore: MemoryNetworkProfileLearningStore(),
+          initialClothingCounts: const {'alice': 6, 'bob': 6},
+          v4Profile: completeConsentProfile('alice'));
+        addTearDown(controller.dispose);
+        await controller.start();
+        expect(controller.errorMessage, isNull);
+        expect(controller.clothingCounts, {'alice': count, 'bob': count});
+        expect(controller.choicesFor('006').isNotEmpty, count > 0);
+        expect(controller.heldConcepts.any((c) => c.id == '006'), count > 0);
+        expect(controller.heldConcepts.every((c) => controller.choicesFor(c.id).isNotEmpty), isTrue);
+        expect(controller.recoveryCards.any((c) => c.id == '006'), count > 0);
+        expect(controller.usageCheckpoint.stock.remainingFor('006'), 2);
+        expect(controller.actionPoints['alice'], 100);
+        if (count == 0) {
+          controller.selectCard('006');
+          await controller.reserveSelection();
+          expect(controller.selectedCard, isNull);
+          expect(controller.usageCheckpoint.reservationsByIntent, isEmpty);
+        }
+      });
+    }
+  }
+
+  test('clothing eligibility rejects a new reservation after canonical count reaches zero', () async {
+    final backend = _Backend();
+    final controller = NetworkGameController(
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+      session: session, playerId: 'alice', repository: backend.repository('alice'),
+      catalog: _catalogWithCards(catalog, {'card.v4.006'}),
+      v4Profile: completeConsentProfile('alice'),
+      privateStore: MemoryNetworkDuelSecretStore(),
+      initialClothingCounts: const {'alice': 6, 'bob': 6},
+      learningStore: MemoryNetworkProfileLearningStore());
+    addTearDown(controller.dispose);
+    await controller.start();
+    await _settle();
+    controller.selectCard('006');
+    expect(controller.selectedCard, isNotNull);
+    final stock = controller.usageCheckpoint.stock.toJson();
+    backend.clothingCounts.updateAll((_, _) => 0);
+    backend.notifyTwice();
+    await _settle();
+    expect(controller.clothingCounts['alice'], 0);
+    await expectLater(controller.reserveSelection(), throwsStateError);
+    expect(controller.usageCheckpoint.reservationsByIntent, isEmpty);
+    expect(controller.usageCheckpoint.usagesByIntent, isEmpty);
+    expect(controller.usageCheckpoint.stock.toJson(), stock);
+  });
+
+  test('clothing eligibility replacement refills through current context without dead clothing cards', () async {
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    final store = MemoryNetworkDuelSecretStore();
+    await store.saveGame(sessionId: session.id, playerId: 'alice',
+      state: privateGameFixture(roundNumber: 1, cards: const [
+        CardRuntimeState(cardId: '006', zone: CardZone.HAND),
+        CardRuntimeState(cardId: '001', zone: CardZone.HAND),
+        CardRuntimeState(cardId: '012', zone: CardZone.HAND),
+        CardRuntimeState(cardId: '032', zone: CardZone.HAND),
+      ]));
+    final profile = completeConsentProfile('alice');
+    final controller = NetworkGameController(
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+      session: session, playerId: 'alice', repository: backend.repository('alice'),
+      catalog: catalog, v4Profile: profile, privateStore: store,
+      initialClothingCounts: const {'alice': 6, 'bob': 6},
+      learningStore: MemoryNetworkProfileLearningStore());
+    addTearDown(controller.dispose);
+    await controller.start();
+    expect(controller.heldConcepts.map((c) => c.id), contains('006'));
+    final stock = controller.usageCheckpoint.stock.toJson();
+    backend.clothingCounts.updateAll((_, _) => 0);
+    backend.notifyTwice();
+    await _settle();
+    await controller.applyResolvedContext(EngineSessionContext(
+      mode: SessionMode.face_to_face, proximity: ProximityState.TOGETHER,
+      chiliActive: 4, chiliUnlocked: 4, clothesByPlayer: const {'alice': 0, 'bob': 0}));
+    await controller.applyStageVetoProfile(profile.copyWith(stageVetoes: const [
+      StageVeto(conceptId: '001', actionId: '*', role: ProfilePreferenceRole.general),
+    ]));
+    expect(controller.clothingCounts, {'alice': 0, 'bob': 0});
+    expect(controller.choicesFor('006'), isEmpty);
+    await controller.replaceExcludedCard('001');
+    expect(controller.clothingCounts, {'alice': 0, 'bob': 0});
+    expect(controller.heldConcepts, hasLength(4));
+    expect(controller.heldConcepts.map((c) => c.id), isNot(contains('006')));
+    expect(controller.heldConcepts.map((c) => c.id), isNot(contains('007')));
+    expect(controller.heldConcepts.every((c) => controller.choicesFor(c.id).isNotEmpty), isTrue);
+    expect(controller.usageCheckpoint.stock.toJson(), stock);
+    expect(controller.actionPoints['alice'], 100);
+  });
+
+  test('clothing eligibility removes impossible carry-over cards before both next-round hands', () async {
+    final setup = await _setupCorruption(session, catalog);
+    addTearDown(setup.dispose);
+    await _playUnequal(setup, forceAliceCard: '001', avoidBobCard: '006');
+    final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+    await loser.skipCorruption();
+    await _settle();
+    setup.backend.clothingCounts.updateAll((_, _) => 0);
+    setup.backend.notifyTwice();
+    await _settle();
+    await _completeResolvedAction(setup);
+    await _cycleController(setup).completeAction();
+    await _settle();
+    for (final player in [setup.alice, setup.bob]) {
+      expect(player.roundNumber, 2);
+      expect(player.heldConcepts.map((c) => c.id), isNot(contains('006')));
+      expect(player.heldConcepts.map((c) => c.id), isNot(contains('007')));
+      expect(player.heldConcepts.every((c) => player.choicesFor(c.id).isNotEmpty), isTrue);
+      expect(player.hand, hasLength(4));
+    }
+  });
+
+  test('clothing eligibility filters historical replay proposals but preserves frozen history', () async {
+    final setup = await _setupCorruption(session, catalog);
+    addTearDown(setup.dispose);
+    await _playUnequal(setup, forceAliceCard: '006', requireRepeatable: true);
+    final source = setup.alice.usageCheckpoint.usagesByIntent.values.single;
+    final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+    await loser.skipCorruption();
+    await _settle();
+    await _completeResolvedAction(setup);
+    await _cycleController(setup).completeAction();
+    await _settle();
+    expect(setup.alice.corruptionCards.any((c) => c.identity == source.usageId), isTrue);
+    final frozen = source.toJson();
+    final quota = setup.alice.usageCheckpoint.stock.toJson();
+    await setup.alice.applyResolvedContext(EngineSessionContext(
+      mode: SessionMode.face_to_face, proximity: ProximityState.TOGETHER,
+      chiliActive: setup.alice.activeSpice, chiliUnlocked: setup.alice.activeSpice,
+      clothesByPlayer: const {'alice': 0, 'bob': 0}));
+    expect(setup.alice.choicesFor('006'), isEmpty);
+    expect(setup.alice.corruptionCards.any((c) => c.id == '006'), isFalse);
+    expect(setup.alice.recoveryCards.any((c) => c.id == '006'), isFalse);
+    expect(setup.alice.auctionCards.any((c) => c.id == '006'), isFalse);
+    expect(source.reconstruct().toJson(), frozen['action']);
+    expect(setup.alice.usageCheckpoint.stock.toJson(), quota);
+    expect(setup.alice.visibleDiscardUsages.any((u) => u.conceptId == '006'), isTrue);
+  });
+
   testWidgets('V1 stage exclusion is editable in the existing private profile and persists', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final store = MemoryV4ProfileStore();

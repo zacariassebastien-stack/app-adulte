@@ -1606,6 +1606,16 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               key: Key('private-profile-notice'),
               'Ce réglage et tes valeurs restent uniquement sur cet appareil.',
             ),
+            if (controller.editableProfile case final profile?) ...[
+              ListTile(
+                key: const Key('in-game-profile-sex'),
+                title: const Text('Sexe du profil'),
+                subtitle: Text(profile.sex.label),
+                trailing: const Icon(Icons.lock_outline),
+                enabled: false,
+              ),
+              const Text('Non modifiable pendant la partie.'),
+            ],
             if (pending.isNotEmpty) ...[
               const Divider(),
               const Text('Évolutions proposées'),

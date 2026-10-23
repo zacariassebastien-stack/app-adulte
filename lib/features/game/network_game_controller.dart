@@ -1159,6 +1159,9 @@ final class NetworkGameController extends ChangeNotifier {
       _context = _context.copyWith(
         chiliActive: current.v4UnlockedSpice,
         chiliUnlocked: current.v4UnlockedSpice,
+        clothesByPlayer: current.clothingCounts.isEmpty
+            ? null
+            : current.clothingCounts,
       );
       _followOrientation(current.hybridOrientation);
       await synchronizeConsent();
@@ -1169,6 +1172,11 @@ final class NetworkGameController extends ChangeNotifier {
           _sessionConsent?.ready != true;
       _rememberHandDirections();
       _replaceRemoteHandOccurrences(targetRound: current.roundNumber);
+      if (_runtime.any(
+        (c) => c.zone == CardZone.HAND && !_clothingContextAllows(c.cardId),
+      )) {
+        _refill(current.roundNumber);
+      }
       if (repository is NetworkSessionConsentRepository) {
         _consentTimer ??= Timer.periodic(const Duration(seconds: 2), (_) {
           _refreshConsentInBackground();
@@ -1302,6 +1310,9 @@ final class NetworkGameController extends ChangeNotifier {
   Future<void> reserveSelection() async {
     final card = selectedCard;
     if (card == null) return;
+    if (!_clothingContextAllows(card.id)) {
+      throw StateError('Action unavailable in the current clothing context');
+    }
     _usageCheckpoint = _usageCheckpoint
         .releaseReservation(_intentId)
         .reserve(
@@ -2886,7 +2897,9 @@ final class NetworkGameController extends ChangeNotifier {
             : ProximityState.TOGETHER,
         chiliActive: saved.activeChili,
         chiliUnlocked: saved.activeChili,
-        clothesByPlayer: saved.clothesByPlayer.isEmpty
+        clothesByPlayer: current.clothingCounts.isNotEmpty
+            ? current.clothingCounts
+            : saved.clothesByPlayer.isEmpty
             ? null
             : saved.clothesByPlayer,
       );
@@ -3160,6 +3173,24 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   void _refill(int targetRound, {Set<String> excluded = const {}}) {
+    // Carry-over and restored HAND entries are new proposals, not historical
+    // usages. Use the same technical clothing reasons as action availability.
+    final removed = {
+      for (final held in _runtime)
+        if (held.zone == CardZone.HAND && !_clothingContextAllows(held.cardId))
+          held.cardId,
+    };
+    if (removed.isNotEmpty) {
+      _runtime = _runtime
+          .where((c) => c.zone != CardZone.HAND || !removed.contains(c.cardId))
+          .toList();
+      _displayedHandActions.removeWhere((id, _) => removed.contains(id));
+      if (_activeReveal == null && removed.contains(selectedCard?.id)) {
+        _usageCheckpoint = _usageCheckpoint.releaseReservation(_intentId);
+        selectedCard = null;
+        _selectedOption = null;
+      }
+    }
     var needed =
         const BalanceConfig().handSize -
         _runtime.where((c) => c.zone == CardZone.HAND).length;
@@ -3194,6 +3225,22 @@ final class NetworkGameController extends ChangeNotifier {
     _rememberHandDirections();
   }
 
+  bool _clothingContextAllows(String conceptId) {
+    final definition = _definitions[conceptId];
+    if (definition == null) return false;
+    return const EligibilityEngine()
+        .evaluate(
+          card: const CatalogEngineAdapter.v3().card(definition),
+          context: _context,
+          actor: _profile(playerId),
+          partner: _profile(opponentId),
+          hierarchy: _hierarchy,
+        )
+        .variants.any(
+          (v) => !v.reasons.any((r) => r.code == IneligibilityCode.CLOTHES),
+        );
+  }
+
   void _buildDeckCycle() {
     if (_cycleInitialized) {
       if (_usageCheckpoint.cycle == _deckCycle) return;
@@ -3216,6 +3263,7 @@ final class NetworkGameController extends ChangeNotifier {
     ConceptActionOption? option,
     bool recovery = false,
   }) {
+    if (!_clothingContextAllows(cardId)) return null;
     for (final checkpoint in [_usageCheckpoint, ..._priorCheckpoints]) {
       for (final usage in checkpoint.usagesByIntent.values) {
         if (usage.usageId == occurrenceId) {
