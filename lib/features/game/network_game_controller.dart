@@ -17,6 +17,7 @@ import '../../engines/eligibility/concept_runtime_catalog.dart';
 import '../../engines/eligibility/concept_action_options.dart';
 import '../../engines/eligibility/session_occurrence_consent.dart';
 import '../../sync/rounds/session_consent.dart';
+import '../../engines/eligibility/anatomy_compatibility.dart';
 
 enum NetworkGameViewState {
   loading,
@@ -47,6 +48,7 @@ final class NetworkGameController extends ChangeNotifier {
     required this.playerId,
     required this.repository,
     required this.privateStore,
+    required Map<String, PlayerAnatomy> anatomies,
     required Catalog catalog,
     this.contract = const CommitRevealContract(),
     this.duelEngine = const DuelEngine(),
@@ -70,7 +72,8 @@ final class NetworkGameController extends ChangeNotifier {
     this.watchRetryDelay = const Duration(seconds: 2),
     DateTime Function()? clock,
     String Function()? nonceFactory,
-  }) : _catalog = catalog,
+  }) : anatomies = Map.unmodifiable(anatomies),
+       _catalog = catalog,
        _privateProfile = privateProfile,
        _v4Profile = v4Profile,
        clock = clock ?? DateTime.now,
@@ -78,6 +81,9 @@ final class NetworkGameController extends ChangeNotifier {
     final ids = session.players.map((player) => player.userId).toList()..sort();
     if (!session.ready || !ids.contains(playerId)) {
       throw ArgumentError('A ready lobby membership is required');
+    }
+    if (anatomies.length != 2 || !ids.every(anatomies.containsKey)) {
+      throw ArgumentError('Both session anatomies are required');
     }
     playerIds = List.unmodifiable(ids);
     if (catalog.concepts == null || catalog.conceptRules == null) {
@@ -225,6 +231,35 @@ final class NetworkGameController extends ChangeNotifier {
     );
   }
 
+  final Map<String, PlayerAnatomy> anatomies;
+
+  bool anatomyAllowed(
+    String conceptId,
+    String actionId,
+    String direction, {
+    String? ownerId,
+  }) => AnatomyCompatibility.allows(
+    concept: conceptFor(conceptId),
+    actionId: actionId,
+    direction: CardOccurrenceDirection.values.byName(direction),
+    ownerId: ownerId ?? playerId,
+    anatomies: anatomies,
+  );
+
+  bool occurrenceAllowed(
+    String conceptId,
+    String actionId,
+    String direction, {
+    String? ownerId,
+  }) =>
+      anatomyAllowed(conceptId, actionId, direction, ownerId: ownerId) &&
+      occurrenceConsentAllowed(
+        conceptId,
+        actionId,
+        direction,
+        ownerId: ownerId,
+      );
+
   Set<String> _consentContribution() {
     final legacy = _privateProfile;
     final profile =
@@ -232,6 +267,9 @@ final class NetworkGameController extends ChangeNotifier {
         (legacy == null
             ? null
             : V4Profile(
+                // This projection already has a canonical session anatomy.
+                // Preserve legacy veto semantics without inventing a default sex.
+                sex: ProfileSex.values.singleWhere((sex) => sex.anatomy == anatomies[playerId]),
                 profileId: playerId,
                 preferences: {
                   for (final entry in legacy.preferences.entries)
@@ -1016,7 +1054,7 @@ final class NetworkGameController extends ChangeNotifier {
     bool recovery = false,
   }) {
     if (!_definitions.containsKey(usage.conceptId)) return false;
-    if (!occurrenceConsentAllowed(
+    if (!occurrenceAllowed(
       usage.conceptId,
       (usage.resolvedAction['stage_id'] ?? usage.resolvedAction['variant_id'])!
           as String,
@@ -1098,7 +1136,7 @@ final class NetworkGameController extends ChangeNotifier {
             ..._replayableDiscards(recovery: true),
           ]
           .where(
-            (c) => occurrenceConsentAllowed(
+            (c) => occurrenceAllowed(
               c.id,
               c.variant.id,
               c.nativeDirection.name,
@@ -1235,10 +1273,31 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   List<ConceptActionOption> recoveryChoicesFor(String conceptId) =>
-      _currentOptions(recovery: true)[conceptId] ?? const [];
+      _anatomicalOptionsFor(conceptId, recovery: true);
 
   List<ConceptActionOption> choicesFor(String conceptId) =>
-      _currentOptions()[conceptId] ?? const [];
+      _anatomicalOptionsFor(conceptId);
+
+  List<ConceptActionOption> _anatomicalOptionsFor(
+    String conceptId, {
+    bool recovery = false,
+  }) {
+    final options = _currentOptions(recovery: recovery)[conceptId] ?? const [];
+    final direction = _runtime
+        .where((c) => c.cardId == conceptId && c.zone == CardZone.HAND)
+        .firstOrNull
+        ?.nativeDirection;
+    if (direction == null || direction == CardOccurrenceDirection.GENERAL) {
+      return options;
+    }
+    // An existing occurrence keeps its native direction when choosing another action.
+    return options
+        .where(
+          (option) =>
+              anatomyAllowed(conceptId, option.choice.actionId, direction.name),
+        )
+        .toList();
+  }
 
   Future<void> reserveSelection() async {
     final card = selectedCard;
@@ -1303,8 +1362,8 @@ final class NetworkGameController extends ChangeNotifier {
             .where(
               (o) => _directions(entry.key, o.choice.actionId).any(
                 (d) => localConsentOnly
-                    ? localConsentAllowed(entry.key, o.choice.actionId, d.name)
-                    : occurrenceConsentAllowed(
+                    ? anatomyAllowed(entry.key, o.choice.actionId, d.name) && localConsentAllowed(entry.key, o.choice.actionId, d.name)
+                    : occurrenceAllowed(
                         entry.key,
                         o.choice.actionId,
                         d.name,
@@ -1467,7 +1526,7 @@ final class NetworkGameController extends ChangeNotifier {
       if (option == null) {
         throw StateError('Selected action is no longer eligible');
       }
-      if (!occurrenceConsentAllowed(
+      if (!occurrenceAllowed(
         card.id,
         card.variant.id,
         card.nativeDirection.name,
@@ -1488,7 +1547,7 @@ final class NetworkGameController extends ChangeNotifier {
         resolveAction: () => _freezeAction(card, option, engagedAt),
         resolveInvertedAction:
             card.oppositePersonalValue == null ||
-                !occurrenceConsentAllowed(
+                !occurrenceAllowed(
                   card.id,
                   card.variant.id,
                   const CardDirectionEngine().invert(card.nativeDirection).name,
@@ -1819,6 +1878,10 @@ final class NetworkGameController extends ChangeNotifier {
       )) {
         throw const NetworkRoundException('ROUND_STAGE_ALREADY_CONSUMED');
       }
+      if (!anatomyAllowed(previous.action.conceptId,
+          previous.action.stageId ?? previous.action.variantId!, previous.action.direction.name)) {
+        throw StateError('Anatomically incompatible secondary action');
+      }
       return _sharedUsage(previous);
     }
     if (source != null && !_replayConsentAllowed(source, recovery: recovery)) {
@@ -1840,7 +1903,7 @@ final class NetworkGameController extends ChangeNotifier {
       recovery: recovery,
     );
     if (currentCard == null ||
-        !occurrenceConsentAllowed(
+        !occurrenceAllowed(
           card.id,
           resolvedOption.choice.actionId,
           currentCard.nativeDirection.name,
@@ -1888,7 +1951,12 @@ final class NetworkGameController extends ChangeNotifier {
     final intent = '${round!.roundId}:corruption:${source.usageId}';
     final previous =
         _usageCheckpoint.usageForIntent(intent) ?? _reservedChoices[intent];
-    if (previous != null) return _sharedUsage(previous);
+    if (previous != null) {
+      if (!anatomyAllowed(previous.action.conceptId, previous.action.stageId ?? previous.action.variantId!, previous.action.direction.name)) {
+        throw StateError('Anatomically incompatible replay');
+      }
+      return _sharedUsage(previous);
+    }
     if (!_replayConsentAllowed(source) ||
         !(_currentOptions(includeConsumedStages: true)[source.conceptId] ??
                 const [])
@@ -1921,7 +1989,7 @@ final class NetworkGameController extends ChangeNotifier {
 
   ResolvedConceptAction? _eligibleStageInverse(ResolvedConceptAction? action) {
     if (action == null) return null;
-    return !occurrenceConsentAllowed(
+    return !occurrenceAllowed(
               action.conceptId,
               action.stageId ?? action.variantId!,
               action.direction.name,
@@ -3151,6 +3219,11 @@ final class NetworkGameController extends ChangeNotifier {
     for (final checkpoint in [_usageCheckpoint, ..._priorCheckpoints]) {
       for (final usage in checkpoint.usagesByIntent.values) {
         if (usage.usageId == occurrenceId) {
+          // This builder proposes a card; historical display uses _cardFromUsage directly.
+          if (!anatomyAllowed(usage.action.conceptId,
+              usage.action.stageId ?? usage.action.variantId!, usage.action.direction.name)) {
+            return null;
+          }
           return _cardFromUsage(
             NetworkUsageProjection.fromSnapshot(
               usage,
@@ -3188,7 +3261,7 @@ final class NetworkGameController extends ChangeNotifier {
           ? 'RECEVOIR'
           : 'GENERAL';
       if ((role == ProfileRole.FAIRE || role == ProfileRole.RECEVOIR) &&
-          !occurrenceConsentAllowed(
+          !occurrenceAllowed(
             cardId,
             selected.choice.actionId,
             direction,
@@ -3254,6 +3327,9 @@ final class NetworkGameController extends ChangeNotifier {
       direction.effectiveDirection,
       fallback: ProfileRole.GENERAL,
     );
+    if (!anatomyAllowed(cardId, selected.choice.actionId, direction.effectiveDirection.name)) {
+      return null;
+    }
     if (_v4Profile == null && !allows(role)) return null;
     final elementId = preferenceIds.first;
     final value = _conceptPersonalValue(
@@ -4390,7 +4466,7 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   bool isCardPlayable(NetworkDuelCard card) =>
-      occurrenceConsentAllowed(
+      occurrenceAllowed(
         card.id,
         card.variant.id,
         card.nativeDirection.name,

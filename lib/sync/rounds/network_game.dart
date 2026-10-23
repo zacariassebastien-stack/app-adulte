@@ -1,3 +1,4 @@
+import '../../domain/profile/v4_profile.dart' show PlayerAnatomy;
 import '../../engines/auction/auction_engine.dart';
 import '../../engines/corruption/corruption_engine.dart';
 import '../../engines/deck/deck_cycle_state.dart';
@@ -131,6 +132,7 @@ final class V4PlayerSessionSetupDto {
   V4PlayerSessionSetupDto({
     required this.playerId,
     required this.clothingCount,
+    this.anatomy,
     this.environmentReady = true,
     this.inventoryReady = true,
     this.availableAccessories = const [],
@@ -138,6 +140,7 @@ final class V4PlayerSessionSetupDto {
   }) : accessories = List.unmodifiable(accessories);
 
   final String playerId;
+  final PlayerAnatomy? anatomy;
   final bool environmentReady, inventoryReady;
   final List<V4Accessory> availableAccessories;
   final int clothingCount;
@@ -145,6 +148,7 @@ final class V4PlayerSessionSetupDto {
 
   Map<String, Object?> toJson() => {
     'player_id': playerId,
+    'anatomy': anatomy?.name,
     'clothing_count': clothingCount,
     'environment_ready': environmentReady,
     'inventory_ready': inventoryReady,
@@ -155,6 +159,7 @@ final class V4PlayerSessionSetupDto {
   factory V4PlayerSessionSetupDto.fromJson(Map<String, Object?> json) =>
       V4PlayerSessionSetupDto(
         playerId: json['player_id']! as String,
+        anatomy: json['anatomy'] == null ? null : PlayerAnatomy.values.byName(json['anatomy']! as String),
         environmentReady: json['environment_ready'] != false,
         inventoryReady: json['inventory_ready'] != false,
         availableAccessories: [
@@ -187,7 +192,12 @@ final class V4SessionSetupDto {
       status == 'ACCEPTED' &&
       mode != null &&
       style != null &&
-      players.length == 2;
+      players.length == 2 &&
+      players.every((p) => p.anatomy != null) &&
+      players.map((p) => p.playerId).toSet().length == 2;
+  Map<String, PlayerAnatomy> get anatomies => {
+    for (final player in players) if (player.anatomy != null) player.playerId: player.anatomy!,
+  };
   Map<String, int> get clothingCounts => {
     for (final player in players) player.playerId: player.clothingCount,
   };
@@ -217,6 +227,7 @@ final class V4SessionSetupDto {
 abstract interface class NetworkSessionSetupRepository {
   Future<V4SessionSetupDto> registerSetupAccessories({
     required String sessionId,
+    required PlayerAnatomy anatomy,
     required List<V4Accessory> accessories,
   });
   Future<V4SessionSetupDto> proposeSessionSetup({

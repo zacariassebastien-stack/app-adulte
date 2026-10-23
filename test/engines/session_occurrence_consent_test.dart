@@ -31,7 +31,7 @@ void main() {
       role: role ?? ProfilePreferenceRole.general,
       zoneId: zone,
     );
-    return V4Profile(
+    return V4Profile(sex: ProfileSex.HOMME,
       profileId: 'a',
       preferences: {
         if (stage == null)

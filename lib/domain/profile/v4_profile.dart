@@ -1,3 +1,23 @@
+// Wire names used by the profile and setup contracts.
+// ignore: constant_identifier_names
+enum PlayerAnatomy { PENIS, VULVE }
+
+enum ProfileSex {
+  // ignore: constant_identifier_names
+  HOMME,
+  // ignore: constant_identifier_names
+  FEMME;
+  PlayerAnatomy get anatomy => switch (this) {
+    HOMME => PlayerAnatomy.PENIS,
+    FEMME => PlayerAnatomy.VULVE,
+  };
+  String get label => this == HOMME ? 'Homme' : 'Femme';
+  static ProfileSex parse(Object? value) => values.firstWhere(
+    (sex) => sex.name == value,
+    orElse: () => throw const FormatException('Invalid profile sex'),
+  );
+}
+
 enum ProfilePreferenceRole {
   general,
   faire,
@@ -232,6 +252,7 @@ final class StageVeto {
 final class V4Profile {
   V4Profile({
     required this.profileId,
+    required this.sex,
     this.gameNickname,
     required Map<String, ProfilePreference> preferences,
     Map<String, PracticeConsent> consents = const {},
@@ -243,6 +264,8 @@ final class V4Profile {
        stageVetoes = List.unmodifiable(stageVetoes);
 
   final String profileId;
+  final ProfileSex sex;
+  PlayerAnatomy get anatomy => sex.anatomy;
   final String? gameNickname;
   final Map<String, ProfilePreference> preferences;
   final Map<String, PracticeConsent> consents;
@@ -286,6 +309,7 @@ final class V4Profile {
   Map<String, Object?> toJson() => {
     'schema_version': 1,
     'profile_id': profileId,
+    'sex': sex.name,
     if (gameNickname != null) 'game_nickname': gameNickname,
     'preferences': [for (final value in preferences.values) value.toJson()],
     'consents': [for (final value in consents.values) value.toJson()],
@@ -304,6 +328,7 @@ final class V4Profile {
     ];
     return V4Profile(
       profileId: json['profile_id']! as String,
+      sex: ProfileSex.parse(json['sex']),
       gameNickname: json['game_nickname'] as String?,
       preferences: {
         for (final value in preferences) value.key.storageKey: value,
@@ -321,11 +346,13 @@ final class V4Profile {
   }
 
   V4Profile copyWith({
+    ProfileSex? sex,
     String? gameNickname,
     List<V4ProfileAccessory>? accessories,
     List<StageVeto>? stageVetoes,
   }) => V4Profile(
     profileId: profileId,
+    sex: sex ?? this.sex,
     gameNickname: gameNickname ?? this.gameNickname,
     preferences: preferences,
     consents: consents,

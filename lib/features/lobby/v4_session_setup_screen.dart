@@ -65,9 +65,15 @@ class _V4SessionSetupScreenState extends State<V4SessionSetupScreen> {
             normallyActive: a.active,
           ),
       ];
+      // An accepted setup is canonical on resume: do not republish the profile.
+      final existing = await widget.repository.getV4SessionSetup(widget.session.id);
+      if (existing.complete) { receive(existing); return; }
+      final profile = widget.profile;
+      if (profile == null) throw StateError('A valid profile is required');
       receive(
         await widget.repository.registerSetupAccessories(
           sessionId: widget.session.id,
+          anatomy: profile.anatomy,
           accessories: inventory,
         ),
       );
@@ -190,6 +196,7 @@ class _V4SessionSetupScreenState extends State<V4SessionSetupScreen> {
     }
     return V4PlayerSessionSetupDto(
       playerId: id,
+      anatomy: state?.anatomies[id],
       clothingCount: count,
       accessories: [
         for (final a in accessories[id] ?? <V4Accessory>[])
@@ -512,16 +519,16 @@ class _V4SessionSetupScreenState extends State<V4SessionSetupScreen> {
                 if (mode != V4SessionMode.distance ||
                     p.userId == widget.playerId)
                   environmentForm(p.userId),
-              if (state?.players.any((p) => !p.inventoryReady) == true)
+              if (state?.players.any((p) => (!p.inventoryReady || p.anatomy == null)) == true)
                 const Text(
-                  'En attente de la connexion du partenaire pour charger ses accessoires.',
+                  'En attente du partenaire pour préparer son profil et ses accessoires.',
                 ),
               FilledButton(
                 key: const Key('submit-v4-session-setup'),
                 onPressed:
                     busy ||
                         state == null ||
-                        state!.players.any((p) => !p.inventoryReady)
+                        state!.players.any((p) => (!p.inventoryReady || p.anatomy == null))
                     ? null
                     : submit,
                 child: Text(
@@ -539,7 +546,7 @@ class _V4SessionSetupScreenState extends State<V4SessionSetupScreen> {
               if (proposed) ...[
                 FilledButton(
                   key: const Key('accept-v4-session-setup'),
-                  onPressed: busy ? null : submit,
+                  onPressed: busy || state!.players.any((p) => p.anatomy == null) ? null : submit,
                   child: const Text('Valider et commencer'),
                 ),
                 OutlinedButton(

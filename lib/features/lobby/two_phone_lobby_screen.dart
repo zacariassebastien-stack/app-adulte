@@ -320,6 +320,7 @@ class _TwoPhoneLobbyScreenState extends State<TwoPhoneLobbyScreen> {
             catalog: results[1] as Catalog,
             scoringCatalog: results[2] as V4ScoringCatalog,
             v4Profile: v4Profile,
+            anatomies: setup.anatomies,
             sessionMode: setup.mode!,
             initialClothingCounts: setup.clothingCounts,
             profileAccessories: setup.accessories,

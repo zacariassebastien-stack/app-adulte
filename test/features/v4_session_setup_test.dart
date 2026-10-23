@@ -13,6 +13,49 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('setup publishes anatomy derived from the local profile', (tester) async {
+    final repo = _SetupRepository();
+    addTearDown(repo.close);
+    await tester.pumpWidget(MaterialApp(home: V4SessionSetupScreen(session: _session,
+      playerId: 'alice', repository: repo,
+      profile: V4Profile(profileId: 'alice', sex: ProfileSex.FEMME, preferences: const {}))));
+    await tester.pumpAndSettle();
+    expect(repo.publishedAnatomy, PlayerAnatomy.VULVE);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+  testWidgets('resuming an accepted setup never republishes a changed profile', (tester) async {
+    final proposal = _proposal(V4SessionMode.presentiel);
+    final repo = _SetupRepository()..state = V4SessionSetupDto(mode: proposal.mode,
+      style: proposal.style, status: 'ACCEPTED', players: proposal.players);
+    addTearDown(repo.close);
+    V4SessionSetupDto? resumed;
+    await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) => FilledButton(
+      onPressed: () async { resumed = await Navigator.of(context).push<V4SessionSetupDto>(
+        MaterialPageRoute(builder: (_) => V4SessionSetupScreen(session: _session,
+          playerId: 'alice', repository: repo,
+          profile: V4Profile(profileId: 'alice', sex: ProfileSex.FEMME, preferences: const {})))); },
+      child: const Text('Resume')))));
+    await tester.tap(find.text('Resume'));
+    await tester.pumpAndSettle();
+    expect(resumed?.anatomies['alice'], PlayerAnatomy.PENIS);
+    expect(repo.publishedAnatomy, isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('partner cannot accept while one anatomy is missing', (tester) async {
+    final base = _proposal(V4SessionMode.presentiel);
+    final repo = _SetupRepository()..state = V4SessionSetupDto(mode: base.mode, style: base.style,
+      status: 'PROPOSED', players: [base.players.first,
+        V4PlayerSessionSetupDto(playerId: 'bob', clothingCount: 2, accessories: const [])]);
+    addTearDown(repo.close);
+    await tester.pumpWidget(MaterialApp(home: V4SessionSetupScreen(session: _session,
+      playerId: 'bob', repository: repo,
+      profile: V4Profile(profileId: 'bob', sex: ProfileSex.FEMME, preferences: const {}))));
+    await tester.pumpAndSettle();
+    expect(tester.widget<FilledButton>(find.byKey(const Key('accept-v4-session-setup'))).onPressed, isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   test('profile accessory persists exact tags and FAIRE RECEVOIR SOI', () {
     final accessory = V4ProfileAccessory(
       id: 'accessory.alice.1',
@@ -43,7 +86,7 @@ void main() {
   });
 
   test('accessory preferences inherit only from the exact tag set', () {
-    final profile = V4Profile(
+    final profile = V4Profile(sex: ProfileSex.HOMME,
       profileId: 'alice',
       preferences: const {},
       accessories: [
@@ -77,7 +120,7 @@ void main() {
       style: PlayerStyle.EPICE,
       status: 'ACCEPTED',
       players: [
-        V4PlayerSessionSetupDto(
+        V4PlayerSessionSetupDto(anatomy: PlayerAnatomy.PENIS,
           playerId: 'alice',
           clothingCount: 0,
           accessories: [
@@ -89,7 +132,7 @@ void main() {
             ),
           ],
         ),
-        V4PlayerSessionSetupDto(
+        V4PlayerSessionSetupDto(anatomy: PlayerAnatomy.PENIS,
           playerId: 'bob',
           clothingCount: 4,
           accessories: [
@@ -206,7 +249,7 @@ void main() {
             session: _session,
             playerId: 'alice',
             repository: repo,
-            profile: null,
+            profile: V4Profile(profileId: 'fixture', sex: ProfileSex.HOMME, preferences: const {}),
           ),
         ),
       );
@@ -264,7 +307,7 @@ void main() {
             session: _session,
             playerId: 'bob',
             repository: repo,
-            profile: null,
+            profile: V4Profile(profileId: 'fixture', sex: ProfileSex.HOMME, preferences: const {}),
           ),
         ),
       );
@@ -305,7 +348,7 @@ void main() {
           session: _session,
           playerId: 'bob',
           repository: repo,
-          profile: null,
+          profile: V4Profile(profileId: 'fixture', sex: ProfileSex.HOMME, preferences: const {}),
         ),
       ),
     );
@@ -324,7 +367,7 @@ void main() {
           session: _session,
           playerId: 'alice',
           repository: repo,
-          profile: null,
+          profile: V4Profile(profileId: 'fixture', sex: ProfileSex.HOMME, preferences: const {}),
         ),
       ),
     );
@@ -359,7 +402,7 @@ void main() {
           session: _session,
           playerId: 'alice',
           repository: repo,
-          profile: null,
+          profile: V4Profile(profileId: 'fixture', sex: ProfileSex.HOMME, preferences: const {}),
         ),
       ),
     );
@@ -423,7 +466,7 @@ void main() {
                       session: _session,
                       playerId: id,
                       repository: repo,
-                      profile: null,
+                      profile: V4Profile(profileId: 'fixture', sex: ProfileSex.HOMME, preferences: const {}),
                     ),
                   ),
                 );
@@ -465,7 +508,7 @@ void main() {
             session: _session,
             playerId: 'alice',
             repository: repo,
-            profile: null,
+            profile: V4Profile(profileId: 'fixture', sex: ProfileSex.HOMME, preferences: const {}),
           ),
         ),
       );
@@ -517,7 +560,7 @@ V4SessionSetupDto _proposal(V4SessionMode mode) => V4SessionSetupDto(
   revision: 1,
   players: [
     for (final id in ['alice', 'bob'])
-      V4PlayerSessionSetupDto(
+      V4PlayerSessionSetupDto(anatomy: PlayerAnatomy.PENIS,
         playerId: id,
         clothingCount: id == 'alice' ? 2 : 4,
         accessories: const [],
@@ -531,7 +574,7 @@ final class _SetupRepository implements NetworkSessionSetupRepository {
     mode: null,
     players: [
       for (final id in ['alice', 'bob'])
-        V4PlayerSessionSetupDto(
+        V4PlayerSessionSetupDto(anatomy: PlayerAnatomy.PENIS,
           playerId: id,
           clothingCount: 0,
           environmentReady: false,
@@ -539,14 +582,16 @@ final class _SetupRepository implements NetworkSessionSetupRepository {
         ),
     ],
   );
+  PlayerAnatomy? publishedAnatomy;
   List<V4PlayerSessionSetupDto> proposedPlayers = [];
   V4PlayerSessionSetupDto? responseEnvironment;
   Future<void> close() => updates.close();
   @override
   Future<V4SessionSetupDto> registerSetupAccessories({
+    required PlayerAnatomy anatomy,
     required String sessionId,
     required List<V4Accessory> accessories,
-  }) async => state;
+  }) async { publishedAnatomy = anatomy; return state; }
   @override
   Future<V4SessionSetupDto> getV4SessionSetup(String sessionId) async => state;
   @override

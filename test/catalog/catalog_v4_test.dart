@@ -258,7 +258,7 @@ void main() {
         'assets/catalog/source/profile_questions.v1.fr.json',
       ).readAsStringSync(),
     );
-    final profile = const InitialQuestionnaireEngine().initialize(
+    final profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
       profileId: 'p',
       questionnaire: questionnaire,
       responses: {

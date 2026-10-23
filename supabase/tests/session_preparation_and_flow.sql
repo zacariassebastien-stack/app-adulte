@@ -14,13 +14,13 @@ begin
   insert into public.game_sessions(id,join_code,status,host_user_id) values(s,'ABCDE'||substr('ABCDEFGHJKLMNP',n,1),'ready',a);
   insert into public.session_players(session_id,user_id,role,join_command_id) values(s,a,'PLAYER_1','setup-a-'||n),(s,b,'PLAYER_2','setup-b-'||n);
   perform set_config('request.jwt.claim.sub',a::text,true);
-  perform public.register_v4_setup_accessories(s,'[]');
+  perform public.register_v4_setup_profile(s,'[]','PENIS');
   begin
    perform public.open_network_game_round(s,a,'premature-'||n);
    raise exception 'TEST FAILED: round opened without preparation';
   exception when raise_exception then if sqlerrm<>'ROUND_SETUP_NOT_READY' then raise; end if; end;
   perform set_config('request.jwt.claim.sub',b::text,true);
-  perform public.register_v4_setup_accessories(s,'[{"id":"partner-gear","name":"Accessoire partenaire","tags":["externe"]}]');
+  perform public.register_v4_setup_profile(s,'[{"id":"partner-gear","name":"Accessoire partenaire","tags":["externe"]}]','VULVE');
   own:=jsonb_build_object('clothing_count',4,'accessories',jsonb_build_array(jsonb_build_object('id','temporary-b','name','Temporaire partenaire','tags',jsonb_build_array('vibrant'),'temporary',true)));
   env:=jsonb_build_object(a::text,jsonb_build_object('clothing_count',2,'accessories','[]'::jsonb));
   if m<>'distance' then env:=env||jsonb_build_object(b::text,own); end if;

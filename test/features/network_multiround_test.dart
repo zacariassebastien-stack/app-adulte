@@ -95,7 +95,7 @@ void main() {
             nativeUsageFixture(owner: 'bob'), source: RecoverySource.HAND,
             response: scenario.$1 == NetworkGamePhase.recoveryExecution ? RecoveryResponse.ACCEPT : null);
         }
-        await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: namedSession,
+        await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: namedSession,
           playerId: scenario.$2, repository: backend.repository(scenario.$2), catalog: catalog,
           secretStore: MemoryNetworkDuelSecretStore())));
         await tester.pumpAndSettle();
@@ -126,7 +126,7 @@ void main() {
       ..phase = NetworkGamePhase.negotiationProposal
       ..initial = NetworkInitialResolutionDto(tied: false, gap: 1, gapCost: 1,
         actionPoints: backend.points, winnerPlayerId: 'alice', loserPlayerId: 'bob', inversionAllowed: true);
-    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session, playerId: 'bob',
+    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'bob',
       repository: backend.repository('bob'), catalog: catalog, secretStore: MemoryNetworkDuelSecretStore())));
     await tester.pumpAndSettle();
     final help = find.byKey(const Key('negotiation-inversion-help'));
@@ -146,7 +146,7 @@ void main() {
       preferences[key.storageKey] = ProfilePreference(profileId: 'alice', key: key, pa: 10,
         excluded: false, source: ProfilePreferenceSource.initialQuestionnaire);
     }
-    return V4Profile(profileId: 'alice', preferences: preferences, stageVetoes: [
+    return V4Profile(sex: ProfileSex.HOMME, profileId: 'alice', preferences: preferences, stageVetoes: [
       if (excluded != null) for (final r in role == null ? [ProfilePreferenceRole.faire, ProfilePreferenceRole.recevoir] : [role])
         StageVeto(conceptId: '056', actionId: '056.stage.$excluded', role: r),
     ]);
@@ -160,7 +160,7 @@ void main() {
       values[key.storageKey] = ProfilePreference(profileId: id, key: key,
         pa: null, excluded: true, source: ProfilePreferenceSource.manualCustomized);
     }
-    return V4Profile(profileId: id, preferences: values, stageVetoes: [
+    return V4Profile(sex: ProfileSex.HOMME, profileId: id, preferences: values, stageVetoes: [
       if (stage != null) StageVeto(conceptId: '056', actionId: stage,
         role: excluded ?? ProfilePreferenceRole.general),
     ]);
@@ -171,7 +171,7 @@ void main() {
     final backend = _Backend()..v4UnlockedSpice = 4;
     final consent = _ConsentBackend();
     final store = MemoryNetworkDuelSecretStore();
-    NetworkGameController player(String id, V4Profile profile) => NetworkGameController(
+    NetworkGameController player(String id, V4Profile profile) => NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session, playerId: id, repository: _ConsentRepository(backend, id, consent),
       privateStore: id == 'bob' ? store : MemoryNetworkDuelSecretStore(),
       learningStore: MemoryNetworkProfileLearningStore(), v4Profile: profile,
@@ -191,13 +191,102 @@ void main() {
   V4Profile completeConsentProfile(String id) {
     final questionnaire = ProfileQuestionnaire.decode(
       File('assets/catalog/source/profile_questions.v1.fr.json').readAsStringSync());
-    return const InitialQuestionnaireEngine().initialize(profileId: id,
+    return const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME, profileId: id,
       questionnaire: questionnaire, responses: {
         for (final question in questionnaire.questions)
           for (final axis in question.axes)
             '${question.stableId}|${axis.axisId}': InitialQuestionResponse.like,
       });
   }
+  for (final owner in PlayerAnatomy.values) {
+    for (final partner in PlayerAnatomy.values) {
+      test('anatomy pipeline draw, direction, inversion, Recovery and reconnect $owner/$partner', () async {
+        final backend = _Backend()..v4UnlockedSpice = 4;
+        final store = MemoryNetworkDuelSecretStore();
+        final anatomy = {'alice': owner, 'bob': partner};
+        final data = _catalogWithCards(catalog, {'card.v4.022', 'card.v4.027', 'card.v4.055', 'card.v4.065'});
+        NetworkGameController create(V4Profile profile) => NetworkGameController(
+          session: session, playerId: 'alice', repository: backend.repository('alice'),
+          privateStore: store, learningStore: MemoryNetworkProfileLearningStore(),
+          catalog: data, v4Profile: profile, anatomies: anatomy);
+        final profile = completeConsentProfile('alice').copyWith(
+          sex: owner == PlayerAnatomy.PENIS ? ProfileSex.HOMME : ProfileSex.FEMME);
+        final c = create(profile);
+        await c.start();
+        expect(c.errorMessage, isNull);
+        for (final id in ['022', '027']) {
+          expect(c.choicesFor(id).isNotEmpty, owner == PlayerAnatomy.VULVE || partner == PlayerAnatomy.VULVE);
+          expect(c.recoveryChoicesFor(id).isNotEmpty, owner == PlayerAnatomy.VULVE || partner == PlayerAnatomy.VULVE);
+        }
+        expect(c.choicesFor('055').isNotEmpty, owner == PlayerAnatomy.PENIS);
+        expect(c.choicesFor('065'), isNotEmpty);
+        for (final card in [...c.hand, ...c.recoveryCards]) {
+          expect(c.anatomyAllowed(card.id, card.variant.id, card.nativeDirection.name), isTrue);
+          expect(c.stageExcluded(card.id, card.variant.id, card.nativeDirection.name), isFalse);
+          final inverse = card.nativeDirection == CardOccurrenceDirection.FAIRE ? 'RECEVOIR' : 'FAIRE';
+          expect(card.oppositePersonalValue != null, c.anatomyAllowed(card.id, card.variant.id, inverse));
+        }
+        final signature = c.hand.map((card) => '${card.id}/${card.variant.id}/${card.nativeDirection.name}').toList();
+        await c.applyStageVetoProfile(profile.copyWith(sex: profile.sex == ProfileSex.HOMME ? ProfileSex.FEMME : ProfileSex.HOMME));
+        expect(c.anatomies['alice'], owner);
+        expect(c.hand.map((card) => '${card.id}/${card.variant.id}/${card.nativeDirection.name}').toList(), signature);
+        c.dispose();
+        final resumed = create(profile.copyWith(sex: ProfileSex.FEMME));
+        addTearDown(resumed.dispose);
+        await resumed.start();
+        expect(resumed.errorMessage, isNull);
+        expect(resumed.anatomies['alice'], owner);
+        expect(resumed.hand.map((card) => '${card.id}/${card.variant.id}/${card.nativeDirection.name}').toList(), signature);
+        anatomy['alice'] = owner == PlayerAnatomy.PENIS ? PlayerAnatomy.VULVE : PlayerAnatomy.PENIS;
+        expect(resumed.anatomies['alice'], owner, reason: 'caller map cannot mutate session snapshot');
+      });
+    }
+  }
+  test('anatomy rejects historical new compromise Corruption Recovery proposals without deleting history', () async {
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    final store = MemoryNetworkDuelSecretStore();
+    final saved = privateGameFixture(roundNumber: 1, activeChili: 4, cards: [
+      CardRuntimeState(cardId: '022', variantId: '022.stage.1', occurrenceId: 'historic',
+        zone: CardZone.DISCARD, nativeDirection: CardOccurrenceDirection.FAIRE),
+    ]);
+    await store.saveGame(sessionId: session.id, playerId: 'alice', state: saved);
+    final original = saved.conceptCheckpoint!.usagesByIntent.values.single.toJson();
+    final c = NetworkGameController(session: session, playerId: 'alice',
+      repository: backend.repository('alice'), privateStore: store,
+      learningStore: MemoryNetworkProfileLearningStore(), catalog: catalog,
+      v4Profile: completeConsentProfile('alice'),
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.PENIS});
+    addTearDown(c.dispose);
+    await c.start();
+    expect(c.errorMessage, isNull);
+    expect(c.auctionCards.where((card) => card.id == '022'), isEmpty);
+    expect(c.corruptionCards.where((card) => card.id == '022'), isEmpty);
+    expect(c.recoveryCards.where((card) => card.id == '022'), isEmpty);
+    expect(c.usageCheckpoint.usagesByIntent.values.single.toJson(), original);
+    expect((await store.loadGame(sessionId: session.id, playerId: 'alice'))!.publicDiscards, isNotEmpty);
+  });
+
+  test('anatomy manual zone choices respect the held native direction', () async {
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    final c = NetworkGameController(session: session, playerId: 'alice',
+      repository: backend.repository('alice'), privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore(),
+      catalog: _catalogWithCards(catalog, {'card.v4.002', 'card.v4.004', 'card.v4.005'}),
+      v4Profile: completeConsentProfile('alice'),
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE});
+    addTearDown(c.dispose);
+    await c.start();
+    expect(c.errorMessage, isNull);
+    expect(c.hand, isNotEmpty);
+    for (final card in c.hand) {
+      for (final option in c.choicesFor(card.id)) {
+        expect(c.anatomyAllowed(card.id, option.choice.actionId, card.nativeDirection.name), isTrue);
+      }
+      final impossibleZone = card.nativeDirection == CardOccurrenceDirection.FAIRE ? 'penis' : 'vulva';
+      expect(c.choicesFor(card.id).where((o) => o.choice.zoneId == impossibleZone), isEmpty);
+    }
+  });
+
   String occurrenceSignature(NetworkDuelCard card) =>
       '${card.id}/${card.variant.id}/${card.nativeDirection.name}';
   Future<(_ConsentBackend, NetworkGameController, NetworkGameController,
@@ -218,7 +307,7 @@ void main() {
           displayedHandActions: {concept: action},
           conceptCheckpoint: ConceptUsageCheckpoint.startCycle(sessionId: session.id,
             ownerPlayerId: id, cycle: 1, catalog: catalog.concepts!, initialClothing: 5)));
-      return NetworkGameController(session: session, playerId: id,
+      return NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: id,
         repository: _ConsentRepository(backend, id, consent), privateStore: store,
         learningStore: MemoryNetworkProfileLearningStore(), v4Profile: profile,
         catalog: catalog);
@@ -308,7 +397,7 @@ void main() {
       final b = pair.$3;
       final original = occurrenceSignature(b.hand.singleWhere((c) => c.id == example.$1));
       a.dispose();
-      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session, playerId: 'alice', repository: a.repository,
         catalog: catalog, v4Profile: completeConsentProfile('alice'),
         profileStore: pair.$4, secretStore: a.privateStore,
@@ -434,7 +523,7 @@ void main() {
     await pair.$3.applyStageVetoProfile(own.copyWith(stageVetoes: [
       StageVeto(conceptId: original.id, actionId: '*', role: ProfilePreferenceRole.general),
     ]));
-    NetworkGameController restored() => NetworkGameController(session: session,
+    NetworkGameController restored() => NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session,
       playerId: 'bob', repository: _ConsentRepository(pair.$1, 'bob', pair.$2),
       privateStore: store, learningStore: MemoryNetworkProfileLearningStore(),
       v4Profile: profileB, catalog: catalog);
@@ -477,7 +566,7 @@ void main() {
     expect(roundTrip.displayedHandActions['056'], '056.stage.2');
     final store = MemoryNetworkDuelSecretStore();
     await store.saveGame(sessionId: session.id, playerId: 'bob', state: roundTrip);
-    final restored = NetworkGameController(session: session, playerId: 'bob',
+    final restored = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'bob',
       repository: _ConsentRepository(pair.$1, 'bob', pair.$2), privateStore: store,
       learningStore: MemoryNetworkProfileLearningStore(), v4Profile: consentProfile('bob'),
       catalog: _catalogWithCards(catalog, {'card.v4.056'}));
@@ -543,7 +632,7 @@ void main() {
     expect(pair.$3.heldConcepts.map((c) => c.id), contains('056'),
       reason: 'The owner keeps their own excluded card for manual replacement');
     expect(pair.$3.canReplaceForConsent('056'), isTrue);
-    final restored = NetworkGameController(session: session, playerId: 'bob',
+    final restored = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'bob',
       repository: _ConsentRepository(pair.$1, 'bob', pair.$2), privateStore: pair.$5,
       learningStore: MemoryNetworkProfileLearningStore(), v4Profile: consentProfile('bob'),
       catalog: _catalogWithCards(catalog, {'card.v4.056'}));
@@ -597,7 +686,7 @@ void main() {
       firstLifeConcept: '003', consent: consent);
     addTearDown(setup.dispose);
     expect(setup.alice.occurrenceConsentAllowed('003', '003.stage.1', 'MUTUEL'), isTrue);
-    await setup.bob.applyStageVetoProfile(V4Profile(profileId: 'bob', preferences: {},
+    await setup.bob.applyStageVetoProfile(V4Profile(sex: ProfileSex.HOMME, profileId: 'bob', preferences: {},
       stageVetoes: [StageVeto(conceptId: '003', actionId: '003.stage.1',
         role: ProfilePreferenceRole.recevoir)]));
     await setup.alice.synchronizeConsent();
@@ -636,14 +725,14 @@ void main() {
     final focused = _catalogWithCards(catalog, {'card.v4.056'});
     final profiles = MemoryV4ProfileStore();
     await profiles.save(consentProfile('bob'));
-    final alice = NetworkGameController(session: session, playerId: 'alice',
+    final alice = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'alice',
       repository: _ConsentRepository(backend, 'alice', consent),
       privateStore: MemoryNetworkDuelSecretStore(),
       learningStore: MemoryNetworkProfileLearningStore(),
       v4Profile: consentProfile('alice'), catalog: focused);
     try {
     await alice.start();
-    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session, playerId: 'bob', repository: _ConsentRepository(backend, 'bob', consent),
       catalog: focused, v4Profile: consentProfile('bob'),
       profileStore: profiles,
@@ -701,7 +790,7 @@ void main() {
         ? ProfilePreferenceRole.recevoir : ProfilePreferenceRole.faire;
       // This is an already-existing veto by the next proposal, not a new veto
       // during Corruption or an attempt to cancel the completed action.
-      await setup.bob.applyStageVetoProfile(V4Profile(profileId: 'bob', preferences: {},
+      await setup.bob.applyStageVetoProfile(V4Profile(sex: ProfileSex.HOMME, profileId: 'bob', preferences: {},
         stageVetoes: [StageVeto(conceptId: '006',
           actionId: wholeCard ? '*' : source.action.stageId ?? source.action.variantId!,
           role: wholeCard ? ProfilePreferenceRole.general : recipientRole)]));
@@ -715,7 +804,7 @@ void main() {
   }
   test('excluding selected stage prevents commit and consumption; undo restores it', () async {
     final backend = _Backend()..v4UnlockedSpice = 4;
-    final c = NetworkGameController(session: session, playerId: 'alice',
+    final c = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'alice',
       repository: backend.repository('alice'), privateStore: MemoryNetworkDuelSecretStore(),
       learningStore: MemoryNetworkProfileLearningStore(),
       catalog: _catalogWithCards(catalog, {'card.v4.056'}), v4Profile: stageProfile());
@@ -739,7 +828,7 @@ void main() {
   test('whole-card veto keeps the held card until replacement and overrides locking', () async {
     final backend = _Backend()..v4UnlockedSpice = 4;
     final base = stageProfile();
-    final c = NetworkGameController(session: session, playerId: 'alice',
+    final c = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'alice',
       repository: backend.repository('alice'), privateStore: MemoryNetworkDuelSecretStore(),
       learningStore: MemoryNetworkProfileLearningStore(),
       catalog: _catalogWithCards(catalog, {'card.v4.056'}), v4Profile: base);
@@ -765,7 +854,7 @@ void main() {
     test('offline retry recovers ${recorded ? 'recorded' : 'missing'} commit and rebuilds silent watch', () async {
       final backend = _Backend();
       final repo = _OfflineRepository(backend, 'bob');
-      final bob = NetworkGameController(session: session, playerId: 'bob', repository: repo,
+      final bob = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'bob', repository: repo,
         privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(),
         catalog: catalog);
       final alice = _controller(backend, session, catalog, 'alice', MemoryNetworkDuelSecretStore());
@@ -801,7 +890,7 @@ void main() {
   test('retry waits for an in-flight canonical read and ignores repeated clicks', () async {
     final backend = _Backend();
     final repo = _OfflineRepository(backend, 'bob');
-    final bob = NetworkGameController(session: session, playerId: 'bob', repository: repo,
+    final bob = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'bob', repository: repo,
       privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(),
       catalog: catalog, reconciliationInterval: const Duration(milliseconds: 20));
     addTearDown(bob.dispose);
@@ -828,7 +917,7 @@ void main() {
   test('retry read failure remains recoverable on the next attempt', () async {
     final backend = _Backend();
     final repo = _OfflineRepository(backend, 'bob');
-    final bob = NetworkGameController(session: session, playerId: 'bob', repository: repo,
+    final bob = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'bob', repository: repo,
       privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(), catalog: catalog);
     addTearDown(bob.dispose);
     await bob.start(); repo.offline = true;
@@ -845,7 +934,7 @@ void main() {
   test('retry after a recorded REVEAL with lost response never resends it', () async {
     final backend = _Backend();
     final repo = _OfflineRepository(backend, 'bob')..loseRevealResponse = true;
-    final bob = NetworkGameController(session: session, playerId: 'bob', repository: repo,
+    final bob = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'bob', repository: repo,
       privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(), catalog: catalog);
     final alice = _controller(backend, session, catalog, 'alice', MemoryNetworkDuelSecretStore());
     addTearDown(() { alice.dispose(); bob.dispose(); });
@@ -865,7 +954,7 @@ void main() {
   test('periodic reconciliation recovers offline commit without a manual retry', () async {
     final backend = _Backend();
     final repo = _OfflineRepository(backend, 'bob');
-    final bob = NetworkGameController(session: session, playerId: 'bob', repository: repo,
+    final bob = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'bob', repository: repo,
       privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(),
       catalog: catalog, reconciliationInterval: const Duration(milliseconds: 20));
     addTearDown(bob.dispose);
@@ -887,7 +976,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final backend = _Backend();
     final repo = _OfflineRepository(backend, 'bob');
-    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session,
+    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session,
       playerId: 'bob', repository: repo, catalog: _catalogWithCards(catalog, {'card.v4.001'}),
       secretStore: MemoryNetworkDuelSecretStore())));
     await tester.pumpAndSettle();
@@ -917,7 +1006,7 @@ void main() {
     test('canonical reconciliation recovers $interrupted REVEAL without double engagement', () async {
       final backend = _Backend();
       final repo = _InterruptedRepository(backend, 'alice');
-      final alice = NetworkGameController(session: session, playerId: 'alice', repository: repo,
+      final alice = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'alice', repository: repo,
         privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(),
         catalog: catalog, reconciliationInterval: const Duration(milliseconds: 100),
         watchRetryDelay: const Duration(milliseconds: 20));
@@ -943,7 +1032,7 @@ void main() {
     test('V1 veto stage $excluded leaves other stages consumable and survives profile reload', () async {
       final backend = _Backend()..v4UnlockedSpice = 4;
       final profile = V4Profile.fromJson(jsonDecode(jsonEncode(stageProfile(excluded: excluded).toJson())) as Map<String,Object?>);
-      final c = NetworkGameController(session: session, playerId: 'alice', repository: backend.repository('alice'),
+      final c = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'alice', repository: backend.repository('alice'),
         privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(),
         catalog: _catalogWithCards(catalog, {'card.v4.056'}), v4Profile: profile);
       addTearDown(c.dispose);
@@ -962,7 +1051,7 @@ void main() {
   }
   test('V1 stage veto removes only the excluded direction and inverse', () async {
     final backend = _Backend()..v4UnlockedSpice = 4;
-    final c = NetworkGameController(session: session, playerId: 'alice', repository: backend.repository('alice'),
+    final c = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'alice', repository: backend.repository('alice'),
       privateStore: MemoryNetworkDuelSecretStore(), learningStore: MemoryNetworkProfileLearningStore(),
       catalog: _catalogWithCards(catalog, {'card.v4.056'}),
       v4Profile: stageProfile(excluded: 3, role: ProfilePreferenceRole.faire));
@@ -989,10 +1078,10 @@ void main() {
           preferences[key.storageKey] = ProfilePreference(profileId:'alice', key:key, pa:10, excluded:false,
             source:ProfilePreferenceSource.initialQuestionnaire);
         }
-        final c = NetworkGameController(session:session, playerId:'alice', repository:backend.repository('alice'),
+        final c = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session:session, playerId:'alice', repository:backend.repository('alice'),
           privateStore:MemoryNetworkDuelSecretStore(), learningStore:MemoryNetworkProfileLearningStore(),
           catalog:_catalogWithCards(catalog, {'card.v4.$id'}),
-          v4Profile:V4Profile(profileId:'alice',preferences:preferences),
+          v4Profile:V4Profile(sex: ProfileSex.HOMME, profileId:'alice',preferences:preferences),
           initialContext:EngineSessionContext(mode:SessionMode.face_to_face, proximity:ProximityState.TOGETHER,
             chiliActive:4,chiliUnlocked:4,clothesByPlayer:{'alice':6,'bob':6},flags:{'hasConstraintAccessory':true}));
         addTearDown(c.dispose);await c.start();
@@ -1035,7 +1124,7 @@ void main() {
     final store = MemoryV4ProfileStore();
     await store.save(stageProfile());
     final backend = _Backend()..v4UnlockedSpice = 4;
-    await tester.pumpWidget(MaterialApp(home:NetworkDuelScreen(session:session,playerId:'alice',
+    await tester.pumpWidget(MaterialApp(home:NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session:session,playerId:'alice',
       repository:backend.repository('alice'),catalog:_catalogWithCards(catalog,{'card.v4.056'}),
       secretStore:MemoryNetworkDuelSecretStore(),profileStore:store,v4Profile:stageProfile())));
     await tester.pumpAndSettle();
@@ -1060,7 +1149,7 @@ void main() {
 
   test('V1 changing veto before commit refreshes inverse without spending the excluded stage', () async {
     final backend = _Backend()..v4UnlockedSpice = 4;
-    final c = NetworkGameController(session:session,playerId:'alice',repository:backend.repository('alice'),
+    final c = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session:session,playerId:'alice',repository:backend.repository('alice'),
       privateStore:MemoryNetworkDuelSecretStore(),learningStore:MemoryNetworkProfileLearningStore(),
       catalog:_catalogWithCards(catalog,{'card.v4.056'}),v4Profile:stageProfile());
     addTearDown(c.dispose);await c.start();c.selectCard('056');
@@ -1085,7 +1174,7 @@ void main() {
     for(final i in editor.items.where((i)=>i.actionId=='056.stage.3')) {
       await editor.rate(i,i.direction==CardOccurrenceDirection.FAIRE?DetailedPreferenceCategory.love:DetailedPreferenceCategory.atMyLimit);
     }
-    final c=NetworkGameController(session:session,playerId:'alice',repository:backend.repository('alice'),
+    final c=NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session:session,playerId:'alice',repository:backend.repository('alice'),
       privateStore:MemoryNetworkDuelSecretStore(),learningStore:MemoryNetworkProfileLearningStore(),
       cardLearningStore:ratings,catalog:focused,v4Profile:editor.profile);
     addTearDown(c.dispose);addTearDown(editor.dispose);await c.start();c.selectCard('056');
@@ -1101,7 +1190,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final backend=_Backend()..v4UnlockedSpice=4;
     final profiles=MemoryV4ProfileStore();await profiles.save(stageProfile());
-    await tester.pumpWidget(MaterialApp(home:NetworkDuelScreen(session:session,playerId:'alice',
+    await tester.pumpWidget(MaterialApp(home:NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session:session,playerId:'alice',
       repository:backend.repository('alice'),catalog:_catalogWithCards(catalog,{'card.v4.056'}),
       secretStore:MemoryNetworkDuelSecretStore(),profileStore:profiles,v4Profile:stageProfile(),cardLearningStore:MemoryV4CardLearningStore())));
     await tester.pumpAndSettle();
@@ -1390,6 +1479,7 @@ void main() {
           addTearDown(() {
             if (!cancellation.isCompleted) cancellation.complete();
           });
+          await const SharedPreferencesV4ProfileStore().save(V4Profile(profileId: player, sex: ProfileSex.HOMME, preferences: const {}));
           final lobby = _MenuLobbyRepository(
             session,
             _PreparedRepository(backend, player, stage != 'preparation'),
@@ -1488,7 +1578,7 @@ void main() {
       await tester.binding.setSurfaceSize(size);
       final backend = _Backend();
       _setProjectedAction(backend, cards: [NetworkResolvedActionCardDto.fromUsage(nativeUsageFixture())]);
-      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: named, playerId: 'alice',
+      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: named, playerId: 'alice',
         repository: backend.repository('alice'), catalog: catalog, secretStore: MemoryNetworkDuelSecretStore())));
       await tester.pumpAndSettle();
       final card = tester.getSize(find.byType(CardRenderer));
@@ -1522,11 +1612,11 @@ void main() {
         }
       }
     }
-    final profile = V4Profile(profileId: 'alice', preferences: preferences);
+    final profile = V4Profile(sex: ProfileSex.HOMME, profileId: 'alice', preferences: preferences);
     final profiles = MemoryV4ProfileStore(); await profiles.save(profile);
     final secrets = MemoryNetworkDuelSecretStore();
     final backend = _Backend();
-    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session, playerId: 'alice',
+    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, session: session, playerId: 'alice',
       repository: backend.repository('alice'), catalog: catalog, v4Profile: profile,
       profileStore: profiles, secretStore: secrets)));
     await tester.pumpAndSettle();
@@ -1561,7 +1651,7 @@ void main() {
           final backend = _Backend();
           final usage = nativeUsageFixture(owner: 'alice', conceptId: '032', direction: direction);
           _setProjectedAction(backend, cards: [NetworkResolvedActionCardDto.fromUsage(usage)]);
-          await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+          await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
             session: named ? LobbySession(id: session.id, joinCode: session.joinCode, status: session.status,
               expiresAt: session.expiresAt, players: [
                 const LobbyPlayer(userId: 'alice', role: LobbyPlayerRole.player1, gameNickname: 'Sébastien'),
@@ -1663,7 +1753,7 @@ void main() {
       final winner = backend!.round.initial!.winnerPlayerId == id;
       await tester.pumpWidget(
         MaterialApp(
-          home: NetworkDuelScreen(
+          home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
             session: session,
             playerId: id,
             repository: backend.repository(id),
@@ -1741,7 +1831,7 @@ void main() {
         final store = MemoryNetworkDuelSecretStore();
         await tester.pumpWidget(
           MaterialApp(
-            home: NetworkDuelScreen(
+            home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
               session: session,
               playerId: 'alice',
               repository: backend.repository('alice'),
@@ -1880,7 +1970,7 @@ void main() {
           Future<void> open() async {
             await tester.pumpWidget(
               MaterialApp(
-                home: NetworkDuelScreen(
+                home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
                   session: session,
                   playerId: 'alice',
                   repository: backend.repository('alice'),
@@ -2027,7 +2117,7 @@ void main() {
         ..clear()
         ..addAll(clothing);
       NetworkGameController controller(String playerId, int value) =>
-          NetworkGameController(
+          NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
             session: session,
             playerId: playerId,
             repository: backend.repository(playerId),
@@ -2268,7 +2358,7 @@ void main() {
         },
       );
       NetworkGameController controller(String id, int value) =>
-          NetworkGameController(
+          NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
             session: session,
             playerId: id,
             repository: backend.repository(id),
@@ -2795,7 +2885,7 @@ void main() {
       ),
     );
     final backend = _Backend();
-    NetworkGameController player(String id, int value) => NetworkGameController(
+    NetworkGameController player(String id, int value) => NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: id,
       repository: backend.repository(id),
@@ -3012,7 +3102,7 @@ void main() {
             if ((tag as String).startsWith('v3.preference.')) tag,
     };
     NetworkGameController player(String id, int value, NetworkDuelSecretStore store) =>
-        NetworkGameController(
+        NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
           session: session,
           playerId: id,
           repository: backend.repository(id),
@@ -3127,7 +3217,7 @@ void main() {
               if ((tag as String).startsWith('v3.preference.')) tag,
       };
       NetworkGameController player(String id, int value, NetworkDuelSecretStore store) =>
-          NetworkGameController(
+          NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
             session: session,
             playerId: id,
             repository: backend.repository(id),
@@ -3486,7 +3576,7 @@ void main() {
       ..hybridMode = true
       ..cycleExhausted = true
       ..hybridOrientation = HybridDeckOrientation.distance;
-    final alice = NetworkGameController(
+    final alice = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'alice',
       repository: backend.repository('alice'),
@@ -3495,7 +3585,7 @@ void main() {
       catalog: catalog,
       sessionMode: V4SessionMode.hybrid,
     );
-    final bob = NetworkGameController(
+    final bob = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'bob',
       repository: backend.repository('bob'),
@@ -3593,7 +3683,7 @@ void main() {
             ]),
           ));
       }
-      final controller = NetworkGameController(
+      final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'alice',
         repository: backend.repository('alice'),
@@ -3602,7 +3692,7 @@ void main() {
         catalog: catalog,
         sessionMode: V4SessionMode.hybrid,
       );
-      final bob = NetworkGameController(
+      final bob = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'bob',
         repository: backend.repository('bob'),
@@ -4214,7 +4304,7 @@ void main() {
           choice: _choice('bob', 8),
           nonce: 'nonce-bob',
         );
-      final controller = NetworkGameController(
+      final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'alice',
         repository: _PrivateResolutionRepository(backend, 'alice'),
@@ -4319,7 +4409,7 @@ void main() {
         null,
       ]) {
         final backend = _Backend();
-        final controller = NetworkGameController(
+        final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
           session: session,
           playerId: 'alice',
           repository: backend.repository('alice'),
@@ -4405,14 +4495,14 @@ void main() {
           source: ProfilePreferenceSource.initialQuestionnaire,
         );
       }
-      final controller = NetworkGameController(
+      final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'alice',
         repository: backend.repository('alice'),
         privateStore: MemoryNetworkDuelSecretStore(),
         learningStore: MemoryNetworkProfileLearningStore(),
         catalog: focusedCatalog,
-        v4Profile: V4Profile(profileId: 'alice', preferences: preferences),
+        v4Profile: V4Profile(sex: ProfileSex.HOMME, profileId: 'alice', preferences: preferences),
         scoringCatalog: scoringCatalog,
       );
       addTearDown(controller.dispose);
@@ -4483,14 +4573,14 @@ void main() {
         add('contenu_adulte', ProfilePreferenceRole.recevoir, primary);
         add('regarder', ProfilePreferenceRole.recevoir, secondary);
         final backend = _Backend()..v4UnlockedSpice = ceiling;
-        final controller = NetworkGameController(
+        final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
           session: session,
           playerId: 'alice',
           repository: backend.repository('alice'),
           privateStore: MemoryNetworkDuelSecretStore(),
           learningStore: MemoryNetworkProfileLearningStore(),
           catalog: focusedCatalog,
-          v4Profile: V4Profile(profileId: 'alice', preferences: preferences),
+          v4Profile: V4Profile(sex: ProfileSex.HOMME, profileId: 'alice', preferences: preferences),
           scoringCatalog: scoringCatalog,
         );
         try {
@@ -4548,7 +4638,7 @@ void main() {
     final backend = _Backend()
       ..hybridOrientation = HybridDeckOrientation.distance
       ..round.phase = NetworkGamePhase.waitingNext;
-    final controller = NetworkGameController(
+    final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'alice',
       repository: backend.repository('alice'),
@@ -4596,7 +4686,7 @@ void main() {
         backend.hybridOrientation = stale == V4SessionPresence.distance
             ? HybridDeckOrientation.distance
             : HybridDeckOrientation.faceToFace;
-        final controller = NetworkGameController(
+        final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
           session: session,
           playerId: 'alice',
           repository: backend.repository('alice'),
@@ -4680,7 +4770,7 @@ void main() {
             ),
         })
         ..round.phase = NetworkGamePhase.waitingNext;
-      final controller = NetworkGameController(
+      final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'alice',
         repository: backend.repository('alice'),
@@ -4750,7 +4840,7 @@ void main() {
       ),
     );
     final backend = _Backend()..round.phase = NetworkGamePhase.waitingNext;
-    final controller = NetworkGameController(
+    final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'alice',
       repository: backend.repository('alice'),
@@ -4798,7 +4888,7 @@ void main() {
         presence: V4SessionPresence.distance,
       ),
     );
-    NetworkGameController bobController() => NetworkGameController(
+    NetworkGameController bobController() => NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'bob',
       repository: backend.repository('bob'),
@@ -4808,7 +4898,7 @@ void main() {
       sessionMode: V4SessionMode.hybrid,
     );
     final bob = bobController();
-    final alice = NetworkGameController(
+    final alice = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'alice',
       repository: backend.repository('alice'),
@@ -5067,7 +5157,7 @@ void main() {
       ..hybridAvailabilityOrientation = HybridDeckOrientation.distance
       ..hybridAvailabilityGeneration = 1
       ..round.phase = NetworkGamePhase.waitingNext;
-    final alice = NetworkGameController(
+    final alice = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'alice',
       repository: backend.repository('alice'),
@@ -5104,7 +5194,7 @@ void main() {
         presence: V4SessionPresence.presentiel,
       ),
     );
-    final bob = NetworkGameController(
+    final bob = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'bob',
       repository: backend.repository('bob'),
@@ -5148,7 +5238,7 @@ void main() {
     await _settle();
     bob.dispose();
     bobDisposed = true;
-    final reconnect = NetworkGameController(
+    final reconnect = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'bob',
       repository: backend.repository('bob'),
@@ -5208,7 +5298,7 @@ void main() {
       ..hybridAvailabilityOrientation = HybridDeckOrientation.distance
       ..hybridAvailabilityGeneration = 1
       ..round.phase = NetworkGamePhase.waitingNext;
-    final controller = NetworkGameController(
+    final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'alice',
       repository: backend.repository('alice'),
@@ -5581,7 +5671,7 @@ void main() {
     final backend = _Backend()..round.phase = NetworkGamePhase.sessionClosed;
     await tester.pumpWidget(
       MaterialApp(
-        home: NetworkDuelScreen(
+        home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
           session: session,
           playerId: 'alice',
           repository: backend.repository('alice'),
@@ -5631,7 +5721,7 @@ void main() {
               onPressed: () async {
                 exit = await Navigator.of(context).push<NetworkDuelExit>(
                   MaterialPageRoute<NetworkDuelExit>(
-                    builder: (_) => NetworkDuelScreen(
+                    builder: (_) => NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
                       session: session,
                       playerId: 'alice',
                       repository: backend.repository('alice'),
@@ -5710,7 +5800,7 @@ void main() {
         );
       await tester.pumpWidget(
         MaterialApp(
-          home: NetworkDuelScreen(
+          home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
             session: session,
             playerId: 'alice',
             repository: backend.repository('alice'),
@@ -5842,7 +5932,7 @@ void main() {
       for (final player in ['alice', 'bob']) {
         await tester.pumpWidget(
           MaterialApp(
-            home: NetworkDuelScreen(
+            home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
               key: ValueKey(player),
               session: session,
               playerId: player,
@@ -5928,7 +6018,7 @@ void main() {
             ),
         },
       );
-      final bob = NetworkGameController(
+      final bob = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'bob',
         repository: _V4ProjectionRepository(backend, 'bob'),
@@ -5941,7 +6031,7 @@ void main() {
       unawaited(bob.start());
       await tester.pumpWidget(
         MaterialApp(
-          home: NetworkDuelScreen(
+          home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
             session: session,
             playerId: 'alice',
             repository: _V4ProjectionRepository(backend, 'alice'),
@@ -6017,7 +6107,7 @@ void main() {
           ],
           requiredClothingPlayerIds: const {'alice'},
         );
-        final controller = NetworkGameController(
+        final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
           session: session,
           playerId: 'alice',
           repository: backend.repository('alice'),
@@ -6060,7 +6150,7 @@ void main() {
     );
     await tester.pumpWidget(
       MaterialApp(
-        home: NetworkDuelScreen(
+        home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
           session: session,
           playerId: 'alice',
           repository: backend.repository('alice'),
@@ -6108,7 +6198,7 @@ void main() {
         );
         await tester.pumpWidget(
           MaterialApp(
-            home: NetworkDuelScreen(
+            home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
               session: session,
               playerId: 'alice',
               repository: backend.repository('alice'),
@@ -6202,7 +6292,7 @@ void main() {
       );
       await tester.pumpWidget(
         MaterialApp(
-          home: NetworkDuelScreen(
+          home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
             session: session,
             playerId: 'alice',
             repository: backend.repository('alice'),
@@ -6256,7 +6346,7 @@ void main() {
         ],
         requiredClothingPlayerIds: const {'alice'},
       );
-      var alice = NetworkGameController(
+      var alice = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'alice',
         repository: backend.repository('alice'),
@@ -6264,7 +6354,7 @@ void main() {
         learningStore: MemoryNetworkProfileLearningStore(),
         catalog: catalog,
       );
-      final bob = NetworkGameController(
+      final bob = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'bob',
         repository: backend.repository('bob'),
@@ -6291,7 +6381,7 @@ void main() {
       expect(backend.clothingCounts['alice'], 5);
 
       alice.dispose();
-      alice = NetworkGameController(
+      alice = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'alice',
         repository: backend.repository('alice'),
@@ -6667,7 +6757,7 @@ void main() {
       final backend = _Backend();
       final store = MemoryNetworkDuelSecretStore();
       final learning = MemoryNetworkProfileLearningStore();
-      var controller = NetworkGameController(
+      var controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'alice',
         repository: backend.repository('alice'),
@@ -6687,7 +6777,7 @@ void main() {
       expect(await controller.cancelSelection(), isTrue);
       controller.dispose();
 
-      controller = NetworkGameController(
+      controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'alice',
         repository: backend.repository('alice'),
@@ -6809,7 +6899,7 @@ void main() {
       final backend = _Backend();
       final aliceSecrets = MemoryNetworkDuelSecretStore();
       final aliceLearning = MemoryNetworkProfileLearningStore();
-      var alice = NetworkGameController(
+      var alice = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'alice',
         repository: backend.repository('alice'),
@@ -6817,7 +6907,7 @@ void main() {
         learningStore: aliceLearning,
         catalog: catalog,
       );
-      final bob = NetworkGameController(
+      final bob = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'bob',
         repository: backend.repository('bob'),
@@ -6840,7 +6930,7 @@ void main() {
       expect(aliceLearning.appliedEventIds['alice'], anyOf(isNull, isEmpty));
 
       alice.dispose();
-      alice = NetworkGameController(
+      alice = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'alice',
         repository: backend.repository('alice'),
@@ -6871,7 +6961,7 @@ void main() {
   test('closing before both Terminé records no learning', () async {
     final backend = _Backend();
     final learning = MemoryNetworkProfileLearningStore();
-    final alice = NetworkGameController(
+    final alice = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'alice',
       repository: backend.repository('alice'),
@@ -6879,7 +6969,7 @@ void main() {
       learningStore: learning,
       catalog: catalog,
     );
-    final bob = NetworkGameController(
+    final bob = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'bob',
       repository: backend.repository('bob'),
@@ -7010,7 +7100,7 @@ void main() {
           ),
         ],
       );
-    final controller = NetworkGameController(
+    final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'alice',
       repository: _V4ProjectionRepository(backend, 'alice'),
@@ -7122,7 +7212,7 @@ void main() {
           ],
         );
       for (var reconnect = 0; reconnect < 2; reconnect++) {
-        final controller = NetworkGameController(
+        final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
           session: session,
           playerId: 'bob',
           repository: _V4ProjectionRepository(backend, 'bob'),
@@ -7376,7 +7466,7 @@ void main() {
             : null;
       await tester.pumpWidget(
         MaterialApp(
-          home: NetworkDuelScreen(
+          home: NetworkDuelScreen(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
             session: session,
             playerId: 'alice',
             repository: backend.repository('alice'),
@@ -7621,7 +7711,7 @@ void main() {
         );
       final newer = _revisioned(backend.state('bob'), 3);
       final repository = _RevisionRepository(backend, 'bob', newer);
-      final controller = NetworkGameController(
+      final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'bob',
         repository: repository,
@@ -7706,7 +7796,7 @@ void main() {
       );
     final initial = backend.state('bob');
     final repository = _RevisionRepository(backend, 'bob', initial);
-    final controller = NetworkGameController(
+    final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
       session: session,
       playerId: 'bob',
       repository: repository,
@@ -7740,7 +7830,7 @@ void main() {
         );
       final stale = _revisioned(backend.state('bob'), 2);
       final repository = _RevisionRepository(backend, 'bob', stale);
-      final controller = NetworkGameController(
+      final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
         session: session,
         playerId: 'bob',
         repository: repository,
@@ -8828,7 +8918,7 @@ NetworkGameController _controller(
   String playerId,
   NetworkDuelSecretStore store, {
   NetworkProfileLearningStore? learningStore,
-}) => NetworkGameController(
+}) => NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
   session: session,
   playerId: playerId,
   repository: backend.repository(playerId),
@@ -8938,7 +9028,7 @@ Future<_Setup> _setupCorruption(
         for (final tag in action['editorial']['tags'] as List)
           if ((tag as String).startsWith('v3.preference.')) tag,
   };
-  NetworkGameController player(String id, int value) => NetworkGameController(
+  NetworkGameController player(String id, int value) => NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
     session: session,
     playerId: id,
     repository: consent == null ? backend.repository(id) : _ConsentRepository(backend, id, consent),
@@ -10328,7 +10418,7 @@ final class _PreparedRepository extends _Repository
     status: accepted ? 'ACCEPTED' : 'DRAFT',
     players: [
       for (final id in ['alice', 'bob'])
-        V4PlayerSessionSetupDto(
+        V4PlayerSessionSetupDto(anatomy: PlayerAnatomy.PENIS,
           playerId: id,
           clothingCount: 2,
           accessories: const [],
@@ -10336,7 +10426,10 @@ final class _PreparedRepository extends _Repository
     ],
   );
   @override
+  Future<V4SessionSetupDto> getV4SessionSetup(String sessionId) async => setup;
+  @override
   Future<V4SessionSetupDto> registerSetupAccessories({
+    required PlayerAnatomy anatomy,
     required String sessionId,
     required List<V4Accessory> accessories,
   }) async => setup;

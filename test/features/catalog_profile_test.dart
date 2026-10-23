@@ -38,7 +38,7 @@ void main() {
         'assets/catalog/source/profile_questions.v1.fr.json',
       ).readAsStringSync(),
     );
-    base = const InitialQuestionnaireEngine().initialize(
+    base = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
       profileId: 'p',
       questionnaire: q,
       responses: {
@@ -305,7 +305,7 @@ void main() {
         role: ProfilePreferenceRole.faire,
       );
       await profiles.save(
-        V4Profile(
+        V4Profile(sex: ProfileSex.HOMME,
           profileId: 'p',
           preferences: {
             ...base.preferences,

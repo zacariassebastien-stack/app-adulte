@@ -10,6 +10,7 @@ import '../../engines/recovery/recovery_engine.dart';
 import '../../engines/runtime/v4_runtime_engine.dart';
 import '../../sync/sync.dart';
 import '../../sync/rounds/session_consent.dart';
+import '../../domain/profile/v4_profile.dart' show PlayerAnatomy;
 
 final class SupabaseNetworkGameRepository
     implements
@@ -92,15 +93,17 @@ final class SupabaseNetworkGameRepository
   @override
   Future<V4SessionSetupDto> registerSetupAccessories({
     required String sessionId,
+    required PlayerAnatomy anatomy,
     required List<V4Accessory> accessories,
   }) async {
     await _identity();
     return _setupMap(
       await client.rpc<Object?>(
-        'register_v4_setup_accessories',
+        'register_v4_setup_profile',
         params: {
           'p_session_id': sessionId,
           'p_accessories': [for (final a in accessories) a.toJson()],
+          'p_anatomy': anatomy.name,
         },
       ),
     );

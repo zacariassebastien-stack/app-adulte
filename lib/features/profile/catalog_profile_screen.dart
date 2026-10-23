@@ -7,6 +7,7 @@ import '../../domain/profile/adaptive_profile.dart';
 import 'catalog_profile_controller.dart';
 import 'radial_appreciation.dart';
 import 'game_nickname_form.dart';
+import '../../domain/profile/v4_profile.dart';
 
 class CatalogProfileScreen extends StatefulWidget {
   const CatalogProfileScreen({required this.controller, super.key});
@@ -213,6 +214,23 @@ class _CatalogProfileScreenState extends State<CatalogProfileScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Personnaliser mon profil'), actions: [
+      IconButton(key: const Key('profile-sex'), tooltip: 'Sexe du profil',
+        icon: const Icon(Icons.person_outline), onPressed: () async {
+          if (!model.ready) return;
+          await showDialog<void>(context: context, builder: (dialogContext) => AlertDialog(
+            title: Text('Sexe : ${model.profile.sex.label}'),
+            content: model.sexLocked ? const Text('Non modifiable pendant la partie.') :
+              Column(mainAxisSize: MainAxisSize.min, children: [
+                for (final sex in ProfileSex.values)
+                  ListTile(key: Key('profile-sex-${sex.name}'), title: Text(sex.label),
+                    selected: model.profile.sex == sex, onTap: () async {
+                      await model.setSex(sex);
+                      if (dialogContext.mounted) Navigator.pop(dialogContext);
+                    }),
+              ]),
+            actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Fermer'))],
+          ));
+        }),
       IconButton(key: const Key('edit-game-nickname'), tooltip: 'Modifier le pseudo de jeu',
         icon: const Icon(Icons.badge_outlined), onPressed: () async {
           if (!model.ready) return;

@@ -1,3 +1,4 @@
+import 'package:couple_cards/engines/profile/v4_card_rating_engine.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -22,7 +23,7 @@ void main() {
       expect(GameNickname.error(value), isNull);
     }
     expect(GameNickname.normalize('  Seb  '), 'Seb');
-    final old = V4Profile.fromJson({'profile_id': 'p', 'preferences': []});
+    final old = V4Profile.fromJson({'profile_id': 'p', 'sex': 'HOMME', 'preferences': []});
     expect(old.gameNickname, isNull);
     final named = old.copyWith(gameNickname: 'Seb');
     expect(V4Profile.fromJson(named.toJson()).gameNickname, 'Seb');
@@ -37,7 +38,7 @@ void main() {
   test('nickname persists across independent store instances', () async {
     SharedPreferences.setMockInitialValues({});
     await const SharedPreferencesV4ProfileStore().save(
-      V4Profile(profileId: 'p', preferences: {}, gameNickname: 'Julie'),
+      V4Profile(sex: ProfileSex.HOMME, profileId: 'p', preferences: {}, gameNickname: 'Julie'),
     );
     expect(
       (await const SharedPreferencesV4ProfileStore().load('p'))!.gameNickname,
@@ -45,8 +46,9 @@ void main() {
     );
   });
 
+  for (final sex in ProfileSex.values) {
   testWidgets(
-    'question zero is mandatory and does not change questionnaire scoring/count',
+    'pseudo then mandatory $sex keeps questionnaire scoring/count',
     (tester) async {
       final source = ProfileQuestionnaire.decode(
         File(
@@ -88,6 +90,11 @@ void main() {
       );
       await tester.tap(find.byKey(const Key('save-game-nickname')));
       await tester.pumpAndSettle();
+      expect(find.text('1 / 1'), findsNothing);
+      expect(find.text('Sexe du profil'), findsOneWidget);
+      expect(await profiles.load('p'), isNull);
+      await tester.tap(find.byKey(Key('initial-sex-${sex.name}')));
+      await tester.pumpAndSettle();
       expect(find.text('1 / 1'), findsOneWidget);
       for (final chip
           in find
@@ -105,7 +112,8 @@ void main() {
       expect(completed, isTrue);
       final saved = (await profiles.load('p'))!;
       expect(saved.gameNickname, 'Seb');
-      final expected = const InitialQuestionnaireEngine().initialize(
+      expect(saved.sex, sex);
+      final expected = const InitialQuestionnaireEngine().initialize(sex: sex,
         profileId: 'p',
         questionnaire: q,
         responses: {
@@ -122,6 +130,8 @@ void main() {
     },
   );
 
+  }
+
   testWidgets(
     'old profile can set and edit nickname without touching learning',
     (tester) async {
@@ -132,7 +142,7 @@ void main() {
         ),
       ))!;
       final profiles = MemoryV4ProfileStore();
-      await profiles.save(V4Profile(profileId: 'p', preferences: {}));
+      await profiles.save(V4Profile(sex: ProfileSex.HOMME, profileId: 'p', preferences: {}));
       final learning = MemoryNetworkProfileLearningStore();
       final editor = CatalogProfileController(
         catalog: catalog,
@@ -169,6 +179,54 @@ void main() {
     },
   );
 
+
+  for (final locked in [false, true]) {
+    testWidgets('sex settings locked=$locked preserve all private data', (tester) async {
+      final catalog = (await tester.runAsync(() => const CatalogLoader().load(
+        (p) => File(p).readAsString(), includeConcepts: true)))!;
+      final profiles = MemoryV4ProfileStore();
+      final preferenceKey = ProfilePreferenceKey(tagId: 'embrasser', role: ProfilePreferenceRole.faire);
+      final base = V4Profile(profileId: 'p', sex: ProfileSex.HOMME, preferences: {
+        preferenceKey.storageKey: ProfilePreference(profileId: 'p', key: preferenceKey,
+          pa: 7, excluded: false, source: ProfilePreferenceSource.manualCustomized),
+      },
+        gameNickname: 'Test', stageVetoes: const [StageVeto(conceptId: '056', actionId: '*', role: ProfilePreferenceRole.faire)],
+        accessories: [V4ProfileAccessory(id: 'a', name: 'Test', ownerProfileId: 'p', tags: const {'EXTERNE'})]);
+      await profiles.save(base);
+      final learning = MemoryNetworkProfileLearningStore();
+      final ratings = MemoryV4CardLearningStore();
+      final ratingKey = CardRatingKey(profileId: 'p', cardId: '056', variantId: '056.stage.1', role: ProfilePreferenceRole.faire);
+      final existingRatings = CardSpecificLearningStore()..write(CardRatingStateV4(
+        key: ratingKey, initialScore: 12, currentEstimate: 7, observationCount: 2,
+        acceptanceCount: 1, resistanceCount: 1, source: 'CARD_ESTIMATE'));
+      await ratings.save('p', existingRatings);
+      await learning.save(adaptiveProfileFromV4Profile(base));
+      final beforeLearning = jsonEncode((await learning.load('p'))!.toJson());
+      final beforeRatings = jsonEncode((await ratings.load('p')).toJson());
+      final editor = CatalogProfileController(catalog: catalog, playerId: 'p', sexLocked: locked,
+        profileStore: profiles, learningStore: learning, ratingStore: ratings);
+      await editor.load();
+      await tester.pumpWidget(MaterialApp(home: CatalogProfileScreen(controller: editor)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('profile-sex')));
+      await tester.pumpAndSettle();
+      expect(find.text('Sexe : Homme'), findsOneWidget);
+      if (locked) {
+        expect(find.text('Non modifiable pendant la partie.'), findsOneWidget);
+        expect(find.byKey(const Key('profile-sex-FEMME')), findsNothing);
+        await expectLater(editor.setSex(ProfileSex.FEMME), throwsStateError);
+        expect((await profiles.load('p'))!.sex, ProfileSex.HOMME);
+      } else {
+        await tester.tap(find.byKey(const Key('profile-sex-FEMME')));
+        await tester.pumpAndSettle();
+        expect((await profiles.load('p'))!.sex, ProfileSex.FEMME);
+        expect((await profiles.load('p'))!.toJson()..remove('sex'), base.toJson()..remove('sex'));
+      }
+      expect(jsonEncode((await learning.load('p'))!.toJson()), beforeLearning);
+      expect(jsonEncode((await ratings.load('p')).toJson()), beforeRatings);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
   test(
     'session names remain bound to IDs despite reversed roles/order and legacy data',
     () {

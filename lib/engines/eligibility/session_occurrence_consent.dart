@@ -60,6 +60,7 @@ final class SessionOccurrenceConsent {
     // or another anatomical variant of the same concept.
     final tags = catalog.vetoTags(conceptId, actionId: actionId);
     final scoped = V4Profile(
+      sex: profile.sex,
       profileId: profile.profileId,
       preferences: {
         for (final entry in profile.preferences.entries)

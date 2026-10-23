@@ -41,6 +41,7 @@ class NetworkDuelScreen extends StatefulWidget {
     required this.playerId,
     required this.repository,
     required this.catalog,
+    required this.anatomies,
     this.secretStore = const SharedPreferencesNetworkDuelSecretStore(),
     this.activeSessionStore = const SharedPreferencesActiveSessionStore(),
     this.historyStore = const SharedPreferencesGameHistoryStore(),
@@ -62,6 +63,7 @@ class NetworkDuelScreen extends StatefulWidget {
   final String playerId;
   final NetworkGameRepository repository;
   final Catalog catalog;
+  final Map<String, PlayerAnatomy> anatomies;
   final NetworkDuelSecretStore secretStore;
   final ActiveSessionStore activeSessionStore;
   final GameHistoryStore historyStore;
@@ -115,6 +117,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       playerId: widget.playerId,
       repository: widget.repository,
       privateStore: widget.secretStore,
+      anatomies: widget.anatomies,
       catalog: widget.catalog,
       privateProfile: widget.privateProfile,
       v4Profile: widget.v4Profile,
@@ -342,6 +345,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       return;
     }
     final editor = CatalogProfileController(
+      sexLocked: true,
       catalog: widget.catalog,
       playerId: widget.playerId,
       profileStore: widget.profileStore,
@@ -1770,6 +1774,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
 
   Future<void> _openCatalogProfile() async {
     final editor = CatalogProfileController(
+      sexLocked: true,
       catalog: widget.catalog,
       playerId: widget.playerId,
       profileStore: widget.profileStore,

@@ -14,6 +14,7 @@ final class InitialQuestionnaireEngine {
 
   V4Profile initialize({
     required String profileId,
+    required ProfileSex sex,
     required ProfileQuestionnaire questionnaire,
     required Map<String, InitialQuestionResponse> responses,
   }) {
@@ -67,7 +68,7 @@ final class InitialQuestionnaireEngine {
       final response = _mostRestrictive(entry.value);
       direct[key.storageKey] = _preference(profileId, key, response);
     }
-    return V4Profile(profileId: profileId, preferences: direct);
+    return V4Profile(profileId: profileId, sex: sex, preferences: direct);
   }
 
   ProfilePreference _preference(

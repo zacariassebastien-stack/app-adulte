@@ -485,6 +485,7 @@ V4Profile mergeV4ProfileLearning(
   }
   return V4Profile(
     profileId: base.profileId,
+    sex: base.sex,
     gameNickname: base.gameNickname,
     preferences: preferences,
     consents: base.consents,

@@ -184,11 +184,13 @@
         },
         {
           "id": "002.zone.penis",
+          "anatomy_requirements": {"FAIRE": {"PARTNER": "PENIS"}, "RECEVOIR": {"OWNER": "PENIS"}},
           "title": "Pénis",
           "zone_id": "penis"
         },
         {
           "id": "002.zone.vulva",
+          "anatomy_requirements": {"FAIRE": {"PARTNER": "VULVE"}, "RECEVOIR": {"OWNER": "VULVE"}},
           "title": "Vulve",
           "zone_id": "vulva"
         },
@@ -300,11 +302,13 @@
         },
         {
           "id": "004.zone.penis",
+          "anatomy_requirements": {"FAIRE": {"PARTNER": "PENIS"}, "RECEVOIR": {"OWNER": "PENIS"}},
           "title": "Pénis",
           "zone_id": "penis"
         },
         {
           "id": "004.zone.vulva",
+          "anatomy_requirements": {"FAIRE": {"PARTNER": "VULVE"}, "RECEVOIR": {"OWNER": "VULVE"}},
           "title": "Vulve",
           "zone_id": "vulva"
         },
@@ -389,11 +393,13 @@
         },
         {
           "id": "005.zone.penis",
+          "anatomy_requirements": {"FAIRE": {"PARTNER": "PENIS"}, "RECEVOIR": {"OWNER": "PENIS"}},
           "title": "Pénis",
           "zone_id": "penis"
         },
         {
           "id": "005.zone.vulva",
+          "anatomy_requirements": {"FAIRE": {"PARTNER": "VULVE"}, "RECEVOIR": {"OWNER": "VULVE"}},
           "title": "Vulve",
           "zone_id": "vulva"
         },
@@ -670,6 +676,7 @@
     },
     {
       "id": "022",
+      "anatomy_requirements": {"FAIRE": {"PARTNER": "VULVE"}, "RECEVOIR": {"OWNER": "VULVE"}},
       "title": "Doigter vaginal",
       "kind": "evolution",
       "action_text": "Réalisez l’action au stade choisi.",
@@ -803,6 +810,7 @@
     },
     {
       "id": "027",
+      "anatomy_requirements": {"FAIRE": {"PARTNER": "VULVE"}, "RECEVOIR": {"OWNER": "VULVE"}},
       "title": "Pénétration vaginale",
       "kind": "evolution",
       "action_text": "Réalisez l’action au stade choisi.",
@@ -1425,6 +1433,7 @@
     },
     {
       "id": "055",
+      "anatomy_requirements": {"FAIRE": {"OWNER": "PENIS"}, "RECEVOIR": {"OWNER": "PENIS"}},
       "title": "Choix de l’éjaculation",
       "kind": "action",
       "action_text": "Choisissez les modalités de l’éjaculation.",

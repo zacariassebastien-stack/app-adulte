@@ -30,7 +30,7 @@ void main() {
     responses['question.v1.02|faire'] = InitialQuestionResponse.love;
     responses['question.v1.02|recevoir'] = InitialQuestionResponse.like;
     responses['question.v1.09|faire'] = InitialQuestionResponse.excluded;
-    final profile = const InitialQuestionnaireEngine().initialize(
+    final profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
       profileId: 'p',
       questionnaire: questionnaire,
       responses: responses,
@@ -57,7 +57,7 @@ void main() {
     final responses = _responses(questionnaire, InitialQuestionResponse.like);
     responses['question.v1.02|faire'] = InitialQuestionResponse.love;
     responses['question.v1.02|recevoir'] = InitialQuestionResponse.excluded;
-    final profile = const InitialQuestionnaireEngine().initialize(
+    final profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
       profileId: 'p',
       questionnaire: questionnaire,
       responses: responses,
@@ -83,7 +83,7 @@ void main() {
     final responses = _responses(questionnaire, InitialQuestionResponse.like);
     responses['question.v1.15|montrer'] = InitialQuestionResponse.love;
     responses['question.v1.15|regarder'] = InitialQuestionResponse.unsure;
-    var profile = const InitialQuestionnaireEngine().initialize(
+    var profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
       profileId: 'p',
       questionnaire: questionnaire,
       responses: responses,
@@ -93,7 +93,7 @@ void main() {
       18,
     );
     responses['question.v1.15|regarder'] = InitialQuestionResponse.excluded;
-    profile = const InitialQuestionnaireEngine().initialize(
+    profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
       profileId: 'p',
       questionnaire: questionnaire,
       responses: responses,
@@ -168,7 +168,7 @@ void main() {
   });
 
   test('Q16 and Q17 keep their alternatives independently initialized', () {
-    final profile = const InitialQuestionnaireEngine().initialize(
+    final profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
       profileId: 'p',
       questionnaire: questionnaire,
       responses: _responses(questionnaire, InitialQuestionResponse.like),
@@ -192,7 +192,7 @@ void main() {
   test(
     'MUTUEL remains usable through the current gameplay profile adapter',
     () {
-      final profile = const InitialQuestionnaireEngine().initialize(
+      final profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
         profileId: 'p',
         questionnaire: questionnaire,
         responses: _responses(questionnaire, InitialQuestionResponse.love),
@@ -211,7 +211,7 @@ void main() {
       InitialQuestionResponse.like,
       InitialQuestionResponse.unsure,
     ]) {
-      final profile = const InitialQuestionnaireEngine().initialize(
+      final profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
         profileId: 'p',
         questionnaire: questionnaire,
         responses: _responses(questionnaire, response),
@@ -234,7 +234,7 @@ void main() {
       source: PracticeConsentSource.manualExplicit,
     );
     final restored = V4Profile.fromJson(
-      V4Profile(
+      V4Profile(sex: ProfileSex.HOMME,
         profileId: 'p',
         preferences: {preference.key.storageKey: preference},
         consents: {consent.storageKey: consent},

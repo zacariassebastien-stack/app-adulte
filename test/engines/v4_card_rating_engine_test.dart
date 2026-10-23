@@ -58,7 +58,7 @@ void main() {
   });
 
   test('excluded secondary wins over a missing primary', () {
-    final profile = V4Profile(
+    final profile = V4Profile(sex: ProfileSex.HOMME,
       profileId: 'p',
       preferences: {
         'secondary|faire': _value('secondary', null, excluded: true),
@@ -74,7 +74,7 @@ void main() {
   });
 
   test('excluded primary preference remains an eligibility veto', () {
-    final profile = V4Profile(
+    final profile = V4Profile(sex: ProfileSex.HOMME,
       profileId: 'p',
       preferences: {
         'principal|faire': _value('principal', null, excluded: true),
@@ -93,7 +93,7 @@ void main() {
 
   test('unknown and technical unavailable stay distinct', () {
     final unknown = engine.initialize(
-      profile: V4Profile(profileId: 'p', preferences: const {}),
+      profile: V4Profile(sex: ProfileSex.HOMME, profileId: 'p', preferences: const {}),
       variant: variant,
       effectiveRole: ProfilePreferenceRole.faire,
     );
@@ -123,7 +123,7 @@ void main() {
       status: PracticeConsentStatus.unknown,
       source: PracticeConsentSource.manualExplicit,
     );
-    final withLegacy = V4Profile(
+    final withLegacy = V4Profile(sex: ProfileSex.HOMME,
       profileId: 'p',
       preferences: base.preferences,
       consents: {legacy.storageKey: legacy},
@@ -160,7 +160,7 @@ void main() {
       status: PracticeConsentStatus.excluded,
       source: PracticeConsentSource.manualExplicit,
     );
-    final profile = V4Profile(
+    final profile = V4Profile(sex: ProfileSex.HOMME,
       profileId: 'p',
       preferences: base.preferences,
       consents: {legacy.storageKey: legacy},
@@ -279,7 +279,7 @@ void main() {
       secondaryPreferenceTags: const [],
       nonPreferenceData: const ['MUTUEL'],
     );
-    final playerA = V4Profile(
+    final playerA = V4Profile(sex: ProfileSex.HOMME,
       profileId: 'a',
       preferences: {
         'masturbation|solo': _value(
@@ -294,7 +294,7 @@ void main() {
         ),
       },
     );
-    final playerB = V4Profile(
+    final playerB = V4Profile(sex: ProfileSex.HOMME,
       profileId: 'b',
       preferences: {
         'masturbation|solo': _value(
@@ -370,7 +370,7 @@ void main() {
 }
 
 V4Profile _profile({required double principal, required double secondary}) =>
-    V4Profile(
+    V4Profile(sex: ProfileSex.HOMME,
       profileId: 'p',
       preferences: {
         'principal|faire': _value('principal', principal),

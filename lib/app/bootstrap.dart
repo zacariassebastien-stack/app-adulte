@@ -84,7 +84,7 @@ class _CoupleCardsBootstrapState extends State<CoupleCardsBootstrap> {
 
   Future<Object?> _loadProfile(String playerId) async {
     try {
-      return await _profileStore.load(playerId);
+      return await _v4ProfileStore.load(playerId);
     } on Object catch (error) {
       debugPrint('Bootstrap: invalid local profile ignored: $error');
       return null;

@@ -1,5 +1,7 @@
 import '../../core/json.dart';
 import 'enums.dart';
+import '../profile/v4_profile.dart' show PlayerAnatomy;
+import '../game/game_models.dart' show CardOccurrenceDirection;
 
 enum ConceptKind { action, evolution, zones, accessory }
 
@@ -96,7 +98,9 @@ final class ConceptBodyZone extends JsonModel {
 
 final class ConceptStage extends JsonModel {
   ConceptStage.read(super.reader) {
+    anatomyRequirements;
     reader.only({
+      'anatomy_requirements',
       'id',
       'title',
       'chili',
@@ -112,6 +116,9 @@ final class ConceptStage extends JsonModel {
     actionTemplates;
   }
 
+  AnatomyRequirements? get anatomyRequirements =>
+      AnatomyRequirements.read(reader.json['anatomy_requirements']);
+
   String get id => reader.string('id');
   String get title => reader.string('title');
   int get chili => reader.integer('chili', min: 1, max: 4);
@@ -122,7 +129,9 @@ final class ConceptStage extends JsonModel {
 
 final class ConceptActionVariant extends JsonModel {
   ConceptActionVariant.read(super.reader) {
+    anatomyRequirements;
     reader.only({
+      'anatomy_requirements',
       'id',
       'title',
       'chili',
@@ -149,6 +158,9 @@ final class ConceptActionVariant extends JsonModel {
     }
   }
 
+  AnatomyRequirements? get anatomyRequirements =>
+      AnatomyRequirements.read(reader.json['anatomy_requirements']);
+
   String get id => reader.string('id');
   String get title => reader.string('title');
   int? get chili => reader.optionalInteger('chili', min: 1, max: 4);
@@ -161,7 +173,9 @@ final class ConceptActionVariant extends JsonModel {
 
 final class CardConcept extends JsonModel {
   CardConcept.read(super.reader) {
+    anatomyRequirements;
     reader.only({
+      'anatomy_requirements',
       'id',
       'title',
       'kind',
@@ -260,6 +274,9 @@ final class CardConcept extends JsonModel {
     }
   }
 
+  AnatomyRequirements? get anatomyRequirements =>
+      AnatomyRequirements.read(reader.json['anatomy_requirements']);
+
   String get id => reader.string('id');
   String get title => reader.string('title');
   ConceptKind get kind => reader.enumeration('kind', ConceptKind.values);
@@ -311,4 +328,38 @@ Map<String, String> _directionTemplates(
     result[entry.key] = entry.value! as String;
   }
   return Map.unmodifiable(result);
+}
+
+/// Declarative requirements, relative to the occurrence owner, by effective direction.
+final class AnatomyRequirements {
+  AnatomyRequirements._(this.byDirection);
+  final Map<CardOccurrenceDirection, Map<String, PlayerAnatomy>> byDirection;
+  static AnatomyRequirements? read(Object? value) {
+    if (value == null) return null;
+    if (value is! Map) {
+      throw const FormatException('Invalid anatomy requirements');
+    }
+    final result = <CardOccurrenceDirection, Map<String, PlayerAnatomy>>{};
+    for (final entry in value.entries) {
+      final direction = CardOccurrenceDirection.values
+          .where((d) => d.name == entry.key)
+          .firstOrNull;
+      if (direction == null || entry.value is! Map) {
+        throw const FormatException('Invalid anatomy direction');
+      }
+      final requirements = <String, PlayerAnatomy>{};
+      for (final requirement in (entry.value as Map).entries) {
+        final anatomy = PlayerAnatomy.values
+            .where((a) => a.name == requirement.value)
+            .firstOrNull;
+        if (!{'OWNER', 'PARTNER'}.contains(requirement.key) ||
+            anatomy == null) {
+          throw const FormatException('Invalid anatomy subject or value');
+        }
+        requirements[requirement.key as String] = anatomy;
+      }
+      result[direction] = Map.unmodifiable(requirements);
+    }
+    return AnatomyRequirements._(Map.unmodifiable(result));
+  }
 }

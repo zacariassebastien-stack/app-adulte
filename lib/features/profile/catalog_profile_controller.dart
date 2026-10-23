@@ -35,6 +35,7 @@ final class CatalogProfileController extends ChangeNotifier {
   CatalogProfileController({
     required this.catalog,
     required this.playerId,
+    this.sexLocked = false,
     this.profileStore = const SharedPreferencesV4ProfileStore(),
     this.learningStore = const SharedPreferencesNetworkProfileLearningStore(),
     this.ratingStore = const SharedPreferencesV4CardLearningStore(),
@@ -80,6 +81,7 @@ final class CatalogProfileController extends ChangeNotifier {
   }
   final Catalog catalog;
   final String playerId;
+  final bool sexLocked;
   final V4ProfileStore profileStore;
   final V4CardLearningStore ratingStore;
   final NetworkProfileLearningStore learningStore;
@@ -100,6 +102,14 @@ final class CatalogProfileController extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     super.dispose();
+  }
+
+  Future<void> setSex(ProfileSex sex) async {
+    if (sexLocked) throw StateError('Sex is locked during a game');
+    final updated = profile.copyWith(sex: sex);
+    await profileStore.save(updated);
+    profile = updated;
+    _changed();
   }
 
   Future<void> setGameNickname(String value) async {

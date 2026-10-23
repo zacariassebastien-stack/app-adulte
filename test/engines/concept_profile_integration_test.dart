@@ -36,7 +36,7 @@ void main() {
   );
   V4Profile profile([
     Map<String, InitialQuestionResponse> overrides = const {},
-  ]) => const InitialQuestionnaireEngine().initialize(
+  ]) => const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
     profileId: 'p',
     questionnaire: questionnaire,
     responses: {
@@ -63,7 +63,7 @@ void main() {
   );
   V4Profile withExcluded(V4Profile p, String tag, ProfilePreferenceRole role) {
     final key = ProfilePreferenceKey(tagId: tag, role: role);
-    return V4Profile(
+    return V4Profile(sex: ProfileSex.HOMME,
       profileId: p.profileId,
       preferences: {
         ...p.preferences,
@@ -97,7 +97,7 @@ void main() {
     'mutual media do not reconstruct their priors from FAIRE and RECEVOIR',
     () {
       final p = profile();
-      final missing = V4Profile(
+      final missing = V4Profile(sex: ProfileSex.HOMME,
         profileId: 'p',
         preferences: {
           for (final e in p.preferences.entries)
@@ -120,7 +120,7 @@ void main() {
       tagId: 'tenue',
       role: ProfilePreferenceRole.soi,
     );
-    final learned = V4Profile(
+    final learned = V4Profile(sex: ProfileSex.HOMME,
       profileId: 'p',
       preferences: {
         ...p.preferences,

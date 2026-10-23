@@ -4,6 +4,7 @@ import '../../domain/catalog/v4_catalog.dart';
 import '../../engines/profile/initial_questionnaire_engine.dart';
 import '../game/network_profile_learning.dart';
 import 'game_nickname_form.dart';
+import '../../domain/profile/v4_profile.dart';
 
 class InitialProfileScreen extends StatefulWidget {
   const InitialProfileScreen({
@@ -29,6 +30,7 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
   final Map<String, InitialQuestionResponse> _responses = {};
   var _index = 0;
   String? _nickname;
+  ProfileSex? _sex;
   var _saving = false;
 
   ProfileQuestion get _question => widget.questionnaire.questions[_index];
@@ -47,6 +49,7 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
     final profile = const InitialQuestionnaireEngine()
         .initialize(
           profileId: widget.playerId,
+          sex: _sex!,
           questionnaire: widget.questionnaire,
           responses: _responses,
         )
@@ -74,6 +77,18 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
             ),
           ),
         ),
+      );
+    }
+    if (_sex == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Créer mon profil')),
+        body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text('Sexe du profil'),
+          for (final sex in ProfileSex.values)
+            FilledButton(key: Key('initial-sex-${sex.name}'),
+              onPressed: () => setState(() => _sex = sex),
+              child: Text(sex.label)),
+        ])),
       );
     }
     final question = _question;
