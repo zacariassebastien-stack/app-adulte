@@ -1054,6 +1054,11 @@ final class NetworkGameController extends ChangeNotifier {
     bool recovery = false,
   }) {
     if (!_definitions.containsKey(usage.conceptId)) return false;
+    if (recovery) {
+      final reference = recoveryReferenceSpice;
+      final chili = usage.resolvedAction['effective_chili']! as int;
+      if (reference == null || chili < reference || chili > 4) return false;
+    }
     if (!occurrenceAllowed(
       usage.conceptId,
       (usage.resolvedAction['stage_id'] ?? usage.resolvedAction['variant_id'])!
@@ -1109,6 +1114,9 @@ final class NetworkGameController extends ChangeNotifier {
       option.parameters['practice_zone_id'] ==
           (usage.resolvedAction['parameters'] as Map)['practice_zone_id'];
 
+  // Recovery uses the public canonical progression, never private active_chili.
+  int? get recoveryReferenceSpice => round?.v4UnlockedSpice;
+
   bool get recoveryAvailable => recoveryEngine.available(
     currentPa: actionPoints[playerId] ?? const BalanceConfig().initialPa,
     gate: RecoveryGate(
@@ -1128,9 +1136,6 @@ final class NetworkGameController extends ChangeNotifier {
               if (_usageCheckpoint.availableFor(item.cardId) > 0)
                 ?_networkCard(
                   item.cardId,
-                  option: _currentOptions(
-                    recovery: true,
-                  )[item.cardId]?.firstOrNull,
                   recovery: true,
                 ),
             ..._replayableDiscards(recovery: true),
@@ -1356,6 +1361,7 @@ final class NetworkGameController extends ChangeNotifier {
     EngineSessionContext? context,
     bool localConsentOnly = false,
   }) {
+    if (recovery && recoveryReferenceSpice == null) return const {};
     final options = const ConceptActionOptions().evaluate(
       catalog: _conceptCatalog,
       profile: _ratingProfile,
@@ -1366,6 +1372,7 @@ final class NetworkGameController extends ChangeNotifier {
       hierarchy: _hierarchy,
       mediaSendRequired: _context.flags['mediaSendRequired'] == true,
       recovery: recovery,
+      recoveryMinimumChili: recovery ? recoveryReferenceSpice : null,
     );
     final permitted = {
       for (final entry in options.entries)
@@ -3291,7 +3298,9 @@ final class NetworkGameController extends ChangeNotifier {
     final selected =
         option ??
         (variantId == null
-            ? materializedAction(cardId, options)
+            ? recovery
+                ? defaultAction(cardId, options)
+                : materializedAction(cardId, options)
             : options.where((o) => o.choice.actionId == variantId).firstOrNull);
     if (selected == null) return null;
     final eligible = selected.variant;

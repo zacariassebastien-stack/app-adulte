@@ -38,7 +38,12 @@ final class ConceptActionOptions {
     CardSpecificLearningStore? cardRatings,
     bool mediaSendRequired = false,
     bool recovery = false,
+    int? recoveryMinimumChili,
   }) {
+    final minimumChili = recoveryMinimumChili ?? context.chiliActive;
+    if (recovery) {
+      RangeError.checkValueInInterval(minimumChili, 1, 4, 'recoveryMinimumChili');
+    }
     final result = <String, List<ConceptActionOption>>{};
     final eligibility = ConceptDeckEligibility(
       actionIdsByConcept: {
@@ -181,6 +186,7 @@ final class ConceptActionOptions {
       );
       final choices = <ConceptActionOption>[];
       for (final choice in candidate.choices) {
+        if (recovery && choice.chili < minimumChili) continue;
         final base = engine.variants.singleWhere(
           (v) => v.id == choice.actionId,
         );

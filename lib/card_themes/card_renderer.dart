@@ -121,6 +121,7 @@ class CardRenderer extends StatelessWidget {
     this.state = CardVisualState.normal,
     this.locked = false,
     this.showPa = true,
+    this.showDirection = true,
     this.playerName,
     this.selectedBlockId,
     this.onBlockSelected,
@@ -134,6 +135,8 @@ class CardRenderer extends StatelessWidget {
   final CardVisualState state;
   final bool locked;
   final bool showPa;
+  /// Presentation only: the definition retains its actual direction.
+  final bool showDirection;
   final String? playerName, selectedBlockId;
   final ValueChanged<String>? onBlockSelected;
   final ValueChanged<CardLayoutBlock>? onBlockChanged;
@@ -151,7 +154,9 @@ class CardRenderer extends StatelessWidget {
         (_back ? theme.layout.back : theme.layout.front)
             .where(
               (block) =>
-                  block.visible && (showPa || block.type != CardBlockType.pa),
+                  block.visible &&
+                  (showPa || block.type != CardBlockType.pa) &&
+                  (showDirection || block.type != CardBlockType.direction),
             )
             .toList()
           ..sort((a, b) => a.zIndex.compareTo(b.zIndex));

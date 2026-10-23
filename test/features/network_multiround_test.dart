@@ -3953,7 +3953,9 @@ void main() {
           o.choice.zoneId == null), isTrue);
         expect(player.corruptionCards.any((c) => c.identity == oldId), isFalse);
         expect(player.auctionCards.any((c) => c.identity == oldId), isFalse);
-        expect(player.recoveryCards.any((c) => c.identity == oldId), isTrue);
+        expect(player.recoveryCards.any((c) => c.identity == oldId),
+          oldSources[player.playerId]!.action.effectiveChili >= player.recoveryReferenceSpice!,
+          reason: 'Cross-cycle history remains available only within the canonical Recovery range');
         expect(ConceptUsageSnapshot.identityFor(session.id, player.playerId, 2,
           oldSources[player.playerId]!.intentId), isNot(oldId));
       }
@@ -8297,7 +8299,15 @@ void main() {
       expect(_totalAcceptance(aliceLearning, 'alice'), 0);
       expect(aliceLearning.appliedEventIds['alice'] ?? {}, isEmpty);
 
-      final option = setup.alice.recoveryCards.first;
+      await setup.alice.applyResolvedContext(EngineSessionContext(
+        mode: SessionMode.face_to_face, proximity: ProximityState.TOGETHER,
+        chiliActive: setup.alice.activeSpice, chiliUnlocked: setup.alice.activeSpice,
+        clothesByPlayer: setup.alice.clothingCounts,
+        mediaCapabilitiesByPlayer: {
+          for (final id in ['alice', 'bob']) id: MediaCapability.values.toSet(),
+        }));
+      final option = setup.alice.recoveryCards.firstWhere(
+        (c) => c.nativeDirection == CardOccurrenceDirection.MUTUEL);
       await setup.alice.recoverWith(option.identity);
       await _settle();
       final proposal = setup.backend.round.recoveries['alice']!;
@@ -8462,6 +8472,302 @@ void main() {
     );
   });
 
+  for (final eligibleCount in [0, 1, 2, 3, 4, 5]) {
+    testWidgets('Recovery visual choice shows up to four real cards from $eligibleCount eligible concepts', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final backend = _Backend()..canonicalSpiceOverride = 1;
+      backend.points['alice'] = 10;
+      backend.round.phase = NetworkGamePhase.recovery;
+      final ids = ['012', '030', '037', '018', '019'].take(eligibleCount).toList();
+      if (eligibleCount == 0) {
+        ids.add('006');
+        backend.clothingCounts.updateAll((_, _) => 0);
+      }
+      final data = _catalogWithCards(catalog, {for (final id in ids) 'card.v4.$id'});
+      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+        anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+        session: session, playerId: 'alice', repository: backend.repository('alice'),
+        catalog: data, v4Profile: completeConsentProfile('alice'),
+        secretStore: MemoryNetworkDuelSecretStore())));
+      await tester.pumpAndSettle();
+      final selection = find.byKey(const Key('network-recovery'));
+      expect(selection, findsOneWidget);
+      final cards = find.descendant(of: selection, matching: find.byType(CardRenderer));
+      expect(cards, findsNWidgets(eligibleCount > 4 ? 4 : eligibleCount));
+      expect(find.descendant(of: selection, matching: find.text('FAIRE')), findsNothing);
+      expect(find.descendant(of: selection, matching: find.text('RECEVOIR')), findsNothing);
+      for (final renderer in tester.widgetList<CardRenderer>(cards)) {
+        expect(renderer.showDirection, isFalse);
+        expect(renderer.showPa, isFalse);
+        expect(renderer.definition.direction, isNotNull);
+        expect(ids, contains(renderer.definition.cardId));
+        expect(find.byKey(Key('recover-with-${renderer.definition.cardId}')), findsOneWidget);
+      }
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
+  for (final direction in [CardOccurrenceDirection.FAIRE, CardOccurrenceDirection.RECEVOIR]) {
+    testWidgets('Recovery visual selection preserves internal $direction and frozen action', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final backend = _Backend()..canonicalSpiceOverride = 1;
+      backend.points['alice'] = 10;
+      backend.round.phase = NetworkGamePhase.recovery;
+      final store = MemoryNetworkDuelSecretStore();
+      await store.saveGame(sessionId: session.id, playerId: 'alice',
+        state: privateGameFixture(roundNumber: 1, cards: [
+          CardRuntimeState(cardId: '012', zone: CardZone.HAND, nativeDirection: direction),
+        ]));
+      final data = _catalogWithCards(catalog, {'card.v4.012'});
+      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+        anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+        session: session, playerId: 'alice', repository: backend.repository('alice'),
+        catalog: data, v4Profile: completeConsentProfile('alice'), secretStore: store)));
+      await tester.pumpAndSettle();
+      final renderer = tester.widget<CardRenderer>(find.byKey(const Key('recovery-choice-card-012')));
+      final shown = renderer.definition;
+      expect(shown.direction, direction.name);
+      expect(find.text(direction.name), findsNothing);
+      final before = (await store.loadGame(sessionId: session.id, playerId: 'alice'))!;
+      expect(before.cards.single.nativeDirection, direction);
+      await tester.tap(find.byKey(const Key('recover-with-012')));
+      await tester.pumpAndSettle();
+      final proposal = backend.round.recoveries['alice']!;
+      expect(proposal.source, RecoverySource.HAND);
+      expect(proposal.usage.toJson()['native_direction'], direction.name);
+      expect(proposal.usage.resolvedAction['direction'], direction.name);
+      expect(proposal.usage.resolvedAction['variant_id'], shown.variantId);
+      expect(proposal.usage.resolvedAction['action_text'], shown.action);
+      expect(proposal.usage.resolvedAction['effective_chili'], shown.spice);
+      expect(proposal.usage.resolvedAction['actor_player_ids'],
+        [direction == CardOccurrenceDirection.FAIRE ? 'alice' : 'bob']);
+      expect(proposal.usage.resolvedAction['target_player_ids'],
+        [direction == CardOccurrenceDirection.FAIRE ? 'bob' : 'alice']);
+      expect(proposal.gain, 0);
+      expect(find.byKey(const Key('network-recovery-response')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
+  testWidgets('Recovery visual cards fit a small screen with enlarged text', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.binding.setSurfaceSize(const Size(320, 480));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final backend = _Backend()..canonicalSpiceOverride = 4;
+    backend.points['alice'] = 10;
+    backend.round.phase = NetworkGamePhase.recovery;
+    await tester.pumpWidget(MaterialApp(home: MediaQuery(
+      data: const MediaQueryData(size: Size(320, 480), textScaler: TextScaler.linear(1.4)),
+      child: NetworkDuelScreen(
+        anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+        session: session, playerId: 'alice', repository: backend.repository('alice'),
+        catalog: catalog, v4Profile: completeConsentProfile('alice'),
+        secretStore: MemoryNetworkDuelSecretStore()))));
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: find.byKey(const Key('network-recovery')),
+      matching: find.byType(CardRenderer)), findsNWidgets(4));
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  for (final reference in [1, 2, 3, 4]) {
+    test('Recovery canonical spice P$reference survives stale private cache and reconnect', () async {
+      final backend = _Backend()..canonicalSpiceOverride = reference;
+      backend.points['alice'] = 10;
+      backend.round.phase = NetworkGamePhase.recovery;
+      final store = MemoryNetworkDuelSecretStore();
+      final profile = completeConsentProfile('alice');
+      NetworkGameController create() => NetworkGameController(
+        anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+        session: session, playerId: 'alice', repository: backend.repository('alice'),
+        privateStore: store, learningStore: MemoryNetworkProfileLearningStore(),
+        v4Profile: profile, catalog: catalog,
+        initialClothingCounts: const {'alice': 6, 'bob': 6});
+      final first = create();
+      await first.start();
+      await _settle();
+      expect(first.recoveryAvailable, isTrue);
+      expect(first.recoveryReferenceSpice, reference);
+      expect(first.recoveryCards, isNotEmpty);
+      expect(first.recoveryCards.every((c) => c.chiliLevel >= reference && c.chiliLevel <= 4), isTrue);
+      for (final card in first.recoveryCards.where((c) => c.identity == c.id)) {
+        final expected = first.defaultAction(card.id, first.recoveryChoicesFor(card.id));
+        expect(card.variant.id, expected!.choice.actionId,
+          reason: 'HAND and CATALOG use the same deterministic default');
+      }
+      if (reference < 4) expect(first.recoveryCards.any((c) => c.chiliLevel > reference), isTrue);
+      final signature = first.recoveryCards.map(occurrenceSignature).toList();
+      first.dispose();
+      final saved = (await store.loadGame(sessionId: session.id, playerId: 'alice'))!;
+      final stale = saved.toJson()..['active_chili'] = 1;
+      await store.saveGame(sessionId: session.id, playerId: 'alice',
+        state: NetworkPrivateGameState.fromJson(stale));
+      final resumed = create();
+      addTearDown(resumed.dispose);
+      await resumed.start();
+      await _settle();
+      expect(resumed.errorMessage, isNull);
+      expect(resumed.recoveryReferenceSpice, reference);
+      expect(resumed.recoveryCards.map(occurrenceSignature), signature);
+      expect(resumed.round!.toJson()['v4_unlocked_spice'], reference);
+    });
+  }
+
+  test('Recovery trigger uses progressed canonical spice rather than initial private spice', () async {
+    final backend = _Backend()..canonicalSpiceOverride = 1;
+    final controller = NetworkGameController(
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+      session: session, playerId: 'alice', repository: backend.repository('alice'),
+      catalog: catalog, v4Profile: completeConsentProfile('alice'),
+      privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore());
+    addTearDown(controller.dispose);
+    await controller.start();
+    await _settle();
+    expect(controller.activeSpice, 1);
+    backend.canonicalSpiceOverride = 3;
+    backend.points['alice'] = 10;
+    backend.round.phase = NetworkGamePhase.recovery;
+    backend.notifyTwice();
+    await _settle();
+    expect(controller.viewState, NetworkGameViewState.recovery);
+    expect(controller.recoveryReferenceSpice, 3);
+    await controller.applyResolvedContext(EngineSessionContext(
+      mode: SessionMode.face_to_face, proximity: ProximityState.TOGETHER,
+      chiliActive: 1, chiliUnlocked: 1,
+      clothesByPlayer: const {'alice': 6, 'bob': 6}));
+    expect(controller.recoveryCards, isNotEmpty);
+    expect(controller.recoveryCards.every((c) => c.chiliLevel >= 3), isTrue);
+    expect(controller.recoveryReferenceSpice, 3);
+  });
+
+  test('Recovery canonical range preserves joint consent anatomy clothing and roles', () async {
+    final backend = _Backend()..canonicalSpiceOverride = 1;
+    backend.points['alice'] = 10;
+    backend.round.phase = NetworkGamePhase.recovery;
+    backend.clothingCounts.updateAll((_, _) => 0);
+    final consent = _ConsentBackend();
+    final profileA = completeConsentProfile('alice');
+    final profileB = completeConsentProfile('bob');
+    NetworkGameController create(String id, V4Profile profile) => NetworkGameController(
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.PENIS},
+      session: session, playerId: id, repository: _ConsentRepository(backend, id, consent),
+      catalog: catalog, v4Profile: profile, privateStore: MemoryNetworkDuelSecretStore(),
+      learningStore: MemoryNetworkProfileLearningStore());
+    final a = create('alice', profileA);
+    final b = create('bob', profileB);
+    addTearDown(() async { a.dispose(); b.dispose(); await consent.close(); });
+    await a.start();
+    await b.start();
+    await a.synchronizeConsent();
+    expect(a.recoveryChoicesFor('030'), isNotEmpty);
+    expect(a.recoveryChoicesFor('022'), isEmpty);
+    expect(a.recoveryChoicesFor('027'), isEmpty);
+    expect(a.recoveryChoicesFor('006'), isEmpty);
+    await b.applyStageVetoProfile(profileB.copyWith(stageVetoes: const [
+      StageVeto(conceptId: '030', actionId: '*', role: ProfilePreferenceRole.general),
+    ]));
+    await a.synchronizeConsent();
+    expect(a.recoveryChoicesFor('030'), isEmpty);
+    expect(a.recoveryCards.any((c) => c.id == '030'), isFalse);
+    expect(a.recoveryCards.every((c) => a.occurrenceAllowed(c.id, c.variant.id, c.nativeDirection.name)), isTrue);
+  });
+
+  test('Recovery canonical range does not resurrect consumed stages', () async {
+    final backend = _Backend()..canonicalSpiceOverride = 3;
+    backend.points['alice'] = 10;
+    backend.round.phase = NetworkGamePhase.recovery;
+    final store = MemoryNetworkDuelSecretStore();
+    await store.saveGame(sessionId: session.id, playerId: 'alice',
+      state: privateGameFixture(roundNumber: 1, cards: const [
+        CardRuntimeState(cardId: '030', variantId: '030.stage.3',
+          occurrenceId: 'used-030', nativeDirection: CardOccurrenceDirection.FAIRE,
+          zone: CardZone.EXHAUSTED),
+      ]));
+    final controller = NetworkGameController(
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+      session: session, playerId: 'alice', repository: backend.repository('alice'),
+      catalog: catalog, v4Profile: completeConsentProfile('alice'), privateStore: store,
+      learningStore: MemoryNetworkProfileLearningStore());
+    addTearDown(controller.dispose);
+    await controller.start();
+    expect(controller.stageConsumed('030', '030.stage.3'), isTrue);
+    expect(controller.recoveryChoicesFor('030').map((o) => o.choice.actionId),
+      isNot(contains('030.stage.3')));
+    expect(controller.recoveryCards.singleWhere((c) => c.id == '030').variant.id, '030.stage.2');
+  });
+
+  test('Recovery filters frozen discard intensity below canonical floor without altering history', () async {
+    final backend = _Backend()..canonicalSpiceOverride = 1;
+    backend.points['alice'] = 10;
+    backend.round.phase = NetworkGamePhase.recovery;
+    final store = MemoryNetworkDuelSecretStore();
+    final saved = privateGameFixture(roundNumber: 1, cards: const [
+      CardRuntimeState(cardId: '006', variantId: '006.action',
+        occurrenceId: 'used-006', nativeDirection: CardOccurrenceDirection.FAIRE,
+        zone: CardZone.DISCARD),
+    ]);
+    await store.saveGame(sessionId: session.id, playerId: 'alice', state: saved);
+    final controller = NetworkGameController(
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+      session: session, playerId: 'alice', repository: backend.repository('alice'),
+      catalog: catalog, v4Profile: completeConsentProfile('alice'), privateStore: store,
+      learningStore: MemoryNetworkProfileLearningStore());
+    addTearDown(controller.dispose);
+    await controller.start();
+    await _settle();
+    final source = controller.visibleDiscardUsages.singleWhere((u) => u.conceptId == '006');
+    expect(controller.recoveryCards.any((c) => c.identity == source.usageId), isTrue);
+    final checkpoint = controller.usageCheckpoint.encode();
+    backend.canonicalSpiceOverride = 2;
+    backend.notifyTwice();
+    await _settle();
+    expect(controller.recoveryCards.any((c) => c.id == '006'), isFalse);
+    await controller.recoverWith(source.usageId);
+    expect(backend.round.recoveries, isEmpty);
+    expect(controller.usageCheckpoint.encode(), checkpoint);
+    expect(controller.visibleDiscardUsages.singleWhere((u) => u.conceptId == '006').toJson(), source.toJson());
+  });
+
+  test('Recovery default stage agrees across hand, catalog, dialog choices and reservation', () async {
+    final backend = _Backend()..canonicalSpiceOverride = 3;
+    backend.points['alice'] = 10;
+    backend.round.phase = NetworkGamePhase.recovery;
+    final profile = completeConsentProfile('alice');
+    Future<NetworkGameController> player(bool held) async {
+      final store = MemoryNetworkDuelSecretStore();
+      await store.saveGame(sessionId: session.id, playerId: 'alice',
+        state: privateGameFixture(roundNumber: 1, activeChili: 1,
+          cards: held ? const [CardRuntimeState(cardId: '030', zone: CardZone.HAND)] : const []));
+      final controller = NetworkGameController(
+        anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+        session: session, playerId: 'alice', repository: backend.repository('alice'),
+        catalog: catalog, v4Profile: profile, privateStore: store,
+        learningStore: MemoryNetworkProfileLearningStore());
+      await controller.start();
+      await _settle();
+      return controller;
+    }
+    final held = await player(true);
+    final outside = await player(false);
+    addTearDown(held.dispose);
+    addTearDown(outside.dispose);
+    for (final controller in [held, outside]) {
+      final card = controller.recoveryCards.singleWhere((c) => c.id == '030');
+      expect(card.variant.id, '030.stage.3');
+      expect(controller.defaultAction('030', controller.recoveryChoicesFor('030'))!.choice.actionId, card.variant.id);
+    }
+    await held.recoverWith('030');
+    await _settle();
+    final proposed = backend.round.recoveries['alice']!;
+    expect(proposed.source, RecoverySource.HAND);
+    expect(proposed.usage.resolvedAction['stage_id'], '030.stage.3');
+    expect(proposed.usage.resolvedAction['effective_chili'], 4);
+    expect(held.recoveryReferenceSpice, 3);
+  });
+
   test(
     'recovery honors threshold, applies gain once and resumes next round',
     () async {
@@ -8486,10 +8792,9 @@ void main() {
       );
       expect(setup.alice.recoveryAvailable, isTrue);
       expect(setup.bob.recoveryAvailable, isFalse);
-      final option = setup.alice.recoveryCards.singleWhere(
-        (c) => c.id == '001',
-      );
-      expect(option.personalValue, 14);
+      final option = setup.alice.recoveryCards.firstWhere((c) => c.identity == c.id);
+      expect(option.chiliLevel, greaterThanOrEqualTo(setup.alice.recoveryReferenceSpice!));
+      final expectedGain = (option.personalValue * 1.5).ceil();
       final beforeCheckpoint = setup.alice.usageCheckpoint;
       final quotaBefore = beforeCheckpoint.stock.remainingFor(option.id);
       final idsBefore = beforeCheckpoint.usagesByIntent.values
@@ -8542,8 +8847,8 @@ void main() {
       await setup.alice.completeRecovery(completed: true);
       await setup.alice.completeRecovery(completed: true);
       await _settle();
-      expect(setup.backend.round.recoveryHistory.single.gain, 21);
-      expect(setup.backend.points['alice'], before + 21);
+      expect(setup.backend.round.recoveryHistory.single.gain, expectedGain);
+      expect(setup.backend.points['alice'], before + expectedGain);
       expect(setup.backend.round.recoveryHistory, hasLength(1));
       expect(setup.backend.round.recoveryDone, isNot(contains('alice')));
 
@@ -8583,7 +8888,7 @@ void main() {
         alice.usageCheckpoint.usageForIntent(engaged.intentId)!.toJson(),
         frozenSnapshot,
       );
-      expect(setup.backend.points['alice'], before + 21);
+      expect(setup.backend.points['alice'], before + expectedGain);
       await alice.skipRecovery();
       expect(setup.backend.phase, NetworkGamePhase.recovery);
       await setup.bob.skipRecovery();
@@ -8600,7 +8905,7 @@ void main() {
         ),
         hasLength(1),
       );
-      expect(setup.backend.points['alice'], before + 21);
+      expect(setup.backend.points['alice'], before + expectedGain);
       alice.dispose();
       setup.bob.dispose();
     },
@@ -9539,6 +9844,8 @@ final class _Backend {
   bool infiniteMode = false;
   PlayerStyle deckStyle = PlayerStyle.SOFT;
   int v4UnlockedSpice = 1;
+  // Explicit canonical DTO fixture for the P1..P4 Recovery contract tests.
+  int? canonicalSpiceOverride;
   PlayerStyle? cycleStyleProposal;
   String? cycleStyleProposer;
   int cycleStyleRevision=0;
@@ -9567,7 +9874,11 @@ final class _Backend {
   NetworkGameRepository repository(String player) => _Repository(this, player);
 
   NetworkGameRoundStateDto state(String player) {
-    refreshPaSpice();
+    if (canonicalSpiceOverride == null) {
+      refreshPaSpice();
+    } else {
+      v4UnlockedSpice = canonicalSpiceOverride!;
+    }
     return NetworkGameRoundStateDto(
       usageContractVersion: 1,
       roundId: round.id,

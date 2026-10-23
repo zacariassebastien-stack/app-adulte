@@ -23,6 +23,22 @@ const definition = CardRenderDefinition(
 );
 
 void main() {
+  for (final direction in ['FAIRE', 'RECEVOIR']) {
+    testWidgets('direction visibility is presentation-only for $direction', (tester) async {
+      final data = CardRenderDefinition(cardId: 'recovery.preview',
+        title: 'Choix Recovery', action: 'Action conservée', direction: direction);
+      Future<void> renderDirection(bool visible) => tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: SizedBox(width: 240, height: 360,
+          child: CardRenderer(definition: data, state: CardVisualState.full,
+            showPa: false, showDirection: visible)))));
+      await renderDirection(false);
+      expect(find.text(direction), findsNothing);
+      expect(tester.widget<CardRenderer>(find.byType(CardRenderer)).definition.direction, direction);
+      await renderDirection(true);
+      expect(find.text(direction), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
   for (final width in [100.0, 180.0, 320.0]) {
     testWidgets(
       'long title and body-zone labels fit at width $width with enlarged system text',

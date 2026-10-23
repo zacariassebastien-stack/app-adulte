@@ -645,7 +645,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     );
   }
 
-  CardHandItem _handItem(NetworkDuelCard card) {
+  CardHandItem _handItem(NetworkDuelCard card, {bool recovery = false}) {
     final editorialVariant = card.definition.variants
         .where((variant) => variant.stableId == card.variant.id)
         .firstOrNull;
@@ -656,8 +656,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         card.id == '024' ||
         (concept?.variants.any((v) => v.id == card.variant.id && v.freeZone) ??
             false);
-    final option = controller
-        .choicesFor(card.id)
+    final option = (recovery
+        ? controller.recoveryChoicesFor(card.id)
+        : controller.choicesFor(card.id))
         .where((o) => o.choice.actionId == card.variant.id)
         .firstOrNull;
     final editorialRenderer = ConceptEditorialRenderer(
@@ -1416,18 +1417,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           _waitingCard('Recovery enregistré — attente du partenaire.')
         else if (controller.recoveryAvailable) ...[
           const Text('PA faibles — Recovery disponible'),
-          for (final card in controller.recoveryCards.take(4))
-            ListTile(
-              title: Text(card.title),
-              subtitle: Text(
-                'Gain si acceptée : ${(card.personalValue * 1.5).ceil()} PA',
-              ),
-              trailing: FilledButton.tonal(
-                key: Key('recover-with-${card.identity}'),
-                onPressed: () => _proposeRecovery(card),
-                child: const Text('Recovery'),
-              ),
-            ),
+          _recoveryChoiceCards(controller.recoveryCards.take(4).toList()),
           OutlinedButton(
             key: const Key('skip-network-recovery'),
             onPressed: controller.skipRecovery,
@@ -1442,6 +1432,54 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       ],
     );
   }
+
+  Widget _recoveryChoiceCards(List<NetworkDuelCard> cards) => LayoutBuilder(
+    builder: (context, bounds) {
+      const spacing = 12.0;
+      final columns = bounds.maxWidth >= 900 ? 4 : 2;
+      final width = (bounds.maxWidth - spacing * (columns - 1)) / columns;
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Wrap(
+          spacing: spacing,
+          runSpacing: 16,
+          children: [
+            for (final card in cards)
+              SizedBox(
+                width: width,
+                child: Column(
+                  children: [
+                    Semantics(
+                      button: true,
+                      label: 'Choisir ${card.title}',
+                      child: InkWell(
+                        key: Key('recover-with-${card.identity}'),
+                        onTap: () => _proposeRecovery(card),
+                        child: AspectRatio(
+                          aspectRatio: .68,
+                          child: CardRenderer(
+                            key: Key('recovery-choice-card-${card.identity}'),
+                            definition: _handItem(card, recovery: true).definition,
+                            state: CardVisualState.full,
+                            showPa: false,
+                            showDirection: false,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Gain si acceptée : ${(card.personalValue * 1.5).ceil()} PA',
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      );
+    },
+  );
 
   Widget _recoveryResponse() {
     final proposal = controller.pendingRecovery!;
@@ -1909,7 +1947,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     final available = recovery
         ? controller.recoveryChoicesFor(conceptId)
         : controller.choicesFor(conceptId);
-    final displayed = controller.materializedAction(conceptId, available);
+    final displayed = recovery
+        ? controller.defaultAction(conceptId, available)
+        : controller.materializedAction(conceptId, available);
     final isFree = controller
         .conceptFor(conceptId)
         .variants
