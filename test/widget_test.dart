@@ -54,7 +54,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byKey(const Key('active-chili')),
-        matching: find.text('🌶️ 3'),
+        matching: find.text('🌶️🌶️🌶️○'),
       ),
       findsOneWidget,
     );

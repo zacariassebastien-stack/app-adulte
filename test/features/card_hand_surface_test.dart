@@ -54,6 +54,73 @@ void main() {
   }
 
   for (final open in [false, true]) {
+    testWidgets(
+      'horizontal swipe preserves level ${open ? 3 : 2} and clamps edges',
+      (tester) async {
+        var played = 0;
+        await pumpHand(tester, onPlay: (_) => played++, animations: false);
+        await tester.tapAt(const Offset(50, 650));
+        await tester.pumpAndSettle();
+        if (open) {
+          await tester.tapAt(
+            tester.getCenter(find.byKey(const Key('hand-card-card-0'))),
+          );
+          await tester.pumpAndSettle();
+        }
+        Future<void> swipe(int index, double dx) async {
+          await tester.dragFrom(
+            tester.getCenter(find.byKey(Key('hand-card-card-$index'))),
+            Offset(dx, -10),
+          );
+          await tester.pumpAndSettle();
+        }
+
+        void expectStage(int index) {
+          final renderer = find.descendant(
+            of: find.byKey(Key('hand-card-card-$index')),
+            matching: find.byType(CardRenderer),
+          );
+          expect(
+            tester.widget<CardRenderer>(renderer).state,
+            open ? CardVisualState.full : CardVisualState.focused,
+          );
+        }
+
+        await swipe(0, 90);
+        expectStage(0);
+        for (var i = 0; i < 3; i++) {
+          await swipe(i, -90);
+          expectStage(i + 1);
+        }
+        await swipe(3, -90);
+        expectStage(3);
+        await swipe(3, 90);
+        expectStage(2);
+        expect(played, 0);
+        expect(tester.takeException(), isNull);
+        await tester.binding.setSurfaceSize(null);
+      },
+    );
+  }
+
+  testWidgets('committed surface cannot navigate or rate', (tester) async {
+    await pumpHand(tester, committed: cards.first, animations: false);
+    await tester.drag(
+      find.byKey(const Key('committed-card')),
+      const Offset(-200, 0),
+    );
+    await tester.drag(
+      find.byKey(const Key('committed-card')),
+      const Offset(0, 200),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('card-hand-surface')), findsNothing);
+    expect(find.text('Mon appréciation'), findsNothing);
+    expect(find.byType(CardRenderer), findsOneWidget);
+    await tester.binding.setSurfaceSize(null);
+  });
+
+  for (final open in [false, true]) {
     testWidgets('excluded replacement is directly tappable open=$open', (
       tester,
     ) async {
@@ -151,7 +218,12 @@ void main() {
             consumed: true,
           ),
           CardHandTab(id: 'stage-2', label: '2', enabled: true),
-          CardHandTab(id: 'stage-3', label: '3', enabled: false, excluded: true),
+          CardHandTab(
+            id: 'stage-3',
+            label: '3',
+            enabled: false,
+            excluded: true,
+          ),
         ],
       );
       await pumpHand(tester, items: [item], onTab: (_, id) => selected = id);

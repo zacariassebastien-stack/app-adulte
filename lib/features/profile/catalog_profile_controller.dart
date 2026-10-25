@@ -113,7 +113,9 @@ final class CatalogProfileController extends ChangeNotifier {
   }
 
   Future<void> setGameNickname(String value) async {
-    final updated = profile.copyWith(gameNickname: GameNickname.normalize(value));
+    final updated = profile.copyWith(
+      gameNickname: GameNickname.normalize(value),
+    );
     await profileStore.save(updated);
     profile = updated;
     _changed();
@@ -193,30 +195,33 @@ final class CatalogProfileController extends ChangeNotifier {
 
   Future<void> rate(
     ProfileCatalogItem item,
-    DetailedPreferenceCategory category,
-  ) async {
+    DetailedPreferenceCategory category, {
+    bool preserveExclusions = false,
+  }) async {
     if (saving) return;
     saving = true;
     _changed();
     try {
       final role = ProfilePreferenceRole.parse(item.direction.name);
-      final next = profile.copyWith(
-        stageVetoes: [
-          ...profile.stageVetoes.where(
-            (v) =>
-                !(v.conceptId == item.concept.id &&
-                    v.actionId == item.actionId &&
-                    (v.role == role ||
-                        v.role == ProfilePreferenceRole.general)),
-          ),
-          if (category == DetailedPreferenceCategory.excluded)
-            StageVeto(
-              conceptId: item.concept.id,
-              actionId: item.actionId,
-              role: role,
-            ),
-        ],
-      );
+      final next = preserveExclusions
+          ? profile
+          : profile.copyWith(
+              stageVetoes: [
+                ...profile.stageVetoes.where(
+                  (v) =>
+                      !(v.conceptId == item.concept.id &&
+                          v.actionId == item.actionId &&
+                          (v.role == role ||
+                              v.role == ProfilePreferenceRole.general)),
+                ),
+                if (category == DetailedPreferenceCategory.excluded)
+                  StageVeto(
+                    conceptId: item.concept.id,
+                    actionId: item.actionId,
+                    role: role,
+                  ),
+              ],
+            );
       final key = item.ratingKey(playerId);
       final old =
           ratings.read(key) ??

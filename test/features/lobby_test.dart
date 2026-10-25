@@ -274,6 +274,31 @@ void main() {
     },
   );
 
+  test(
+    'disposed lobby ignores an outstanding restore without notifying or reattaching',
+    () async {
+      final backend = FakeLobbyBackend();
+      final delegate = backend.repository('host');
+      final session = await delegate.createSession(
+        commandId: 'dispose-restore',
+      );
+      final repository = _DelayedLobbyRepository(delegate)
+        ..response = Completer<LobbySession>();
+      final store = _MemoryActiveSessionStore()..value = session.id;
+      final controller = LobbyController(
+        repository: repository,
+        activeSessionStore: store,
+      );
+      final restore = controller.restoreActiveSession();
+      await Future<void>.delayed(Duration.zero);
+      controller.dispose();
+      repository.response!.complete(session);
+      expect(await restore, isFalse);
+      expect(controller.session, isNull);
+      repository.releaseCancellation.complete();
+    },
+  );
+
   test('late retry cannot reattach a session after explicit quit', () async {
     final backend = FakeLobbyBackend();
     final repository = _DelayedLobbyRepository(backend.repository('host'));

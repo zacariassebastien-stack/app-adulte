@@ -22,6 +22,7 @@ final class SupabaseNetworkGameRepository
         NetworkSessionConsentEvents,
         NetworkPrivateInitialResolutionRepository,
         NetworkV4ActionRepository,
+        NetworkRecoveryClothingRepository,
         NetworkCommitCancellationRepository,
         NetworkSessionClosureRepository {
   SupabaseNetworkGameRepository({
@@ -503,6 +504,17 @@ final class SupabaseNetworkGameRepository
       'p_has_playable_alternate': hasPlayableAlternateOrientation,
       'p_clothing_count': clothingCount,
     },
+  );
+
+  @override
+  Future<NetworkGameRoundStateDto> confirmRecoveryClothing({
+    required NetworkCommandDto command,
+    required String usageId,
+    required int clothingCount,
+  }) => _rpc(
+    'confirm_network_recovery_clothing',
+    command,
+    extra: {'p_usage_id': usageId, 'p_clothing_count': clothingCount},
   );
 
   @override

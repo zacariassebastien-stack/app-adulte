@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:couple_cards/domain/domain.dart';
 import 'package:couple_cards/engines/profile/initial_questionnaire_engine.dart';
@@ -16,6 +17,70 @@ void main() {
     );
   });
 
+  test('editorial changes preserve every functional field', () {
+    final actual =
+        jsonDecode(
+              File(
+                'assets/catalog/source/profile_questions.v1.fr.json',
+              ).readAsStringSync(),
+            )
+            as Map<String, dynamic>;
+    final questions = (actual['questions'] as List)
+        .cast<Map<String, dynamic>>();
+    expect(questions[1]['label'], 'Embrasser');
+    expect(
+      questions[1]['help_text'],
+      'Embrasser son partenaire, des baisers tendres aux baisers plus intenses.',
+    );
+    expect(questions[7]['label'], 'Pénétration vaginale');
+    for (final question in questions) {
+      if (question['stable_id'] == 'question.v1.08') {
+        expect(question['help_text'], isNull);
+      } else {
+        expect((question['help_text'] as String).trim(), isNotEmpty);
+      }
+      question.remove('label');
+      question.remove('help_text');
+    }
+    expect(
+      actual,
+      jsonDecode(
+        File(
+          'test/fixtures/questionnaire_functional_contract.json',
+        ).readAsStringSync(),
+      ),
+    );
+  });
+
+  test(
+    'manual UX corrections describe themes without changing questionnaire bindings',
+    () {
+      final expected = {
+        'question.v1.06':
+            'Stimulation des zones intimes par différents moyens.',
+        'question.v1.10':
+            'Pratique ne nécessitant pas forcément la participation du partenaire.',
+        'question.v1.12':
+            'Exploration tactile pouvant inclure des sensations physiques plus intenses.',
+        'question.v1.13':
+            'Jeux autour du contrôle, de l’abandon et de la dynamique de pouvoir.',
+        'question.v1.15':
+            'Partager et explorer son intimité avec l’autre, notamment à travers différents médias.',
+      };
+      for (final question in questionnaire.questions) {
+        if (expected.containsKey(question.stableId)) {
+          expect(question.helpText, expected[question.stableId]);
+        }
+      }
+      expect(
+        questionnaire.questions
+            .singleWhere((q) => q.stableId == 'question.v1.08')
+            .helpText,
+        isNull,
+      );
+    },
+  );
+
   test('V1 contains exactly 17 data-driven questions', () {
     expect(questionnaire.version, 1);
     expect(questionnaire.questions, hasLength(17));
@@ -30,7 +95,8 @@ void main() {
     responses['question.v1.02|faire'] = InitialQuestionResponse.love;
     responses['question.v1.02|recevoir'] = InitialQuestionResponse.like;
     responses['question.v1.09|faire'] = InitialQuestionResponse.excluded;
-    final profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
+    final profile = const InitialQuestionnaireEngine().initialize(
+      sex: ProfileSex.HOMME,
       profileId: 'p',
       questionnaire: questionnaire,
       responses: responses,
@@ -57,7 +123,8 @@ void main() {
     final responses = _responses(questionnaire, InitialQuestionResponse.like);
     responses['question.v1.02|faire'] = InitialQuestionResponse.love;
     responses['question.v1.02|recevoir'] = InitialQuestionResponse.excluded;
-    final profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
+    final profile = const InitialQuestionnaireEngine().initialize(
+      sex: ProfileSex.HOMME,
       profileId: 'p',
       questionnaire: questionnaire,
       responses: responses,
@@ -83,7 +150,8 @@ void main() {
     final responses = _responses(questionnaire, InitialQuestionResponse.like);
     responses['question.v1.15|montrer'] = InitialQuestionResponse.love;
     responses['question.v1.15|regarder'] = InitialQuestionResponse.unsure;
-    var profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
+    var profile = const InitialQuestionnaireEngine().initialize(
+      sex: ProfileSex.HOMME,
       profileId: 'p',
       questionnaire: questionnaire,
       responses: responses,
@@ -93,7 +161,8 @@ void main() {
       18,
     );
     responses['question.v1.15|regarder'] = InitialQuestionResponse.excluded;
-    profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
+    profile = const InitialQuestionnaireEngine().initialize(
+      sex: ProfileSex.HOMME,
       profileId: 'p',
       questionnaire: questionnaire,
       responses: responses,
@@ -168,7 +237,8 @@ void main() {
   });
 
   test('Q16 and Q17 keep their alternatives independently initialized', () {
-    final profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
+    final profile = const InitialQuestionnaireEngine().initialize(
+      sex: ProfileSex.HOMME,
       profileId: 'p',
       questionnaire: questionnaire,
       responses: _responses(questionnaire, InitialQuestionResponse.like),
@@ -192,7 +262,8 @@ void main() {
   test(
     'MUTUEL remains usable through the current gameplay profile adapter',
     () {
-      final profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
+      final profile = const InitialQuestionnaireEngine().initialize(
+        sex: ProfileSex.HOMME,
         profileId: 'p',
         questionnaire: questionnaire,
         responses: _responses(questionnaire, InitialQuestionResponse.love),
@@ -211,7 +282,8 @@ void main() {
       InitialQuestionResponse.like,
       InitialQuestionResponse.unsure,
     ]) {
-      final profile = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
+      final profile = const InitialQuestionnaireEngine().initialize(
+        sex: ProfileSex.HOMME,
         profileId: 'p',
         questionnaire: questionnaire,
         responses: _responses(questionnaire, response),
@@ -234,7 +306,8 @@ void main() {
       source: PracticeConsentSource.manualExplicit,
     );
     final restored = V4Profile.fromJson(
-      V4Profile(sex: ProfileSex.HOMME,
+      V4Profile(
+        sex: ProfileSex.HOMME,
         profileId: 'p',
         preferences: {preference.key.storageKey: preference},
         consents: {consent.storageKey: consent},

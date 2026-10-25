@@ -43,6 +43,7 @@ final class NetworkPrivateGameState {
     required List<CardRuntimeState> cards,
     Map<String, String> displayedHandActions = const {},
     this.activeReveal,
+    this.roundCardRatings,
     this.nextRoundPrepared = false,
     Set<int> learningRecordedRounds = const {},
     this.deckCycle = 1,
@@ -64,6 +65,7 @@ final class NetworkPrivateGameState {
     List<ConceptUsageCheckpoint> priorCheckpoints = const [],
     Map<String, int> clothesByPlayer = const {},
     Map<String, int> clothingObservations = const {},
+    Map<String, int> actionClothingConfirmations = const {},
   }) : pendingLearning = pendingLearning == null
            ? null
            : freezeJson(pendingLearning) as JsonMap,
@@ -78,6 +80,9 @@ final class NetworkPrivateGameState {
        clothesByPlayer = Map.unmodifiable(clothesByPlayer),
        priorCheckpoints = List.unmodifiable(priorCheckpoints),
        clothingObservations = Map.unmodifiable(clothingObservations),
+       actionClothingConfirmations = Map.unmodifiable(
+         actionClothingConfirmations,
+       ),
        persistentEffects = List.unmodifiable(persistentEffects),
        accessoryPool =
            accessoryPool ??
@@ -86,6 +91,8 @@ final class NetworkPrivateGameState {
   final int roundNumber;
   final List<CardRuntimeState> cards;
   final Map<String, String> displayedHandActions;
+  // Private round input snapshot; the profile remains the learning source of truth.
+  final List<Object?>? roundCardRatings;
   final ChoiceRevealDto? activeReveal;
   final bool nextRoundPrepared;
   final Set<int> learningRecordedRounds;
@@ -109,6 +116,7 @@ final class NetworkPrivateGameState {
   final List<ConceptUsageCheckpoint> priorCheckpoints;
   final Map<String, int> clothesByPlayer;
   final Map<String, int> clothingObservations;
+  final Map<String, int> actionClothingConfirmations;
 
   Map<String, Object?> toJson() => {
     'round_number': roundNumber,
@@ -126,6 +134,7 @@ final class NetworkPrivateGameState {
         },
     ],
     'active_reveal': activeReveal?.toJson(),
+    'round_card_ratings': roundCardRatings,
     'next_round_prepared': nextRoundPrepared,
     'learning_recorded_rounds': learningRecordedRounds.toList()..sort(),
     'deck_cycle': deckCycle,
@@ -151,12 +160,14 @@ final class NetworkPrivateGameState {
     ],
     'clothes_by_player': clothesByPlayer,
     'clothing_observations': clothingObservations,
+    'action_clothing_confirmations': actionClothingConfirmations,
   };
 
   factory NetworkPrivateGameState.fromJson(
     Map<String, Object?> json,
   ) => NetworkPrivateGameState(
     roundNumber: json['round_number']! as int,
+    roundCardRatings: (json['round_card_ratings'] as List?)?.cast<Object?>(),
     displayedHandActions: Map<String, String>.from(
       (json['displayed_hand_actions'] as Map?) ?? const {},
     ),
@@ -242,6 +253,9 @@ final class NetworkPrivateGameState {
     ],
     clothesByPlayer: Map<String, int>.from(
       (json['clothes_by_player'] as Map?) ?? {},
+    ),
+    actionClothingConfirmations: Map<String, int>.from(
+      (json['action_clothing_confirmations'] as Map?) ?? const {},
     ),
     clothingObservations: Map<String, int>.from(
       (json['clothing_observations'] as Map?) ?? {},

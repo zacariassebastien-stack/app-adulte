@@ -19,6 +19,7 @@ import '../lobby/lobby_models.dart';
 import '../lobby/active_session_store.dart';
 import '../lobby/game_history.dart';
 import '../profile/v4_accessory_profile_screen.dart';
+import '../profile/radial_appreciation.dart';
 import '../profile/catalog_profile_controller.dart';
 import '../profile/catalog_profile_screen.dart';
 import 'game_preferences.dart';
@@ -30,6 +31,7 @@ import 'network_profile_learning.dart';
 import '../../engines/eligibility/concept_action_options.dart';
 import 'ui/card_hand_surface.dart';
 import 'ui/resolution_wording.dart';
+import 'ui/persistent_effect_notice.dart';
 import 'ui/adaptive_card_page.dart';
 import 'ui/discard_gallery_screen.dart';
 import 'ui/gameplay_hud.dart';
@@ -103,7 +105,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   bool _historyRecorded = false;
   bool _leavingForNewGame = false;
   bool _savingStageVeto = false;
-  int? _pendingClothingCount;
+  Future<void>? _finishFuture;
+  bool _finishing = false;
+  bool _quitting = false;
 
   @override
   void initState() {
@@ -148,16 +152,23 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         _corruptionCards.clear();
         _postDuelChoice = null;
         _requestInversion = false;
-        _pendingClothingCount = null;
       }
       final held = controller.heldConcepts.map((c) => c.id).toSet();
-      final stale = _displayedActions.keys.where((id) => !held.contains(id) ||
-        (controller.displayedHandAction(id) != null &&
-         controller.displayedHandAction(id) != _displayedActions[id]) ||
-        (_displayedDirections[id] != null &&
-         controller.heldDirection(id) != _displayedDirections[id])).toSet();
+      final stale = _displayedActions.keys
+          .where(
+            (id) =>
+                !held.contains(id) ||
+                (controller.displayedHandAction(id) != null &&
+                    controller.displayedHandAction(id) !=
+                        _displayedActions[id]) ||
+                (_displayedDirections[id] != null &&
+                    controller.heldDirection(id) != _displayedDirections[id]),
+          )
+          .toSet();
       _displayedActions.removeWhere((id, _) => stale.contains(id));
-      _displayedDirections.removeWhere((id, _) => !held.contains(id) || stale.contains(id));
+      _displayedDirections.removeWhere(
+        (id, _) => !held.contains(id) || stale.contains(id),
+      );
     });
   }
 
@@ -181,7 +192,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           actionPoints: controller.actionPoints[controller.playerId] ?? 0,
           status: _status,
           roundNumber: controller.roundNumber,
-          spice: controller.activeSpice,
+          spice: controller.round?.v4UnlockedSpice ?? controller.activeSpice,
           orientation: controller.orientation,
           stage:
               controller.viewState == NetworkGameViewState.waitingForPartner ||
@@ -196,10 +207,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               : null,
           discardVisible: calm && _handStage != CardHandStage.open,
           onDiscard: _openDiscard,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 58),
-            child: _body(),
-          ),
+          child: _body(),
         ),
       ),
     );
@@ -227,6 +235,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     final body = _phaseBody();
     final card = controller.personalDuelCard;
     final decision = const {
+      NetworkGameViewState.tieDecision,
       NetworkGameViewState.corruptionDecision,
       NetworkGameViewState.corruptionResponse,
       NetworkGameViewState.negotiationProposal,
@@ -239,11 +248,15 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     return AdaptiveCardPage(
       key: body.key,
       before: body.children,
-      card: IgnorePointer(child: FittedActionCard(child: CardRenderer(
-        key: const Key('personal-duel-card'),
-        definition: _handItem(card).definition,
-        state: CardVisualState.full,
-      ))),
+      card: IgnorePointer(
+        child: FittedActionCard(
+          child: CardRenderer(
+            key: const Key('personal-duel-card'),
+            definition: _handItem(card).definition,
+            state: CardVisualState.full,
+          ),
+        ),
+      ),
       after: const [],
     );
   }
@@ -252,8 +265,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     NetworkGameViewState.loading => const Center(
       child: CircularProgressIndicator(key: Key('duel-loading')),
     ),
-    NetworkGameViewState.choosing ||
-    NetworkGameViewState.committing => _choosing(),
+    NetworkGameViewState.choosing => _choosing(),
+    NetworkGameViewState.committing => _waiting(),
     NetworkGameViewState.waitingForPartner ||
     NetworkGameViewState.revealing => _waiting(),
     NetworkGameViewState.negotiationProposal => _negotiationProposal(),
@@ -273,6 +286,95 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     NetworkGameViewState.error => _error(),
   };
 
+  Future<void> _rateHandCard(CardHandItem item) async {
+    if (controller.viewState != NetworkGameViewState.choosing ||
+        controller.selectedCard != null) {
+      return;
+    }
+    final editor = CatalogProfileController(
+      sexLocked: true,
+      catalog: widget.catalog,
+      playerId: widget.playerId,
+      profileStore: widget.profileStore,
+      ratingStore: widget.cardLearningStore,
+    );
+    try {
+      await editor.load();
+      if (!mounted || controller.viewState != NetworkGameViewState.choosing) {
+        return;
+      }
+      final target = editor.items.singleWhere(
+        (candidate) =>
+            candidate.concept.id == item.definition.cardId &&
+            candidate.actionId == item.definition.variantId &&
+            candidate.direction.name == item.definition.direction,
+      );
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Mon appréciation'),
+          scrollable: true,
+          content: AnimatedBuilder(
+            animation: editor,
+            builder: (context, _) {
+              final category = editor.category(target);
+              return SizedBox(
+                width: 320,
+                child: RadialAppreciation(
+                  visible: true,
+                  initialValue: category,
+                  allowExclusion: false,
+                  enabled:
+                      !editor.saving &&
+                      controller.viewState == NetworkGameViewState.choosing,
+                  onSelected: (value) async {
+                    if (controller.viewState != NetworkGameViewState.choosing) {
+                      return;
+                    }
+                    // Exclusions retain their existing consent flow in the hand menu.
+                    if (value == DetailedPreferenceCategory.excluded) return;
+                    try {
+                      await editor.rate(
+                        target,
+                        value,
+                        preserveExclusions: true,
+                      );
+                      // The current hand and its personal values remain frozen.
+                      if (dialogContext.mounted) Navigator.pop(dialogContext);
+                    } catch (_) {
+                      if (dialogContext.mounted) {
+                        ScaffoldMessenger.of(dialogContext).showSnackBar(
+                          const SnackBar(
+                            content: Text('Note non enregistrée. Réessaie.'),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: const SizedBox.shrink(),
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Fermer'),
+            ),
+          ],
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notation indisponible. Réessaie.')),
+        );
+      }
+    } finally {
+      editor.dispose();
+    }
+  }
+
   Future<void> _handMenu(CardHandItem item) async {
     if (controller.viewState != NetworkGameViewState.choosing ||
         !controller.heldConcepts.any((c) => c.id == item.definition.cardId)) {
@@ -284,8 +386,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     if (item.definition.direction case final direction?) {
       _displayedDirections[concept.id] = direction;
     }
-    final cardExcluded = controller.cardExcluded(concept.id,
-      direction: item.definition.direction);
+    final cardExcluded = controller.cardExcluded(
+      concept.id,
+      direction: item.definition.direction,
+    );
     final stageExcluded =
         actionId != null &&
         controller.stageExcluded(
@@ -354,10 +458,15 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     try {
       await editor.load();
       if (choice == 'card') {
-        await editor.excludeCard(concept.id, excluded: !cardExcluded,
+        await editor.excludeCard(
+          concept.id,
+          excluded: !cardExcluded,
           role: controller.cardExcluded(concept.id)
               ? ProfilePreferenceRole.general
-              : ProfilePreferenceRole.parse(item.definition.direction ?? 'GENERAL'));
+              : ProfilePreferenceRole.parse(
+                  item.definition.direction ?? 'GENERAL',
+                ),
+        );
       } else {
         final target = editor.items.singleWhere(
           (i) =>
@@ -373,7 +482,6 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       }
       if (!mounted) return;
       await controller.applyStageVetoProfile(editor.profile);
-      await controller.reloadPrivateCardRatings();
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -387,8 +495,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
 
   Widget _choosing() => controller.sessionConsentReady
       ? _handSurface()
-      : _centerMessage('Synchronisation des cartes disponibles…',
-          key: const Key('session-consent-waiting'));
+      : _centerMessage(
+          'Synchronisation des cartes disponibles…',
+          key: const Key('session-consent-waiting'),
+        );
 
   Widget _handSurface() => CardHandSurface(
     key: const Key('network-game-hand'),
@@ -398,6 +508,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     },
     onLockChanged: (item) => controller.toggleLock(item.id),
     onLongPressCard: _handMenu,
+    onRate: controller.viewState == NetworkGameViewState.choosing
+        ? _rateHandCard
+        : null,
     onReplace: (item) => controller.replaceExcludedCard(item.definition.cardId),
     onTabChanged: (item, actionId) => setState(() {
       _displayedActions[item.id] = actionId;
@@ -470,7 +583,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             available: false,
             excluded:
                 controller.consentBlocksHeldCard(concept.id) ||
-                controller.cardExcluded(concept.id, direction: controller.heldDirection(concept.id)) ||
+                controller.cardExcluded(
+                  concept.id,
+                  direction: controller.heldDirection(concept.id),
+                ) ||
                 (controller.editableProfile?.stageVetoes.any(
                       (v) => v.conceptId == concept.id,
                     ) ??
@@ -489,9 +605,11 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                   label: '${i + 1}',
                   enabled: false,
                   excluded:
-                      !controller.localConsentAllowed(concept.id,
+                      !controller.localConsentAllowed(
+                        concept.id,
                         concept.stages[i].id,
-                        controller.heldDirection(concept.id) ?? 'GENERAL') ||
+                        controller.heldDirection(concept.id) ?? 'GENERAL',
+                      ) ||
                       controller.stageExcluded(
                         concept.id,
                         concept.stages[i].id,
@@ -535,7 +653,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   CardHandItem _conceptHandItem(String id, NetworkDuelCard fallback) {
     // Keep the consulted occurrence stable until the controller replaces it;
     // the owner's own exclusions remain visible on that occurrence.
-    _displayedActions.putIfAbsent(id, () => controller.displayedHandAction(id) ?? fallback.variant.id);
+    _displayedActions.putIfAbsent(
+      id,
+      () => controller.displayedHandAction(id) ?? fallback.variant.id,
+    );
     _displayedDirections.putIfAbsent(id, () => fallback.nativeDirection.name);
     final concept = controller.conceptFor(id);
     final options = controller.choicesFor(id);
@@ -549,7 +670,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         : controller.previewAction(id, option) ?? fallback;
     final item = _handItem(card);
     final displayedId = _displayedActions[id] ?? item.definition.variantId;
-    if (displayedId != null) controller.recordDisplayedHandAction(id, displayedId);
+    if (displayedId != null) {
+      controller.recordDisplayedHandAction(id, displayedId);
+    }
     final displayedDirection =
         _displayedDirections[id] ?? card.nativeDirection.name;
     final displayedExcluded =
@@ -585,7 +708,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               spice: stage?.chili ?? item.definition.spice,
             ),
       available: item.available && !displayedExcluded,
-      excluded: controller.cardExcluded(id, direction: displayedDirection) || displayedExcluded,
+      excluded:
+          controller.cardExcluded(id, direction: displayedDirection) ||
+          displayedExcluded,
       replaceable:
           displayedExcluded ||
           controller.editableProfile?.stageVetoes.any(
@@ -656,11 +781,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         card.id == '024' ||
         (concept?.variants.any((v) => v.id == card.variant.id && v.freeZone) ??
             false);
-    final option = (recovery
-        ? controller.recoveryChoicesFor(card.id)
-        : controller.choicesFor(card.id))
-        .where((o) => o.choice.actionId == card.variant.id)
-        .firstOrNull;
+    final option =
+        (recovery
+                ? controller.recoveryChoicesFor(card.id)
+                : controller.choicesFor(card.id))
+            .where((o) => o.choice.actionId == card.variant.id)
+            .firstOrNull;
     final editorialRenderer = ConceptEditorialRenderer(
       widget.catalog.concepts!,
     );
@@ -748,25 +874,33 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   String _waitingName(String? playerId, {bool subject = false}) {
-    final name = (widget.participantNames[playerId] ??
-        widget.session.participantNames[playerId])?.trim();
+    final name =
+        (widget.participantNames[playerId] ??
+                widget.session.participantNames[playerId])
+            ?.trim();
     return name != null && name.isNotEmpty
         ? name
-        : subject ? 'Ton partenaire' : 'ton partenaire';
+        : subject
+        ? 'Ton partenaire'
+        : 'ton partenaire';
   }
 
   String? _otherParticipantId(String playerId) => widget.session.players
       .where((player) => player.userId != playerId)
-      .map((player) => player.userId).firstOrNull;
+      .map((player) => player.userId)
+      .firstOrNull;
 
   String? get _negotiationProposerId => controller.finalResolution == null
-      ? controller.initialResolution?.loserPlayerId : controller.finalLoserId;
+      ? controller.initialResolution?.loserPlayerId
+      : controller.finalLoserId;
   String? get _negotiationResponderId => controller.finalResolution == null
-      ? controller.initialResolution?.winnerPlayerId : controller.finalWinnerId;
+      ? controller.initialResolution?.winnerPlayerId
+      : controller.finalWinnerId;
 
   Widget _negotiationProposal() => _negotiationEditor(
     title: 'Proposer un compromis',
-    waiting: '${_waitingName(_negotiationProposerId, subject: true)} prépare une proposition…',
+    waiting:
+        '${_waitingName(_negotiationProposerId, subject: true)} prépare une proposition…',
     buttonLabel: 'Envoyer la proposition',
     onSubmit: () => _submitNegotiation(adaptation: false),
   );
@@ -775,7 +909,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     final response = controller.negotiation!.response!;
     return _negotiationEditor(
       title: 'Adapter ma proposition',
-      waiting: '${_waitingName(controller.initialResolution?.loserPlayerId, subject: true)} adapte sa proposition…',
+      waiting:
+          '${_waitingName(controller.initialResolution?.loserPlayerId, subject: true)} adapte sa proposition…',
       buttonLabel: 'Envoyer le choix final',
       allowInversion: response.acceptInversion,
       allowAuction: response.acceptAuction,
@@ -810,7 +945,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             value: _requestInversion,
             onChanged: (value) => setState(() => _requestInversion = value),
             title: const Text('Proposer une inversion'),
-            subtitle: const Text(_inversionHelp, key: Key('negotiation-inversion-help')),
+            subtitle: const Text(
+              _inversionHelp,
+              key: Key('negotiation-inversion-help'),
+            ),
           ),
         if (allowAuction) ...[
           TextField(
@@ -866,7 +1004,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       children: [
         _initialResult(controller.initialResolution!),
         if (!controller.isNegotiationResponder)
-          _waitingCard('${_waitingName(_negotiationResponderId, subject: true)} répond à ta proposition…')
+          _waitingCard(
+            '${_waitingName(_negotiationResponderId, subject: true)} répond à ta proposition…',
+          )
         else ...[
           Text(
             'Proposition de compromis',
@@ -898,7 +1038,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       children: [
         _initialResult(controller.initialResolution!),
         if (!controller.isInitialWinner)
-          _waitingCard('${_waitingName(controller.initialResolution?.winnerPlayerId, subject: true)} valide le compromis…')
+          _waitingCard(
+            '${_waitingName(controller.initialResolution?.winnerPlayerId, subject: true)} valide le compromis…',
+          )
         else ...[
           Text(
             'Compromis final',
@@ -929,8 +1071,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     );
   }
 
-  Widget _tieDecision() => ListView(
-    padding: const EdgeInsets.all(16),
+  Widget _tieDecision() => _DecisionContent(
     children: [
       _initialResult(controller.initialResolution!),
       const SizedBox(height: 16),
@@ -967,7 +1108,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             for (final card in result.compromise)
               NetworkResolvedActionCardDto.fromUsage(card.usage),
           ];
-    final winner = controller.initialResolution?.winnerPlayerId ??
+    final winner =
+        controller.initialResolution?.winnerPlayerId ??
         result.initialWinnerPlayerId;
     final title = result.mutualAbandon
         ? 'Round abandonné mutuellement'
@@ -979,42 +1121,60 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     return AdaptiveCardPage(
       key: const Key('network-action-in-progress'),
       before: [
-        Text(title, textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: Theme.of(
+            context,
+          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 12),
       ],
-      card: !result.mutualAbandon && cards.isNotEmpty ? _ResolutionCards(
-        key: ValueKey('resolution:${controller.round!.roundId}:${cards.map((card) => card.usageId).join(',')}'),
-        cards: [for (final card in cards) _resolvedActionCard(card)],
-      ) : null,
+      card: !result.mutualAbandon && cards.isNotEmpty
+          ? _ResolutionCards(
+              key: ValueKey(
+                'resolution:${controller.round!.roundId}:${cards.map((card) => card.usageId).join(',')}',
+              ),
+              cards: [for (final card in cards) _resolvedActionCard(card)],
+            )
+          : null,
       after: [
         if (controller.persistentEffects.isNotEmpty) ...[
           const SizedBox(height: 16),
-          Text('Effets actifs', style: Theme.of(context).textTheme.titleMedium),
           for (final effect in controller.persistentEffects)
-            Text(
-              '${_title(effect.cardId)}${effect.stageId == null ? '' : ' · ${effect.stageId}'} · ${effect.remainingActions} ${effect.unit == 'turns' ? 'tour(s)' : 'action(s)'} restant(s)\n'
-              'Concerne : ${effect.targetPlayerId == widget.playerId ? 'toi' : 'ton partenaire'}'
-              '${effect.actorPlayerIds.isEmpty ? '' : '\nExécutant : ${effect.actorPlayerIds.map((id) => id == widget.playerId ? 'toi' : 'ton partenaire').join(', ')}'}'
-              '${effect.actionText == null ? '' : '\n${effect.actionText}'}'
-              '${effect.instruction == null ? '' : '\n${effect.instruction}'}',
+            PersistentEffectNotice(
+              effect: effect,
+              title: _title(effect.cardId),
+              duration:
+                  widget.catalog.cards
+                      .where(
+                        (card) =>
+                            card.stableId == 'card.v4.${effect.cardId}' ||
+                            card.stableId == effect.cardId,
+                      )
+                      .firstOrNull
+                      ?.v4
+                      ?.durationActions ??
+                  3,
+              wording: _resolutionWording,
             ),
         ],
-        if (controller.ownClothingResyncRequired &&
-            controller.ownClothingChangeIsDeterministic) ...[
+        if (controller.ownClothingResyncRequired) ...[
           const SizedBox(height: 12),
           OutlinedButton(
             key: const Key('adjust-deterministic-clothing-count'),
             onPressed: _adjustClothingCount,
             child: Text(
-              'Ajuster les vêtements (${_pendingClothingCount ?? controller.suggestedOwnClothingCount()})',
+              'Ajuster les vêtements (${controller.confirmedOwnClothingCount ?? controller.suggestedOwnClothingCount()})',
             ),
           ),
         ],
         const SizedBox(height: 20),
         FilledButton(
           key: const Key('complete-network-action'),
-          onPressed: controller.actionCompletionSubmitted
+          onPressed:
+              controller.actionCompletionSubmitted ||
+                  !controller.ownActionClothingConfirmed
               ? null
               : _completeAction,
           child: Text(
@@ -1029,21 +1189,21 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   Future<void> _completeAction() async {
-    if (controller.ownClothingResyncRequired) {
-      final count = controller.ownClothingChangeIsDeterministic
-          ? _pendingClothingCount ?? controller.suggestedOwnClothingCount()
-          : await _requestClothingCount(controller.suggestedOwnClothingCount());
-      if (count == null) return;
-      await controller.updateOwnClothingCount(count);
-    }
+    if (!controller.ownActionClothingConfirmed) return;
     await controller.completeAction();
   }
 
   Future<void> _adjustClothingCount() async {
+    final key = controller.round?.roundId;
     final count = await _requestClothingCount(
-      _pendingClothingCount ?? controller.suggestedOwnClothingCount(),
+      controller.suggestedOwnClothingCount(),
     );
-    if (count != null && mounted) setState(() => _pendingClothingCount = count);
+    if (count != null &&
+        mounted &&
+        controller.round?.roundId == key &&
+        controller.ownClothingResyncRequired) {
+      await controller.updateOwnClothingCount(count);
+    }
   }
 
   Future<int?> _requestClothingCount(int initialCount) => showDialog<int>(
@@ -1085,7 +1245,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               .firstOrNull
               ?.title ??
           variant?.title,
-      action: action['action_text']! as String,
+      action: card.cardId == '061'
+          ? _resolutionWording.silenceInstruction(
+              (action['actor_player_ids']! as List).cast<String>().single,
+              (parameters['duration_actions'] as int?) ?? 3,
+            )
+          : action['action_text']! as String,
       direction: card.direction.name,
       spice: card.effectiveSpice,
       zones: [
@@ -1094,7 +1259,11 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         else if (variant?.freeZone == true || card.cardId == '024')
           'LIBRE',
       ],
-      details: parameters.containsKey('display_details')
+      details: card.cardId == '061'
+          ? _resolutionWording.silenceDetailsFor(
+              (action['actor_player_ids']! as List).cast<String>().single,
+            )
+          : parameters.containsKey('display_details')
           ? parameters['display_details'] as String?
           : concept?.detailsText,
       illustrationId: parameters.containsKey('display_illustration')
@@ -1111,7 +1280,11 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
-        Text(definition.title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
+        Text(
+          definition.title,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         const SizedBox(height: 8),
         Text(
           _resolutionWording.describe(card, definition.title),
@@ -1120,9 +1293,15 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 12),
-        Expanded(child: FittedActionCard(child: CardRenderer(
-          definition: definition, state: CardVisualState.full, showPa: false,
-        ))),
+        Expanded(
+          child: FittedActionCard(
+            child: CardRenderer(
+              definition: definition,
+              state: CardVisualState.full,
+              showPa: false,
+            ),
+          ),
+        ),
         Text(
           [
             for (final accessory in action['accessories']! as List)
@@ -1133,7 +1312,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     );
   }
 
-  Widget _waitingNext() => Center(
+  Widget _waitingNext() => SingleChildScrollView(
     key: const Key('network-round-boundary'),
     child: Padding(
       padding: const EdgeInsets.all(24),
@@ -1191,7 +1370,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       if (controller.round?.cycleStyleProposal != null) ...[
         Text('Style proposé : ${controller.round!.cycleStyleProposal!.name}'),
         if (controller.round!.cycleStyleProposer == controller.playerId)
-          Text('En attente de l’accord de ${_waitingName(_otherParticipantId(controller.round!.cycleStyleProposer!))}…')
+          Text(
+            'En attente de l’accord de ${_waitingName(_otherParticipantId(controller.round!.cycleStyleProposer!))}…',
+          )
         else ...[
           FilledButton(
             key: const Key('accept-cycle-style'),
@@ -1256,7 +1437,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     if (_postDuelChoice == _PostDuelChoice.compromise) {
       return _negotiationEditor(
         title: 'Tenter un compromis',
-        waiting: '${_waitingName(_negotiationProposerId, subject: true)} prépare une proposition…',
+        waiting:
+            '${_waitingName(_negotiationProposerId, subject: true)} prépare une proposition…',
         buttonLabel: 'Envoyer la proposition',
         onSubmit: () => _submitNegotiation(adaptation: false),
         canEdit: controller.isFinalLoser,
@@ -1384,7 +1566,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           ),
         const SizedBox(height: 16),
         if (offer.offeredBy == controller.playerId)
-          _waitingCard('En attente de la réponse de ${_waitingName(_otherParticipantId(offer.offeredBy))}…')
+          _waitingCard(
+            'En attente de la réponse de ${_waitingName(_otherParticipantId(offer.offeredBy))}…',
+          )
         else ...[
           FilledButton(
             key: const Key('accept-network-corruption'),
@@ -1459,7 +1643,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                           aspectRatio: .68,
                           child: CardRenderer(
                             key: Key('recovery-choice-card-${card.identity}'),
-                            definition: _handItem(card, recovery: true).definition,
+                            definition: _handItem(
+                              card,
+                              recovery: true,
+                            ).definition,
                             state: CardVisualState.full,
                             showPa: false,
                             showDirection: false,
@@ -1495,7 +1682,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           '${proposal.usage.resolvedAction['action_text']} · 🌶️${proposal.usage.resolvedAction['effective_chili']}',
         ),
         if (proposal.playerId == controller.playerId)
-          _waitingCard('En attente du consentement de ${_waitingName(_otherParticipantId(proposal.playerId))}…')
+          _waitingCard(
+            'En attente du consentement de ${_waitingName(_otherParticipantId(proposal.playerId))}…',
+          )
         else ...[
           FilledButton(
             key: const Key('accept-network-recovery'),
@@ -1521,12 +1710,34 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         const Text('Recovery accepté'),
+        if (controller.ownRecoveryClothingConfirmationRequired)
+          FilledButton(
+            key: const Key('confirm-recovery-clothing'),
+            onPressed: () async {
+              final count = await _requestClothingCount(
+                controller.currentClothingCount,
+              );
+              if (count != null) {
+                await controller.confirmRecoveryClothing(count);
+              }
+            },
+            child: const Text('Confirmer mes vêtements'),
+          ),
+        if (controller.waitingForRecoveryClothing &&
+            !controller.ownRecoveryClothingConfirmationRequired)
+          _waitingCard(
+            'En attente de la confirmation des vêtements de ${_waitingName(controller.recoveryClothingPlayerIds.where((id) => !controller.recoveryClothingConfirmedPlayerIds.contains(id)).first)}…',
+          ),
         if (proposal.playerId != controller.playerId)
-          _waitingCard('${_waitingName(proposal.playerId, subject: true)} exécute l’action Recovery…')
+          _waitingCard(
+            '${_waitingName(proposal.playerId, subject: true)} exécute l’action Recovery…',
+          )
         else ...[
           FilledButton(
             key: const Key('complete-network-recovery'),
-            onPressed: () => controller.completeRecovery(completed: true),
+            onPressed: controller.waitingForRecoveryClothing
+                ? null
+                : () => controller.completeRecovery(completed: true),
             child: const Text('Action exécutée'),
           ),
           OutlinedButton(
@@ -1683,7 +1894,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               const Divider(),
               ListTile(
                 title: const Text('Catalogue et appréciations'),
-                onTap: _openCatalogProfile,
+                onTap: controller.viewState == NetworkGameViewState.sessionEnded
+                    ? _openCatalogProfile
+                    : null,
               ),
               ListTile(
                 key: const Key('customize-v4-accessories'),
@@ -1821,6 +2034,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   Future<void> _openCatalogProfile() async {
+    if (controller.viewState != NetworkGameViewState.sessionEnded) return;
     final editor = CatalogProfileController(
       sexLocked: true,
       catalog: widget.catalog,
@@ -1871,16 +2085,22 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
   }
 
   Future<void> _quitGame() async {
+    if (_quitting || _finishing) return;
+    setState(() => _quitting = true);
     try {
       await controller.closeSession();
       await _finishLocally(NetworkDuelExit.finished);
-    } catch (_) {
+    } catch (error, stack) {
+      debugPrint('Network game exit failed: $error');
+      debugPrintStack(stackTrace: stack);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Impossible de quitter la partie pour le moment.'),
         ),
       );
+    } finally {
+      if (mounted) setState(() => _quitting = false);
     }
   }
 
@@ -1892,7 +2112,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     await _finishLocally(NetworkDuelExit.newGame);
   }
 
-  Widget _sessionEnded() => Center(
+  Widget _sessionEnded() => SingleChildScrollView(
     child: Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -1906,7 +2126,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           const SizedBox(height: 20),
           FilledButton(
             key: const Key('return-home-after-session-end'),
-            onPressed: () => _finishLocally(NetworkDuelExit.finished),
+            onPressed: _finishing || _quitting ? null : _returnHome,
             child: const Text('Retour à l’accueil'),
           ),
         ],
@@ -1914,22 +2134,58 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     ),
   );
 
-  Future<void> _finishLocally(NetworkDuelExit exit) async {
-    await controller.clearLocalSessionState();
+  Future<void> _returnHome() async {
+    try {
+      await _finishLocally(NetworkDuelExit.finished);
+    } catch (error, stack) {
+      debugPrint('Local game exit failed: $error');
+      debugPrintStack(stackTrace: stack);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Impossible de revenir à l’accueil pour le moment. Réessaie.',
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _finishLocally(NetworkDuelExit exit) {
+    if (_finishFuture case final pending?) return pending;
+    setState(() => _finishing = true);
+    return _finishFuture = _performFinish(exit).catchError((
+      Object error,
+      StackTrace stack,
+    ) {
+      _finishFuture = null;
+      if (mounted) setState(() => _finishing = false);
+      Error.throwWithStackTrace(error, stack);
+    });
+  }
+
+  Future<void> _performFinish(NetworkDuelExit exit) async {
+    final gameRoute = ModalRoute.of(context)!;
+    final navigator = Navigator.of(context);
+    // Remove the restore pointer before any transport teardown can stall.
     await widget.activeSessionStore.clear();
+    await controller.clearLocalSessionState();
     if (!_historyRecorded) {
       _historyRecorded = true;
-      await widget.historyStore.add(
-        GameHistoryEntry.forRounds(controller.roundNumber),
-      );
+      try {
+        await widget.historyStore.add(
+          GameHistoryEntry.forRounds(controller.roundNumber),
+        );
+      } catch (error, stack) {
+        debugPrint('Game history could not be saved on exit: $error');
+        debugPrintStack(stackTrace: stack);
+      }
     }
-    if (mounted) {
-      final gameRoute = ModalRoute.of(context)!;
-      final navigator = Navigator.of(context);
-      // Settings/confirmation dialogs may still cover the game. Return the
-      // result from this route, not from whichever modal happens to be on top.
+    if (mounted && gameRoute.isActive && !gameRoute.isFirst) {
+      // Never search for an already-removed route and accidentally pop the home.
       navigator.popUntil((route) => route == gameRoute);
-      navigator.pop(exit);
+      if (gameRoute.isCurrent) navigator.pop(exit);
     }
   }
 
@@ -2188,5 +2444,6 @@ class _DecisionContent extends StatelessWidget {
   final List<Widget> children;
   final EdgeInsetsGeometry? padding;
   @override
-  Widget build(BuildContext context) => ListView(padding: padding, children: children);
+  Widget build(BuildContext context) =>
+      ListView(padding: padding, children: children);
 }

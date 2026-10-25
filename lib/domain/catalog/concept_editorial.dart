@@ -77,6 +77,11 @@ final class ConceptEditorialRenderer {
 
     var details =
         stage?.detailsText ?? variant?.detailsText ?? concept.detailsText;
+    if (concept.id == '061' && direction == CardOccurrenceDirection.RECEVOIR) {
+      details =
+          'Cette personne ne parle pas et ne fait volontairement aucun bruit. '
+          'Elle peut uniquement rompre le silence lorsqu’une décision de jeu nécessite de communiquer.';
+    }
     if (zone?.composed == true && concept.composedDetailsText != null) {
       details = [?details, concept.composedDetailsText!].join(' ');
     }

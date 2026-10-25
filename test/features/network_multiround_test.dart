@@ -1,4 +1,5 @@
 import 'package:couple_cards/features/profile/catalog_profile_controller.dart';
+import 'package:couple_cards/features/profile/radial_appreciation.dart';
 import 'package:couple_cards/features/game/ui/card_hand_surface.dart';
 import 'package:couple_cards/card_themes/card_renderer.dart';
 import 'package:flutter/services.dart';
@@ -54,6 +55,373 @@ void main() {
     );
   });
 
+
+  for (final actor in ['alice', 'bob']) {
+    for (final confirmed in [0, 5, 6]) {
+      test('Followup clothing $actor=$confirmed requires explicit confirmation and survives reconnect', () async {
+        final backend = _Backend();
+        _setProjectedAction(backend, cards: [_projectedCard(occurrenceId: 'explicit-$actor', cardId: '006',
+          variantId: '006.action', targetPlayerIds: [actor], clothingBehavior: V4ClothingBehavior.removeOne)],
+          requiredClothingPlayerIds: {actor});
+        final secrets = MemoryNetworkDuelSecretStore();
+        var wearer = _controller(backend, session, catalog, actor, secrets);
+        final otherId = actor == 'alice' ? 'bob' : 'alice';
+        final other = _controller(backend, session, catalog, otherId, MemoryNetworkDuelSecretStore());
+        addTearDown(other.dispose);
+        await Future.wait([wearer.start(), other.start()]);
+        expect(wearer.ownActionClothingConfirmed, isFalse);
+        expect(other.ownActionClothingConfirmed, isTrue);
+        await wearer.completeAction(); await _settle();
+        expect(backend.round.ready, isNot(contains(actor)));
+        expect(backend.clothingCounts[actor], 6);
+        await other.completeAction(); await _settle();
+        expect(backend.round.ready, contains(otherId));
+        await wearer.updateOwnClothingCount(confirmed);
+        expect(wearer.ownActionClothingConfirmed, isTrue);
+        final saved = (await secrets.loadGame(sessionId: session.id, playerId: actor))!;
+        await secrets.saveGame(sessionId: session.id, playerId: actor,
+          state: NetworkPrivateGameState.fromJson(jsonDecode(jsonEncode(saved.toJson())) as Map<String, Object?>));
+        wearer.dispose();
+        wearer = _controller(backend, session, catalog, actor, secrets);
+        addTearDown(wearer.dispose);
+        await wearer.start(); await _settle();
+        expect(wearer.ownActionClothingConfirmed, isTrue);
+        expect(wearer.suggestedOwnClothingCount(), confirmed);
+        expect(backend.clothingCounts[actor], 6);
+        await wearer.completeAction(); await _settle();
+        expect(backend.clothingCounts[actor], confirmed);
+        expect(backend.clothingCounts[otherId], 6);
+      });
+    }
+  }
+
+  for (final wearer in ['alice', 'bob']) {
+    for (final viewerIsWearer in [true, false]) {
+      testWidgets('Followup clothing UI wearer=$wearer local=$viewerIsWearer locks only required player', (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final backend = _Backend();
+        _setProjectedAction(backend, cards: [_projectedCard(occurrenceId: 'ui-confirm-$wearer', cardId: '006',
+          variantId: '006.action', targetPlayerIds: [wearer], clothingBehavior: V4ClothingBehavior.removeOne)],
+          requiredClothingPlayerIds: {wearer});
+        final viewer = viewerIsWearer ? wearer : wearer == 'alice' ? 'bob' : 'alice';
+        await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session, playerId: viewer,
+          repository: backend.repository(viewer), catalog: catalog, secretStore: MemoryNetworkDuelSecretStore(),
+          anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE})));
+        await tester.pumpAndSettle();
+        final done = find.byKey(const Key('complete-network-action'));
+        final adjust = find.byKey(const Key('adjust-deterministic-clothing-count'));
+        expect(tester.widget<FilledButton>(done).onPressed, viewerIsWearer ? isNull : isNotNull);
+        expect(adjust, viewerIsWearer ? findsOneWidget : findsNothing);
+        if (viewerIsWearer) {
+          await _showResolutionControl(tester, 'adjust-deterministic-clothing-count');
+          await tester.tap(adjust); await tester.pumpAndSettle();
+          await tester.tap(find.widgetWithText(TextButton, 'Annuler')); await tester.pumpAndSettle();
+          expect(tester.widget<FilledButton>(done).onPressed, isNull);
+          await tester.tap(adjust); await tester.pumpAndSettle();
+          await tester.enterText(find.byKey(const Key('clothing-resync-count')), '6');
+          await tester.tap(find.widgetWithText(FilledButton, 'Valider')); await tester.pumpAndSettle();
+          expect(tester.widget<FilledButton>(done).onPressed, isNotNull);
+          expect(backend.clothingCounts[wearer], 6);
+        }
+        await _showResolutionControl(tester, 'complete-network-action');
+        await tester.tap(done); await tester.pumpAndSettle();
+        expect(backend.round.ready, contains(viewer));
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
+    }
+  }
+
+  test('Followup private cleanup can retry a failed local erase', () async {
+    final backend = _Backend();
+    final secrets = _ControlledSecretStore();
+    final controller = _controller(backend, session, catalog, 'alice', secrets);
+    addTearDown(controller.dispose); await controller.start();
+    secrets.failClearOnce = true;
+    await expectLater(controller.clearLocalSessionState(), throwsStateError);
+    await controller.clearLocalSessionState();
+    expect(await secrets.loadGame(sessionId: session.id, playerId: 'alice'), isNull);
+  });
+
+  test('Followup exit waits for an in-flight private save then erases it permanently', () async {
+    final backend = _Backend();
+    final secrets = _ControlledSecretStore();
+    final controller = _controller(backend, session, catalog, 'alice', secrets);
+    addTearDown(controller.dispose);
+    await controller.start();
+    secrets.hold = Completer<void>();
+    controller.toggleLock(controller.hand.first.identity);
+    await secrets.saveStarted.future;
+    var cleaned = false;
+    final cleanup = controller.clearLocalSessionState().then((_) => cleaned = true);
+    await _settle(); expect(cleaned, isFalse);
+    secrets.hold!.complete(); await cleanup;
+    expect(await secrets.loadGame(sessionId: session.id, playerId: 'alice'), isNull);
+    backend.notify(); await _settle();
+    expect(await secrets.loadGame(sessionId: session.id, playerId: 'alice'), isNull);
+    expect(secrets.clearCalls, 1);
+    await controller.clearLocalSessionState();
+    expect(secrets.clearCalls, 1);
+  });
+
+  test('Followup exit detaches consent without awaiting a hanging cancellation', () async {
+    final backend = _Backend();
+    final repository = _HangingConsentRepository(backend, 'alice');
+    final secrets = MemoryNetworkDuelSecretStore();
+    final controller = NetworkGameController(session: session, playerId: 'alice', repository: repository,
+      catalog: catalog, privateStore: secrets,
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE});
+    addTearDown(controller.dispose);
+    await controller.start();
+    await controller.clearLocalSessionState().timeout(const Duration(seconds: 1));
+    expect(repository.cancel.isCompleted, isFalse);
+    expect(await secrets.loadGame(sessionId: session.id, playerId: 'alice'), isNull);
+    repository.cancel.complete(); repository.disposeEvents();
+  });
+
+  testWidgets('Followup concurrent return-home requests pop only the game route', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final backend = _Backend(); backend.round.phase = NetworkGamePhase.sessionClosed;
+    final history = _DeferredHistoryStore();
+    final active = _MemoryActiveSessionStore()..value = session.id;
+    final observer = _ExitObserver();
+    await tester.pumpWidget(MaterialApp(navigatorObservers: [observer], home: Builder(builder: (context) =>
+      Scaffold(body: TextButton(onPressed: () => Navigator.of(context).push<void>(MaterialPageRoute(
+        builder: (_) => NetworkDuelScreen(session: session, playerId: 'alice', repository: backend.repository('alice'),
+          catalog: catalog, activeSessionStore: active, historyStore: history, secretStore: MemoryNetworkDuelSecretStore(),
+          anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}))),
+        child: const Text('Accueil test'))))));
+    await tester.tap(find.text('Accueil test')); await tester.pumpAndSettle();
+    final callback = tester.widget<FilledButton>(find.byKey(const Key('return-home-after-session-end'))).onPressed!;
+    callback(); callback();
+    await tester.pump();
+    expect(active.value, isNull);
+    expect(history.calls, 1);
+    expect(tester.widget<FilledButton>(find.byKey(const Key('return-home-after-session-end'))).onPressed, isNull);
+    history.release.complete(); await tester.pumpAndSettle();
+    expect(find.text('Accueil test'), findsOneWidget);
+    expect(observer.pops, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('UX spice follows live network progression and Recovery P4 leaves canonical P3', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final backend = _Backend()..canonicalSpiceOverride = 1;
+    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session, playerId: 'alice',
+      repository: backend.repository('alice'), catalog: catalog,
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, secretStore: MemoryNetworkDuelSecretStore())));
+    await tester.pumpAndSettle();
+    for (final level in [1, 2, 3, 4, 3]) {
+      backend.canonicalSpiceOverride = level;
+      backend.notify(); await tester.pumpAndSettle();
+      expect(tester.widget<Text>(find.byKey(const Key('active-spice'))).data,
+        List.generate(4, (i) => i < level ? '🌶️' : '○').join());
+    }
+    backend.round
+      ..phase = NetworkGamePhase.recoveryExecution
+      ..recoveries['bob'] = NetworkRecoveryDto.fromUsage(
+        nativeUsageFixture(owner: 'bob', chili: 4), source: RecoverySource.CATALOG, response: RecoveryResponse.ACCEPT);
+    backend.notify(); await tester.pumpAndSettle();
+    expect(find.byKey(const Key('network-recovery-execution')), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('active-spice'))).data, '🌶️🌶️🌶️○');
+    expect(backend.v4UnlockedSpice, 3);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  for (final owner in ['alice', 'bob']) {
+    for (final direction in [CardOccurrenceDirection.FAIRE, CardOccurrenceDirection.RECEVOIR]) {
+      test('UX Recovery real lifecycle $owner $direction blocks gain until wearer confirms', () async {
+        final backend = _Backend()..canonicalSpiceOverride = 2;
+        backend.round.phase = NetworkGamePhase.recovery;
+        backend.points[owner] = 10;
+        final secrets = MemoryNetworkDuelSecretStore();
+        await secrets.saveGame(sessionId: session.id, playerId: owner,
+          state: privateGameFixture(ownerPlayerId: owner, roundNumber: 1, activeChili: 2,
+            cards: [CardRuntimeState(cardId: '009', zone: CardZone.HAND, nativeDirection: direction)]));
+        final data = _catalogWithCards(catalog, {'card.v4.009'});
+        final proposer = _controller(backend, session, data, owner, secrets);
+        final partnerId = owner == 'alice' ? 'bob' : 'alice';
+        final partner = _controller(backend, session, data, partnerId, MemoryNetworkDuelSecretStore());
+        addTearDown(proposer.dispose); addTearDown(partner.dispose);
+        await Future.wait([proposer.start(), partner.start()]);
+        await proposer.recoverWith('009'); await _settle();
+        await partner.respondToRecovery(RecoveryResponse.ACCEPT); await _settle();
+        final frozen = jsonEncode(proposer.pendingRecovery!.usage.toJson());
+        final actor = direction == CardOccurrenceDirection.FAIRE ? proposer : partner;
+        final observer = identical(actor, proposer) ? partner : proposer;
+        expect(actor.ownRecoveryClothingConfirmationRequired, isTrue);
+        expect(observer.ownRecoveryClothingConfirmationRequired, isFalse);
+        expect(proposer.waitingForRecoveryClothing, isTrue);
+        await proposer.completeRecovery(completed: true); await _settle();
+        expect(backend.round.recoveryHistory, isEmpty);
+        expect(backend.points[owner], 10);
+        expect(backend.clothingCounts, {'alice': 6, 'bob': 6});
+        await observer.confirmRecoveryClothing(0); await _settle();
+        expect(backend.clothingCounts, {'alice': 6, 'bob': 6});
+        await actor.confirmRecoveryClothing(0); await _settle();
+        expect(proposer.waitingForRecoveryClothing, isFalse);
+        expect(jsonEncode(proposer.pendingRecovery!.usage.toJson()), frozen);
+        expect(backend.clothingCounts[actor.playerId], 0);
+        expect(backend.clothingCounts[observer.playerId], 6);
+        await proposer.completeRecovery(completed: true); await _settle();
+        expect(backend.round.recoveryHistory, hasLength(1));
+        final points = backend.points[owner];
+        await proposer.completeRecovery(completed: true); await _settle();
+        expect(backend.points[owner], points);
+        expect(points, greaterThan(10));
+      });
+    }
+  }
+
+  test('UX SQL preserves tie privacy and authoritative clothing completion gates', () {
+    final sql = File('supabase/migrations/202610230001_gameplay_ux_confirmations.sql').readAsStringSync();
+    expect(sql, contains("r.phase<>'TIE_DECISION' or v.player_id=p_requester"));
+    expect(sql, contains("'opponent_reveal',null"));
+    expect(sql, contains("when 'resetThenStrip' then p_action->'actor_player_ids'"));
+    expect(sql, contains("when 'removeOne' then p_action->'target_player_ids'"));
+    expect(sql, contains("auth.uid()<>p_player_id"));
+    expect(sql, contains("v_command.command_payload is distinct from v_payload"));
+    expect(sql, contains("ROUND_CLOTHING_ACTOR_REQUIRED"));
+    expect(sql, contains("ROUND_CLOTHING_RESYNC_REQUIRED"));
+    expect(sql, contains("confirmation.player_id::text=required.id"));
+    expect(sql, contains("confirmation.command_payload->>'usage_id'=p_recovery->>'usage_id'"));
+    expect(sql, contains('normalize_v4_clothing_projection'));
+    expect(sql, isNot(contains('update public.profiles')));
+  });
+
+  for (final owner in ['alice', 'bob']) {
+    for (final direction in ['FAIRE', 'RECEVOIR']) {
+      testWidgets('UX Recovery clothing $owner $direction confirms on actual actor phone', (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final backend = _Backend()..canonicalSpiceOverride = 3;
+        final original = nativeUsageFixture(owner: owner, conceptId: '009', direction: direction, chili: 4);
+        final actor = (original.resolvedAction['actor_player_ids']! as List).single as String;
+        final usage = NetworkUsageProjection.fromJson({...original.toJson(), 'resolved_action': {
+          ...original.resolvedAction, 'parameters': {...original.resolvedAction['parameters']! as Map<String, Object?>,
+            'clothing_behavior': 'resetThenNude'}}});
+        // The observer is the other phone, so its fixture needs no private reservation.
+        final observer = owner == 'alice' ? 'bob' : 'alice';
+        backend.round..phase = NetworkGamePhase.recoveryExecution
+          ..recoveries[owner] = NetworkRecoveryDto.fromUsage(usage, source: RecoverySource.CATALOG, response: RecoveryResponse.ACCEPT);
+        await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session, playerId: observer,
+          repository: backend.repository(observer), catalog: catalog,
+          anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, secretStore: MemoryNetworkDuelSecretStore())));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('confirm-recovery-clothing')), actor == observer ? findsOneWidget : findsNothing);
+        expect(backend.clothingCounts, {'alice': 6, 'bob': 6});
+        final wrong = actor == 'alice' ? 'bob' : 'alice';
+        await expectLater((backend.repository(wrong) as NetworkRecoveryClothingRepository).confirmRecoveryClothing(
+          command: _command('wrong-clothes', wrong, 'RECOVERY_CLOTHING_CONFIRM', backend.round.id),
+          usageId: usage.usageId, clothingCount: 0), throwsA(isA<NetworkRoundException>()));
+        final command = _command('actual-clothes', actor, 'RECOVERY_CLOTHING_CONFIRM', backend.round.id);
+        await (backend.repository(actor) as NetworkRecoveryClothingRepository).confirmRecoveryClothing(
+          command: command, usageId: usage.usageId, clothingCount: 0);
+        await (backend.repository(actor) as NetworkRecoveryClothingRepository).confirmRecoveryClothing(
+          command: command, usageId: usage.usageId, clothingCount: 0);
+        await tester.pumpAndSettle();
+        expect(backend.clothingCounts[actor], 0);
+        expect(backend.clothingCounts[wrong], 6);
+        expect(find.byKey(const Key('confirm-recovery-clothing')), findsNothing);
+        final state = NetworkGameRoundStateDto.fromJson(backend.state(observer).toJson());
+        expect(state.recoveryClothingConfirmations[usage.usageId], {actor});
+        expect(backend.points, {'alice': 100, 'bob': 100});
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
+    }
+  }
+
+  for (final viewer in ['alice', 'bob']) {
+    testWidgets('UX persistent reminders distinguish actor and bearer for $viewer', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final backend = _Backend();
+      _setProjectedAction(backend, cards: [NetworkResolvedActionCardDto.fromUsage(nativeUsageFixture(conceptId: '035'))]);
+      backend.persistentEffects = [const V4PersistentEffect(cardId: '035', targetPlayerId: 'bob', remainingActions: 2,
+        actorPlayerIds: ['alice'])];
+      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session, playerId: viewer,
+        participantNames: const {'alice': 'Sébastien', 'bob': 'Julie'},
+        repository: backend.repository(viewer), catalog: catalog,
+        anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, secretStore: MemoryNetworkDuelSecretStore())));
+      await tester.pumpAndSettle();
+      expect(find.textContaining(viewer == 'alice' ? 'continue « Privation visuelle »' : 'tu es toujours sous l’effet de « Privation visuelle »'), findsOneWidget);
+      expect(find.text('2/3'), findsOneWidget);
+      expect(find.textContaining('Exécutant'), findsNothing);
+      expect(find.textContaining('Julie doit continuer'), findsNothing);
+      expect(backend.persistentEffects.single.remainingActions, 2);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
+  for (final viewer in ['alice', 'bob']) {
+    for (final direction in ['FAIRE', 'RECEVOIR']) {
+      testWidgets('UX Silence $direction viewed by $viewer follows frozen actor', (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final backend = _Backend();
+        final original = nativeUsageFixture(conceptId: '061', direction: direction);
+        final actor = (original.resolvedAction['actor_player_ids']! as List).single as String;
+        final card = NetworkResolvedActionCardDto.fromUsage(NetworkUsageProjection.fromJson({
+          ...original.toJson(), 'resolved_action': {...original.resolvedAction,
+            'parameters': {...original.resolvedAction['parameters']! as Map<String, Object?>, 'duration_actions': 3}},
+        }));
+        _setProjectedAction(backend, cards: [card]);
+        backend.persistentEffects = [V4PersistentEffect(cardId: '061', targetPlayerId: actor,
+          remainingActions: 3, actorPlayerIds: [actor], actionText: 'Owner-relative frozen instruction')];
+        final frozen = jsonEncode(card.toJson());
+        await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session, playerId: viewer,
+          participantNames: const {'alice': 'Sébastien', 'bob': 'Julie'},
+          repository: backend.repository(viewer), catalog: catalog,
+          anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE}, secretStore: MemoryNetworkDuelSecretStore())));
+        await tester.pumpAndSettle();
+        final expected = actor == viewer ? 'Garde un silence complet' : '${actor == 'alice' ? 'Sébastien' : 'Julie'} garde un silence complet';
+        expect(find.textContaining(expected), findsWidgets);
+        expect(find.textContaining('Owner-relative frozen instruction'), findsNothing);
+        expect(jsonEncode(card.toJson()), frozen);
+        expect(backend.persistentEffects.single.remainingActions, 3);
+        expect(backend.persistentEffects.single.targetPlayerId, actor);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
+    }
+  }
+
+  for (final viewer in ['alice', 'bob']) {
+    testWidgets('UX tie $viewer renders only personal frozen card and keeps concession', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final backend = _Backend()..redactOpponentReveal = true;
+      await _primeTie(backend);
+      final revealB = backend.round.reveals['bob']!;
+      backend.round.reveals['bob'] = ChoiceRevealDto(sessionRound: revealB.sessionRound,
+        playerId: 'bob', nonce: revealB.nonce, choice: ChoicePayload.fromUsage(
+          nativeUsageFixture(conceptId: '032', owner: 'bob', usageId: 'private-bob-card', value: 10)));
+      await tester.binding.setSurfaceSize(const Size(320, 568));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+        session: session, playerId: viewer, repository: backend.repository(viewer),
+        catalog: catalog, anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+        secretStore: MemoryNetworkDuelSecretStore())));
+      await tester.pumpAndSettle();
+      final renderers = tester.widgetList<CardRenderer>(find.byType(CardRenderer)).toList();
+      expect(renderers, hasLength(1));
+      final own = backend.round.reveals[viewer]!.choice.usage!;
+      final opposite = backend.round.reveals[viewer == 'alice' ? 'bob' : 'alice']!.choice.usage!;
+      expect(renderers.single.definition.cardId, own.conceptId);
+      expect(find.byKey(const Key('personal-duel-card')), findsOneWidget);
+      final controller = (tester.state(find.byType(NetworkDuelScreen)) as dynamic).controller as NetworkGameController;
+      expect(controller.personalDuelCard!.identity, own.usageId);
+      expect(controller.personalDuelCard!.identity, isNot(opposite.usageId));
+      expect(controller.round!.opponentReveal, isNull);
+      expect(controller.round!.initialDuelCards.map((u) => u.ownerPlayerId), [viewer]);
+      expect(find.text('Mon appréciation'), findsNothing);
+      final pa = Map<String, int>.from(backend.points);
+      await controller.concedeTie(); await tester.pumpAndSettle();
+      expect(backend.round.finalResolution!.retainedPlayerId, viewer == 'alice' ? 'bob' : 'alice');
+      expect(backend.points, pa);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
 
   for (final scenario in [
     (NetworkGamePhase.corruptionDecision, 'alice', 'alice', 'bob', 'response'),
@@ -111,6 +479,7 @@ void main() {
           _ => '$subject exécute l’action Recovery…',
         };
         expect(find.textContaining(expected), findsOneWidget);
+        expect(find.byKey(const Key('active-spice')), findsOneWidget);
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());
       });
@@ -151,6 +520,127 @@ void main() {
         StageVeto(conceptId: '056', actionId: '056.stage.$excluded', role: r),
     ]);
   }
+  for (final owner in ['alice', 'bob']) {
+    for (final direction in ['FAIRE', 'RECEVOIR']) {
+      for (final behavior in [V4ClothingBehavior.resetThenNude, V4ClothingBehavior.resetThenStrip,
+          V4ClothingBehavior.resetThenUnderwear, V4ClothingBehavior.removeOne, V4ClothingBehavior.chooseOutfit]) {
+        test('UX clothing projection $owner $direction ${behavior.name} waits for actual bearer', () async {
+          final backend = _Backend();
+          final base = nativeUsageFixture(conceptId: '009', owner: owner, direction: direction);
+          final usage = NetworkUsageProjection.fromJson({
+            ...base.toJson(),
+            'resolved_action': {
+              ...base.resolvedAction,
+              'parameters': {...base.resolvedAction['parameters']! as Map<String, Object?>,
+                'clothing_behavior': behavior.name},
+            },
+          });
+          backend.round
+            ..phase = NetworkGamePhase.finalResolved
+            ..finalResolution = NetworkFinalResolutionDto(retainedPlayerId: owner,
+              initialWinnerPlayerId: owner, finalWinnerPlayerId: owner,
+              compromise: [NetworkCompromiseCardDto.fromUsage(usage, origin: NetworkCompromiseOrigin.INITIAL_DUEL)]);
+          final controller = NetworkGameController(session: session, playerId: owner,
+            repository: _V4ProjectionRepository(backend, owner), privateStore: MemoryNetworkDuelSecretStore(),
+            catalog: catalog, anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+            learningStore: MemoryNetworkProfileLearningStore());
+          addTearDown(controller.dispose);
+          await controller.start(); await _settle();
+          final actor = (usage.resolvedAction['actor_player_ids']! as List).single as String;
+          final target = (usage.resolvedAction['target_player_ids']! as List).single as String;
+          final expected = [V4ClothingBehavior.removeOne, V4ClothingBehavior.chooseOutfit].contains(behavior) ? target : actor;
+          expect(controller.requiredClothingPlayerIds, {expected});
+          expect(backend.clothingCounts, {'alice': 6, 'bob': 6});
+          expect(controller.ownClothingResyncRequired, expected == owner);
+          const gate = NetworkActionCompletionGate();
+          expect(gate.canClose(projection: controller.actionProjection, resyncedPlayerIds: {}), isFalse);
+          expect(gate.canClose(projection: controller.actionProjection, resyncedPlayerIds: {expected == 'alice' ? 'bob' : 'alice'}), isFalse);
+          expect(gate.canClose(projection: controller.actionProjection, resyncedPlayerIds: {expected}), isTrue);
+          final reconstructed = NetworkResolvedActionProjectionDto.fromJson(controller.actionProjection!.toJson());
+          expect(reconstructed.requiredClothingPlayerIds, {expected});
+          expect(reconstructed.cards.single.clothingPlayerIds, [expected]);
+        });
+      }
+    }
+  }
+
+  test('UX in-game appreciation preserves consent exclusions', () async {
+    final profiles = MemoryV4ProfileStore(); await profiles.save(stageProfile(excluded: 3));
+    final ratings = MemoryV4CardLearningStore();
+    final editor = CatalogProfileController(catalog: _catalogWithCards(catalog, {'card.v4.056'}),
+      playerId: 'alice', profileStore: profiles, ratingStore: ratings, learningStore: MemoryNetworkProfileLearningStore());
+    addTearDown(editor.dispose); await editor.load();
+    final item = editor.items.firstWhere((i) => i.actionId == '056.stage.3');
+    await editor.rate(item, DetailedPreferenceCategory.love, preserveExclusions: true);
+    expect((await profiles.load('alice'))!.excludesStage('056', '056.stage.3', item.direction.name), isTrue);
+    expect((await ratings.load('alice')).explicitEstimate(item.ratingKey('alice')), 3.5);
+  });
+
+  testWidgets('UX hand rating loads precise estimate and freezes current hand through reconnect', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(320, 568));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    SharedPreferences.setMockInitialValues({});
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    final focused = _catalogWithCards(catalog, {'card.v4.056'});
+    final profiles = MemoryV4ProfileStore(); await profiles.save(stageProfile());
+    final ratings = MemoryV4CardLearningStore();
+    final secrets = MemoryNetworkDuelSecretStore();
+    final editor = CatalogProfileController(catalog: focused, playerId: 'alice',
+      profileStore: profiles, ratingStore: ratings, learningStore: MemoryNetworkProfileLearningStore());
+    await editor.load();
+    for (final item in editor.items.where((i) => i.actionId == '056.stage.3')) {
+      await editor.rate(item, DetailedPreferenceCategory.like);
+    }
+    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session, playerId: 'alice',
+      repository: backend.repository('alice'), catalog: focused,
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+      secretStore: secrets, profileStore: profiles, cardLearningStore: ratings, v4Profile: stageProfile())));
+    await tester.pumpAndSettle();
+    final controller = (tester.state(find.byType(NetworkDuelScreen)) as dynamic).controller as NetworkGameController;
+    final hand = find.byType(CardHandSurface);
+    final item = tester.widget<CardHandSurface>(hand).cards.single;
+    final before = controller.hand.single.personalValue;
+    final round = jsonEncode(backend.state('alice').toJson());
+    final area = tester.getRect(hand);
+    await tester.tapAt(Offset(area.center.dx, area.top + area.height * .85));
+    await tester.pumpAndSettle();
+    await tester.tapAt(tester.getCenter(find.byKey(const Key('hand-card-056'))));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('rate-hand-card-056')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('rate-hand-card-056')));
+    await tester.pumpAndSettle();
+    expect(find.text('Mon appréciation'), findsNWidgets(2));
+    expect(find.byKey(const Key('appreciation-radial')), findsOneWidget);
+    final wheel = tester.widget<RadialAppreciation>(find.byType(RadialAppreciation));
+    expect(wheel.allowExclusion, isFalse);
+    expect(wheel.visible, isTrue);
+    expect(wheel.initialValue, DetailedPreferenceCategory.like);
+    final origin = tester.getCenter(find.byType(RadialAppreciation));
+    // One tap on the already-visible profile wheel saves the selected sector.
+    await tester.tapAt(origin + Offset(0, -tester.getSize(find.byType(RadialAppreciation)).width * .33));
+    await tester.pumpAndSettle();
+    final target = editor.items.singleWhere((i) => i.concept.id == item.definition.cardId &&
+      i.actionId == item.definition.variantId && i.direction.name == item.definition.direction);
+    final saved = await ratings.load('alice');
+    expect(saved.explicitEstimate(target.ratingKey('alice')), 1.5);
+    expect(controller.hand.single.personalValue, before);
+    expect(jsonEncode(backend.state('alice').toJson()), round);
+    expect(controller.usageCheckpoint.usagesByIntent, isEmpty);
+    await tester.pumpWidget(const SizedBox.shrink());
+    final restored = NetworkGameController(session: session, playerId: 'alice',
+      repository: backend.repository('alice'), privateStore: secrets, catalog: focused,
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+      v4Profile: stageProfile(), cardLearningStore: ratings, learningStore: MemoryNetworkProfileLearningStore());
+    editor.dispose();
+    await restored.start();
+    expect(restored.hand.single.personalValue, before);
+    restored.selectCard('056'); await restored.confirmSelection();
+    expect(await restored.cancelSelection(), isFalse);
+    final engaged = restored.personalDuelCard!.personalValue;
+    expect(engaged, before);
+    restored.dispose();
+  });
+
   V4Profile consentProfile(String id, {ProfilePreferenceRole? excluded,
     String? stage, bool preference = false}) {
     final base = stageProfile();
@@ -2726,7 +3216,7 @@ void main() {
   );
 
   test(
-    'reconnection resumes a persisted cancellation without refunding quota',
+    'reconnection retains commitment after a forbidden cancellation',
     () async {
       final backend = _Backend();
       final store = MemoryNetworkDuelSecretStore();
@@ -2742,21 +3232,21 @@ void main() {
         sessionId: session.id,
         playerId: 'alice',
       ))!;
-      expect(saved.cancelCommitRequested, isTrue);
+      expect(saved.cancelCommitRequested, isFalse);
       expect(backend.round.commits, contains('alice'));
       controller.dispose();
       controller = _controller(backend, session, catalog, 'alice', store);
       addTearDown(controller.dispose);
       await controller.start();
       await _settle();
-      expect(backend.round.commits, isNot(contains('alice')));
+      expect(backend.round.commits, contains('alice'));
       expect(controller.usageCheckpoint.encode(), checkpoint);
       final resumed = (await store.loadGame(
         sessionId: session.id,
         playerId: 'alice',
       ))!;
       expect(resumed.cancelCommitRequested, isFalse);
-      expect(resumed.activeReveal, isNull);
+      expect(resumed.activeReveal, isNotNull);
     },
   );
 
@@ -5640,7 +6130,7 @@ void main() {
   });
 
   test(
-    'server commit cancellation retains the definitively consumed conceptual use',
+    'engagement prevents cancellation and preserves consumed conceptual use',
     () async {
       final setup = await _setup(session, catalog);
       addTearDown(setup.dispose);
@@ -5650,22 +6140,24 @@ void main() {
       await setup.alice.confirmSelection();
       await _settle();
 
-      expect(setup.alice.canCancelSelection, isTrue);
+      expect(setup.alice.canCancelSelection, isFalse);
       expect(setup.backend.round.commits, contains('alice'));
-      expect(await setup.alice.cancelSelection(), isTrue);
+      expect(await setup.alice.cancelSelection(), isFalse);
       await _settle();
 
-      expect(setup.backend.round.commits, isNot(contains('alice')));
+      expect(setup.backend.round.commits, contains('alice'));
       expect(setup.alice.usageCheckpoint.usagesByIntent, hasLength(1));
       expect(
         setup.alice.usageCheckpoint.stock.remainingFor(card.id),
         setup.alice.usageCheckpoint.stock.capacity[card.id]! - 1,
       );
       expect(setup.alice.lockedCardId, isNull);
-      expect(setup.alice.viewState, NetworkGameViewState.choosing);
+      expect(setup.alice.viewState, NetworkGameViewState.waitingForPartner);
 
+      final engaged = setup.alice.personalDuelCard!.identity;
       setup.alice.selectCard(setup.alice.hand.first.identity);
       await setup.alice.confirmSelection();
+      expect(setup.alice.personalDuelCard!.identity, engaged);
       expect(setup.backend.round.commits, contains('alice'));
     },
   );
@@ -6325,7 +6817,7 @@ void main() {
     },
   );
 
-  testWidgets('006 preapplies its deterministic count on Terminé', (
+  testWidgets('006 requires explicit clothing confirmation before Terminé', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -6366,6 +6858,12 @@ void main() {
     );
     await _showResolutionControl(tester, 'adjust-deterministic-clothing-count');
     expect(find.text('Ajuster les vêtements (5)'), findsOneWidget);
+    expect(tester.widget<FilledButton>(find.byKey(const Key('complete-network-action'))).onPressed, isNull);
+    await tester.tap(find.byKey(const Key('adjust-deterministic-clothing-count')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Valider'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<FilledButton>(find.byKey(const Key('complete-network-action'))).onPressed, isNotNull);
     await _showResolutionControl(tester, 'complete-network-action');
     await tester.tap(find.byKey(const Key('complete-network-action')));
     await tester.pump();
@@ -6461,7 +6959,7 @@ void main() {
         await _showResolutionControl(tester, 'complete-network-action');
         await tester.tap(find.byKey(const Key('complete-network-action')));
         await tester.pumpAndSettle();
-        expect(backend.clothingCounts['alice'], cancel ? 5 : 0);
+        expect(backend.clothingCounts['alice'], cancel ? 6 : 0);
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());
       },
@@ -6502,8 +7000,8 @@ void main() {
           (tester.state(find.byType(NetworkDuelScreen)) as dynamic).controller
               as NetworkGameController;
       final previousView = controller.viewState;
-      await _showResolutionControl(tester, 'complete-network-action');
-    await tester.tap(find.byKey(const Key('complete-network-action')));
+      await _showResolutionControl(tester, 'adjust-deterministic-clothing-count');
+      await tester.tap(find.byKey(const Key('adjust-deterministic-clothing-count')));
       await tester.pumpAndSettle();
       final field = find.byKey(const Key('clothing-resync-count'));
       final input = tester.widget<TextField>(field).controller!;
@@ -6948,7 +7446,7 @@ void main() {
   );
 
   test(
-    'reconnect after cancellation restores only the valid hand state',
+    'reconnect after denied cancellation keeps the engaged card and nonce',
     () async {
       final backend = _Backend();
       final store = MemoryNetworkDuelSecretStore();
@@ -6970,7 +7468,7 @@ void main() {
         sessionId: session.id,
         playerId: 'alice',
       ))!.activeReveal!.nonce;
-      expect(await controller.cancelSelection(), isTrue);
+      expect(await controller.cancelSelection(), isFalse);
       controller.dispose();
 
       controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
@@ -6984,7 +7482,7 @@ void main() {
       );
       addTearDown(controller.dispose);
       await controller.start();
-      expect(controller.viewState, NetworkGameViewState.choosing);
+      expect(controller.viewState, NetworkGameViewState.waitingForPartner);
       expect(controller.usageCheckpoint.usagesByIntent, hasLength(1));
       expect(
         controller.usageCheckpoint.stock.remainingFor(card.id),
@@ -6999,7 +7497,7 @@ void main() {
         sessionId: session.id,
         playerId: 'alice',
       ))!.activeReveal!.nonce;
-      expect(newNonce, isNot(oldNonce));
+      expect(newNonce, oldNonce);
     },
   );
 
@@ -9826,6 +10324,7 @@ final class _Backend {
   final changes = StreamController<void>.broadcast();
   final clothingCounts = <String, int>{'alice': 6, 'bob': 6};
   final clothingResynced = <String>{};
+  final recoveryClothingConfirmations = <String, Set<String>>{};
   List<V4PersistentEffect> persistentEffects = const [];
   int persistentEffectTransitions = 0;
   int currentRound = 1;
@@ -9909,7 +10408,8 @@ final class _Backend {
       actionProjection: round.actionProjection,
       clothingCounts: clothingCounts,
       clothingResyncedPlayerIds: clothingResynced,
-      initialDuelCards: round.initial == null ? const [] : [for (final reveal in round.reveals.values) NetworkUsageProjection.fromJson({...reveal.choice.usage!.toJson()}..remove('snapshot_value')..remove('inverted_resolution'))],
+      recoveryClothingConfirmations: recoveryClothingConfirmations,
+      initialDuelCards: round.initial == null ? const [] : [for (final reveal in round.reveals.values) if (round.phase != NetworkGamePhase.tieDecision || reveal.playerId == player) NetworkUsageProjection.fromJson({...reveal.choice.usage!.toJson()}..remove('snapshot_value')..remove('inverted_resolution'))],
       ownReveal: round.reveals[player],
       opponentReveal: _revealsPublic && !redactOpponentReveal
           ? round.reveals.entries
@@ -9944,7 +10444,8 @@ class _Repository
         NetworkNegotiationRepository,
         NetworkSessionFlowRepository,
         NetworkCommitCancellationRepository,
-        NetworkSessionClosureRepository {
+        NetworkSessionClosureRepository,
+        NetworkRecoveryClothingRepository {
   _Repository(this.backend, this.player);
   final _Backend backend;
   final String player;
@@ -10468,6 +10969,22 @@ class _Repository
   }
 
   @override
+  Future<NetworkGameRoundStateDto> confirmRecoveryClothing({
+    required NetworkCommandDto command, required String usageId, required int clothingCount,
+  }) async {
+    if (backend.commands.contains(command.commandId)) return backend.state(player);
+    final proposal = backend.round.recoveries.values.singleWhere((r) => r.usage.usageId == usageId);
+    final required = NetworkResolvedActionCardDto.fromUsage(proposal.usage).clothingPlayerIds;
+    if (backend.phase != NetworkGamePhase.recoveryExecution || !required.contains(player)) {
+      throw const NetworkRoundException('ROUND_CLOTHING_ACTOR_REQUIRED');
+    }
+    backend.commands.add(command.commandId);
+    backend.recoveryClothingConfirmations.putIfAbsent(usageId, () => {}).add(player);
+    backend.clothingCounts[player] = clothingCount;
+    _notify(); return backend.state(player);
+  }
+
+  @override
   Future<NetworkGameRoundStateDto> resolveRecovery({
     required NetworkCommandDto command,
     required NetworkRecoveryDto recovery,
@@ -10985,4 +11502,62 @@ final class _MenuLobbyRepository implements NetworkLobbyRepository {
       onCancel: () => cancellation?.future,
     ).stream;
   }
+}
+
+final class _ControlledSecretStore implements NetworkDuelSecretStore {
+  final delegate = MemoryNetworkDuelSecretStore();
+  Completer<void>? hold;
+  final saveStarted = Completer<void>();
+  int clearCalls = 0;
+  bool failClearOnce = false;
+  @override
+  Future<void> saveGame({required String sessionId, required String playerId, required NetworkPrivateGameState state}) async {
+    if (hold != null) {
+      if (!saveStarted.isCompleted) saveStarted.complete();
+      await hold!.future;
+    }
+    await delegate.saveGame(sessionId: sessionId, playerId: playerId, state: state);
+  }
+  @override
+  Future<NetworkPrivateGameState?> loadGame({required String sessionId, required String playerId}) => delegate.loadGame(sessionId: sessionId, playerId: playerId);
+  @override
+  Future<void> clearGame({required String sessionId, required String playerId}) async {
+    clearCalls++;
+    if (failClearOnce) { failClearOnce = false; throw StateError('simulated local erase failure'); }
+    await delegate.clearGame(sessionId: sessionId, playerId: playerId);
+  }
+  @override
+  Future<void> save({required String sessionId, required String playerId, required ChoiceRevealDto reveal}) => delegate.save(sessionId: sessionId, playerId: playerId, reveal: reveal);
+  @override
+  Future<ChoiceRevealDto?> load({required String sessionId, required String playerId}) => delegate.load(sessionId: sessionId, playerId: playerId);
+  @override
+  Future<void> clear({required String sessionId, required String playerId}) => delegate.clear(sessionId: sessionId, playerId: playerId);
+}
+
+final class _DeferredHistoryStore implements GameHistoryStore {
+  final release = Completer<void>();
+  int calls = 0;
+  @override
+  Future<void> add(GameHistoryEntry entry) async { calls++; await release.future; }
+  @override
+  Future<List<GameHistoryEntry>> load() async => [];
+}
+final class _ExitObserver extends NavigatorObserver {
+  int pops = 0;
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) { pops++; }
+}
+final class _HangingConsentRepository extends _Repository implements NetworkSessionConsentRepository, NetworkSessionConsentEvents {
+  _HangingConsentRepository(super.backend, super.player) {
+    events = StreamController<int>(onCancel: () => cancel.future);
+  }
+  final cancel = Completer<void>();
+  late final StreamController<int> events;
+  void disposeEvents() { unawaited(events.close()); }
+  @override
+  Stream<int> watchSessionConsent(String sessionId) => events.stream;
+  @override
+  Future<SessionConsentState> getSessionConsent(String sessionId) async => SessionConsentState(revision: 1, ready: false, allowed: const []);
+  @override
+  Future<SessionConsentState> publishSessionConsent({required String sessionId, required Set<String> allowed, required String commandId}) => getSessionConsent(sessionId);
 }

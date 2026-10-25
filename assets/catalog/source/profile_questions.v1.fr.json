@@ -13,7 +13,7 @@
       "questionnaire_version": 1,
       "order": 1,
       "label": "Câlins",
-      "help_text": null,
+      "help_text": "Partager un contact corporel affectueux.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {
@@ -45,8 +45,8 @@
       "stable_id": "question.v1.02",
       "questionnaire_version": 1,
       "order": 2,
-      "label": "Baisers",
-      "help_text": null,
+      "label": "Embrasser",
+      "help_text": "Embrasser son partenaire, des baisers tendres aux baisers plus intenses.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {
@@ -81,7 +81,7 @@
       "questionnaire_version": 1,
       "order": 3,
       "label": "Jeux de mains",
-      "help_text": null,
+      "help_text": "Explorer les sensations du contact des mains sur le corps.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {
@@ -116,7 +116,7 @@
       "questionnaire_version": 1,
       "order": 4,
       "label": "Jeux de bouche",
-      "help_text": null,
+      "help_text": "Explorer les sensations du contact de la bouche sur le corps.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {
@@ -150,8 +150,8 @@
       "stable_id": "question.v1.05",
       "questionnaire_version": 1,
       "order": 5,
-      "label": "Nudité",
-      "help_text": null,
+      "label": "Se déshabiller / changer de tenue",
+      "help_text": "Explorer le rapport aux vêtements et à la nudité.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {
@@ -226,7 +226,7 @@
       "questionnaire_version": 1,
       "order": 6,
       "label": "Zones intimes",
-      "help_text": null,
+      "help_text": "Stimulation des zones intimes par différents moyens.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {
@@ -311,7 +311,7 @@
       "questionnaire_version": 1,
       "order": 7,
       "label": "Sexe oral",
-      "help_text": null,
+      "help_text": "Stimuler les parties génitales avec la bouche.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {
@@ -345,7 +345,7 @@
       "stable_id": "question.v1.08",
       "questionnaire_version": 1,
       "order": 8,
-      "label": "Pénétration",
+      "label": "Pénétration vaginale",
       "help_text": null,
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
@@ -391,7 +391,7 @@
       "questionnaire_version": 1,
       "order": 9,
       "label": "Pratiques anales",
-      "help_text": null,
+      "help_text": "Stimuler la zone anale, avec ou sans pénétration.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {
@@ -426,7 +426,7 @@
       "questionnaire_version": 1,
       "order": 10,
       "label": "Plaisir en solo",
-      "help_text": null,
+      "help_text": "Pratique ne nécessitant pas forcément la participation du partenaire.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {
@@ -461,7 +461,7 @@
       "questionnaire_version": 1,
       "order": 11,
       "label": "Jouets / accessoires",
-      "help_text": null,
+      "help_text": "Utiliser des jouets intimes pour stimuler le corps.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {
@@ -496,7 +496,7 @@
       "questionnaire_version": 1,
       "order": 12,
       "label": "Jeux physiques",
-      "help_text": null,
+      "help_text": "Exploration tactile pouvant inclure des sensations physiques plus intenses.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {
@@ -571,7 +571,7 @@
       "questionnaire_version": 1,
       "order": 13,
       "label": "Contrôle / lâcher-prise",
-      "help_text": null,
+      "help_text": "Jeux autour du contrôle, de l’abandon et de la dynamique de pouvoir.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {
@@ -686,7 +686,7 @@
       "questionnaire_version": 1,
       "order": 14,
       "label": "Jeux de rôle / mise en scène",
-      "help_text": null,
+      "help_text": "Explorer une situation imaginaire à deux.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {
@@ -734,7 +734,7 @@
       "questionnaire_version": 1,
       "order": 15,
       "label": "Se montrer / regarder",
-      "help_text": null,
+      "help_text": "Partager et explorer son intimité avec l’autre, notamment à travers différents médias.",
       "response_scale": "PA_5_12_18_EXCLUDED",
       "axes": [
         {

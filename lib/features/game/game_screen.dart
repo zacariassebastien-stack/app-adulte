@@ -6,6 +6,7 @@ import '../../card_themes/card_theme_models.dart';
 import '../../domain/game/game_screen_data.dart';
 import '../../engines/engines.dart';
 import 'local_game_controller.dart';
+import 'ui/gameplay_hud.dart' show spiceProgressSymbols;
 import 'local_recovery_controller.dart';
 import 'local_recovery_panel.dart';
 
@@ -313,11 +314,12 @@ class _GameHeader extends StatelessWidget {
       ),
       const SizedBox(width: 8),
       Expanded(
-        child: _HeaderMetric(
+        child: FittedBox(
           key: const Key('active-chili'),
-          icon: Icons.local_fire_department_outlined,
-          label: 'Niveau',
-          value: '🌶️ ${data.chiliActive}',
+          fit: BoxFit.scaleDown,
+          child: IgnorePointer(
+            child: Text(spiceProgressSymbols(data.chiliActive)),
+          ),
         ),
       ),
       const SizedBox(width: 8),

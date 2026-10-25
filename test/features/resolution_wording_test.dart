@@ -5,6 +5,85 @@ import 'package:flutter_test/flutter_test.dart';
 import '../support/native_usage_fixture.dart';
 
 void main() {
+  test(
+    'persistent reminder uses real bearer and second person even with own nickname',
+    () {
+      const wording = ResolutionWording(
+        localPlayerId: 'alice',
+        names: {'alice': 'Sébastien', 'bob': 'Julie'},
+      );
+      expect(wording.reminder('alice'), 'Tu dois continuer cette action.');
+      expect(wording.reminder('bob'), 'Julie doit continuer cette action.');
+      expect(wording.participant('alice'), 'toi');
+      expect(wording.participant('bob'), 'Julie');
+      const fallback = ResolutionWording(
+        localPlayerId: 'bob',
+        names: {'alice': '  '},
+      );
+      expect(
+        fallback.reminder('alice'),
+        'Ton partenaire doit continuer cette action.',
+      );
+      expect(fallback.reminder('bob'), 'Tu dois continuer cette action.');
+      expect(
+        wording.silenceInstruction('alice', 3),
+        startsWith(
+          'Garde un silence complet pendant les 3 prochaines actions.',
+        ),
+      );
+      expect(
+        wording.silenceInstruction('bob', 2),
+        startsWith(
+          'Julie garde un silence complet pendant les 2 prochaines actions.',
+        ),
+      );
+    },
+  );
+
+  for (final id in ['006', '007', '008', '009', '010', '033', '061']) {
+    test('actor-centred $id never invents a recipient', () {
+      final card = NetworkResolvedActionCardDto.fromUsage(
+        nativeUsageFixture(conceptId: id),
+      );
+      const wording = ResolutionWording(
+        localPlayerId: 'bob',
+        names: {'alice': 'Zizi', 'bob': 'Zezette'},
+      );
+      expect(
+        wording.describe(card, 'Retirer un vêtement'),
+        'Zizi réalise « Retirer un vêtement ».',
+      );
+    });
+  }
+  test('hair pulling names the real target and its frozen activation duration', () {
+    final base = nativeUsageFixture(conceptId: '063', direction: 'RECEVOIR');
+    final card = NetworkResolvedActionCardDto.fromUsage(
+      NetworkUsageProjection.fromJson({
+        ...base.toJson(),
+        'resolved_action': {
+          ...base.resolvedAction,
+          'parameters': {
+            ...base.resolvedAction['parameters']! as Map<String, Object?>,
+            'duration_actions': 3,
+          },
+        },
+      }),
+    );
+    final frozen = card.toJson();
+    expect(
+      const ResolutionWording(
+        localPlayerId: 'alice',
+        names: {'alice': 'Zizi', 'bob': 'Zezette'},
+      ).describe(card, 'Tirage des cheveux'),
+      'Zezette réalise « Tirage des cheveux » sur Zizi pendant les 3 prochaines actions.',
+    );
+    expect(card.toJson(), frozen);
+    expect(
+      ResolutionWording.silenceDetails,
+      'Ne parle pas et ne fais volontairement aucun bruit. Tu peux uniquement rompre le silence lorsqu’une décision de jeu nécessite de communiquer.',
+    );
+  });
+
   const names = {'alice': 'Sébastien', 'bob': 'Julie'};
   for (final direction in [
     'FAIRE',
@@ -31,8 +110,8 @@ void main() {
         NetworkUsageProjection.fromJson(json),
       );
       final expected = switch (direction) {
-        'FAIRE' || 'GENERAL' => 'Sébastien réalise « Massage » pour Julie.',
-        'RECEVOIR' => 'Julie réalise « Massage » pour Sébastien.',
+        'FAIRE' || 'GENERAL' => 'Sébastien réalise « Massage » sur Julie.',
+        'RECEVOIR' => 'Julie réalise « Massage » sur Sébastien.',
         'MUTUEL' => 'Sébastien et Julie réalisent « Massage » ensemble.',
         'SOLO' => 'Sébastien réalise « Massage » en solo.',
         _ =>
@@ -60,7 +139,7 @@ void main() {
         localPlayerId: 'alice',
         names: names,
       ).describe(card, 'Massage'),
-      'Julie réalise « Massage » pour Sébastien.',
+      'Julie réalise « Massage » sur Sébastien.',
     );
   });
 
@@ -107,7 +186,7 @@ void main() {
         NetworkResolvedActionCardDto.fromUsage(nativeUsageFixture()),
         'Massage',
       ),
-      'Tu réalises « Massage » pour ton partenaire.',
+      'Tu réalises « Massage » sur ton partenaire.',
     );
     expect(
       wording.describe(

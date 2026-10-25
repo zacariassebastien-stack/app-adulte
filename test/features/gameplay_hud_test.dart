@@ -34,7 +34,7 @@ void main() {
     expect(find.text('127 PA'), findsNWidgets(2));
     expect(find.byKey(const Key('own-action-points-fill-100')), findsOneWidget);
     expect(find.textContaining('Partenaire'), findsNothing);
-    expect(find.text('🌶️🌶️🌶️'), findsOneWidget);
+    expect(find.text('🌶️🌶️🌶️○'), findsOneWidget);
   });
 
   testWidgets('state 3 hides secondary HUD and keeps PA/settings/status', (
@@ -48,10 +48,57 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('game-round')), findsNothing);
-    expect(find.byKey(const Key('active-spice')), findsNothing);
+    expect(find.byKey(const Key('active-spice')), findsOneWidget);
     expect(find.byKey(const Key('switch-hybrid-orientation')), findsNothing);
     expect(find.byKey(const Key('open-discard-gallery')), findsNothing);
   });
+
+  for (final spice in [1, 2, 3, 4]) {
+    for (final stage in CardHandStage.values) {
+      testWidgets(
+        'four graphic slots P$spice ${stage.name} reserve body space',
+        (tester) async {
+          await tester.binding.setSurfaceSize(const Size(320, 420));
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+          var tapped = false;
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: GameplayHud(
+                  actionPoints: 100,
+                  status: 'Résolution du tour',
+                  roundNumber: 2,
+                  spice: spice,
+                  orientation: HybridDeckOrientation.faceToFace,
+                  stage: stage,
+                  onSettings: () {},
+                  child: TextButton(
+                    key: const Key('body-control'),
+                    onPressed: () => tapped = true,
+                    child: const Text('Action'),
+                  ),
+                ),
+              ),
+            ),
+          );
+          final indicator = find.byKey(const Key('active-spice'));
+          expect(
+            tester.widget<Text>(indicator).data,
+            List.generate(4, (i) => i < spice ? '🌶️' : '○').join(),
+          );
+          expect(
+            tester.getBottomLeft(indicator).dy,
+            lessThanOrEqualTo(
+              tester.getTopLeft(find.byKey(const Key('body-control'))).dy,
+            ),
+          );
+          await tester.tap(find.byKey(const Key('body-control')));
+          expect(tapped, isTrue);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
 
   testWidgets('orientation changes only after card flip', (tester) async {
     HybridDeckOrientation? orientation;

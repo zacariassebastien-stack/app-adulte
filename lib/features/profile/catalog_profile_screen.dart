@@ -198,6 +198,7 @@ class _CatalogProfileScreenState extends State<CatalogProfileScreen> {
                 child: RadialAppreciation(
                   key: ValueKey(item.id),
                   enabled: !model.saving,
+                  initialValue: model.category(item),
                   onTap: () => _consult(item),
                   onSelected: (v) => _rate(item, v),
                   child: _card(item),

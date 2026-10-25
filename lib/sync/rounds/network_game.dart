@@ -56,6 +56,22 @@ final class NetworkResolvedActionCardDto {
   );
   List<String> get targetPlayerIds =>
       (usage.resolvedAction['target_player_ids']! as List).cast<String>();
+
+  /// Performances change the actor's outfit; removal/choice affects the target.
+  /// Read the frozen action roles so inversion and reconnect stay symmetric.
+  List<String> get clothingPlayerIds =>
+      switch (parameters['clothing_behavior']) {
+        'resetThenUnderwear' ||
+        'resetThenNude' ||
+        'resetThenStrip' ||
+        'resetThenStripComplete' =>
+          (usage.resolvedAction['actor_player_ids']! as List).cast<String>(),
+        'removeOne' ||
+        'removeTwo' ||
+        'chooseOutfit' ||
+        'changeOutfit' => targetPlayerIds,
+        _ => const [],
+      };
   int get effectiveSpice => usage.resolvedAction['effective_chili']! as int;
   String? get zoneId => usage.resolvedAction['zone_id'] as String?;
   String? get accessoryId =>
@@ -159,7 +175,9 @@ final class V4PlayerSessionSetupDto {
   factory V4PlayerSessionSetupDto.fromJson(Map<String, Object?> json) =>
       V4PlayerSessionSetupDto(
         playerId: json['player_id']! as String,
-        anatomy: json['anatomy'] == null ? null : PlayerAnatomy.values.byName(json['anatomy']! as String),
+        anatomy: json['anatomy'] == null
+            ? null
+            : PlayerAnatomy.values.byName(json['anatomy']! as String),
         environmentReady: json['environment_ready'] != false,
         inventoryReady: json['inventory_ready'] != false,
         availableAccessories: [
@@ -196,7 +214,8 @@ final class V4SessionSetupDto {
       players.every((p) => p.anatomy != null) &&
       players.map((p) => p.playerId).toSet().length == 2;
   Map<String, PlayerAnatomy> get anatomies => {
-    for (final player in players) if (player.anatomy != null) player.playerId: player.anatomy!,
+    for (final player in players)
+      if (player.anatomy != null) player.playerId: player.anatomy!,
   };
   Map<String, int> get clothingCounts => {
     for (final player in players) player.playerId: player.clothingCount,
@@ -704,6 +723,7 @@ final class NetworkHybridAvailabilityDto {
 final class NetworkGameRoundStateDto {
   NetworkGameRoundStateDto({
     this.usageContractVersion,
+    this.recoveryClothingConfirmations = const {},
     required this.roundId,
     required this.sessionId,
     required this.sessionRound,
@@ -768,6 +788,7 @@ final class NetworkGameRoundStateDto {
        recoveryHistory = List.unmodifiable(recoveryHistory ?? const []);
 
   final String roundId;
+  final Map<String, Set<String>> recoveryClothingConfirmations;
   final int? usageContractVersion;
   final String sessionId;
   final String sessionRound;
@@ -860,6 +881,10 @@ final class NetworkGameRoundStateDto {
     },
     'action_projection': actionProjection?.toJson(),
     'clothing_counts': clothingCounts,
+    'recovery_clothing_confirmations': {
+      for (final entry in recoveryClothingConfirmations.entries)
+        entry.key: entry.value.toList()..sort(),
+    },
     'clothing_resynced': {for (final id in clothingResyncedPlayerIds) id: true},
     'deck_adjustment': deckAdjustment,
     'own_reveal': ownReveal?.toJson(),
@@ -910,6 +935,12 @@ final class NetworkGameRoundStateDto {
       (json['hybrid_availability'] as Map<Object?, Object?>?) ?? const {},
     );
     return NetworkGameRoundStateDto(
+      recoveryClothingConfirmations: {
+        for (final entry
+            in ((json['recovery_clothing_confirmations'] as Map?) ?? const {})
+                .entries)
+          entry.key as String: (entry.value as List).cast<String>().toSet(),
+      },
       roundId: json['round_id']! as String,
       sessionId: json['session_id']! as String,
       usageContractVersion: json['usage_contract_version'] as int?,
@@ -1109,6 +1140,14 @@ abstract interface class NetworkGameRepository {
   Stream<NetworkGameRoundStateDto> watchRound({
     required String sessionId,
     required String roundId,
+  });
+}
+
+abstract interface class NetworkRecoveryClothingRepository {
+  Future<NetworkGameRoundStateDto> confirmRecoveryClothing({
+    required NetworkCommandDto command,
+    required String usageId,
+    required int clothingCount,
   });
 }
 

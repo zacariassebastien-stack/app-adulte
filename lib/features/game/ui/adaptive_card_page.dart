@@ -21,7 +21,7 @@ class AdaptiveCardPage extends StatelessWidget {
       return SingleChildScrollView(
         padding: const EdgeInsets.all(padding),
         child: _CardFloor(
-          height: math.min(width / .68, height * .35),
+          height: math.min(width / .68, math.max(180.0, height * .35)),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: height),
             child: IntrinsicHeight(

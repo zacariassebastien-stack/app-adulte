@@ -53,6 +53,7 @@ class CardHandSurface extends StatefulWidget {
     this.onLongPressCard,
     this.onReplace,
     this.onStageChanged,
+    this.onRate,
     super.key,
   });
 
@@ -67,6 +68,7 @@ class CardHandSurface extends StatefulWidget {
   final ValueChanged<CardHandItem>? onLongPressCard;
   final ValueChanged<CardHandItem>? onReplace;
   final ValueChanged<CardHandStage>? onStageChanged;
+  final ValueChanged<CardHandItem>? onRate;
 
   @override
   State<CardHandSurface> createState() => _CardHandSurfaceState();
@@ -212,7 +214,9 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
     }
     final trackingHand =
         _stage == CardHandStage.resting || delta.dx.abs() > delta.dy.abs();
-    if (_dragging && _stage != CardHandStage.open && trackingHand) {
+    if (_dragging &&
+        _stageAtPointerDown == CardHandStage.resting &&
+        trackingHand) {
       if (_isInHandInteractionZone(event.localPosition, constraints)) {
         _focus(_indexAt(event.localPosition.dx, constraints.maxWidth));
       }
@@ -225,10 +229,25 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
     final end = event.localPosition;
     if (start == null) return;
     final dy = end.dy - start.dy;
+    final dx = end.dx - start.dx;
     if (!_longPressTriggered) {
       if (_dragging &&
           _focused != null &&
+          (_stageAtPointerDown == CardHandStage.focused ||
+              _stageAtPointerDown == CardHandStage.open) &&
+          dx.abs() > _swipeThreshold &&
+          dx.abs() > dy.abs()) {
+        setState(() {
+          _focused = (_focused! + (dx < 0 ? 1 : -1)).clamp(
+            0,
+            widget.cards.length - 1,
+          );
+          _setStage(_stageAtPointerDown);
+        });
+      } else if (_dragging &&
+          _focused != null &&
           _stageAtPointerDown != CardHandStage.resting &&
+          dy.abs() > dx.abs() &&
           dy < -_swipeThreshold) {
         _play(widget.cards[_focused!]);
       } else if (_dragging &&
@@ -448,6 +467,12 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
                     ],
                   ),
                 ),
+                if (open && widget.onRate != null)
+                  TextButton(
+                    key: Key('rate-hand-card-${card.id}'),
+                    onPressed: () => widget.onRate?.call(card),
+                    child: const Text('Mon appréciation'),
+                  ),
                 if (open &&
                     card.excluded &&
                     card.replaceable &&

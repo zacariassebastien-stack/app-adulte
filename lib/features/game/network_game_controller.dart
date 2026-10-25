@@ -269,7 +269,9 @@ final class NetworkGameController extends ChangeNotifier {
             : V4Profile(
                 // This projection already has a canonical session anatomy.
                 // Preserve legacy veto semantics without inventing a default sex.
-                sex: ProfileSex.values.singleWhere((sex) => sex.anatomy == anatomies[playerId]),
+                sex: ProfileSex.values.singleWhere(
+                  (sex) => sex.anatomy == anatomies[playerId],
+                ),
                 profileId: playerId,
                 preferences: {
                   for (final entry in legacy.preferences.entries)
@@ -742,6 +744,9 @@ final class NetworkGameController extends ChangeNotifier {
   Future<void> _snapshotApplication = Future.value();
   DeckExhaustionChoice? _sessionClosureIntent;
   bool _localSessionCleared = false;
+  Future<void> _pendingPrivateWrite = Future.value();
+  Future<void>? _localCleanup;
+  Map<String, int> _actionClothingConfirmations = {};
   late final List<String> playerIds;
   late final Map<String, CardDefinition> _definitions;
   late final Map<String, EngineCard> _engineCards;
@@ -766,7 +771,6 @@ final class NetworkGameController extends ChangeNotifier {
   bool _nextRoundPrepared = false;
   StreamSubscription<NetworkGameRoundStateDto>? _subscription;
   bool _committing = false;
-  bool _cancelling = false;
   bool _cancelCommitRequested = false;
   bool _revealing = false;
   bool _resolving = false;
@@ -890,14 +894,8 @@ final class NetworkGameController extends ChangeNotifier {
   PlayerStyle get deckStyle => _deckStyle;
   bool get infiniteMode => _infiniteMode;
   bool get isCycleController => round?.cycleExhausted ?? false;
-  bool get canCancelSelection =>
-      !_cancelling &&
-      !_cancelCommitRequested &&
-      repository is NetworkCommitCancellationRepository &&
-      viewState == NetworkGameViewState.waitingForPartner &&
-      round?.phase == NetworkGamePhase.commit &&
-      round?.ownCommitRecorded == true &&
-      (round?.commits.length ?? 0) < 2;
+  // Engagement is final, including while waiting for the other commitment.
+  bool get canCancelSelection => false;
 
   List<NetworkDuelCard> get hand => [
     for (final item in _runtime.where((card) => card.zone == CardZone.HAND))
@@ -1134,18 +1132,12 @@ final class NetworkGameController extends ChangeNotifier {
                 ?_networkCard(id, recovery: true),
             for (final item in _runtime.where((c) => c.zone == CardZone.HAND))
               if (_usageCheckpoint.availableFor(item.cardId) > 0)
-                ?_networkCard(
-                  item.cardId,
-                  recovery: true,
-                ),
+                ?_networkCard(item.cardId, recovery: true),
             ..._replayableDiscards(recovery: true),
           ]
           .where(
-            (c) => occurrenceAllowed(
-              c.id,
-              c.variant.id,
-              c.nativeDirection.name,
-            ),
+            (c) =>
+                occurrenceAllowed(c.id, c.variant.id, c.nativeDirection.name),
           )
           .toList();
 
@@ -1380,12 +1372,13 @@ final class NetworkGameController extends ChangeNotifier {
             .where(
               (o) => _directions(entry.key, o.choice.actionId).any(
                 (d) => localConsentOnly
-                    ? anatomyAllowed(entry.key, o.choice.actionId, d.name) && localConsentAllowed(entry.key, o.choice.actionId, d.name)
-                    : occurrenceAllowed(
-                        entry.key,
-                        o.choice.actionId,
-                        d.name,
-                      ),
+                    ? anatomyAllowed(entry.key, o.choice.actionId, d.name) &&
+                          localConsentAllowed(
+                            entry.key,
+                            o.choice.actionId,
+                            d.name,
+                          )
+                    : occurrenceAllowed(entry.key, o.choice.actionId, d.name),
               ),
             )
             .toList(),
@@ -1643,46 +1636,7 @@ final class NetworkGameController extends ChangeNotifier {
     }
   }
 
-  Future<bool> cancelSelection() async {
-    final cancellable = repository;
-    if ((!canCancelSelection && !_cancelCommitRequested) ||
-        round == null ||
-        cancellable is! NetworkCommitCancellationRepository) {
-      return false;
-    }
-    if (_cancelling) return false;
-    _cancelling = true;
-    try {
-      _cancelCommitRequested = true;
-      await _persist();
-      final updated = await (cancellable as NetworkCommitCancellationRepository)
-          .cancelCommit(
-            command: _command('CANCEL_COMMIT', choiceVersion: _choiceVersion),
-          );
-      _restoreCancelledChoice();
-      _choiceVersion++;
-      _cancelCommitRequested = false;
-      await privateStore.clear(sessionId: session.id, playerId: playerId);
-      await _persist();
-      await _apply(updated);
-      return true;
-    } on NetworkRoundException catch (error) {
-      if (error.code != 'ROUND_CANCEL_CLOSED' &&
-          error.code != 'ROUND_COMMIT_CLOSED') {
-        _fail(error);
-        return false;
-      }
-      _cancelCommitRequested = false;
-      await _persist();
-      await _apply(await repository.getCurrentRound(sessionId: session.id));
-      return false;
-    } catch (error) {
-      _fail(error);
-      return false;
-    } finally {
-      _cancelling = false;
-    }
-  }
+  Future<bool> cancelSelection() async => false;
 
   ResolvedConceptAction _freezeAction(
     NetworkDuelCard card,
@@ -1830,17 +1784,6 @@ final class NetworkGameController extends ChangeNotifier {
     );
   }
 
-  void _restoreCancelledChoice() {
-    final usageId = _activeReveal?.choice.usageId;
-    _runtime = _runtime.where((card) => card.occurrenceId != usageId).toList();
-    _activeReveal = null;
-    selectedCard = null;
-    _selectedOption = null;
-    // Engagement is definitive, including when a server commit is cancelled.
-    // Refill may draw the concept again only if its remaining quota allows it.
-    _refill(roundNumber);
-  }
-
   NetworkUsageProjection _sharedUsage(ConceptUsageSnapshot usage) =>
       NetworkUsageProjection.fromSnapshot(
         usage,
@@ -1896,8 +1839,11 @@ final class NetworkGameController extends ChangeNotifier {
       )) {
         throw const NetworkRoundException('ROUND_STAGE_ALREADY_CONSUMED');
       }
-      if (!anatomyAllowed(previous.action.conceptId,
-          previous.action.stageId ?? previous.action.variantId!, previous.action.direction.name)) {
+      if (!anatomyAllowed(
+        previous.action.conceptId,
+        previous.action.stageId ?? previous.action.variantId!,
+        previous.action.direction.name,
+      )) {
         throw StateError('Anatomically incompatible secondary action');
       }
       return _sharedUsage(previous);
@@ -1970,7 +1916,11 @@ final class NetworkGameController extends ChangeNotifier {
     final previous =
         _usageCheckpoint.usageForIntent(intent) ?? _reservedChoices[intent];
     if (previous != null) {
-      if (!anatomyAllowed(previous.action.conceptId, previous.action.stageId ?? previous.action.variantId!, previous.action.direction.name)) {
+      if (!anatomyAllowed(
+        previous.action.conceptId,
+        previous.action.stageId ?? previous.action.variantId!,
+        previous.action.direction.name,
+      )) {
         throw StateError('Anatomically incompatible replay');
       }
       return _sharedUsage(previous);
@@ -2515,6 +2465,41 @@ final class NetworkGameController extends ChangeNotifier {
     await _sendSecondary('RECOVERY_RESPONSE', {'response': response.name});
   }
 
+  Set<String> get recoveryClothingPlayerIds => pendingRecovery == null
+      ? const {}
+      : NetworkResolvedActionCardDto.fromUsage(
+          pendingRecovery!.usage,
+        ).clothingPlayerIds.toSet();
+  Set<String> get recoveryClothingConfirmedPlayerIds =>
+      round?.recoveryClothingConfirmations[pendingRecovery?.usage.usageId] ??
+      const {};
+  bool get ownRecoveryClothingConfirmationRequired =>
+      recoveryClothingPlayerIds.contains(playerId) &&
+      !recoveryClothingConfirmedPlayerIds.contains(playerId);
+  bool get waitingForRecoveryClothing => !recoveryClothingConfirmedPlayerIds
+      .containsAll(recoveryClothingPlayerIds);
+
+  Future<void> confirmRecoveryClothing(int count) async {
+    RangeError.checkNotNegative(count, 'count');
+    final proposal = pendingRecovery;
+    final target = repository;
+    if (viewState != NetworkGameViewState.recoveryExecution ||
+        proposal == null ||
+        !ownRecoveryClothingConfirmationRequired ||
+        target is! NetworkRecoveryClothingRepository) {
+      return;
+    }
+    await _networkAction(
+      (target as NetworkRecoveryClothingRepository).confirmRecoveryClothing(
+        command: _command(
+          'RECOVERY_CLOTHING_CONFIRM:${proposal.usage.usageId}',
+        ),
+        usageId: proposal.usage.usageId,
+        clothingCount: count,
+      ),
+    );
+  }
+
   Future<void> completeRecovery({required bool completed}) async {
     final proposal = pendingRecovery;
     if (viewState != NetworkGameViewState.recoveryExecution ||
@@ -2522,6 +2507,7 @@ final class NetworkGameController extends ChangeNotifier {
         proposal.playerId != playerId) {
       return;
     }
+    if (completed && waitingForRecoveryClothing) return;
     final resolved = NetworkRecoveryDto.fromUsage(
       proposal.usage,
       source: proposal.source,
@@ -2553,6 +2539,10 @@ final class NetworkGameController extends ChangeNotifier {
         actionCompletionSubmitted) {
       return;
     }
+    if (viewState == NetworkGameViewState.actionInProgress &&
+        !ownActionClothingConfirmed) {
+      return;
+    }
     try {
       final atBoundary = viewState == NetworkGameViewState.waitingNext;
       if (atBoundary && !canStartNextRound) return;
@@ -2580,7 +2570,7 @@ final class NetworkGameController extends ChangeNotifier {
                   ) >
                   0,
           clothingCount: !atBoundary && ownClothingResyncRequired
-              ? _context.clothesByPlayer[playerId]
+              ? confirmedOwnClothingCount
               : null,
         ),
       );
@@ -2859,6 +2849,9 @@ final class NetworkGameController extends ChangeNotifier {
         (saved.roundNumber == current.roundNumber ||
             saved.roundNumber == current.roundNumber + 1 ||
             saved.roundNumber == current.roundNumber - 1)) {
+      if (saved.roundCardRatings case final ratings?) {
+        _cardRatings.restore(ratings);
+      }
       _runtime = List.of(saved.cards);
       _displayedHandActions
         ..clear()
@@ -2871,7 +2864,7 @@ final class NetworkGameController extends ChangeNotifier {
       _deckStyle = saved.deckStyle;
       _publicDiscards = List.of(saved.publicDiscards);
       _choiceVersion = saved.choiceVersion;
-      _cancelCommitRequested = saved.cancelCommitRequested;
+      _cancelCommitRequested = false;
       _usageCheckpoint = saved.conceptCheckpoint!;
       _reservedChoices = Map.of(saved.reservedChoices);
       _pendingSecondaryCommand = saved.pendingSecondaryCommand;
@@ -2879,6 +2872,7 @@ final class NetworkGameController extends ChangeNotifier {
       _initialClothing = saved.initialClothing;
       _priorCheckpoints = List.of(saved.priorCheckpoints);
       _clothingObservations = Map.of(saved.clothingObservations);
+      _actionClothingConfirmations = Map.of(saved.actionClothingConfirmations);
       _presence = switch (sessionMode) {
         V4SessionMode.presentiel => V4SessionPresence.presentiel,
         V4SessionMode.distance => V4SessionPresence.distance,
@@ -2939,6 +2933,8 @@ final class NetworkGameController extends ChangeNotifier {
 
   Future<void> _prepareNextRound({int? targetRound}) async {
     if (_nextRoundPrepared) return;
+    _actionClothingConfirmations.clear();
+    _cardRatings = await _cardLearningStore.load(playerId);
     _displayedHandActions.clear();
     _runtime = _runtime
         .where(
@@ -3243,9 +3239,8 @@ final class NetworkGameController extends ChangeNotifier {
           partner: _profile(opponentId),
           hierarchy: _hierarchy,
         )
-        .variants.any(
-          (v) => !v.reasons.any((r) => r.code == IneligibilityCode.CLOTHES),
-        );
+        .variants
+        .any((v) => !v.reasons.any((r) => r.code == IneligibilityCode.CLOTHES));
   }
 
   void _buildDeckCycle() {
@@ -3275,8 +3270,11 @@ final class NetworkGameController extends ChangeNotifier {
       for (final usage in checkpoint.usagesByIntent.values) {
         if (usage.usageId == occurrenceId) {
           // This builder proposes a card; historical display uses _cardFromUsage directly.
-          if (!anatomyAllowed(usage.action.conceptId,
-              usage.action.stageId ?? usage.action.variantId!, usage.action.direction.name)) {
+          if (!anatomyAllowed(
+            usage.action.conceptId,
+            usage.action.stageId ?? usage.action.variantId!,
+            usage.action.direction.name,
+          )) {
             return null;
           }
           return _cardFromUsage(
@@ -3299,8 +3297,8 @@ final class NetworkGameController extends ChangeNotifier {
         option ??
         (variantId == null
             ? recovery
-                ? defaultAction(cardId, options)
-                : materializedAction(cardId, options)
+                  ? defaultAction(cardId, options)
+                  : materializedAction(cardId, options)
             : options.where((o) => o.choice.actionId == variantId).firstOrNull);
     if (selected == null) return null;
     final eligible = selected.variant;
@@ -3318,11 +3316,7 @@ final class NetworkGameController extends ChangeNotifier {
           ? 'RECEVOIR'
           : 'GENERAL';
       if ((role == ProfileRole.FAIRE || role == ProfileRole.RECEVOIR) &&
-          !occurrenceAllowed(
-            cardId,
-            selected.choice.actionId,
-            direction,
-          )) {
+          !occurrenceAllowed(cardId, selected.choice.actionId, direction)) {
         return false;
       }
       if (_v4Profile != null) {
@@ -3384,7 +3378,11 @@ final class NetworkGameController extends ChangeNotifier {
       direction.effectiveDirection,
       fallback: ProfileRole.GENERAL,
     );
-    if (!anatomyAllowed(cardId, selected.choice.actionId, direction.effectiveDirection.name)) {
+    if (!anatomyAllowed(
+      cardId,
+      selected.choice.actionId,
+      direction.effectiveDirection.name,
+    )) {
       return null;
     }
     if (_v4Profile == null && !allows(role)) return null;
@@ -3656,37 +3654,49 @@ final class NetworkGameController extends ChangeNotifier {
 
   Future<void> _persist({int? roundNumber}) {
     if (_localSessionCleared) return Future.value();
-    return privateStore.saveGame(
-      sessionId: session.id,
-      playerId: playerId,
-      state: NetworkPrivateGameState(
-        roundNumber: roundNumber ?? this.roundNumber,
-        cards: _runtime,
-        displayedHandActions: _displayedHandActions,
-        activeReveal: _activeReveal,
-        nextRoundPrepared: _nextRoundPrepared,
-        learningRecordedRounds: _learningRecordedRounds,
-        deckCycle: _deckCycle,
-        infiniteMode: _infiniteMode,
-        deckStyle: _deckStyle,
-        publicDiscards: _publicDiscards,
-        choiceVersion: _choiceVersion,
-        cancelCommitRequested: _cancelCommitRequested,
-        conceptCheckpoint: _usageCheckpoint,
-        reservedChoices: _reservedChoices,
-        pendingSecondaryCommand: _pendingSecondaryCommand,
-        pendingLearning: _pendingLearning,
-        priorCheckpoints: _priorCheckpoints,
-        activeChili: _context.chiliActive,
-        sessionMode: sessionMode,
-        presence: _presence,
-        persistentEffects: _persistentEffects,
-        accessoryPool: _accessoryPool,
-        initialClothing: _initialClothing,
-        clothesByPlayer: _context.clothesByPlayer,
-        clothingObservations: _clothingObservations,
-      ),
+    final state = NetworkPrivateGameState(
+      roundNumber: roundNumber ?? this.roundNumber,
+      cards: _runtime,
+      displayedHandActions: _displayedHandActions,
+      roundCardRatings: _cardRatings.toJson(),
+      activeReveal: _activeReveal,
+      nextRoundPrepared: _nextRoundPrepared,
+      learningRecordedRounds: _learningRecordedRounds,
+      deckCycle: _deckCycle,
+      infiniteMode: _infiniteMode,
+      deckStyle: _deckStyle,
+      publicDiscards: _publicDiscards,
+      choiceVersion: _choiceVersion,
+      cancelCommitRequested: _cancelCommitRequested,
+      conceptCheckpoint: _usageCheckpoint,
+      reservedChoices: _reservedChoices,
+      pendingSecondaryCommand: _pendingSecondaryCommand,
+      pendingLearning: _pendingLearning,
+      priorCheckpoints: _priorCheckpoints,
+      activeChili: _context.chiliActive,
+      sessionMode: sessionMode,
+      presence: _presence,
+      persistentEffects: _persistentEffects,
+      accessoryPool: _accessoryPool,
+      initialClothing: _initialClothing,
+      clothesByPlayer: _context.clothesByPlayer,
+      clothingObservations: _clothingObservations,
+      actionClothingConfirmations: _actionClothingConfirmations,
     );
+    final write = _pendingPrivateWrite
+        .catchError((Object error, StackTrace stack) {
+          debugPrint('Previous private session save failed: $error');
+        })
+        .then((_) async {
+          if (_localSessionCleared) return;
+          await privateStore.saveGame(
+            sessionId: session.id,
+            playerId: playerId,
+            state: state,
+          );
+        });
+    _pendingPrivateWrite = write;
+    return write;
   }
 
   void _capturePublicDiscards(NetworkGameRoundStateDto value) {
@@ -3747,7 +3757,7 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   void _fail(Object error) {
-    if (_disposed) return;
+    if (_disposed || _localSessionCleared) return;
     viewState = NetworkGameViewState.error;
     errorMessage = error is NetworkRoundException
         ? error.code
@@ -3877,9 +3887,23 @@ final class NetworkGameController extends ChangeNotifier {
         resyncedPlayerIds: round?.clothingResyncedPlayerIds ?? const {},
       );
 
+  String get _clothingConfirmationKey {
+    final ids = [
+      for (final card
+          in actionProjection?.cards ?? <NetworkResolvedActionCardDto>[])
+        if (card.clothingPlayerIds.contains(playerId)) card.usageId,
+    ]..sort();
+    return '${round?.roundId}:${ids.join(',')}';
+  }
+
+  int? get confirmedOwnClothingCount =>
+      _actionClothingConfirmations[_clothingConfirmationKey];
+  bool get ownActionClothingConfirmed =>
+      !ownClothingResyncRequired || confirmedOwnClothingCount != null;
+
   bool get ownClothingChangeIsDeterministic {
     final cards = actionProjection?.cards.where(
-      (card) => card.targetPlayerIds.contains(playerId),
+      (card) => card.clothingPlayerIds.contains(playerId),
     );
     if (cards == null || cards.isEmpty) return false;
     var found = false;
@@ -3898,12 +3922,15 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   int suggestedOwnClothingCount() {
+    if (confirmedOwnClothingCount case final confirmed?) {
+      return confirmed;
+    }
     final canonicalCount =
         round?.clothingCounts[playerId] ??
         _context.clothesByPlayer[playerId] ??
         0;
     final cards = actionProjection?.cards
-        .where((card) => card.targetPlayerIds.contains(playerId))
+        .where((card) => card.clothingPlayerIds.contains(playerId))
         .toList(growable: false);
     if (cards == null || cards.isEmpty) return canonicalCount;
     final behaviors = <V4ClothingBehavior>[];
@@ -3936,6 +3963,9 @@ final class NetworkGameController extends ChangeNotifier {
   Future<void> updateOwnClothingCount(int actualCount) async {
     if (actualCount < 0) {
       throw ArgumentError.value(actualCount, 'actualCount');
+    }
+    if (ownClothingResyncRequired) {
+      _actionClothingConfirmations[_clothingConfirmationKey] = actualCount;
     }
     final clothing = V4ClothingCounter(_context.clothesByPlayer)
       ..resynchronize(playerId, actualCount);
@@ -4007,11 +4037,24 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   DeckExhaustionChoice? get sessionClosureIntent => _sessionClosureIntent;
-  Future<void> clearLocalSessionState() async {
+  Future<void> clearLocalSessionState() => _localCleanup ??=
+      _clearLocalSessionState().catchError((Object error, StackTrace stack) {
+        _localCleanup = null;
+        Error.throwWithStackTrace(error, stack);
+      });
+
+  Future<void> _clearLocalSessionState() async {
     _localSessionCleared = true;
     _consentTimer?.cancel();
-    await _consentSubscription?.cancel();
+    final consent = _consentSubscription;
     _consentSubscription = null;
+    if (consent != null) {
+      unawaited(
+        consent.cancel().catchError((Object error) {
+          debugPrint('Consent subscription cleanup failed: $error');
+        }),
+      );
+    }
     _watchGeneration++;
     _watchRetryTimer?.cancel();
     _reconciliationTimer?.cancel();
@@ -4019,8 +4062,16 @@ final class NetworkGameController extends ChangeNotifier {
     final subscription = _subscription;
     _subscription = null;
     if (subscription != null) {
-      unawaited(subscription.cancel());
+      unawaited(
+        subscription.cancel().catchError((Object error) {
+          debugPrint('Round subscription cleanup failed: $error');
+        }),
+      );
     }
+    // A save already running must settle before the local keys are erased.
+    await _pendingPrivateWrite.catchError((Object error) {
+      debugPrint('Private session save failed during cleanup: $error');
+    });
     await privateStore.clear(sessionId: session.id, playerId: playerId);
     await privateStore.clearGame(sessionId: session.id, playerId: playerId);
   }
@@ -4116,7 +4167,7 @@ final class NetworkGameController extends ChangeNotifier {
     NetworkGameRoundStateDto value, {
     bool roundBound = false,
   }) async {
-    if (_disposed) return;
+    if (_disposed || _localSessionCleared) return;
     if (value.sessionId != session.id) {
       _fail(const NetworkRoundException('ROUND_NOT_FOUND'));
       return;
@@ -4136,6 +4187,7 @@ final class NetworkGameController extends ChangeNotifier {
     }
     if (value.deckCycle < _deckCycle) return;
     await _flushLearning(value);
+    if (_disposed || _localSessionCleared) return;
     _context = _context.copyWith(
       chiliActive: value.v4UnlockedSpice,
       chiliUnlocked: value.v4UnlockedSpice,
@@ -4205,10 +4257,6 @@ final class NetworkGameController extends ChangeNotifier {
     }
     switch (value.phase) {
       case NetworkGamePhase.commit:
-        if (_cancelCommitRequested) {
-          if (!_cancelling) unawaited(cancelSelection());
-          return;
-        }
         if (value.ownCommitRecorded) {
           if (_activeReveal == null) {
             _fail(const NetworkRoundException('ROUND_LOCAL_SECRET_MISSING'));
@@ -4409,7 +4457,7 @@ final class NetworkGameController extends ChangeNotifier {
         for (final card in cards)
           if (card.parameters['clothing_behavior'] != null &&
               card.parameters['clothing_behavior'] != 'none')
-            ...card.targetPlayerIds,
+            ...card.clothingPlayerIds,
       };
       await _applyNow(
         await (repository as NetworkV4ActionRepository)
@@ -4523,11 +4571,7 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   bool isCardPlayable(NetworkDuelCard card) =>
-      occurrenceAllowed(
-        card.id,
-        card.variant.id,
-        card.nativeDirection.name,
-      ) &&
+      occurrenceAllowed(card.id, card.variant.id, card.nativeDirection.name) &&
       !stageExcluded(card.id, card.variant.id, card.nativeDirection.name) &&
       choicesFor(card.id).any((o) => o.choice.actionId == card.variant.id) &&
       _usageCheckpoint.availableFor(card.id) > 0;

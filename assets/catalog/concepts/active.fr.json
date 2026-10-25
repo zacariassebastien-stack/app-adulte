@@ -1535,7 +1535,7 @@
       "title": "Silence",
       "kind": "action",
       "action_text": "Engagez le silence.",
-      "details_text": "Le silence peut uniquement être interrompu lorsque vous devez communiquer pour prendre une décision concernant une action.",
+      "details_text": "Ne parle pas et ne fais volontairement aucun bruit. Tu peux uniquement rompre le silence lorsqu’une décision de jeu nécessite de communiquer.",
       "variants": [
         {
           "id": "061.action",
@@ -1545,8 +1545,8 @@
       ],
       "persistent_effect": true,
       "action_templates": {
-        "FAIRE": "Garde un silence complet pendant les 3 prochaines actions : ne parle pas, ne gémis pas et ne fais volontairement aucun bruit.",
-        "RECEVOIR": "Pendant les 3 prochaines actions, {ton_partenaire} doit garder un silence complet : ne pas parler, ne pas gémir et ne faire volontairement aucun bruit."
+        "FAIRE": "Garde un silence complet pendant les 3 prochaines actions.",
+        "RECEVOIR": "Pendant les 3 prochaines actions, {ton_partenaire} garde un silence complet."
       }
     },
     {

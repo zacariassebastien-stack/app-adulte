@@ -6,6 +6,29 @@ final class ResolutionWording {
   final String localPlayerId;
   final Map<String, String> names;
 
+  String participant(String id) => id == localPlayerId ? 'toi' : name(id);
+
+  String reminder(String id) => id == localPlayerId
+      ? 'Tu dois continuer cette action.'
+      : '${name(id, subject: true)} doit continuer cette action.';
+
+  String concerned(String id) => id == localPlayerId
+      ? 'Tu es concerné(e) par cette action.'
+      : '${name(id, subject: true)} est concerné(e) par cette action.';
+
+  static const silenceDetails =
+      'Ne parle pas et ne fais volontairement aucun bruit. '
+      'Tu peux uniquement rompre le silence lorsqu’une décision de jeu nécessite de communiquer.';
+
+  String silenceInstruction(String actorId, int actions) =>
+      '${actorId == localPlayerId ? 'Garde' : '${name(actorId, subject: true)} garde'} '
+      'un silence complet pendant les $actions prochaines actions.';
+
+  String silenceDetailsFor(String actorId) => actorId == localPlayerId
+      ? silenceDetails
+      : '${name(actorId, subject: true)} ne parle pas et ne fait volontairement aucun bruit. '
+            'Cette personne peut uniquement rompre le silence lorsqu’une décision de jeu nécessite de communiquer.';
+
   String name(String id, {bool subject = false}) {
     final nickname = names[id]?.trim();
     if (nickname != null && nickname.isNotEmpty) return nickname;
@@ -49,9 +72,54 @@ final class ResolutionWording {
       return '$who ${localUnnamed ? 'es' : 'est'} le sujet de « $title » pour ${people(targets)}. '
           'La personne qui tient l’appareil est libre.';
     }
-    // "Pour" also fits performances/orders/media; it does not invent contact.
-    // Anatomical zone actions can explicitly describe the physical target.
-    final relation = card.zoneId == null ? 'pour' : 'sur';
-    return '$who $verb « $title » $relation ${people(targets)}.';
+    // Some cards describe the performer's state/performance; adding a generic
+    // recipient would imply a different clothing or participation action.
+    const actorCentred = {
+      '006',
+      '007',
+      '008',
+      '009',
+      '010',
+      '013',
+      '018',
+      '033',
+      '038',
+      '039',
+      '050',
+      '054',
+      '057',
+      '058',
+      '061',
+    };
+    const physicalTarget = {
+      '019',
+      '022',
+      '023',
+      '025',
+      '027',
+      '028',
+      '030',
+      '031',
+      '034',
+      '035',
+      '037',
+      '049',
+      '051',
+      '060',
+      '062',
+      '063',
+      '065',
+    };
+    final relation = card.zoneId != null || physicalTarget.contains(card.cardId)
+        ? 'sur'
+        : 'pour';
+    final suffix = actorCentred.contains(card.cardId)
+        ? ''
+        : ' $relation ${people(targets)}';
+    final duration = card.parameters['duration_actions'] as int?;
+    final durationText = duration == null
+        ? ''
+        : ' pendant les $duration prochaines actions';
+    return '$who $verb « $title »$suffix$durationText.';
   }
 }

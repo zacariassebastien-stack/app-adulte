@@ -287,6 +287,8 @@ final class LobbyController extends ChangeNotifier {
 
   @override
   void dispose() {
+    // Invalidate restores/retries still awaiting their network response.
+    _sessionGeneration++;
     _subscription?.cancel();
     super.dispose();
   }

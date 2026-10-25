@@ -48,27 +48,21 @@ class _CoupleCardsBootstrapState extends State<CoupleCardsBootstrap> {
     final stopwatch = Stopwatch()..start();
     debugPrint('Bootstrap: starting lobby repository initialization');
     try {
-      final result = await Future.wait<Object>([
-        widget.initializeRepository(),
-        _loadCanonicalThemes(),
-      ]).timeout(widget.initializationTimeout);
-      final repository = result[0] as LobbyRepository;
-      final themes = result[1] as List<ThemeBundle>;
+      final startup = await _prepareStartup().timeout(
+        widget.initializationTimeout,
+      );
+      if (!mounted) return;
+      final repository = startup.repository;
+      final themes = startup.themes;
       CardThemeRegistry.installClassic(
         themes.firstWhere((theme) => theme.pack.id == 'classic_v1'),
       );
       CardThemeRegistry.installSignature(
         themes.firstWhere((theme) => theme.pack.id == 'enchaire_signature_v1'),
       );
-      if (repository is NetworkLobbyRepository) {
-        final playerId = await repository.currentPlayerId();
-        final profile = await _loadProfile(playerId);
-        if (profile == null) {
-          _profilePlayerId = playerId;
-          _questionnaire = await loadAssetProfileQuestionnaire();
-          _needsInitialProfile = true;
-        }
-      }
+      _profilePlayerId = startup.playerId;
+      _questionnaire = startup.questionnaire;
+      _needsInitialProfile = startup.questionnaire != null;
       debugPrint(
         'Bootstrap: lobby repository ready in ${stopwatch.elapsedMilliseconds} ms',
       );
@@ -80,6 +74,38 @@ class _CoupleCardsBootstrapState extends State<CoupleCardsBootstrap> {
         setState(() => _repository = const UnavailableLobbyRepository());
       }
     }
+  }
+
+  Future<
+    ({
+      LobbyRepository repository,
+      List<ThemeBundle> themes,
+      String? playerId,
+      ProfileQuestionnaire? questionnaire,
+    })
+  >
+  _prepareStartup() async {
+    final result = await Future.wait<Object>([
+      widget.initializeRepository(),
+      _loadCanonicalThemes(),
+    ]);
+    final repository = result[0] as LobbyRepository;
+    String? playerId;
+    ProfileQuestionnaire? questionnaire;
+    if (repository is NetworkLobbyRepository) {
+      playerId = await repository.currentPlayerId();
+      final profile = await _loadProfile(playerId);
+      if (profile == null) {
+        questionnaire = await loadAssetProfileQuestionnaire();
+      }
+    }
+    // Late completion after timeout is data only; it cannot change the live route.
+    return (
+      repository: repository,
+      themes: result[1] as List<ThemeBundle>,
+      playerId: playerId,
+      questionnaire: questionnaire,
+    );
   }
 
   Future<Object?> _loadProfile(String playerId) async {

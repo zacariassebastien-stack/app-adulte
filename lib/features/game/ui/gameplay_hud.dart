@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import '../../../engines/deck/deck_cycle_state.dart';
 import 'card_hand_surface.dart';
 
+String spiceProgressSymbols(int level) =>
+    List.generate(4, (index) => index < level.clamp(1, 4) ? '🌶️' : '○').join();
+
 class GameplayHud extends StatelessWidget {
   const GameplayHud({
     required this.child,
@@ -36,88 +39,80 @@ class GameplayHud extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final full = stage == CardHandStage.open;
-    return Stack(
+    return Column(
       children: [
-        Positioned.fill(child: child),
-        Positioned(
-          top: 8,
-          left: 16,
-          child: ActionPointGaugeText(points: actionPoints),
-        ),
-        Positioned(
-          top: 4,
-          left: 92,
-          right: 92,
-          child: Text(
-            status,
-            key: const Key('game-status'),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleMedium,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            children: [
+              ActionPointGaugeText(points: actionPoints),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  status,
+                  key: const Key('game-status'),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              IconButton(
+                key: const Key('open-private-profile-settings'),
+                tooltip: 'Réglages',
+                onPressed: onSettings,
+                icon: const Icon(Icons.settings),
+              ),
+            ],
           ),
         ),
-        Positioned(
-          top: 2,
-          right: 6,
-          child: IconButton(
-            key: const Key('open-private-profile-settings'),
-            tooltip: 'Réglages',
-            onPressed: onSettings,
-            icon: const Icon(Icons.settings),
+        IgnorePointer(
+          child: Text(
+            spiceProgressSymbols(spice),
+            key: const Key('active-spice'),
+            style: const TextStyle(fontSize: 22),
           ),
         ),
         if (!full)
-          Positioned(
-            top: 48,
-            left: 0,
-            right: 0,
-            child: Text(
-              'TOUR $roundNumber',
-              key: const Key('game-round'),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
+          Text(
+            'TOUR $roundNumber',
+            key: const Key('game-round'),
+            style: Theme.of(context).textTheme.labelMedium,
           ),
-        if (!full && spice > 0)
-          Positioned(
-            top: 90,
-            left: 0,
-            right: 0,
-            child: Text(
-              List.filled(spice, '🌶️').join(),
-              key: const Key('active-spice'),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 22),
-            ),
+        Expanded(
+          child: Stack(
+            children: [
+              Positioned.fill(child: child),
+              if (!full && onOrientationChanged != null)
+                Positioned(
+                  left: 4,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: OrientationFlipButton(
+                      orientation: orientation,
+                      animationsEnabled: animationsEnabled,
+                      onChanged: onOrientationChanged!,
+                    ),
+                  ),
+                ),
+              if (!full && discardVisible && onDiscard != null)
+                Positioned(
+                  right: 6,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: IconButton(
+                      key: const Key('open-discard-gallery'),
+                      tooltip: 'Défausse',
+                      onPressed: onDiscard,
+                      icon: const _DiscardStackIcon(),
+                    ),
+                  ),
+                ),
+            ],
           ),
-        if (!full && onOrientationChanged != null)
-          Positioned(
-            left: 4,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: OrientationFlipButton(
-                orientation: orientation,
-                animationsEnabled: animationsEnabled,
-                onChanged: onOrientationChanged!,
-              ),
-            ),
-          ),
-        if (!full && discardVisible && onDiscard != null)
-          Positioned(
-            right: 6,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: IconButton(
-                key: const Key('open-discard-gallery'),
-                tooltip: 'Défausse',
-                onPressed: onDiscard,
-                icon: const _DiscardStackIcon(),
-              ),
-            ),
-          ),
+        ),
       ],
     );
   }
