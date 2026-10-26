@@ -576,70 +576,112 @@ void main() {
     expect((await ratings.load('alice')).explicitEstimate(item.ratingKey('alice')), 3.5);
   });
 
-  testWidgets('UX hand rating loads precise estimate and freezes current hand through reconnect', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(320, 568));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    SharedPreferences.setMockInitialValues({});
-    final backend = _Backend()..v4UnlockedSpice = 4;
-    final focused = _catalogWithCards(catalog, {'card.v4.056'});
-    final profiles = MemoryV4ProfileStore(); await profiles.save(stageProfile());
-    final ratings = MemoryV4CardLearningStore();
-    final secrets = MemoryNetworkDuelSecretStore();
-    final editor = CatalogProfileController(catalog: focused, playerId: 'alice',
-      profileStore: profiles, ratingStore: ratings, learningStore: MemoryNetworkProfileLearningStore());
-    await editor.load();
-    for (final item in editor.items.where((i) => i.actionId == '056.stage.3')) {
-      await editor.rate(item, DetailedPreferenceCategory.like);
-    }
-    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session, playerId: 'alice',
-      repository: backend.repository('alice'), catalog: focused,
-      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
-      secretStore: secrets, profileStore: profiles, cardLearningStore: ratings, v4Profile: stageProfile())));
-    await tester.pumpAndSettle();
-    final controller = (tester.state(find.byType(NetworkDuelScreen)) as dynamic).controller as NetworkGameController;
-    final hand = find.byType(CardHandSurface);
-    final item = tester.widget<CardHandSurface>(hand).cards.single;
-    final before = controller.hand.single.personalValue;
-    final round = jsonEncode(backend.state('alice').toJson());
-    final area = tester.getRect(hand);
-    await tester.tapAt(Offset(area.center.dx, area.top + area.height * .85));
-    await tester.pumpAndSettle();
-    await tester.tapAt(tester.getCenter(find.byKey(const Key('hand-card-056'))));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('rate-hand-card-056')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('rate-hand-card-056')));
-    await tester.pumpAndSettle();
-    expect(find.text('Mon appréciation'), findsNWidgets(2));
-    expect(find.byKey(const Key('appreciation-radial')), findsOneWidget);
-    final wheel = tester.widget<RadialAppreciation>(find.byType(RadialAppreciation));
-    expect(wheel.allowExclusion, isFalse);
-    expect(wheel.visible, isTrue);
-    expect(wheel.initialValue, DetailedPreferenceCategory.like);
-    final origin = tester.getCenter(find.byType(RadialAppreciation));
-    // One tap on the already-visible profile wheel saves the selected sector.
-    await tester.tapAt(origin + Offset(0, -tester.getSize(find.byType(RadialAppreciation)).width * .33));
-    await tester.pumpAndSettle();
-    final target = editor.items.singleWhere((i) => i.concept.id == item.definition.cardId &&
-      i.actionId == item.definition.variantId && i.direction.name == item.definition.direction);
-    final saved = await ratings.load('alice');
-    expect(saved.explicitEstimate(target.ratingKey('alice')), 1.5);
-    expect(controller.hand.single.personalValue, before);
-    expect(jsonEncode(backend.state('alice').toJson()), round);
-    expect(controller.usageCheckpoint.usagesByIntent, isEmpty);
-    await tester.pumpWidget(const SizedBox.shrink());
-    final restored = NetworkGameController(session: session, playerId: 'alice',
-      repository: backend.repository('alice'), privateStore: secrets, catalog: focused,
-      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
-      v4Profile: stageProfile(), cardLearningStore: ratings, learningStore: MemoryNetworkProfileLearningStore());
-    editor.dispose();
-    await restored.start();
-    expect(restored.hand.single.personalValue, before);
-    restored.selectCard('056'); await restored.confirmSelection();
-    expect(await restored.cancelSelection(), isFalse);
-    final engaged = restored.personalDuelCard!.personalValue;
-    expect(engaged, before);
-    restored.dispose();
-  });
+  for (final drag in [false, true]) {
+    testWidgets('UX hand rating ${drag ? 'drag' : 'tap'} is visible above a pushed game and freezes current hand through reconnect', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 568));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      SharedPreferences.setMockInitialValues({});
+      final backend = _Backend()..v4UnlockedSpice = 4;
+      final focused = _catalogWithCards(catalog, {'card.v4.056'});
+      final profiles = MemoryV4ProfileStore(); await profiles.save(stageProfile());
+      final ratings = MemoryV4CardLearningStore();
+      final secrets = MemoryNetworkDuelSecretStore();
+      final editor = CatalogProfileController(catalog: focused, playerId: 'alice',
+        profileStore: profiles, ratingStore: ratings, learningStore: MemoryNetworkProfileLearningStore());
+      await editor.load();
+      for (final item in editor.items.where((i) => i.actionId == '056.stage.3')) {
+        await editor.rate(item, DetailedPreferenceCategory.like);
+      }
+      final game = NetworkDuelScreen(session: session, playerId: 'alice',
+        repository: backend.repository('alice'), catalog: focused,
+        anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+        secretStore: secrets, profileStore: profiles, cardLearningStore: ratings, v4Profile: stageProfile());
+      await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) => Scaffold(
+        body: TextButton(onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => game)), child: const Text('Open game'))))));
+      await tester.tap(find.text('Open game'));
+      await tester.pumpAndSettle();
+      final controller = (tester.state(find.byType(NetworkDuelScreen)) as dynamic).controller as NetworkGameController;
+      final hand = find.byType(CardHandSurface);
+      final item = tester.widget<CardHandSurface>(hand).cards.single;
+      final before = controller.hand.single.personalValue;
+      final round = jsonEncode(backend.state('alice').toJson());
+      final area = tester.getRect(hand);
+      await tester.tapAt(Offset(area.center.dx, area.top + area.height * .85));
+      await tester.pumpAndSettle();
+      await tester.tapAt(tester.getCenter(find.byKey(const Key('hand-card-056'))));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('rate-hand-card-056')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('rate-hand-card-056')));
+      await tester.pumpAndSettle();
+      expect(find.text('Mon appréciation'), findsNWidgets(2));
+      expect(find.byKey(const Key('appreciation-radial')), findsOneWidget);
+      expect(find.byKey(const Key('appreciation-radial')).hitTestable(), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      final wheel = tester.widget<RadialAppreciation>(find.byType(RadialAppreciation));
+      expect(wheel.allowExclusion, isFalse);
+      expect(wheel.visible, isTrue);
+      expect(wheel.initialValue, DetailedPreferenceCategory.like);
+      // AlertDialog measures its contents intrinsically before laying out the
+      // route. The wheel must not expose LayoutBuilder to that measurement.
+      final content = tester.widget<AlertDialog>(find.byType(AlertDialog)).content!;
+      final contentBox = tester.renderObject<RenderBox>(find.byWidget(content));
+      expect(contentBox.getMinIntrinsicHeight(contentBox.size.width), greaterThan(0));
+      expect(contentBox.size.width, contentBox.size.height);
+      expect(contentBox.size.shortestSide, greaterThan(0));
+      // Closing either explicitly or with Android Back restores the enlarged
+      // card, without leaving an invisible modal barrier or stacking dialogs.
+      await tester.tap(find.text('Fermer'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byKey(const Key('rate-hand-card-056')).hitTestable(), findsOneWidget);
+      await tester.tap(find.byKey(const Key('rate-hand-card-056')));
+      await tester.pumpAndSettle();
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      await tester.tap(find.byKey(const Key('rate-hand-card-056')));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
+      final origin = tester.getCenter(find.byType(RadialAppreciation));
+      // One tap on the already-visible profile wheel saves the selected sector.
+      final sector = origin + Offset(0, -tester.getSize(find.byType(RadialAppreciation)).width * .33);
+      if (drag) {
+        final gesture = await tester.startGesture(origin);
+        await gesture.moveTo(sector);
+        await tester.pump();
+        await gesture.up();
+      } else {
+        await tester.tapAt(sector);
+      }
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byKey(const Key('rate-hand-card-056')).hitTestable(), findsOneWidget);
+      final target = editor.items.singleWhere((i) => i.concept.id == item.definition.cardId &&
+        i.actionId == item.definition.variantId && i.direction.name == item.definition.direction);
+      final saved = await ratings.load('alice');
+      expect(saved.explicitEstimate(target.ratingKey('alice')), 1.5);
+      expect(controller.hand.single.personalValue, before);
+      expect(jsonEncode(backend.state('alice').toJson()), round);
+      expect(controller.usageCheckpoint.usagesByIntent, isEmpty);
+      controller.selectCard('056');
+      await controller.confirmSelection();
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('rate-hand-card-056')), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      final restored = NetworkGameController(session: session, playerId: 'alice',
+        repository: backend.repository('alice'), privateStore: secrets, catalog: focused,
+        anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+        v4Profile: stageProfile(), cardLearningStore: ratings, learningStore: MemoryNetworkProfileLearningStore());
+      editor.dispose();
+      await restored.start();
+      expect(restored.personalDuelCard!.personalValue, before);
+      expect(await restored.cancelSelection(), isFalse);
+      final engaged = restored.personalDuelCard!.personalValue;
+      expect(engaged, before);
+      restored.dispose();
+    });
+  }
 
   V4Profile consentProfile(String id, {ProfilePreferenceRole? excluded,
     String? stage, bool preference = false}) {

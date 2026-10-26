@@ -309,59 +309,73 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             candidate.actionId == item.definition.variantId &&
             candidate.direction.name == item.definition.direction,
       );
+      // AlertDialog measures content intrinsically. Bound both axes before the
+      // profile wheel's LayoutBuilder, including on narrow screens.
       await showDialog<void>(
         context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Mon appréciation'),
-          scrollable: true,
-          content: AnimatedBuilder(
-            animation: editor,
-            builder: (context, _) {
-              final category = editor.category(target);
-              return SizedBox(
-                width: 320,
-                child: RadialAppreciation(
-                  visible: true,
-                  initialValue: category,
-                  allowExclusion: false,
-                  enabled:
-                      !editor.saving &&
-                      controller.viewState == NetworkGameViewState.choosing,
-                  onSelected: (value) async {
-                    if (controller.viewState != NetworkGameViewState.choosing) {
-                      return;
-                    }
-                    // Exclusions retain their existing consent flow in the hand menu.
-                    if (value == DetailedPreferenceCategory.excluded) return;
-                    try {
-                      await editor.rate(
-                        target,
-                        value,
-                        preserveExclusions: true,
-                      );
-                      // The current hand and its personal values remain frozen.
-                      if (dialogContext.mounted) Navigator.pop(dialogContext);
-                    } catch (_) {
-                      if (dialogContext.mounted) {
-                        ScaffoldMessenger.of(dialogContext).showSnackBar(
-                          const SnackBar(
-                            content: Text('Note non enregistrée. Réessaie.'),
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  child: const SizedBox.shrink(),
+        builder: (context) => LayoutBuilder(
+          builder: (dialogContext, constraints) {
+            final wheelSize = (constraints.maxWidth - 128).clamp(1.0, 320.0);
+            return AlertDialog(
+              title: const Text('Mon appréciation'),
+              scrollable: true,
+              content: AnimatedBuilder(
+                animation: editor,
+                builder: (context, _) {
+                  final category = editor.category(target);
+                  return SizedBox.square(
+                    dimension: wheelSize,
+                    child: RadialAppreciation(
+                      visible: true,
+                      initialValue: category,
+                      allowExclusion: false,
+                      enabled:
+                          !editor.saving &&
+                          controller.viewState == NetworkGameViewState.choosing,
+                      onSelected: (value) async {
+                        if (controller.viewState !=
+                            NetworkGameViewState.choosing) {
+                          return;
+                        }
+                        // Exclusions retain their existing consent flow in the hand menu.
+                        if (value == DetailedPreferenceCategory.excluded) {
+                          return;
+                        }
+                        try {
+                          await editor.rate(
+                            target,
+                            value,
+                            preserveExclusions: true,
+                          );
+                          // The current hand and its personal values remain frozen.
+                          if (dialogContext.mounted) {
+                            Navigator.pop(dialogContext);
+                          }
+                        } catch (_) {
+                          if (dialogContext.mounted) {
+                            ScaffoldMessenger.of(dialogContext).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Note non enregistrée. Réessaie.',
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: const SizedBox.shrink(),
+                    ),
+                  );
+                },
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Fermer'),
                 ),
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Fermer'),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       );
     } catch (_) {
