@@ -1,5 +1,110 @@
 # Couple Cards — domaine et stockage local Flutter / Dart
 
+## Passation actuelle — reprise sur le PC de travail
+
+**PERSONNALISATION / APPRENTISSAGE : TERMINÉ.** Validation acceptée le
+27 octobre 2026. Ce chantier est clos ; ne pas rouvrir spontanément la
+calibration ni relancer de recherche de coefficients, sauf problème manifeste
+observé en conditions réelles et nouveau chantier décidé avec l'utilisateur.
+
+### Référence et reprise Git
+
+Référence fonctionnelle validée et poussée sur `origin/main` :
+`a988d40acf4cb7864af7c19c4db02fb11de1e5b0`
+(`fix: finalize personalization learning signals`). Un commit de documentation
+de passation s'ajoute ensuite à cette référence sans changement fonctionnel.
+
+Sur le PC de travail : vérifier le dépôt, la branche `main` et les modifications
+locales, récupérer `origin/main`, puis synchroniser par avance rapide si l'arbre
+le permet. Ne jamais écraser de changements locaux inconnus. Vérifier ensuite
+`HEAD == origin/main` ; les fichiers suivis doivent être propres.
+
+`tools/card_print_export/` est un outil local préexistant, non suivi et hors
+périmètre : **ne jamais l'ajouter au dépôt**, ni le modifier ou le supprimer pour
+nettoyer Git. Sur le mini-PC, il est la seule entrée non suivie après le push du
+chantier ; son absence sur une autre machine ne constitue pas un fichier manquant
+du dépôt.
+
+### Décisions de personnalisation à conserver
+
+Paramètres de production centralisés dans `PersonalizationConfig` :
+
+| Paramètre | Valeur |
+| --- | --- |
+| choice | `0.05` |
+| nonChoice | `0.025` |
+| decay (`repeatDecay`) | `0.9` |
+| repetition floor (`repeatFloor`) | `0.50` |
+
+Le non-choix répété suit `nominal × max(decay^(n-1), floor)` dans son épisode
+d'exposition ; les retries sont dédupliqués.
+
+- L'appréciation officielle est séparée de l'estimation interne apprise.
+- Un changement de palier est proposé au joueur, jamais appliqué silencieusement.
+  Les PA restent basés sur le palier officiellement confirmé.
+- `Faire confiance au jeu` active l'apprentissage comportemental ;
+  `Personnaliser soi-même` le désactive.
+- Une préférence faible mais persistante peut s'accumuler entre plusieurs parties.
+- **Aucune stabilisation ni quantification automatique à `SESSION_CLOSED`.**
+  L'expérimentation d'arrondi a été retirée car elle pouvait effacer une
+  préférence réelle et augmenter les propositions négatives chez le neutre.
+
+Correctifs intégrés dans la référence fonctionnelle :
+
+- unlock volontaire négatif faible ; unlock forcé neutre ; événements dédupliqués ;
+- Corruption : budget total conservé, réparti entre les N cartes du package ;
+- Recovery : une décision, un seul signal modulé par le sacrifice ;
+- tags : budget de généralisation conservé, sans multiplication par le nombre
+  de tags ni boucle de propagation ;
+- aucune acceptation apprise depuis une résolution post-duel provisoire ;
+- Compromis : signaux prévus conservés et attribution aux rôles finaux effectifs ;
+- valeur privée Recovery/Corruption retrouvée dans une réservation lorsque
+  nécessaire, sans se limiter aux usages engagés et sans inventer de valeur.
+
+### Validation acquise et limites acceptées
+
+Validation finale avant le commit fonctionnel :
+
+| Contrôle | Résultat |
+| --- | --- |
+| Suite Flutter complète | **1 498 tests réussis** |
+| `dart analyze` | 0 erreur, 0 warning, 28 infos ; sortie 0 |
+| `flutter analyze --no-pub` | 0 erreur, 0 warning, 28 infos ; sortie liée aux infos |
+| `git diff --check` | OK |
+
+Le cas de 2 choix positifs par partie pendant 40 parties (80 observations)
+accumule désormais l'apprentissage : estimation interne à 3,5, proposition obtenue,
+référence officielle toujours à 7,5. Les préférences fortes, le rejet et le
+retournement de tendance ont aussi été contrôlés.
+
+Limites volontairement acceptées : légère dérive possible du profil neutre
+(environ 7,2576 en parties courtes et 6,7854 en partie longue depuis 7,5),
+retournement parfois lent après saturation. Elles ne justifient pas une nouvelle
+calibration à elles seules. Le joueur conserve le contrôle de ses changements
+de palier.
+
+Références conservées dans le dépôt :
+
+- [Bilan détaillé des corrections et validations](docs/personalization_functional_validation.md).
+- [Banc de validation](tool/personalization_validation.dart), à utiliser pour une
+  régression justifiée, pas pour poursuivre spontanément l'optimisation.
+- [Contrat de personnalisation](docs/personalization_v2.md).
+
+### Prochain point de reprise
+
+Après synchronisation et lecture de cette passation, reprendre avec l'utilisateur
+la conception générale du jeu, des cartes, du profil, ou le prochain chantier
+qu'il choisira. Aucun nouveau développement n'est prédéfini ici.
+
+Les sections et documents historiques ci-dessous décrivent d'anciens checkpoints.
+Ils restent utiles comme références techniques, mais leurs anciens compteurs de
+tests, statuts de livraison ou questions de calibration ne remplacent pas cette
+passation actuelle. Cette mise à jour est documentaire uniquement et ne constitue
+ni un déploiement ni une nouvelle validation manuelle à deux clients.
+
+---
+
+
 **Refonte conceptuelle — Lots 1 à 5 :** le [contrat catalogue](docs/catalog/concept_contract.md)
 définit les 56 concepts actifs de la [spécification consolidée](docs/specs/consolidated_concepts.fr.txt).
 Le [raccordement ciblé](docs/concept_runtime_integration.md) adapte le contrôleur
