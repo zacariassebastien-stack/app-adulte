@@ -7,6 +7,7 @@ enum ProfileSex {
   HOMME,
   // ignore: constant_identifier_names
   FEMME;
+
   PlayerAnatomy get anatomy => switch (this) {
     HOMME => PlayerAnatomy.PENIS,
     FEMME => PlayerAnatomy.VULVE,
@@ -258,10 +259,45 @@ final class V4Profile {
     Map<String, PracticeConsent> consents = const {},
     List<V4ProfileAccessory> accessories = const [],
     List<StageVeto> stageVetoes = const [],
-  }) : preferences = Map.unmodifiable(preferences),
+    List<StageVeto> presentationAllowances = const [],
+  }) : preferences = Map.unmodifiable(_initializeMutual(preferences)),
        consents = Map.unmodifiable(consents),
        accessories = List.unmodifiable(accessories),
-       stageVetoes = List.unmodifiable(stageVetoes);
+       stageVetoes = List.unmodifiable(stageVetoes),
+       presentationAllowances = List.unmodifiable(presentationAllowances);
+
+  // One-time questionnaire prior. Once present, MUTUEL never follows SOLO or
+  // OBSERVER again, including when a persisted profile is reconstructed.
+  static Map<String, ProfilePreference> _initializeMutual(
+    Map<String, ProfilePreference> values,
+  ) {
+    const key = ProfilePreferenceKey(
+      tagId: 'masturbation',
+      role: ProfilePreferenceRole.mutuel,
+    );
+    if (values.containsKey(key.storageKey)) return values;
+    final solo = values['masturbation|solo'];
+    final observer = values['masturbation|observer'];
+    if (solo == null ||
+        observer == null ||
+        solo.source != ProfilePreferenceSource.initialQuestionnaire ||
+        observer.source != ProfilePreferenceSource.initialQuestionnaire) {
+      return values;
+    }
+    final excluded = solo.excluded || observer.excluded;
+    if (!excluded && (solo.pa == null || observer.pa == null)) return values;
+    return {
+      ...values,
+      key.storageKey: ProfilePreference(
+        profileId: solo.profileId,
+        key: key,
+        pa: excluded ? null : (solo.pa! + observer.pa!) / 2,
+        excluded: excluded,
+        source: ProfilePreferenceSource.initialQuestionnaire,
+        initialResponse: 'mutual_bootstrap',
+      ),
+    };
+  }
 
   final String profileId;
   final ProfileSex sex;
@@ -271,11 +307,21 @@ final class V4Profile {
   final Map<String, PracticeConsent> consents;
   final List<V4ProfileAccessory> accessories;
   final List<StageVeto> stageVetoes;
+  final List<StageVeto> presentationAllowances;
+  bool allowsPresentation(String concept, String action, String direction) =>
+      presentationAllowances.any(
+        (a) =>
+            a.conceptId == concept &&
+            a.actionId == action &&
+            a.role.wireName == direction,
+      );
   bool excludesStage(String conceptId, String actionId, String direction) =>
       stageVetoes.any(
         (v) =>
             v.conceptId == conceptId &&
-            (v.actionId == actionId || v.actionId == '*') &&
+            (v.actionId == actionId ||
+                (v.actionId == '*' &&
+                    !allowsPresentation(conceptId, actionId, direction))) &&
             (v.role == ProfilePreferenceRole.general ||
                 v.role.wireName == direction),
       );
@@ -315,6 +361,9 @@ final class V4Profile {
     'consents': [for (final value in consents.values) value.toJson()],
     'accessories': [for (final value in accessories) value.toJson()],
     'stage_vetoes': [for (final value in stageVetoes) value.toJson()],
+    'presentation_allowances': [
+      for (final value in presentationAllowances) value.toJson(),
+    ],
   };
 
   factory V4Profile.fromJson(Map<String, Object?> json) {
@@ -342,6 +391,11 @@ final class V4Profile {
         for (final value in json['stage_vetoes'] as List? ?? const [])
           StageVeto.fromJson(Map<String, Object?>.from(value as Map)),
       ],
+      presentationAllowances: [
+        for (final value
+            in json['presentation_allowances'] as List? ?? const [])
+          StageVeto.fromJson(Map<String, Object?>.from(value as Map)),
+      ],
     );
   }
 
@@ -350,6 +404,7 @@ final class V4Profile {
     String? gameNickname,
     List<V4ProfileAccessory>? accessories,
     List<StageVeto>? stageVetoes,
+    List<StageVeto>? presentationAllowances,
   }) => V4Profile(
     profileId: profileId,
     sex: sex ?? this.sex,
@@ -358,6 +413,8 @@ final class V4Profile {
     consents: consents,
     accessories: accessories ?? this.accessories,
     stageVetoes: stageVetoes ?? this.stageVetoes,
+    presentationAllowances:
+        presentationAllowances ?? this.presentationAllowances,
   );
 }
 

@@ -88,7 +88,15 @@ final class V4CardRatingEngine {
       ...variant.primaryPreferenceTags,
       ...variant.secondaryPreferenceTags,
     ];
+    if (conceptId == '039' && effectiveRole == ProfilePreferenceRole.recevoir) {
+      final index = tags.indexOf('etre_regarde');
+      if (index >= 0) tags[index] = 'regarder';
+    }
     final allTags = {...tags, ...variant.nonPreferenceData, ...?vetoTags};
+    if (conceptId == '039' && effectiveRole == ProfilePreferenceRole.recevoir) {
+      allTags.remove('etre_regarde');
+      allTags.add('regarder');
+    }
     for (final preference in profile.preferences.values) {
       if (preference.excluded &&
           allTags.contains(preference.key.tagId) &&
@@ -128,7 +136,10 @@ final class V4CardRatingEngine {
     final values = [for (final tag in tags) resolved[tag]!.pa!];
     final weights = [
       for (final tag in tags)
-        variant.primaryPreferenceTags.contains(tag) ? 1.0 : .5,
+        variant.primaryPreferenceTags.contains(tag) ||
+                (conceptId == '039' && tag == 'regarder')
+            ? 1.0
+            : .5,
     ];
     final weight = weights.fold<double>(0, (s, w) => s + w);
     final raw = const V4PaCalculator()
@@ -186,7 +197,7 @@ final class V4CardRatingEngine {
     String direction,
   ) => switch (conceptId) {
     '013' => const [ProfilePreferenceRole.soi],
-    '021' => const [ProfilePreferenceRole.solo, ProfilePreferenceRole.observer],
+    '021' => const [ProfilePreferenceRole.mutuel],
     '053' => const [ProfilePreferenceRole.recevoir],
     '045' || '047' => const [ProfilePreferenceRole.mutuel],
     _ => switch (direction) {
@@ -240,8 +251,10 @@ final class CardRatingKey {
     required this.profileId,
     required this.cardId,
     required this.variantId,
-    required this.role,
-  });
+    required ProfilePreferenceRole role,
+  }) : role = cardId == '013' && role == ProfilePreferenceRole.solo
+           ? ProfilePreferenceRole.soi
+           : role;
   final String profileId;
   final String cardId;
   final String variantId;
@@ -277,6 +290,7 @@ final class CardRatingStateV4 {
     required this.acceptanceCount,
     required this.resistanceCount,
     required this.source,
+    this.personalization = const {},
   });
 
   final CardRatingKey key;
@@ -291,6 +305,7 @@ final class CardRatingStateV4 {
   final int acceptanceCount;
   final int resistanceCount;
   final String source;
+  final Map<String, Object?> personalization;
 
   Map<String, Object?> toJson() => {
     'key': key.toJson(),
@@ -305,6 +320,7 @@ final class CardRatingStateV4 {
     'acceptance_count': acceptanceCount,
     'resistance_count': resistanceCount,
     'source': source,
+    'personalization': personalization,
   };
 
   factory CardRatingStateV4.fromJson(Map<String, Object?> json) =>
@@ -323,6 +339,9 @@ final class CardRatingStateV4 {
         acceptanceCount: json['acceptance_count']! as int,
         resistanceCount: json['resistance_count']! as int,
         source: json['source']! as String,
+        personalization: Map<String, Object?>.from(
+          (json['personalization'] as Map?) ?? const {},
+        ),
       );
 
   CardRatingStateV4 record(V4CardLearningSignal signal) => CardRatingStateV4(
@@ -347,6 +366,7 @@ final class CardRatingStateV4 {
     resistanceCount:
         resistanceCount + (signal == V4CardLearningSignal.resisted ? 1 : 0),
     source: source,
+    personalization: personalization,
   );
 
   CardRatingStateV4 withOwnEstimate(double estimate) => CardRatingStateV4(
@@ -362,6 +382,13 @@ final class CardRatingStateV4 {
     acceptanceCount: acceptanceCount,
     resistanceCount: resistanceCount,
     source: 'CARD_ESTIMATE',
+    personalization: {
+      ...personalization,
+      'internal': estimate,
+      'manual': true,
+      'pending': null,
+      'declined': null,
+    },
   );
 }
 
@@ -380,9 +407,11 @@ final class CardSpecificLearningStore {
 
   CardRatingStateV4? read(CardRatingKey key) => _values[key.storageKey];
   bool explicitlyRated(CardRatingKey key) =>
-      read(key)?.source == 'CARD_ESTIMATE';
+      const {'CARD_ESTIMATE', 'EXCLUSION_MARKER'}.contains(read(key)?.source);
   double? explicitEstimate(CardRatingKey key) =>
       explicitlyRated(key) ? read(key)?.currentEstimate : null;
+  Iterable<CardRatingStateV4> get values => _values.values;
+  double? referenceEstimate(CardRatingKey key) => read(key)?.currentEstimate;
 
   void write(CardRatingStateV4 value) {
     _values[value.key.storageKey] = value;

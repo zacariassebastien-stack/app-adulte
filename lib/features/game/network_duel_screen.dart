@@ -126,6 +126,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       privateProfile: widget.privateProfile,
       v4Profile: widget.v4Profile,
       cardLearningStore: widget.cardLearningStore,
+      profileStore: widget.profileStore,
       scoringCatalog: widget.scoringCatalog,
       sessionMode: widget.sessionMode,
       initialClothingCounts: widget.initialClothingCounts,
@@ -347,6 +348,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                             value,
                             preserveExclusions: true,
                           );
+                          // Consent exceptions synchronize independently of the
+                          // frozen per-round economic reference.
+                          await controller.applyStageVetoProfile(editor.profile);
                           // The current hand and its personal values remain frozen.
                           if (dialogContext.mounted) {
                             Navigator.pop(dialogContext);
@@ -1902,6 +1906,44 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                   await controller.choosePostGameProfile(choice);
                   setPanelState(() {});
                 },
+              ),
+            for (final proposal in controller.personalizationProposals)
+              ListTile(
+                key: ValueKey(
+                  'personalization-proposal-${proposal.key.storageKey}',
+                ),
+                title: Text(
+                  '${widget.catalog.concepts!.concepts.singleWhere((c) => c.id == proposal.key.cardId).title} · ${proposal.key.role.wireName}',
+                ),
+                subtitle: Text(
+                  '${DetailedPreferenceCategoryRules.fromPa(proposal.currentEstimate).label} → ${DetailedPreferenceCategory.values.byName(proposal.personalization['pending']! as String).label}',
+                ),
+                trailing: Wrap(
+                  children: [
+                    TextButton(
+                      onPressed: () async {
+                        await controller.decidePersonalization(
+                          proposal.key,
+                          accept: false,
+                          expectedCategory: proposal.personalization['pending'] as String?,
+                        );
+                        if (context.mounted) setPanelState(() {});
+                      },
+                      child: const Text('Refuser'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        await controller.decidePersonalization(
+                          proposal.key,
+                          accept: true,
+                          expectedCategory: proposal.personalization['pending'] as String?,
+                        );
+                        if (context.mounted) setPanelState(() {});
+                      },
+                      child: const Text('Accepter'),
+                    ),
+                  ],
+                ),
               ),
             if (controller.postGameProfileChoice ==
                 PostGameProfileChoice.customize) ...[

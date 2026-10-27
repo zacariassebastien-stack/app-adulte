@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import '../../core/json.dart';
 import '../../sync/projection/usage_learning_projection.dart';
+import '../../engines/profile/card_personalization_engine.dart';
 
 import 'package:flutter/foundation.dart';
 
@@ -57,6 +58,7 @@ final class NetworkGameController extends ChangeNotifier {
     this.recoveryEngine = const RecoveryEngine(),
     NetworkProfileLearningStore? learningStore,
     V4CardLearningStore? cardLearningStore,
+    V4ProfileStore? profileStore,
     PostGameProfileChoiceStore? profileChoiceStore,
     PlayerGameProfile? privateProfile,
     EngineSessionContext? initialContext,
@@ -76,6 +78,7 @@ final class NetworkGameController extends ChangeNotifier {
        _catalog = catalog,
        _privateProfile = privateProfile,
        _v4Profile = v4Profile,
+       _v4ProfileStore = profileStore,
        clock = clock ?? DateTime.now,
        nonceFactory = nonceFactory ?? _secureNonce {
     final ids = session.players.map((player) => player.userId).toList()..sort();
@@ -166,7 +169,432 @@ final class NetworkGameController extends ChangeNotifier {
   late final NetworkProfileLearningCoordinator learning;
   late final PostGameProfileChoiceStore _profileChoiceStore;
   late final V4CardLearningStore _cardLearningStore;
+  final V4ProfileStore? _v4ProfileStore;
   CardSpecificLearningStore _cardRatings = CardSpecificLearningStore();
+  CardSpecificLearningStore _personalizationRatings =
+      CardSpecificLearningStore();
+  final _personalization = const CardPersonalizationEngine();
+  Future<void> _personalizationWrites = Future.value();
+  final Map<String, JsonMap> _personalizationOutbox = {};
+  Future<void> flushPersonalization() => _personalizationWrites;
+  final Set<String> _personalizationLocks = {};
+  List<CardRatingStateV4> get personalizationProposals =>
+      postGameProfileChoice != PostGameProfileChoice.trustGame
+      ? const []
+      : _personalizationRatings.values
+            .where((s) => s.personalization['pending'] != null)
+            .toList();
+
+  Future<void> decidePersonalization(
+    CardRatingKey key, {
+    required bool accept,
+    String? expectedCategory,
+  }) async {
+    if (postGameProfileChoice != PostGameProfileChoice.trustGame) return;
+    _personalizationRatings = await _cardLearningStore.mutate(
+      playerId,
+      (s) => _personalization.decide(s, key, accept: accept, expectedCategory: expectedCategory),
+    );
+    // Official values remain frozen for the current round.
+    notifyListeners();
+  }
+
+  Map<String, double> _personalizationTags(
+    String concept,
+    String action,
+    String role,
+  ) {
+    final rating = _conceptCatalog.optionalRatingFor(concept, action);
+    return {
+      for (final tag in rating?.primaryPreferenceTags ?? <String>[])
+        (concept == '039' && role == 'RECEVOIR' && tag == 'etre_regarde'
+                ? 'regarder'
+                : tag):
+            1,
+      for (final tag in rating?.secondaryPreferenceTags ?? <String>[]) tag: .5,
+    };
+  }
+
+  Future<void> _recordPersonalization(
+    NetworkDuelCard card,
+    PersonalizationSignal signal,
+    String eventId, {
+    String? episode,
+  }) {
+    if (postGameProfileChoice != PostGameProfileChoice.trustGame) {
+      return Future.value();
+    }
+    final key = CardRatingKey(
+      profileId: playerId,
+      cardId: card.id,
+      variantId: card.variant.id,
+      role: ProfilePreferenceRole.parse(card.effectiveDirection.name),
+    );
+    _personalizationOutbox[eventId] = {
+      'key': key.toJson(),
+      'prior': card.personalValue,
+      'tags': _personalizationTags(
+        card.id,
+        card.variant.id,
+        card.effectiveDirection.name,
+      ),
+      'signal': signal.name,
+      'episode': episode,
+    };
+    final operation = _personalizationWrites.then((_) async {
+      await _drainPersonalizationOutbox();
+    });
+    _personalizationWrites = operation.catchError((Object e, StackTrace s) {
+      debugPrint('Private personalization persistence failed: $e');
+    });
+    return _personalizationWrites;
+  }
+
+  Future<void> _drainPersonalizationOutbox() async {
+    if (_personalizationOutbox.isEmpty) return;
+    // The private checkpoint and the pending event are saved together before
+    // delivery. A crash after delivery is harmless thanks to the event receipt.
+    await _persist();
+    for (final e in _personalizationOutbox.entries.toList()) {
+      final data = e.value;
+      if (postGameProfileChoice == PostGameProfileChoice.trustGame) {
+        _personalizationRatings = await _cardLearningStore.mutate(playerId, (
+          store,
+        ) {
+          _personalization.observe(
+            store: store,
+            key: CardRatingKey.fromJson(
+              Map<String, Object?>.from(data['key'] as Map),
+            ),
+            prior: (data['prior'] as num).toDouble(),
+            tags: {
+              for (final tag in (data['tags'] as Map).entries)
+                tag.key as String: (tag.value as num).toDouble(),
+            },
+            eventId: e.key,
+            signal: PersonalizationSignal.values.byName(
+              data['signal'] as String,
+            ),
+            enabled: true,
+            exposureEpisode: data['episode'] as String?,
+          );
+        });
+      }
+      _personalizationOutbox.remove(e.key);
+    }
+    await _persist();
+  }
+
+  Future<void> _observePersonalization(NetworkGameRoundStateDto value) async {
+    if (postGameProfileChoice != PostGameProfileChoice.trustGame) return;
+    final root = '${session.id}/${value.roundId}';
+    if (value.phase == NetworkGamePhase.commit && !value.ownCommitRecorded) {
+      final exposed = hand.where(isCardPlayable).toList();
+      if (exposed.any(
+        (c) =>
+            !(((_personalizationRatings
+                            .read(
+                              CardRatingKey(
+                                profileId: playerId,
+                                cardId: c.id,
+                                variantId: c.variant.id,
+                                role: ProfilePreferenceRole.parse(
+                                  c.nativeDirection.name,
+                                ),
+                              ),
+                            )
+                            ?.personalization['exposures']
+                        as List?) ??
+                    const [])
+                .contains(root)),
+      )) {
+        _personalizationRatings = await _cardLearningStore.mutate(playerId, (
+          store,
+        ) {
+          for (final card in exposed) {
+            final key = CardRatingKey(
+              profileId: playerId,
+              cardId: card.id,
+              variantId: card.variant.id,
+              role: ProfilePreferenceRole.parse(card.nativeDirection.name),
+            );
+            final seeded = _personalization.seed(
+              store,
+              key,
+              card.personalValue.toDouble(),
+              _personalizationTags(
+                card.id,
+                card.variant.id,
+                card.nativeDirection.name,
+              ),
+            );
+            store.write(
+              CardRatingStateV4.fromJson({
+                ...seeded.toJson(),
+                'personalization': {
+                  ...seeded.personalization,
+                  'exposures': {
+                    ...((seeded.personalization['exposures'] as List?) ??
+                            const [])
+                        .cast<String>(),
+                    root,
+                  }.toList(),
+                },
+              }),
+            );
+          }
+        });
+      }
+    }
+    final own = _activeReveal?.choice.usage;
+    if (value.ownCommitRecorded && own != null) {
+      await _recordPersonalization(
+        _cardFromUsage(own),
+        PersonalizationSignal.chosen,
+        '$root/${own.usageId}/chosen',
+      );
+    }
+    // Resolve canonical offer snapshots immediately, not at round closure.
+    for (final offer in [
+      value.negotiation?.proposal,
+      value.negotiation?.finalOffer,
+    ]) {
+      if (offer == null) continue;
+      for (final c in offer.cards.where((c) => c.ownerPlayerId == playerId)) {
+        await _recordPersonalization(
+          _cardFromUsage(_withPrivateValues(c.usage)),
+          PersonalizationSignal.chosen,
+          '$root/${c.usageId}/compromise-offer',
+        );
+      }
+    }
+    final corruption = value.corruption;
+    if (value.initialResolution?.winnerPlayerId != null &&
+        value.initialResolution!.winnerPlayerId != playerId) {
+      final originals = value.initialDuelCards.where((u) =>
+        u.ownerPlayerId == value.initialResolution!.winnerPlayerId);
+      for (final usage in originals) {
+        final card = _personalizationCardForParticipant(usage);
+        if (card == null) continue;
+        if (value.negotiation?.proposal != null) {
+          await _recordPersonalization(card, PersonalizationSignal.resisted,
+            '$root/${usage.usageId}/compromise-request/$playerId');
+        }
+        if (corruption?.offeredBy == playerId) {
+          await _recordPersonalization(card, PersonalizationSignal.resisted,
+            '$root/${usage.usageId}/corruption-request/$playerId');
+        }
+      }
+    }
+    if (corruption != null) {
+      for (final c in corruption.actions) {
+        if (corruption.offeredBy == playerId) {
+          await _recordPersonalization(
+            _cardFromUsage(_withPrivateValues(c.usage)),
+            PersonalizationSignal.chosen,
+            '$root/${c.identity}/corruption-offer',
+          );
+        }
+        if (corruption.offeredBy != playerId && corruption.accepted != null) {
+          final card = _personalizationCardForParticipant(c.usage);
+          if (card != null) {
+            await _recordPersonalization(
+              card,
+              corruption.accepted!
+                  ? PersonalizationSignal.accepted
+                  : PersonalizationSignal.resisted,
+              '$root/${c.identity}/corruption-response/$playerId',
+            );
+          }
+        }
+      }
+    }
+    for (final recovery in [
+      ...value.recoveryByPlayer.values,
+      ...value.recoveryHistory,
+    ]) {
+      if (recovery.playerId == playerId) {
+        await _recordPersonalization(
+          _cardFromUsage(_withPrivateValues(recovery.usage)),
+          PersonalizationSignal.chosen,
+          '$root/${recovery.usageId}/recovery-offer',
+        );
+      } else if (recovery.response != null) {
+        final card = _personalizationCardForParticipant(recovery.usage);
+        if (card != null) {
+          await _recordPersonalization(
+            card,
+            recovery.response == RecoveryResponse.REFUSE
+                ? PersonalizationSignal.resisted
+                : PersonalizationSignal.accepted,
+            '$root/${recovery.usageId}/recovery-response/$playerId',
+          );
+        }
+      }
+    }
+    if (value.negotiation?.response case final response?) {
+      if (value.initialResolution?.winnerPlayerId == playerId) {
+        for (final c
+            in value.negotiation!.proposal?.cards ??
+                <NetworkCompromiseCardDto>[]) {
+          final card = _personalizationCardForParticipant(c.usage);
+          if (card != null) {
+            await _recordPersonalization(
+              card,
+              response.accepted
+                  ? PersonalizationSignal.accepted
+                  : PersonalizationSignal.resisted,
+              '$root/${c.usageId}/compromise-response/$playerId',
+            );
+          }
+        }
+      }
+    }
+    // Each participant's acceptance is attributed by the actual frozen roles.
+    final accepted = <NetworkUsageProjection>[
+      if (value.finalResolution != null &&
+          !value.finalResolution!.mutualAbandon)
+        for (final c in value.finalResolution!.compromise) c.usage,
+      for (final c in corruption?.actions ?? <NetworkCorruptionActionDto>[])
+        if (c.status == ActionExecutionStatus.COMPLETED) c.usage,
+      for (final r in value.recoveryHistory)
+        if (r.completed) r.usage,
+    ];
+    for (final usage in accepted) {
+      final card = _personalizationCardForParticipant(usage);
+      if (card != null) {
+        await _recordPersonalization(
+          card,
+          PersonalizationSignal.accepted,
+          '$root/${usage.usageId}/accepted/$playerId',
+        );
+      }
+    }
+    if (value.ownCommitRecorded) {
+      for (final card in hand.where(isCardPlayable)) {
+        if (lockedCardId == card.id) continue;
+        final ratingKey = CardRatingKey(
+          profileId: playerId,
+          cardId: card.id,
+          variantId: card.variant.id,
+          role: ProfilePreferenceRole.parse(card.nativeDirection.name),
+        );
+        if (!(((_personalizationRatings
+                        .read(ratingKey)
+                        ?.personalization['exposures']
+                    as List?) ??
+                const [])
+            .contains(root))) {
+          continue;
+        }
+        final key =
+            '${card.id}/${card.variant.id}/${card.nativeDirection.name}';
+        final episode = '${session.id}/$_deckCycle/$key';
+        await _recordPersonalization(
+          card,
+          PersonalizationSignal.nonChoice,
+          '$root/$key/non-choice',
+          episode: episode,
+        );
+      }
+    }
+  }
+
+  NetworkDuelCard? _personalizationCardForParticipant(
+    NetworkUsageProjection usage,
+  ) {
+    final action = usage.resolvedAction;
+    final actors = (action['actor_player_ids'] as List).cast<String>();
+    final targets = (action['target_player_ids'] as List).cast<String>();
+    if (!actors.contains(playerId) && !targets.contains(playerId)) return null;
+    final direction = action['direction'] as String;
+    final local = direction == 'FAIRE' || direction == 'RECEVOIR'
+        ? actors.contains(playerId)
+              ? 'FAIRE'
+              : 'RECEVOIR'
+        : direction;
+    final actionId = (action['stage_id'] ?? action['variant_id']) as String;
+    final key = CardRatingKey(
+      profileId: playerId,
+      cardId: usage.conceptId,
+      variantId: actionId,
+      role: ProfilePreferenceRole.parse(local),
+    );
+    final profile = _ratingProfile;
+    final rating = _conceptCatalog.optionalRatingFor(usage.conceptId, actionId);
+    final value =
+        _cardRatings.referenceEstimate(key)?.round() ??
+        (profile == null || rating == null
+            ? null
+            : const V4CardRatingEngine()
+                  .initializeForDirection(
+                    profile: profile,
+                    variant: rating,
+                    conceptId: usage.conceptId,
+                    direction: local,
+                  )
+                  .rawScore
+                  ?.round());
+    if (value == null) return null;
+    final original = _cardFromUsage(
+      NetworkUsageProjection.fromJson({
+        ...usage.toJson(),
+        'snapshot_value': value,
+      }),
+    );
+    final directionValue = CardOccurrenceDirection.values.byName(local);
+    final role = _profileRole(directionValue, fallback: ProfileRole.GENERAL);
+    return NetworkDuelCard(
+      definition: original.definition,
+      engine: original.engine,
+      variant: original.variant,
+      role: role,
+      preference: _preference('personalization', role, value),
+      occurrenceId: original.identity,
+      nativeDirection: directionValue,
+      effectiveDirection: directionValue,
+    );
+  }
+
+  double _drawPersonalizationWeight(String concept, String action) {
+    final rating = _conceptCatalog.optionalRatingFor(concept, action);
+    if (rating == null) return 1;
+    final weights = <double>[];
+    for (final direction in _directions(concept, action)) {
+      if (!occurrenceAllowed(concept, action, direction.name)) continue;
+      final key = CardRatingKey(
+        profileId: playerId,
+        cardId: concept,
+        variantId: action,
+        role: ProfilePreferenceRole.parse(direction.name),
+      );
+      final prior =
+          _cardRatings.referenceEstimate(key) ??
+          (_ratingProfile == null
+              ? null
+              : const V4CardRatingEngine()
+                    .initializeForDirection(
+                      profile: _ratingProfile!,
+                      variant: rating,
+                      conceptId: concept,
+                      direction: direction.name,
+                    )
+                    .rawScore);
+      if (prior == null) continue;
+      weights.add(
+        _personalization.drawWeight(
+          _personalizationRatings,
+          key,
+          prior,
+          _personalizationTags(concept, action, direction.name),
+        ),
+      );
+    }
+    return weights.isEmpty
+        ? 1
+        : weights.reduce((a, b) => a + b) / weights.length;
+  }
+
   Future<void> reloadPrivateCardRatings() async {
     _cardRatings = await _cardLearningStore.load(playerId);
     if (_disposed) return;
@@ -209,6 +637,17 @@ final class NetworkGameController extends ChangeNotifier {
       final changed = _displayedHandActions[id] != actionId;
       _displayedHandActions[id] = actionId;
       if (changed && persist) unawaited(_persist());
+      if (changed &&
+          persist &&
+          round != null &&
+          round!.phase == NetworkGamePhase.commit &&
+          !round!.ownCommitRecorded) {
+        unawaited(
+          _observePersonalization(round!).catchError((Object e) {
+            debugPrint('Private exposure persistence failed: $e');
+          }),
+        );
+      }
     }
   }
 
@@ -670,14 +1109,20 @@ final class NetworkGameController extends ChangeNotifier {
   bool stageExcluded(String conceptId, String actionId, String direction) =>
       _v4Profile?.excludesStage(conceptId, actionId, direction) ?? false;
   bool cardExcluded(String conceptId, {String? direction}) =>
-      _v4Profile?.stageVetoes.any(
-        (v) =>
-            v.conceptId == conceptId &&
-            v.actionId == '*' &&
-            (v.role == ProfilePreferenceRole.general ||
-                (direction != null && v.role.wireName == direction)),
-      ) ??
-      false;
+      !(_v4Profile?.presentationAllowances.any(
+            (a) =>
+                a.conceptId == conceptId &&
+                (direction == null || a.role.wireName == direction),
+          ) ??
+          false) &&
+      (_v4Profile?.stageVetoes.any(
+            (v) =>
+                v.conceptId == conceptId &&
+                v.actionId == '*' &&
+                (v.role == ProfilePreferenceRole.general ||
+                    (direction != null && v.role.wireName == direction)),
+          ) ??
+          false);
 
   bool _fullyExcluded(String conceptId) {
     if (cardExcluded(conceptId)) return true;
@@ -1063,8 +1508,9 @@ final class NetworkGameController extends ChangeNotifier {
           as String,
       usage.resolvedAction['direction']! as String,
       ownerId: usage.ownerPlayerId,
-    ))
+    )) {
       return false;
+    }
     if (_v4Profile?.excludesStage(
           usage.conceptId,
           (usage.resolvedAction['stage_id'] ??
@@ -1147,6 +1593,7 @@ final class NetworkGameController extends ChangeNotifier {
       postGameProfileChoice = await _profileChoiceStore.load(playerId);
       _learnedState = await learning.state();
       _cardRatings = await _cardLearningStore.load(playerId);
+      _personalizationRatings = await _cardLearningStore.load(playerId);
       final current = await repository.openCurrentRound(
         command: _command('OPEN', roundId: null, roundNumber: 0),
       );
@@ -1182,6 +1629,7 @@ final class NetworkGameController extends ChangeNotifier {
       await _persist(roundNumber: current.roundNumber);
       _ensureReconciliation();
       await _switchRound(current);
+      await _drainPersonalizationOutbox();
       if (_pendingSecondaryCommand != null) await _replaySecondaryCommand();
     } catch (error) {
       _fail(error);
@@ -1191,6 +1639,28 @@ final class NetworkGameController extends ChangeNotifier {
   Future<void> choosePostGameProfile(PostGameProfileChoice choice) async {
     postGameProfileChoice = choice;
     await _profileChoiceStore.save(playerId, choice);
+    if (choice == PostGameProfileChoice.customize &&
+        _personalizationRatings.values.any(
+          (s) => s.personalization['manual'] == true,
+        )) {
+      _personalizationRatings = await _cardLearningStore.mutate(playerId, (
+        state,
+      ) {
+        for (final old in state.values.toList()) {
+          if (old.personalization['manual'] != true) continue;
+          state.write(
+            CardRatingStateV4.fromJson({
+              ...old.toJson(),
+              'personalization': {
+                ...old.personalization,
+                'internal': old.currentEstimate,
+                'pending': null,
+              },
+            }),
+          );
+        }
+      });
+    }
     notifyListeners();
   }
 
@@ -1263,6 +1733,19 @@ final class NetworkGameController extends ChangeNotifier {
       ];
     } else {
       _runtime = lifecycleEngine.lock(_runtime, conceptId);
+      final locked = hand.where((c) => c.identity == conceptId).firstOrNull;
+      if (locked != null &&
+          _personalizationLocks.add(
+            '$roundNumber/$conceptId/${locked.variant.id}/${locked.nativeDirection.name}',
+          )) {
+        unawaited(
+          _recordPersonalization(
+            locked,
+            PersonalizationSignal.locked,
+            '${session.id}/${round!.roundId}/${locked.variant.id}/${locked.nativeDirection.name}/locked',
+          ),
+        );
+      }
     }
     unawaited(_persist());
     notifyListeners();
@@ -1713,16 +2196,25 @@ final class NetworkGameController extends ChangeNotifier {
       'tags': [
         for (final tag in option.variant.tags)
           if (!tag.startsWith('v3.preference.') ||
-              _ratedPreferenceIds(card.id, option).contains(tag))
+              _ratedPreferenceIds(
+                card.id,
+                option,
+                direction: direction.name,
+              ).contains(tag))
             tag
           else
             'v3.semantic.${tag.split('.').last}',
         ..._ratedPreferenceIds(
           card.id,
           option,
+          direction: direction.name,
         ).where((t) => !option.variant.tags.contains(t)),
       ],
-      'primary_preference_ids': _primaryPreferenceIds(card.id, option),
+      'primary_preference_ids': _primaryPreferenceIds(
+        card.id,
+        option,
+        direction: direction.name,
+      ),
       'personal_values': [
         {
           'player_id': playerId,
@@ -2245,10 +2737,12 @@ final class NetworkGameController extends ChangeNotifier {
         cardIds: cardIds,
         actionChoices: actionChoices,
       );
-      if (offer.directPa > (actionPoints[playerId] ?? 0) || offer.directPa < 0)
+      if (offer.directPa > (actionPoints[playerId] ?? 0) || offer.directPa < 0) {
         throw ArgumentError('PA indisponibles');
-      if (offer.inversionRequested && !inversionAllowed)
+      }
+      if (offer.inversionRequested && !inversionAllowed) {
         throw ArgumentError('Inversion indisponible');
+      }
     } catch (_) {
       _usageCheckpoint = before;
       _reservedChoices = beforeChoices;
@@ -2266,8 +2760,9 @@ final class NetworkGameController extends ChangeNotifier {
     bool acceptAuction = false,
   }) async {
     if (viewState != NetworkGameViewState.negotiationResponse ||
-        !isNegotiationResponder)
+        !isNegotiationResponder) {
       return;
+    }
     await _sendSecondary(
       'NEGOTIATION_RESPONSE',
       NetworkNegotiationResponseDto(
@@ -2361,8 +2856,9 @@ final class NetworkGameController extends ChangeNotifier {
         !isCorruptionActor ||
         !canAttemptCorruption ||
         cards.isEmpty ||
-        cards.length != usageIds.length)
+        cards.length != usageIds.length) {
       return;
+    }
     final before = _usageCheckpoint;
     final beforeChoices = Map<String, ConceptUsageSnapshot>.of(
       _reservedChoices,
@@ -2873,6 +3369,7 @@ final class NetworkGameController extends ChangeNotifier {
       _priorCheckpoints = List.of(saved.priorCheckpoints);
       _clothingObservations = Map.of(saved.clothingObservations);
       _actionClothingConfirmations = Map.of(saved.actionClothingConfirmations);
+      _personalizationOutbox.addAll(saved.personalizationEvents);
       _presence = switch (sessionMode) {
         V4SessionMode.presentiel => V4SessionPresence.presentiel,
         V4SessionMode.distance => V4SessionPresence.distance,
@@ -2933,8 +3430,13 @@ final class NetworkGameController extends ChangeNotifier {
 
   Future<void> _prepareNextRound({int? targetRound}) async {
     if (_nextRoundPrepared) return;
+    if (_v4Profile != null && _v4ProfileStore != null) {
+      _v4Profile = await _v4ProfileStore.load(playerId) ?? _v4Profile;
+      _localConsent = null;
+    }
     _actionClothingConfirmations.clear();
     _cardRatings = await _cardLearningStore.load(playerId);
+    _personalizationRatings = await _cardLearningStore.load(playerId);
     _displayedHandActions.clear();
     _runtime = _runtime
         .where(
@@ -3071,6 +3573,12 @@ final class NetworkGameController extends ChangeNotifier {
   }
 
   Future<void> _flushLearning(NetworkGameRoundStateDto current) async {
+    // Preserve legacy readers, but selected modes use the decision-level engine
+    // exclusively. In particular manual mode records no behavioral learning.
+    if (postGameProfileChoice != null) {
+      _pendingLearning = null;
+      return;
+    }
     final pending = _pendingLearning;
     if (pending == null || _flushingLearning) return;
     final oldNumber = pending['round_number']! as int;
@@ -3089,8 +3597,9 @@ final class NetworkGameController extends ChangeNotifier {
             );
       if (!canonical.readyNextPlayerIds.containsAll(playerIds) ||
           (canonical.phase != NetworkGamePhase.waitingNext &&
-              canonical.phase != NetworkGamePhase.closed))
+              canonical.phase != NetworkGamePhase.closed)) {
         return;
+      }
       final completedUsages = <String, NetworkUsageProjection>{
         for (final raw in pending['accepted']! as List)
           if (NetworkUsageProjection.fromJson(raw as JsonMap) case final usage)
@@ -3200,13 +3709,28 @@ final class NetworkGameController extends ChangeNotifier {
     if (needed <= 0) return;
     final random = Random(_stableHash('$playerId/$targetRound/$_deckCycle'));
     while (needed > 0) {
-      final concept = _conceptPool(
-        excludeHeld: true,
-        excluded: excluded,
-      ).draw(random);
+      final concept = _conceptPool(excludeHeld: true, excluded: excluded).draw(
+        random,
+        preferenceWeight: (candidate) =>
+            candidate.choices
+                .map(
+                  (c) => _drawPersonalizationWeight(
+                    candidate.concept.id,
+                    c.actionId,
+                  ),
+                )
+                .reduce((a, b) => a + b) /
+            candidate.choices.length,
+      );
       if (concept == null) break;
       final materialized = concept.concept.kind == ConceptKind.zones
-          ? concept.materialize(random)
+          ? concept.materialize(
+              random,
+              weight: (choice) => _drawPersonalizationWeight(
+                concept.concept.id,
+                choice.actionId,
+              ),
+            )
           : null;
       _runtime = [
         ..._runtime,
@@ -3682,6 +4206,7 @@ final class NetworkGameController extends ChangeNotifier {
       clothesByPlayer: _context.clothesByPlayer,
       clothingObservations: _clothingObservations,
       actionClothingConfirmations: _actionClothingConfirmations,
+      personalizationEvents: _personalizationOutbox,
     );
     final write = _pendingPrivateWrite
         .catchError((Object error, StackTrace stack) {
@@ -4045,6 +4570,7 @@ final class NetworkGameController extends ChangeNotifier {
 
   Future<void> _clearLocalSessionState() async {
     _localSessionCleared = true;
+    await _personalizationWrites;
     _consentTimer?.cancel();
     final consent = _consentSubscription;
     _consentSubscription = null;
@@ -4235,6 +4761,7 @@ final class NetworkGameController extends ChangeNotifier {
       return;
     }
     round = value;
+    await _observePersonalization(value);
     errorMessage = null;
     lastSynchronizationError = null;
     if (value.phase == NetworkGamePhase.commit ||
@@ -4442,8 +4969,9 @@ final class NetworkGameController extends ChangeNotifier {
   Future<void> _publishActionProjection(NetworkGameRoundStateDto value) async {
     if (repository is! NetworkV4ActionRepository ||
         value.finalResolution == null ||
-        _publishingAction)
+        _publishingAction) {
       return;
+    }
     _publishingAction = true;
     try {
       final result = value.finalResolution!;
@@ -4507,11 +5035,16 @@ final class NetworkGameController extends ChangeNotifier {
           actionId: option.choice.actionId,
         ),
       );
-      if (result.kind == V4RatingResultKind.excluded ||
+      final authorized = profile.allowsPresentation(
+        conceptId,
+        option.choice.actionId,
+        direction.name,
+      );
+      if ((!authorized && result.kind == V4RatingResultKind.excluded) ||
           result.kind == V4RatingResultKind.unavailable) {
         return null;
       }
-      final explicit = _cardRatings.explicitEstimate(
+      final explicit = _cardRatings.referenceEstimate(
         CardRatingKey(
           profileId: profile.profileId,
           cardId: conceptId,
@@ -4539,8 +5072,9 @@ final class NetworkGameController extends ChangeNotifier {
 
   List<String> _ratedPreferenceIds(
     String conceptId,
-    ConceptActionOption option,
-  ) {
+    ConceptActionOption option, {
+    String? direction,
+  }) {
     final rating = _conceptCatalog.optionalRatingFor(
       option.parameters['practice_concept_id'] as String? ?? conceptId,
       option.parameters['practice_action_id'] as String? ??
@@ -4551,14 +5085,15 @@ final class NetworkGameController extends ChangeNotifier {
         ...?rating?.primaryPreferenceTags,
         ...?rating?.secondaryPreferenceTags,
       ])
-        'v3.preference.$tag',
+        'v3.preference.${conceptId == '039' && direction == 'RECEVOIR' && tag == 'etre_regarde' ? 'regarder' : tag}',
     ];
   }
 
   List<String> _primaryPreferenceIds(
     String conceptId,
-    ConceptActionOption option,
-  ) {
+    ConceptActionOption option, {
+    String? direction,
+  }) {
     final rating = _conceptCatalog.optionalRatingFor(
       option.parameters['practice_concept_id'] as String? ?? conceptId,
       option.parameters['practice_action_id'] as String? ??
@@ -4566,7 +5101,7 @@ final class NetworkGameController extends ChangeNotifier {
     );
     return [
       for (final tag in rating?.primaryPreferenceTags ?? <String>[])
-        'v3.preference.$tag',
+        'v3.preference.${conceptId == '039' && direction == 'RECEVOIR' && tag == 'etre_regarde' ? 'regarder' : tag}',
     ];
   }
 

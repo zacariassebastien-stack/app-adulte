@@ -43,6 +43,18 @@ final class SessionOccurrenceConsent {
       conceptId,
       localDirection,
     );
+    final preciseVeto = profile.stageVetoes.any(
+      (v) =>
+          v.conceptId == conceptId &&
+          v.actionId == actionId &&
+          (v.role == ProfilePreferenceRole.general ||
+              v.role.wireName == localDirection ||
+              roles.contains(v.role)),
+    );
+    if (preciseVeto) return false;
+    if (profile.allowsPresentation(conceptId, actionId, localDirection)) {
+      return true;
+    }
     if (profile.excludesStage(conceptId, actionId, localDirection) ||
         roles.any(
           (r) => profile.excludesStage(conceptId, actionId, r.wireName),
@@ -59,6 +71,10 @@ final class SessionOccurrenceConsent {
     // Concrete anatomical vetoes apply only to the actual fixed zone, not LIBRE
     // or another anatomical variant of the same concept.
     final tags = catalog.vetoTags(conceptId, actionId: actionId);
+    if (conceptId == '039' && localDirection == 'RECEVOIR') {
+      tags.remove('etre_regarde');
+      tags.add('regarder');
+    }
     final scoped = V4Profile(
       sex: profile.sex,
       profileId: profile.profileId,

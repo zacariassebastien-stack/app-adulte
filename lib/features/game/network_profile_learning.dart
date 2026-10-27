@@ -56,11 +56,27 @@ final class SharedPreferencesV4ProfileStore implements V4ProfileStore {
   Future<V4Profile?> load(String playerId) async {
     final preferences = await SharedPreferences.getInstance();
     final encoded = preferences.getString('profile_preferences_v4.$playerId');
-    return encoded == null
-        ? null
-        : V4Profile.fromJson(
-            Map<String, Object?>.from(jsonDecode(encoded) as Map),
-          );
+    if (encoded == null) return null;
+    final json = Map<String, Object?>.from(jsonDecode(encoded) as Map);
+    final profile = V4Profile.fromJson(json);
+    final prior = profile.preferences['masturbation|mutuel'];
+    final stored = (json['preferences']! as List).cast<Map<String, Object?>>();
+    if (prior != null &&
+        !stored.any(
+          (p) => p['tag_id'] == 'masturbation' && p['role'] == 'MUTUEL',
+        )) {
+      final saved = await preferences.setString(
+        'profile_preferences_v4.$playerId',
+        jsonEncode({
+          ...json,
+          'preferences': [...stored, prior.toJson()],
+        }),
+      );
+      if (!saved) {
+        throw StateError('Mutual profile bootstrap persistence failed');
+      }
+    }
+    return profile;
   }
 
   @override
@@ -87,6 +103,27 @@ final class MemoryV4ProfileStore implements V4ProfileStore {
 abstract interface class V4CardLearningStore {
   Future<CardSpecificLearningStore> load(String playerId);
   Future<void> save(String playerId, CardSpecificLearningStore state);
+}
+
+final Map<String, _AsyncWriteQueue> _sharedCardRatingQueues = {};
+final Expando<Map<String, _AsyncWriteQueue>> _memoryCardRatingQueues =
+    Expando();
+
+extension AtomicCardLearning on V4CardLearningStore {
+  Future<CardSpecificLearningStore> mutate(
+    String playerId,
+    void Function(CardSpecificLearningStore) change,
+  ) =>
+      ((this is SharedPreferencesV4CardLearningStore
+                  ? _sharedCardRatingQueues
+                  : (_memoryCardRatingQueues[this] ??= {}))[playerId] ??=
+              _AsyncWriteQueue())
+          .run(() async {
+            final state = await load(playerId);
+            change(state);
+            await save(playerId, state);
+            return state;
+          });
 }
 
 final class SharedPreferencesV4CardLearningStore
@@ -385,8 +422,9 @@ final class NetworkProfileLearningCoordinator {
     List<ResistanceLearningEvent> resistance = const [],
   }) => _write(() async {
     if (expectedPlayers.length != 2 ||
-        !completedPlayers.containsAll(expectedPlayers))
+        !completedPlayers.containsAll(expectedPlayers)) {
       return;
+    }
     final write = await store.applyEventOnce(
       playerId: playerId,
       eventId: eventId,
@@ -466,8 +504,9 @@ V4Profile mergeV4ProfileLearning(
   for (final entry
       in learnedState?.entries.values ?? <PreferenceLearningEntry>[]) {
     if (entry.source != AdaptiveProfileSource.autoLearned &&
-        entry.source != AdaptiveProfileSource.manualCustomized)
+        entry.source != AdaptiveProfileSource.manualCustomized) {
       continue;
+    }
     final key = ProfilePreferenceKey(
       tagId: entry.key.preferenceId.replaceFirst('v3.preference.', ''),
       role: ProfilePreferenceRole.values.byName(entry.key.role.name),
@@ -491,5 +530,6 @@ V4Profile mergeV4ProfileLearning(
     consents: base.consents,
     accessories: base.accessories,
     stageVetoes: base.stageVetoes,
+    presentationAllowances: base.presentationAllowances,
   );
 }

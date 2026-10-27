@@ -42,7 +42,12 @@ final class ConceptActionOptions {
   }) {
     final minimumChili = recoveryMinimumChili ?? context.chiliActive;
     if (recovery) {
-      RangeError.checkValueInInterval(minimumChili, 1, 4, 'recoveryMinimumChili');
+      RangeError.checkValueInInterval(
+        minimumChili,
+        1,
+        4,
+        'recoveryMinimumChili',
+      );
     }
     final result = <String, List<ConceptActionOption>>{};
     final eligibility = ConceptDeckEligibility(
@@ -75,6 +80,18 @@ final class ConceptActionOptions {
           if (profile.excludesStage(conceptId, variant.id, direction)) {
             return false;
           }
+          if (profile.allowsPresentation(conceptId, variant.id, direction) &&
+              cardRatings?.referenceEstimate(
+                    CardRatingKey(
+                      profileId: profile.profileId,
+                      cardId: conceptId,
+                      variantId: variant.id,
+                      role: ProfilePreferenceRole.parse(direction),
+                    ),
+                  ) !=
+                  null) {
+            return true;
+          }
           final result = const V4CardRatingEngine().initializeForDirection(
             profile: profile,
             variant: rating,
@@ -87,7 +104,7 @@ final class ConceptActionOptions {
             return false;
           }
           return result.kind == V4RatingResultKind.rated ||
-              cardRatings?.explicitEstimate(
+              cardRatings?.referenceEstimate(
                     CardRatingKey(
                       profileId: profile.profileId,
                       cardId: conceptId,
@@ -174,8 +191,9 @@ final class ConceptActionOptions {
                   context.proximity == ProximityState.SEPARATED)
           ? V4SessionPresence.distance
           : V4SessionPresence.presentiel;
-      if (definition.v4 != null && !definition.v4!.presence.supports(presence))
+      if (definition.v4 != null && !definition.v4!.presence.supports(presence)) {
         continue;
+      }
       // Profiles currently provide no concrete tagged accessory inventory.
       // No hasSextoy/ID/name fallback may authorize these choices.
       if (concept.kind == ConceptKind.accessory) {

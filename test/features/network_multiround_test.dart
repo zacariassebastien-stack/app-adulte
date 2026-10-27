@@ -683,6 +683,208 @@ void main() {
     });
   }
 
+  for (final manual in [false, true]) {
+    test(
+      'personalization canonical lock and commit survive reconnect manual=$manual',
+      () async {
+        final backend = _Backend()..v4UnlockedSpice = 4;
+        final ratings = MemoryV4CardLearningStore();
+        final modes = MemoryPostGameProfileChoiceStore()
+          ..values['alice'] = manual
+              ? PostGameProfileChoice.customize
+              : PostGameProfileChoice.trustGame;
+        final secrets = MemoryNetworkDuelSecretStore();
+        final focused = _catalogWithCards(catalog, {'card.v4.056'});
+        NetworkGameController create() => NetworkGameController(
+          session: session,
+          playerId: 'alice',
+          repository: backend.repository('alice'),
+          privateStore: secrets,
+          catalog: focused,
+          v4Profile: stageProfile(),
+          anatomies: const {
+            'alice': PlayerAnatomy.PENIS,
+            'bob': PlayerAnatomy.VULVE,
+          },
+          learningStore: MemoryNetworkProfileLearningStore(),
+          cardLearningStore: ratings,
+          profileChoiceStore: modes,
+        );
+        var controller = create();
+        await controller.start();
+        expect(controller.errorMessage, isNull);
+        expect(controller.hand, isNotEmpty);
+        final card = controller.hand.first;
+        final key = CardRatingKey(
+          profileId: 'alice',
+          cardId: card.id,
+          variantId: card.variant.id,
+          role: ProfilePreferenceRole.parse(card.nativeDirection.name),
+        );
+        final value = card.personalValue;
+        controller.toggleLock(card.id);
+        controller.toggleLock(card.id);
+        controller.selectCard(card.id);
+        await controller.confirmSelection();
+        final state = await ratings.load('alice');
+        if (manual) {
+          expect(state.values, isEmpty);
+        } else {
+          expect(state.read(key)!.observationCount, 2);
+          expect(state.read(key)!.currentEstimate, value);
+          expect(
+            (state.read(key)!.personalization['internal']! as num).toDouble(),
+            lessThan(value),
+          );
+        }
+        expect(controller.actionPoints['alice'], 100);
+        final saved = jsonEncode(state.toJson());
+        controller.dispose();
+        controller = create();
+        await controller.start();
+        expect(jsonEncode((await ratings.load('alice')).toJson()), saved);
+        expect(controller.personalDuelCard!.personalValue, value);
+        controller.dispose();
+      },
+    );
+  }
+
+  test(
+    'personalization durable outbox replays a lock after failed profile write once',
+    () async {
+      final backend = _Backend()..v4UnlockedSpice = 4;
+      final ratings = _FailOnceCardRatings();
+      final modes = MemoryPostGameProfileChoiceStore()
+        ..values['alice'] = PostGameProfileChoice.trustGame;
+      final secrets = MemoryNetworkDuelSecretStore();
+      final focused = _catalogWithCards(catalog, {'card.v4.056'});
+      NetworkGameController create() => NetworkGameController(
+        session: session,
+        playerId: 'alice',
+        repository: backend.repository('alice'),
+        privateStore: secrets,
+        catalog: focused,
+        v4Profile: stageProfile(),
+        anatomies: const {
+          'alice': PlayerAnatomy.PENIS,
+          'bob': PlayerAnatomy.VULVE,
+        },
+        learningStore: MemoryNetworkProfileLearningStore(),
+        cardLearningStore: ratings,
+        profileChoiceStore: modes,
+      );
+      var controller = create();
+      await controller.start();
+      final card = controller.hand.single;
+      final key = CardRatingKey(
+        profileId: 'alice',
+        cardId: card.id,
+        variantId: card.variant.id,
+        role: ProfilePreferenceRole.parse(card.nativeDirection.name),
+      );
+      ratings.failNext = true;
+      controller.toggleLock(card.id);
+      await controller.flushPersonalization();
+      expect(
+        (await secrets.loadGame(
+          sessionId: session.id,
+          playerId: 'alice',
+        ))!.personalizationEvents,
+        isNotEmpty,
+      );
+      controller.dispose();
+      controller = create();
+      await controller.start();
+      expect((await ratings.load('alice')).read(key)!.observationCount, 1);
+      expect(
+        (await secrets.loadGame(
+          sessionId: session.id,
+          playerId: 'alice',
+        ))!.personalizationEvents,
+        isEmpty,
+      );
+      controller.dispose();
+    },
+  );
+
+  test('personalization compromise decisions are observed before round closure in effective roles', () async {
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    final ratings = MemoryV4CardLearningStore();
+    final modes = MemoryPostGameProfileChoiceStore()
+      ..values.addAll({'alice': PostGameProfileChoice.trustGame, 'bob': PostGameProfileChoice.trustGame});
+    final focused = _catalogWithCards(catalog, {'card.v4.056'});
+    NetworkGameController create(String id) => NetworkGameController(session: session,
+      playerId: id, repository: backend.repository(id), privateStore: MemoryNetworkDuelSecretStore(),
+      catalog: focused, v4Profile: V4Profile(profileId: id, sex: id == 'alice' ? ProfileSex.HOMME : ProfileSex.FEMME,
+        preferences: {for (final r in ProfilePreferenceRole.values)
+          'degradant|${r.name}': ProfilePreference(profileId: id,
+            key: ProfilePreferenceKey(tagId: 'degradant', role: r), pa: id == 'alice' ? 10 : 18,
+            excluded: false, source: ProfilePreferenceSource.initialQuestionnaire)}),
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+      learningStore: MemoryNetworkProfileLearningStore(), cardLearningStore: ratings, profileChoiceStore: modes);
+    final alice = create('alice'); final bob = create('bob');
+    addTearDown(() { alice.dispose(); bob.dispose(); });
+    await alice.start(); await bob.start();
+    alice.selectCard('056'); bob.selectCard('056');
+    await alice.confirmSelection(); await bob.confirmSelection(); await _settle();
+    expect(alice.errorMessage, isNull); expect(bob.errorMessage, isNull);
+    expect(alice.isNegotiationProposer, true);
+    await alice.proposeNegotiation(inversion: false, directPa: 1);
+    await _settle();
+    final beforeAcceptance = await ratings.load('alice');
+    expect(beforeAcceptance.values.expand((s) => (s.personalization['events'] as List?) ?? const [])
+      .any((e) => (e as String).contains('compromise-request')), true);
+    await bob.respondNegotiation(accepted: true); await _settle();
+    expect(alice.errorMessage, isNull); expect(bob.errorMessage, isNull);
+    final usage = alice.round!.finalResolution!.compromise.first.usage;
+    final actors = (usage.resolvedAction['actor_player_ids'] as List).cast<String>();
+    for (final id in ['alice', 'bob']) {
+      final role = actors.contains(id) ? ProfilePreferenceRole.faire : ProfilePreferenceRole.recevoir;
+      final key = CardRatingKey(profileId: id, cardId: '056', variantId: '056.stage.3', role: role);
+      final state = (await ratings.load(id)).read(key)!;
+      expect((state.personalization['events'] as List).any((e) => (e as String).contains('/accepted/')), true);
+    }
+    expect(alice.round!.readyNextPlayerIds, isEmpty);
+  });
+
+  testWidgets('personalization tier acceptance UI does not reprice current hand', (tester) async {
+    SharedPreferences.setMockInitialValues({'post_game_profile_choice.alice': 'trustGame'});
+    final ratings = MemoryV4CardLearningStore();
+    final state = CardSpecificLearningStore();
+    for (final role in [ProfilePreferenceRole.faire, ProfilePreferenceRole.recevoir]) {
+      state.write(CardRatingStateV4(key: CardRatingKey(profileId: 'alice', cardId: '056',
+        variantId: '056.stage.3', role: role), initialScore: 10, currentEstimate: 7.5,
+        observationCount: 20, acceptanceCount: 0, resistanceCount: 0, source: 'CARD_ESTIMATE',
+        personalization: const {'internal': 5.9, 'pending': 'likeALot', 'manual': true}));
+    }
+    await ratings.save('alice', state);
+    final profiles = MemoryV4ProfileStore(); await profiles.save(stageProfile());
+    final backend = _Backend()..v4UnlockedSpice = 4;
+    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+      session: session, playerId: 'alice', repository: backend.repository('alice'),
+      catalog: _catalogWithCards(catalog, {'card.v4.056'}), secretStore: MemoryNetworkDuelSecretStore(),
+      cardLearningStore: ratings, profileStore: profiles, v4Profile: stageProfile(),
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE})));
+    await tester.pumpAndSettle();
+    final controller = (tester.state(find.byType(NetworkDuelScreen)) as dynamic).controller as NetworkGameController;
+    final card = controller.hand.single;
+    final key = CardRatingKey(profileId: 'alice', cardId: card.id, variantId: card.variant.id,
+      role: ProfilePreferenceRole.parse(card.nativeDirection.name));
+    final before = card.personalValue;
+    final network = jsonEncode(backend.state('alice').toJson());
+    await tester.tap(find.byKey(const Key('open-private-profile-settings'))); await tester.pumpAndSettle();
+    await tester.tap(find.text('Profil privé')); await tester.pumpAndSettle();
+    final row = find.byKey(ValueKey('personalization-proposal-${key.storageKey}'));
+    await tester.ensureVisible(row); await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: row, matching: find.text('Accepter'))); await tester.pumpAndSettle();
+    expect((await ratings.load('alice')).referenceEstimate(key), 5.5);
+    expect(controller.hand.single.personalValue, before);
+    expect(jsonEncode(backend.state('alice').toJson()), network);
+    expect(find.byKey(ValueKey('personalization-proposal-${key.storageKey}')), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   V4Profile consentProfile(String id, {ProfilePreferenceRole? excluded,
     String? stage, bool preference = false}) {
     final base = stageProfile();
@@ -9950,6 +10152,21 @@ Future<_Setup> _setup(
   return _Setup(backend, alice, bob);
 }
 
+class _FailOnceCardRatings implements V4CardLearningStore {
+  final delegate = MemoryV4CardLearningStore();
+  bool failNext = false;
+  @override
+  Future<CardSpecificLearningStore> load(String id) => delegate.load(id);
+  @override
+  Future<void> save(String id, CardSpecificLearningStore state) async {
+    if (failNext) {
+      failNext = false;
+      throw StateError('simulated profile write failure');
+    }
+    await delegate.save(id, state);
+  }
+}
+
 NetworkGameController _controller(
   _Backend backend,
   LobbySession session,
@@ -10667,14 +10884,15 @@ class _Repository
     );
     if (response.accepted) {
       final previous = backend.round.finalResolution!;
+      final retainedCards = offer.cards.isEmpty ? previous.compromise : offer.cards;
       backend.round.finalResolution = NetworkFinalResolutionDto(
-        retainedPlayerId: offer.cards.first.ownerPlayerId,
+        retainedPlayerId: retainedCards.first.ownerPlayerId,
         initialWinnerPlayerId: previous.initialWinnerPlayerId,
         finalWinnerPlayerId: previous.finalWinnerPlayerId,
-        cardId: offer.cards.first.cardId,
-        variantId: offer.cards.first.variantId,
+        cardId: retainedCards.first.cardId,
+        variantId: retainedCards.first.variantId,
         inverted: offer.inversionRequested,
-        compromise: offer.cards,
+        compromise: retainedCards,
       );
     }
     backend.round.phase = response.accepted

@@ -19,6 +19,7 @@ import 'package:couple_cards/card_themes/card_renderer.dart';
 import 'package:couple_cards/features/lobby/two_phone_lobby_screen.dart';
 import 'package:couple_cards/features/lobby/lobby_repository.dart';
 import 'package:couple_cards/engines/eligibility/concept_action_options.dart';
+import 'package:couple_cards/engines/eligibility/session_occurrence_consent.dart';
 import 'package:couple_cards/domain/catalog/enums.dart';
 import 'package:couple_cards/domain/game/game_models.dart';
 
@@ -38,7 +39,8 @@ void main() {
         'assets/catalog/source/profile_questions.v1.fr.json',
       ).readAsStringSync(),
     );
-    base = const InitialQuestionnaireEngine().initialize(sex: ProfileSex.HOMME,
+    base = const InitialQuestionnaireEngine().initialize(
+      sex: ProfileSex.HOMME,
       profileId: 'p',
       questionnaire: q,
       responses: {
@@ -144,24 +146,39 @@ void main() {
       reopened.dispose();
     },
   );
-  test('role-scoped whole-card vetoes persist independently without rating the opposite role', () async {
-    final c = editor();
-    await c.load();
-    await c.excludeCard('012', role: ProfilePreferenceRole.faire);
-    expect(c.profile.excludesStage('012', '012.action', 'FAIRE'), isTrue);
-    expect(c.profile.excludesStage('012', '012.action', 'RECEVOIR'), isFalse);
-    final receive = c.items.singleWhere((i) => i.concept.id == '012' && i.direction.name == 'RECEVOIR');
-    expect(c.ratings.explicitEstimate(receive.ratingKey('p')), isNull);
-    expect(c.cardExcluded('012'), isFalse, reason: 'Not a global veto');
-    await c.excludeCard('012', role: ProfilePreferenceRole.recevoir);
-    final reopened = editor();
-    await reopened.load();
-    await reopened.excludeCard('012', role: ProfilePreferenceRole.faire, excluded: false);
-    expect(reopened.profile.excludesStage('012', '012.action', 'FAIRE'), isFalse);
-    expect(reopened.profile.excludesStage('012', '012.action', 'RECEVOIR'), isTrue);
-    c.dispose();
-    reopened.dispose();
-  });
+  test(
+    'role-scoped whole-card vetoes persist independently without rating the opposite role',
+    () async {
+      final c = editor();
+      await c.load();
+      await c.excludeCard('012', role: ProfilePreferenceRole.faire);
+      expect(c.profile.excludesStage('012', '012.action', 'FAIRE'), isTrue);
+      expect(c.profile.excludesStage('012', '012.action', 'RECEVOIR'), isFalse);
+      final receive = c.items.singleWhere(
+        (i) => i.concept.id == '012' && i.direction.name == 'RECEVOIR',
+      );
+      expect(c.ratings.explicitEstimate(receive.ratingKey('p')), isNull);
+      expect(c.cardExcluded('012'), isFalse, reason: 'Not a global veto');
+      await c.excludeCard('012', role: ProfilePreferenceRole.recevoir);
+      final reopened = editor();
+      await reopened.load();
+      await reopened.excludeCard(
+        '012',
+        role: ProfilePreferenceRole.faire,
+        excluded: false,
+      );
+      expect(
+        reopened.profile.excludesStage('012', '012.action', 'FAIRE'),
+        isFalse,
+      );
+      expect(
+        reopened.profile.excludesStage('012', '012.action', 'RECEVOIR'),
+        isTrue,
+      );
+      c.dispose();
+      reopened.dispose();
+    },
+  );
   test(
     'stage and whole-card exclusions reuse vetoes and remain private and reversible',
     () async {
@@ -298,14 +315,15 @@ void main() {
     },
   );
   test(
-    'explicit positive estimate cannot authorize its vetoed role but preserves the opposite role',
+    'explicit positive estimate authorizes only its exact vetoed presentation',
     () async {
       const key = ProfilePreferenceKey(
         tagId: 'degradant',
         role: ProfilePreferenceRole.faire,
       );
       await profiles.save(
-        V4Profile(sex: ProfileSex.HOMME,
+        V4Profile(
+          sex: ProfileSex.HOMME,
           profileId: 'p',
           preferences: {
             ...base.preferences,
@@ -323,7 +341,8 @@ void main() {
       await c.load();
       final target = item(c, '056.stage.1');
       await c.rate(target, DetailedPreferenceCategory.love);
-      expect(c.globalTagVeto(target), isTrue);
+      expect(c.globalTagVeto(target), isFalse);
+      expect(c.globalTagVeto(item(c, '056.stage.2')), isTrue);
       final options = const ConceptActionOptions().evaluate(
         catalog: c.runtime,
         profile: c.profile,
@@ -338,13 +357,50 @@ void main() {
         partner: PlayerGameProfile(playerId: 'other', preferences: const {}),
         hierarchy: ProfileHierarchy(const {}),
       );
-      expect(options.containsKey('056'), isTrue,
-        reason: 'RECEVOIR remains allowed; an estimate does not lift the FAIRE veto');
+      expect(
+        options.containsKey('056'),
+        isTrue,
+        reason: 'The precise exception and the opposite role are allowed',
+      );
       expect(c.globalTagVeto(item(c, '056.stage.1', 'RECEVOIR')), isFalse);
       expect(c.profile.preferences[key.storageKey]!.excluded, isTrue);
       c.dispose();
     },
   );
+  test('precise exception never overrides partner veto or authorizes other stages', () async {
+    const key = ProfilePreferenceKey(tagId: 'degradant', role: ProfilePreferenceRole.general);
+    final veto = ProfilePreference(profileId: 'p', key: key, pa: null,
+      excluded: true, source: ProfilePreferenceSource.initialQuestionnaire);
+    await profiles.save(V4Profile(profileId: 'p', sex: ProfileSex.HOMME,
+      preferences: {...base.preferences, key.storageKey: veto}));
+    final c = editor();
+    await c.load();
+    await c.rate(item(c, '056.stage.1'), DetailedPreferenceCategory.love);
+    bool allows(V4Profile p, String subject, String action, CardOccurrenceDirection direction) =>
+      const SessionOccurrenceConsent().allows(catalog: c.runtime, profile: p,
+        subjectId: subject, ownerId: 'p', playerIds: const ['p', 'other'],
+        conceptId: '056', actionId: action, direction: direction);
+    expect(allows(c.profile, 'p', '056.stage.1', CardOccurrenceDirection.FAIRE), true);
+    expect(allows(c.profile, 'p', '056.stage.2', CardOccurrenceDirection.FAIRE), false);
+    expect(allows(c.profile, 'p', '056.stage.1', CardOccurrenceDirection.RECEVOIR), false);
+    final partner = V4Profile(profileId: 'other', sex: ProfileSex.FEMME,
+      preferences: {...base.preferences, key.storageKey: veto});
+    expect(allows(partner, 'other', '056.stage.1', CardOccurrenceDirection.FAIRE), false);
+    c.dispose();
+  });
+
+  test('legacy CARD_ESTIMATE from exclusion creates no positive permission', () async {
+    final c = editor();
+    await c.load();
+    await c.excludeCard('056');
+    final legacyJson = c.profile.toJson()..remove('presentation_allowances');
+    final legacy = V4Profile.fromJson(legacyJson);
+    expect(legacy.presentationAllowances, isEmpty);
+    expect(legacy.excludesStage('056', '056.stage.1', 'FAIRE'), true);
+    expect(c.ratings.read(item(c, '056.stage.1').ratingKey('p'))!.source, 'EXCLUSION_MARKER');
+    c.dispose();
+  });
+
   testWidgets(
     'catalogue deck remains usable on a small phone with enlarged text',
     (tester) async {

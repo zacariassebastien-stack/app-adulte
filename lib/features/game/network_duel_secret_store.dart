@@ -66,6 +66,7 @@ final class NetworkPrivateGameState {
     Map<String, int> clothesByPlayer = const {},
     Map<String, int> clothingObservations = const {},
     Map<String, int> actionClothingConfirmations = const {},
+    Map<String, JsonMap> personalizationEvents = const {},
   }) : pendingLearning = pendingLearning == null
            ? null
            : freezeJson(pendingLearning) as JsonMap,
@@ -74,6 +75,10 @@ final class NetworkPrivateGameState {
            ? null
            : freezeJson(pendingSecondaryCommand) as JsonMap,
        cards = List.unmodifiable(cards),
+       personalizationEvents = Map.unmodifiable({
+         for (final e in personalizationEvents.entries)
+           e.key: freezeJson(e.value) as JsonMap,
+       }),
        displayedHandActions = Map.unmodifiable(displayedHandActions),
        learningRecordedRounds = Set.unmodifiable(learningRecordedRounds),
        publicDiscards = List.unmodifiable(publicDiscards),
@@ -117,6 +122,7 @@ final class NetworkPrivateGameState {
   final Map<String, int> clothesByPlayer;
   final Map<String, int> clothingObservations;
   final Map<String, int> actionClothingConfirmations;
+  final Map<String, JsonMap> personalizationEvents;
 
   Map<String, Object?> toJson() => {
     'round_number': roundNumber,
@@ -161,6 +167,7 @@ final class NetworkPrivateGameState {
     'clothes_by_player': clothesByPlayer,
     'clothing_observations': clothingObservations,
     'action_clothing_confirmations': actionClothingConfirmations,
+    'personalization_events': personalizationEvents,
   };
 
   factory NetworkPrivateGameState.fromJson(
@@ -260,6 +267,11 @@ final class NetworkPrivateGameState {
     clothingObservations: Map<String, int>.from(
       (json['clothing_observations'] as Map?) ?? {},
     ),
+    personalizationEvents: {
+      for (final e
+          in ((json['personalization_events'] as Map?) ?? const {}).entries)
+        e.key as String: Map<String, Object?>.from(e.value as Map),
+    },
   );
 }
 

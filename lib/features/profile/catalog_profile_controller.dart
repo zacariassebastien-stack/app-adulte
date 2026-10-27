@@ -148,6 +148,11 @@ final class CatalogProfileController extends ChangeNotifier {
   }
 
   bool globalTagVeto(ProfileCatalogItem item) =>
+      !profile.allowsPresentation(
+        item.concept.id,
+        item.actionId,
+        item.direction.name,
+      ) &&
       effectiveProfile.preferences.values.any(
         (p) =>
             p.excluded &&
@@ -160,12 +165,14 @@ final class CatalogProfileController extends ChangeNotifier {
                 .vetoTags(item.concept.id, actionId: item.actionId)
                 .contains(p.key.tagId),
       );
-  bool cardExcluded(String id) => profile.stageVetoes.any(
-    (v) =>
-        v.conceptId == id &&
-        v.actionId == '*' &&
-        v.role == ProfilePreferenceRole.general,
-  );
+  bool cardExcluded(String id) =>
+      !profile.presentationAllowances.any((a) => a.conceptId == id) &&
+      profile.stageVetoes.any(
+        (v) =>
+            v.conceptId == id &&
+            v.actionId == '*' &&
+            v.role == ProfilePreferenceRole.general,
+      );
   DetailedPreferenceCategory? category(ProfileCatalogItem item) {
     if (profile.excludesStage(
       item.concept.id,
@@ -203,25 +210,38 @@ final class CatalogProfileController extends ChangeNotifier {
     _changed();
     try {
       final role = ProfilePreferenceRole.parse(item.direction.name);
-      final next = preserveExclusions
-          ? profile
-          : profile.copyWith(
-              stageVetoes: [
-                ...profile.stageVetoes.where(
-                  (v) =>
-                      !(v.conceptId == item.concept.id &&
-                          v.actionId == item.actionId &&
-                          (v.role == role ||
-                              v.role == ProfilePreferenceRole.general)),
-                ),
-                if (category == DetailedPreferenceCategory.excluded)
-                  StageVeto(
-                    conceptId: item.concept.id,
-                    actionId: item.actionId,
-                    role: role,
-                  ),
-              ],
-            );
+      final next = profile.copyWith(
+        presentationAllowances: [
+          ...profile.presentationAllowances.where(
+            (a) =>
+                !(a.conceptId == item.concept.id &&
+                    a.actionId == item.actionId &&
+                    a.role == role),
+          ),
+          if (category != DetailedPreferenceCategory.excluded)
+            StageVeto(
+              conceptId: item.concept.id,
+              actionId: item.actionId,
+              role: role,
+            ),
+        ],
+        stageVetoes: [
+          ...profile.stageVetoes.where(
+            (v) =>
+                preserveExclusions ||
+                !(v.conceptId == item.concept.id &&
+                    v.actionId == item.actionId &&
+                    (v.role == role ||
+                        v.role == ProfilePreferenceRole.general)),
+          ),
+          if (category == DetailedPreferenceCategory.excluded)
+            StageVeto(
+              conceptId: item.concept.id,
+              actionId: item.actionId,
+              role: role,
+            ),
+        ],
+      );
       final key = item.ratingKey(playerId);
       final old =
           ratings.read(key) ??
@@ -238,11 +258,68 @@ final class CatalogProfileController extends ChangeNotifier {
       final updatedRatings = CardSpecificLearningStore()
         ..restore(ratings.toJson());
       if (category.personalPa case final score?) {
-        updatedRatings.write(old.withOwnEstimate(score));
+        final rating = runtime.optionalRatingFor(
+          item.concept.id,
+          item.actionId,
+        );
+        final tags = <String, double>{
+          for (final tag in rating?.primaryPreferenceTags ?? <String>[])
+            (item.concept.id == '039' &&
+                        role == ProfilePreferenceRole.recevoir &&
+                        tag == 'etre_regarde'
+                    ? 'regarder'
+                    : tag):
+                1,
+          for (final tag in rating?.secondaryPreferenceTags ?? <String>[])
+            tag: .5,
+        };
+        updatedRatings.write(
+          CardRatingStateV4.fromJson({
+            ...old.withOwnEstimate(score).toJson(),
+            'personalization': {
+              ...old.withOwnEstimate(score).personalization,
+              'tags': tags,
+            },
+          }),
+        );
       }
-      await profileStore.save(next);
-      await ratingStore.save(playerId, updatedRatings);
-      ratings = updatedRatings;
+      // A failed appreciation write must not grant a new consent exception.
+      // An explicit veto is persisted first, even if its assessment marker fails.
+      if (category == DetailedPreferenceCategory.excluded) {
+        await profileStore.save(next);
+      }
+      ratings = await ratingStore.mutate(playerId, (current) {
+        if (category.personalPa case final score?) {
+          final desired = updatedRatings.read(key)!;
+          final latest = (current.read(key) ?? old).withOwnEstimate(score);
+          current.write(
+            CardRatingStateV4.fromJson({
+              ...latest.toJson(),
+              'personalization': {
+                ...latest.personalization,
+                'excluded': false,
+                'tags': desired.personalization['tags'],
+              },
+            }),
+          );
+        } else {
+          final latest = current.read(key) ?? old;
+          current.write(
+            CardRatingStateV4.fromJson({
+              ...latest.toJson(),
+              'source': 'EXCLUSION_MARKER',
+              'personalization': {
+                ...latest.personalization,
+                'excluded': true,
+                'pending': null,
+              },
+            }),
+          );
+        }
+      });
+      if (category != DetailedPreferenceCategory.excluded) {
+        await profileStore.save(next);
+      }
       profile = next;
     } finally {
       saving = false;
@@ -284,6 +361,14 @@ final class CatalogProfileController extends ChangeNotifier {
     _changed();
     try {
       final next = profile.copyWith(
+        presentationAllowances: excluded
+            ? [
+                for (final a in profile.presentationAllowances)
+                  if (a.conceptId != conceptId ||
+                      (role != ProfilePreferenceRole.general && a.role != role))
+                    a,
+              ]
+            : profile.presentationAllowances,
         stageVetoes: [
           ...profile.stageVetoes.where(
             (v) =>
@@ -319,12 +404,45 @@ final class CatalogProfileController extends ChangeNotifier {
                 resistanceCount: 0,
                 source: 'TAG_PRIOR',
               );
-          updatedRatings.write(old.withOwnEstimate(old.currentEstimate ?? 20));
+          updatedRatings.write(
+            CardRatingStateV4.fromJson({
+              ...old.withOwnEstimate(old.currentEstimate ?? 20).toJson(),
+              'source': 'EXCLUSION_MARKER',
+              'personalization': {
+                ...old.personalization,
+                'excluded': true,
+                'pending': null,
+              },
+            }),
+          );
         }
       }
       await profileStore.save(next);
-      if (excluded) await ratingStore.save(playerId, updatedRatings);
-      ratings = updatedRatings;
+      ratings = excluded
+          ? await ratingStore.mutate(playerId, (current) {
+              for (final item in items.where(
+                (i) =>
+                    i.concept.id == conceptId &&
+                    (role == ProfilePreferenceRole.general ||
+                        i.direction.name == role.wireName),
+              )) {
+                final key = item.ratingKey(playerId);
+                final latest = current.read(key) ?? updatedRatings.read(key)!;
+                current.write(
+                  CardRatingStateV4.fromJson({
+                    ...latest.toJson(),
+                    'current_estimate': latest.currentEstimate ?? 20,
+                    'source': 'EXCLUSION_MARKER',
+                    'personalization': {
+                      ...latest.personalization,
+                      'excluded': true,
+                      'pending': null,
+                    },
+                  }),
+                );
+              }
+            })
+          : await ratingStore.load(playerId);
       profile = next;
     } finally {
       saving = false;

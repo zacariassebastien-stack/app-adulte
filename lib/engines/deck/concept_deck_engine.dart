@@ -140,8 +140,12 @@ final class ConceptDeckCandidate {
   final int drawClass;
   final List<ConceptDeckChoice> choices;
 
-  ConceptDeckChoice materialize(Random random) =>
-      choices[random.nextInt(choices.length)];
+  ConceptDeckChoice materialize(
+    Random random, {
+    double Function(ConceptDeckChoice)? weight,
+  }) => weight == null
+      ? choices[random.nextInt(choices.length)]
+      : weightedChoice(choices, random, weight);
 }
 
 final class ConceptDeckPool {
@@ -161,7 +165,10 @@ final class ConceptDeckPool {
       classes.values.expand((v) => v);
 
   /// No stage/zone selection, quota consumption or automatic cycle fallback.
-  ConceptDeckCandidate? draw(Random random) {
+  ConceptDeckCandidate? draw(
+    Random random, {
+    double Function(ConceptDeckCandidate)? preferenceWeight,
+  }) {
     if (isEmpty) return null;
     var point = random.nextDouble();
     var selectedClass = classes.keys.last;
@@ -173,8 +180,29 @@ final class ConceptDeckPool {
       point -= entry.value;
     }
     final concepts = classes[selectedClass]!;
-    return concepts[random.nextInt(concepts.length)];
+    return preferenceWeight == null
+        ? concepts[random.nextInt(concepts.length)]
+        : weightedChoice<ConceptDeckCandidate>(
+            concepts,
+            random,
+            preferenceWeight,
+          );
   }
+}
+
+T weightedChoice<T>(List<T> items, Random random, double Function(T) weight) {
+  final weights = [for (final item in items) weight(item)];
+  if (weights.any((w) => !w.isFinite || w <= 0)) {
+    throw ArgumentError('Invalid draw weight');
+  }
+  // Preserve the existing RNG contract when preference makes no distinction.
+  if (weights.toSet().length == 1) return items[random.nextInt(items.length)];
+  var point = random.nextDouble() * weights.fold<double>(0, (s, w) => s + w);
+  for (var i = 0; i < items.length; i++) {
+    point -= weights[i];
+    if (point < 0) return items[i];
+  }
+  return items.last;
 }
 
 /// Pure concept → class pool. No parallel hybrid decks or 70/30 weighting.
@@ -209,8 +237,9 @@ final class ConceptDeckEngine {
         eligibility: eligibility,
         globalChili: globalChili,
       );
-      if (candidate != null)
+      if (candidate != null) {
         classes.putIfAbsent(candidate.drawClass, () => []).add(candidate);
+      }
     }
     // Sort to keep probability intervals stable, independent of catalogue order.
     final ordered = {
