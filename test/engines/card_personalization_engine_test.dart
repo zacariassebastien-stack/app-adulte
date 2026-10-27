@@ -68,7 +68,7 @@ void main() {
     expect(store.referenceEstimate(key), 7.5);
     expect(
       store.read(key)!.personalization['internal'],
-      closeTo(7.325, .000001),
+      closeTo(7.375, .000001),
     );
     expect(store.read(key)!.observationCount, 2);
   });
@@ -107,7 +107,7 @@ void main() {
       );
       expect(
         restored.read(key)!.personalization['internal'],
-        closeTo(7.575, .000001),
+        closeTo(7.5475, .000001),
       );
     },
   );
@@ -115,7 +115,7 @@ void main() {
     'crossing a tier proposes but acceptance adopts its official centre',
     () {
       final store = CardSpecificLearningStore();
-      for (var i = 0; i < 16; i++) {
+      for (var i = 0; i < 32; i++) {
         observe(store, '$i', PersonalizationSignal.chosen);
       }
       expect(store.referenceEstimate(key), 7.5);
@@ -134,7 +134,7 @@ void main() {
     'decline retains reference and does not immediately repeat same proposal',
     () {
       final store = CardSpecificLearningStore();
-      for (var i = 0; i < 16; i++) {
+      for (var i = 0; i < 32; i++) {
         observe(store, '$i', PersonalizationSignal.chosen);
       }
       engine.decide(store, key, accept: false);
@@ -194,7 +194,7 @@ void main() {
         variantId: '003.action',
         role: ProfilePreferenceRole.faire,
       );
-      engine.seed(store, other, 3.5, tags);
+      engine.seed(store, other, 18, tags);
       store.write(store.read(other)!.withOwnEstimate(3.5));
       expect(store.referenceEstimate(key), 18);
       const unseen = CardRatingKey(

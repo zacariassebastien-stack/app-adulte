@@ -6,23 +6,38 @@ import 'v4_card_rating_engine.dart';
 /// Tuning changes must not alter consent, role identity or official PA.
 final class PersonalizationConfig {
   const PersonalizationConfig({
-    this.nonChoice = .05,
+    this.nonChoice = .025,
     this.lock = .075,
-    this.choice = .10,
+    this.unlock = .05,
+    this.repeatFloor = .50,
+    this.maximumSignal = .30,
+    this.choice = .05,
     this.acceptance = .075,
     this.resistance = .10,
-    this.repeatDecay = .5,
+    this.repeatDecay = .9,
     this.drawAmplitude = .20,
     this.minimumDrawWeight = .5,
     this.minimumEvidence = 3,
     this.refusalCooldown = 20,
   });
-  final double nonChoice, lock, choice, acceptance, resistance;
+  final double nonChoice, lock, unlock, choice, acceptance, resistance;
+  final double repeatFloor, maximumSignal;
   final double repeatDecay, drawAmplitude, minimumDrawWeight;
   final int minimumEvidence, refusalCooldown;
 }
 
-enum PersonalizationSignal { nonChoice, locked, chosen, accepted, resisted }
+enum PersonalizationSignal {
+  nonChoice,
+  locked,
+  unlocked,
+  chosen,
+  accepted,
+  resisted,
+  offered,
+  strongAccepted,
+  compromiseRequested,
+  recovery,
+}
 
 /// The existing card store holds the official reference and a separate private
 /// continuous estimate. No automatic event ever writes currentEstimate.
@@ -74,8 +89,10 @@ final class CardPersonalizationEngine {
     required PersonalizationSignal signal,
     required bool enabled,
     String? exposureEpisode,
+    double scale = 1,
   }) {
     if (!enabled) return false;
+    if (!scale.isFinite || scale < 0) throw ArgumentError.value(scale, 'scale');
     final old = seed(store, key, prior, tags);
     final data = Map<String, Object?>.from(old.personalization);
     final receipts = ((data['events'] as List?) ?? const [])
@@ -90,8 +107,14 @@ final class CardPersonalizationEngine {
         : (repeats[exposureEpisode] as int? ?? 0);
     final magnitude = switch (signal) {
       PersonalizationSignal.nonChoice =>
-        config.nonChoice * math.pow(config.repeatDecay, count),
+        config.nonChoice *
+            math.max(math.pow(config.repeatDecay, count), config.repeatFloor),
       PersonalizationSignal.locked => -config.lock,
+      PersonalizationSignal.unlocked => config.unlock,
+      PersonalizationSignal.offered => -config.nonChoice,
+      PersonalizationSignal.strongAccepted => -config.choice,
+      PersonalizationSignal.compromiseRequested => config.acceptance,
+      PersonalizationSignal.recovery => -config.lock,
       PersonalizationSignal.chosen => -config.choice,
       PersonalizationSignal.accepted => -config.acceptance,
       PersonalizationSignal.resisted => config.resistance,
@@ -101,7 +124,17 @@ final class CardPersonalizationEngine {
         ((data['internal'] as num?)?.toDouble() ??
         old.currentEstimate ??
         prior);
-    final nextEstimate = (estimate + magnitude).clamp(1.0, 20.0);
+    final effective = (magnitude * scale)
+        .clamp(-config.maximumSignal, config.maximumSignal)
+        .toDouble();
+    final nextEstimate = (estimate + effective).clamp(1.0, 20.0);
+    final evidence = <String, double>{
+      for (final e in ((data['tag_evidence'] as Map?) ?? const {}).entries)
+        e.key as String: (e.value as num).toDouble(),
+    };
+    for (final e in personalizationTagBudget(effective, tags).entries) {
+      evidence.update(e.key, (old) => old + e.value, ifAbsent: () => e.value);
+    }
     final category = DetailedPreferenceCategoryRules.fromPa(
       nextEstimate.toDouble(),
     );
@@ -125,6 +158,7 @@ final class CardPersonalizationEngine {
         'personalization': {
           ...data,
           'internal': nextEstimate,
+          'tag_evidence': evidence,
           'events': receipts.toList(),
           'repeats': repeats,
           'pending': pending,
@@ -178,35 +212,32 @@ final class CardPersonalizationEngine {
         ? (exact!.personalization['internal']! as num).toDouble()
         : exact?.currentEstimate ?? prior;
     if (exact == null) {
-      var sum = 0.0;
-      var weight = 0.0;
+      final evidence = <String, double>{};
       for (final other in store.values) {
         if (other.personalization['excluded'] == true ||
-            other.source == 'EXCLUSION_MARKER') {
-          continue;
-        }
-        if (other.key.profileId != key.profileId ||
+            other.source == 'EXCLUSION_MARKER' ||
+            other.key.profileId != key.profileId ||
             other.key.role != key.role) {
           continue;
         }
-        final metadata = (other.personalization['tags'] as Map?) ?? const {};
-        final shared = tags.entries.fold<double>(
-          0,
-          (s, t) =>
-              s +
-              (metadata[t.key] is num
-                  ? t.value * (metadata[t.key] as num).toDouble()
-                  : 0),
-        );
-        if (shared == 0) continue;
-        final estimate =
-            (other.personalization['internal'] as num?)?.toDouble() ??
-            other.currentEstimate;
-        if (estimate == null) continue;
-        sum += estimate * shared;
-        weight += shared;
+        final changes =
+            (other.personalization['tag_evidence'] as Map?) ?? const {};
+        for (final e in changes.entries) {
+          evidence.update(
+            e.key as String,
+            (v) => v + (e.value as num).toDouble(),
+            ifAbsent: () => (e.value as num).toDouble(),
+          );
+        }
       }
-      if (weight > 0) value = sum / weight;
+      final weights = personalizationTagBudget(2, tags); // sums to one
+      value =
+          (prior +
+                  weights.entries.fold<double>(
+                    0,
+                    (sum, tag) => sum + tag.value * (evidence[tag.key] ?? 0),
+                  ))
+              .clamp(1.0, 20.0);
     }
     return math.max(
       config.minimumDrawWeight,

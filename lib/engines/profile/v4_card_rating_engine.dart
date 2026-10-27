@@ -385,6 +385,31 @@ final class CardRatingStateV4 {
     personalization: {
       ...personalization,
       'internal': estimate,
+      'tag_evidence': {
+        for (final tag in {
+          ...((personalization['tag_evidence'] as Map?) ?? const {}).keys
+              .cast<String>(),
+          ...((personalization['tags'] as Map?) ?? const {}).keys
+              .cast<String>(),
+        })
+          tag:
+              (((personalization['tag_evidence'] as Map?)?[tag] as num?)
+                      ?.toDouble() ??
+                  0) +
+              (personalizationTagBudget(
+                    estimate -
+                        ((personalization['internal'] as num?)?.toDouble() ??
+                            currentEstimate ??
+                            estimate),
+                    {
+                      for (final e
+                          in ((personalization['tags'] as Map?) ?? const {})
+                              .entries)
+                        e.key as String: (e.value as num).toDouble(),
+                    },
+                  )[tag] ??
+                  0),
+      },
       'manual': true,
       'pending': null,
       'declined': null,
@@ -452,4 +477,20 @@ final class CardSpecificLearningStore {
         );
     _values[key.storageKey] = current.record(signal);
   }
+}
+
+/// Conserved, signed generalization budget. Tag weights classify primary (1)
+/// and secondary (.5); count never multiplies either category's envelope.
+Map<String, double> personalizationTagBudget(
+  double signal,
+  Map<String, double> tags,
+) {
+  final primary = tags.keys.where((t) => tags[t]! >= 1).toList();
+  final secondary = tags.keys.where((t) => tags[t]! < 1).toList();
+  return {
+    for (final tag in primary)
+      tag: signal * .5 * (secondary.isEmpty ? 1 : .7) / primary.length,
+    for (final tag in secondary)
+      tag: signal * .5 * (primary.isEmpty ? 1 : .3) / secondary.length,
+  };
 }

@@ -220,6 +220,7 @@ final class NetworkGameController extends ChangeNotifier {
     PersonalizationSignal signal,
     String eventId, {
     String? episode,
+    double scale = 1,
   }) {
     if (postGameProfileChoice != PostGameProfileChoice.trustGame) {
       return Future.value();
@@ -238,6 +239,7 @@ final class NetworkGameController extends ChangeNotifier {
         card.variant.id,
         card.effectiveDirection.name,
       ),
+      'scale': scale,
       'signal': signal.name,
       'episode': episode,
     };
@@ -277,6 +279,7 @@ final class NetworkGameController extends ChangeNotifier {
             ),
             enabled: true,
             exposureEpisode: data['episode'] as String?,
+            scale: (data['scale'] as num?)?.toDouble() ?? 1,
           );
         });
       }
@@ -354,20 +357,6 @@ final class NetworkGameController extends ChangeNotifier {
         '$root/${own.usageId}/chosen',
       );
     }
-    // Resolve canonical offer snapshots immediately, not at round closure.
-    for (final offer in [
-      value.negotiation?.proposal,
-      value.negotiation?.finalOffer,
-    ]) {
-      if (offer == null) continue;
-      for (final c in offer.cards.where((c) => c.ownerPlayerId == playerId)) {
-        await _recordPersonalization(
-          _cardFromUsage(_withPrivateValues(c.usage)),
-          PersonalizationSignal.chosen,
-          '$root/${c.usageId}/compromise-offer',
-        );
-      }
-    }
     final corruption = value.corruption;
     if (value.initialResolution?.winnerPlayerId != null &&
         value.initialResolution!.winnerPlayerId != playerId) {
@@ -377,23 +366,17 @@ final class NetworkGameController extends ChangeNotifier {
         final card = _personalizationCardForParticipant(usage);
         if (card == null) continue;
         if (value.negotiation?.proposal != null) {
-          await _recordPersonalization(card, PersonalizationSignal.resisted,
+          await _recordPersonalization(card, PersonalizationSignal.compromiseRequested,
             '$root/${usage.usageId}/compromise-request/$playerId');
         }
-        if (corruption?.offeredBy == playerId) {
-          await _recordPersonalization(card, PersonalizationSignal.resisted,
-            '$root/${usage.usageId}/corruption-request/$playerId');
-        }
+
       }
     }
     if (corruption != null) {
       for (final c in corruption.actions) {
         if (corruption.offeredBy == playerId) {
-          await _recordPersonalization(
-            _cardFromUsage(_withPrivateValues(c.usage)),
-            PersonalizationSignal.chosen,
-            '$root/${c.identity}/corruption-offer',
-          );
+          await _recordOwnPersonalization(c.usage, PersonalizationSignal.offered,
+            '$root/${c.identity}/corruption-offer', scale: 1 / corruption.actions.length);
         }
         if (corruption.offeredBy != playerId && corruption.accepted != null) {
           final card = _personalizationCardForParticipant(c.usage);
@@ -401,9 +384,10 @@ final class NetworkGameController extends ChangeNotifier {
             await _recordPersonalization(
               card,
               corruption.accepted!
-                  ? PersonalizationSignal.accepted
+                  ? PersonalizationSignal.strongAccepted
                   : PersonalizationSignal.resisted,
               '$root/${c.identity}/corruption-response/$playerId',
+              scale: 1 / corruption.actions.length,
             );
           }
         }
@@ -413,61 +397,61 @@ final class NetworkGameController extends ChangeNotifier {
       ...value.recoveryByPlayer.values,
       ...value.recoveryHistory,
     ]) {
-      if (recovery.playerId == playerId) {
-        await _recordPersonalization(
-          _cardFromUsage(_withPrivateValues(recovery.usage)),
-          PersonalizationSignal.chosen,
-          '$root/${recovery.usageId}/recovery-offer',
-        );
-      } else if (recovery.response != null) {
-        final card = _personalizationCardForParticipant(recovery.usage);
-        if (card != null) {
-          await _recordPersonalization(
-            card,
-            recovery.response == RecoveryResponse.REFUSE
-                ? PersonalizationSignal.resisted
-                : PersonalizationSignal.accepted,
-            '$root/${recovery.usageId}/recovery-response/$playerId',
-          );
-        }
+      if (recovery.playerId != playerId) continue;
+      final event = '$root/${recovery.usageId}/recovery-offer';
+      if (_personalizationEventKnown(event)) continue;
+      final usage = _withPrivateValues(recovery.usage);
+      final chosenGain = (1.5 * usage.snapshotValue!).ceil();
+      final private = _privateUsage(recovery.usageId);
+      final bestGain = (private?.action.parameters['personalization_recovery_best_gain'] as num?)?.toDouble() ?? chosenGain.toDouble();
+      final sacrifice = bestGain <= 0 ? 0.0 : ((bestGain - chosenGain) / bestGain).clamp(0.0, 1.0);
+      final config = _personalization.config;
+      final magnitude = config.lock + (config.maximumSignal - config.lock) * sacrifice;
+      await _recordOwnPersonalization(usage, PersonalizationSignal.recovery, event,
+        scale: config.lock == 0 ? 0 : magnitude / config.lock);
+    }
+    // A technical final_resolution exists before the post-duel choice. It is
+    // not an acceptance. Keep its alternative context before any decision.
+    final winnerUsages = value.initialDuelCards.where((u) =>
+      u.ownerPlayerId == value.initialResolution?.winnerPlayerId);
+    if (value.phase == NetworkGamePhase.corruptionDecision &&
+        value.initialResolution?.loserPlayerId == playerId) {
+      for (final usage in winnerUsages) {
+        final card = _personalizationCardForParticipant(usage);
+        if (card == null) continue;
+        final hasAlternative = (canAttemptNegotiation &&
+          ((actionPoints[playerId] ?? 0) > 0 || inversionAllowed ||
+            hand.any(isCardPlayable) || auctionCards.isNotEmpty)) ||
+          (canAttemptCorruption && corruptionCards.isNotEmpty);
+        final key = CardRatingKey(profileId: playerId, cardId: card.id,
+          variantId: card.variant.id, role: ProfilePreferenceRole.parse(card.effectiveDirection.name));
+        _personalizationRatings = await _cardLearningStore.mutate(playerId, (store) {
+          final old = _personalization.seed(store, key, card.personalValue.toDouble(),
+            _personalizationTags(card.id, card.variant.id, card.effectiveDirection.name));
+          final contexts = Map<String, Object?>.from((old.personalization['post_duel_alternatives'] as Map?) ?? const {});
+          contexts.putIfAbsent(root, () => hasAlternative);
+          store.write(CardRatingStateV4.fromJson({...old.toJson(),
+            'personalization': {...old.personalization, 'post_duel_alternatives': contexts}}));
+        });
       }
     }
-    if (value.negotiation?.response case final response?) {
-      if (value.initialResolution?.winnerPlayerId == playerId) {
-        for (final c
-            in value.negotiation!.proposal?.cards ??
-                <NetworkCompromiseCardDto>[]) {
-          final card = _personalizationCardForParticipant(c.usage);
-          if (card != null) {
-            await _recordPersonalization(
-              card,
-              response.accepted
-                  ? PersonalizationSignal.accepted
-                  : PersonalizationSignal.resisted,
-              '$root/${c.usageId}/compromise-response/$playerId',
-            );
-          }
+    final settled = const {NetworkGamePhase.finalResolved, NetworkGamePhase.corruptionExecution,
+      NetworkGamePhase.recovery, NetworkGamePhase.recoveryResponse, NetworkGamePhase.recoveryExecution,
+      NetworkGamePhase.waitingNext, NetworkGamePhase.closed}.contains(value.phase);
+    if (settled && value.finalResolution != null && !value.finalResolution!.mutualAbandon &&
+        corruption?.accepted != true) {
+      final compromiseAccepted = value.negotiation?.response?.accepted == true;
+      for (final c in value.finalResolution!.compromise) {
+        final card = _personalizationCardForParticipant(c.usage);
+        if (card == null) continue;
+        final key = CardRatingKey(profileId: playerId, cardId: card.id,
+          variantId: card.variant.id, role: ProfilePreferenceRole.parse(card.effectiveDirection.name));
+        final hadAlternative = (_personalizationRatings.read(key)?.personalization['post_duel_alternatives'] as Map?)?[root] == true;
+        if (compromiseAccepted || (value.initialResolution?.loserPlayerId == playerId && hadAlternative)) {
+          await _recordPersonalization(card,
+            compromiseAccepted ? PersonalizationSignal.strongAccepted : PersonalizationSignal.accepted,
+            '$root/${c.usageId}/accepted/$playerId');
         }
-      }
-    }
-    // Each participant's acceptance is attributed by the actual frozen roles.
-    final accepted = <NetworkUsageProjection>[
-      if (value.finalResolution != null &&
-          !value.finalResolution!.mutualAbandon)
-        for (final c in value.finalResolution!.compromise) c.usage,
-      for (final c in corruption?.actions ?? <NetworkCorruptionActionDto>[])
-        if (c.status == ActionExecutionStatus.COMPLETED) c.usage,
-      for (final r in value.recoveryHistory)
-        if (r.completed) r.usage,
-    ];
-    for (final usage in accepted) {
-      final card = _personalizationCardForParticipant(usage);
-      if (card != null) {
-        await _recordPersonalization(
-          card,
-          PersonalizationSignal.accepted,
-          '$root/${usage.usageId}/accepted/$playerId',
-        );
       }
     }
     if (value.ownCommitRecorded) {
@@ -498,6 +482,23 @@ final class NetworkGameController extends ChangeNotifier {
         );
       }
     }
+  }
+
+  bool _personalizationEventKnown(String id) => _personalizationOutbox.containsKey(id) ||
+    _personalizationRatings.values.any((s) => ((s.personalization['events'] as List?) ?? const []).contains(id));
+
+  ConceptUsageSnapshot? _privateUsage(String id) {
+    for (final draft in _reservedChoices.values) { if (draft.usageId == id) return draft; }
+    for (final checkpoint in [_usageCheckpoint, ..._priorCheckpoints]) {
+      for (final usage in checkpoint.usagesByIntent.values) { if (usage.usageId == id) return usage; }
+    }
+    return null;
+  }
+
+  Future<void> _recordOwnPersonalization(NetworkUsageProjection usage,
+      PersonalizationSignal signal, String event, {double scale = 1}) async {
+    if (_personalizationEventKnown(event)) return;
+    await _recordPersonalization(_cardFromUsage(_withPrivateValues(usage)), signal, event, scale: scale);
   }
 
   NetworkDuelCard? _personalizationCardForParticipant(
@@ -1407,8 +1408,10 @@ final class NetworkGameController extends ChangeNotifier {
         projection.ownerPlayerId != playerId) {
       return projection;
     }
-    for (final checkpoint in [_usageCheckpoint, ..._priorCheckpoints]) {
-      for (final saved in checkpoint.usagesByIntent.values) {
+    for (final saved in [
+      ..._reservedChoices.values,
+      for (final checkpoint in [_usageCheckpoint, ..._priorCheckpoints]) ...checkpoint.usagesByIntent.values,
+    ]) {
         if (saved.usageId != projection.usageId) continue;
         final inverse =
             saved.action.direction.name !=
@@ -1428,7 +1431,6 @@ final class NetworkGameController extends ChangeNotifier {
           };
         }
         return NetworkUsageProjection.fromJson(json);
-      }
     }
     return projection;
   }
@@ -1727,6 +1729,11 @@ final class NetworkGameController extends ChangeNotifier {
         .firstOrNull;
     if (target == null) return;
     if (target.locked) {
+      final unlocked = hand.where((c) => c.identity == conceptId).firstOrNull;
+      if (unlocked != null) {
+        unawaited(_recordPersonalization(unlocked, PersonalizationSignal.unlocked,
+          '${session.id}/${round!.roundId}/${unlocked.variant.id}/${unlocked.nativeDirection.name}/unlocked'));
+      }
       _runtime = [
         for (final card in _runtime)
           card.occurrenceId == conceptId ? card.copyWith(locked: false) : card,
@@ -2376,9 +2383,26 @@ final class NetworkGameController extends ChangeNotifier {
     final wasInverted =
         original != null &&
         original.action.direction.name != source!.resolvedAction['direction'];
-    final action = original == null
+    var action = original == null
         ? _freezeAction(currentCard, resolvedOption, at)
         : original.reconstruct(inverted: wasInverted);
+    if (recovery) {
+      var bestGain = (1.5 * currentCard.personalValue).ceil();
+      for (final candidate in recoveryCards) {
+        final gain = (1.5 * candidate.personalValue).ceil();
+        if (gain > bestGain) bestGain = gain;
+        if (candidate.identity != candidate.id) continue; // historical replay keeps its frozen action
+        for (final option in recoveryChoicesFor(candidate.id)) {
+          final alternative = _networkCard(candidate.id, option: option, recovery: true);
+          if (alternative != null && (1.5 * alternative.personalValue).ceil() > bestGain) {
+            bestGain = (1.5 * alternative.personalValue).ceil();
+          }
+        }
+      }
+      action = ResolvedConceptAction.fromJson({...action.toJson(),
+        'parameters': {...action.parameters, 'personalization_recovery_best_gain': bestGain}});
+    }
+
     final inverse = original == null
         ? (currentCard.oppositePersonalValue == null
               ? null
