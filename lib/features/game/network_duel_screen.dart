@@ -27,6 +27,7 @@ import 'network_duel_secret_store.dart';
 import 'network_duel_controller.dart' show NetworkDuelCard;
 import 'network_auction_form_controller.dart';
 import 'network_game_controller.dart';
+import 'game_media_capabilities.dart';
 import 'network_profile_learning.dart';
 import '../../engines/eligibility/concept_action_options.dart';
 import 'ui/card_hand_surface.dart';
@@ -48,6 +49,7 @@ class NetworkDuelScreen extends StatefulWidget {
     this.activeSessionStore = const SharedPreferencesActiveSessionStore(),
     this.historyStore = const SharedPreferencesGameHistoryStore(),
     this.preferences,
+    this.mediaCapabilityReader = const PlatformGameMediaCapabilities(),
     this.privateProfile,
     this.v4Profile,
     this.scoringCatalog,
@@ -70,6 +72,7 @@ class NetworkDuelScreen extends StatefulWidget {
   final ActiveSessionStore activeSessionStore;
   final GameHistoryStore historyStore;
   final GamePreferencesController? preferences;
+  final GameMediaCapabilityReader mediaCapabilityReader;
   final PlayerGameProfile? privateProfile;
   final V4Profile? v4Profile;
   final V4ScoringCatalog? scoringCatalog;
@@ -132,7 +135,13 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       initialClothingCounts: widget.initialClothingCounts,
       profileAccessories: widget.profileAccessories,
     )..addListener(_refresh);
-    controller.start();
+    _startGame();
+  }
+
+  Future<void> _startGame() async {
+    final capabilities = await widget.mediaCapabilityReader.read();
+    if (!mounted) return;
+    await controller.start(localMediaCapabilities: capabilities);
   }
 
   void _refresh() {

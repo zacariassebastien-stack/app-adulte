@@ -160,7 +160,7 @@ final class CatalogProfileController extends ChangeNotifier {
                 V4CardRatingEngine.rolesForDirection(
                   item.concept.id,
                   item.direction.name,
-                ).contains(p.key.role)) &&
+                ).any((role) => V4CardRatingEngine.preferenceAppliesToRole(p, item.concept.id, role))) &&
             runtime
                 .vetoTags(item.concept.id, actionId: item.actionId)
                 .contains(p.key.tagId),

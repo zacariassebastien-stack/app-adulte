@@ -649,7 +649,7 @@
       "id": "020",
       "title": "Masturbation mutuelle",
       "kind": "action",
-      "action_text": "Partagez une masturbation mutuelle.",
+      "action_text": "Masturbez-vous l’un l’autre.",
       "variants": [
         {
           "id": "020.action",
@@ -704,7 +704,7 @@
           "title": "Stade 3",
           "chili": 4,
           "action_templates": {
-            "FAIRE": "Doigte {ton_partenaire} avec autant de doigts qu’la personne le souhaite, en te laissant guider par ses réactions.",
+            "FAIRE": "Doigte {ton_partenaire} avec autant de doigts que la personne le souhaite, en te laissant guider par ses réactions.",
             "RECEVOIR": "Laisse {ton_partenaire} te doigter avec autant de doigts que tu le souhaites, en te laissant guider par tes sensations."
           }
         }
@@ -764,7 +764,7 @@
       "title": "Sexe oral",
       "kind": "evolution",
       "action_text": "Réalisez l’action au stade choisi.",
-      "details_text": "L’anal n’est pas inclus : il relève du concept 028.",
+      "details_text": "L’anal n’est pas inclus : il relève de la carte « Sexe oral anal ».",
       "stages": [
         {
           "id": "025.stage.1",
@@ -1148,8 +1148,8 @@
           "title": "Stade 1",
           "chili": 1,
           "action_templates": {
-            "FAIRE": "Fais une photo de toi, soft et séduisante, pour {ton_partenaire}.",
-            "RECEVOIR": "Laisse {ton_partenaire} faire une photo de sa personne, soft et séduisante, pour toi."
+            "FAIRE": "Fais une photo suggestive de toi, sans nudité explicite ni activité sexuelle, pour {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire une photo suggestive de sa personne, sans nudité explicite ni activité sexuelle, pour toi."
           }
         },
         {
@@ -1157,8 +1157,8 @@
           "title": "Stade 2",
           "chili": 2,
           "action_templates": {
-            "FAIRE": "Fais une photo de toi volontairement provocante ou explicite pour {ton_partenaire}.",
-            "RECEVOIR": "Laisse {ton_partenaire} faire une photo de sa personne volontairement provocante ou explicite pour toi."
+            "FAIRE": "Fais une photo intime ou explicite de toi, sans montrer d’activité sexuelle en cours, pour {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire une photo intime ou explicite de sa personne, sans montrer d’activité sexuelle en cours, pour toi."
           }
         },
         {
@@ -1166,8 +1166,8 @@
           "title": "Stade 3",
           "chili": 3,
           "action_templates": {
-            "FAIRE": "Fais une photo sexuelle de toi pour {ton_partenaire}.",
-            "RECEVOIR": "Laisse {ton_partenaire} faire une photo sexuelle de sa personne pour toi."
+            "FAIRE": "Fais une photo de toi pendant une activité sexuelle, pour {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire une photo de sa personne pendant une activité sexuelle, pour toi."
           }
         }
       ],
@@ -1178,25 +1178,25 @@
       "title": "Photo mutuelle",
       "kind": "evolution",
       "action_text": "Réalisez une photo mutuelle au stade choisi.",
-      "details_text": "Le dernier stade peut représenter les deux joueurs pendant une pratique sexuelle très engagée, y compris une pénétration.",
       "stages": [
         {
           "id": "045.stage.1",
           "title": "Stade 1",
           "chili": 1,
-          "action_text": "Prenez ensemble une photo soft et séduisante."
+          "action_text": "Prenez ensemble une photo suggestive, sans nudité explicite ni activité sexuelle."
         },
         {
           "id": "045.stage.2",
           "title": "Stade 2",
           "chili": 2,
-          "action_text": "Prenez ensemble une photo volontairement provocante ou explicite."
+          "action_text": "Prenez ensemble une photo intime ou explicite, sans montrer d’activité sexuelle en cours."
         },
         {
           "id": "045.stage.3",
           "title": "Stade 3",
           "chili": 4,
-          "action_text": "Prenez ensemble une photo sexuelle."
+          "action_text": "Prenez ensemble une photo pendant une activité sexuelle.",
+          "details_text": "La photo peut montrer une pratique très engagée, y compris une pénétration, sans l’imposer."
         }
       ]
     },
@@ -1211,8 +1211,8 @@
           "title": "Stade 1",
           "chili": 1,
           "action_templates": {
-            "FAIRE": "Fais une vidéo de toi, soft et séduisante, pour {ton_partenaire}.",
-            "RECEVOIR": "Laisse {ton_partenaire} faire une vidéo de sa personne, soft et séduisante, pour toi."
+            "FAIRE": "Fais une vidéo suggestive de toi, sans nudité explicite ni activité sexuelle, pour {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire une vidéo suggestive de sa personne, sans nudité explicite ni activité sexuelle, pour toi."
           }
         },
         {
@@ -1220,8 +1220,8 @@
           "title": "Stade 2",
           "chili": 2,
           "action_templates": {
-            "FAIRE": "Fais une vidéo de toi volontairement provocante ou explicite pour {ton_partenaire}.",
-            "RECEVOIR": "Laisse {ton_partenaire} faire une vidéo de sa personne volontairement provocante ou explicite pour toi."
+            "FAIRE": "Fais une vidéo intime ou explicite de toi, sans montrer d’activité sexuelle en cours, pour {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire une vidéo intime ou explicite de sa personne, sans montrer d’activité sexuelle en cours, pour toi."
           }
         },
         {
@@ -1229,8 +1229,8 @@
           "title": "Stade 3",
           "chili": 3,
           "action_templates": {
-            "FAIRE": "Fais une vidéo sexuelle de toi pour {ton_partenaire}.",
-            "RECEVOIR": "Laisse {ton_partenaire} faire une vidéo sexuelle de sa personne pour toi."
+            "FAIRE": "Fais une vidéo de toi pendant une activité sexuelle, pour {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} faire une vidéo de sa personne pendant une activité sexuelle, pour toi."
           }
         }
       ],
@@ -1247,19 +1247,20 @@
           "id": "047.stage.1",
           "title": "Stade 1",
           "chili": 1,
-          "action_text": "Réalisez ensemble une petite vidéo soft de votre choix."
+          "action_text": "Réalisez ensemble une vidéo suggestive, sans nudité explicite ni activité sexuelle."
         },
         {
           "id": "047.stage.2",
           "title": "Stade 2",
           "chili": 2,
-          "action_text": "Réalisez ensemble une vidéo sensuelle ou explicite de votre choix."
+          "action_text": "Réalisez ensemble une vidéo intime ou explicite, sans montrer d’activité sexuelle en cours."
         },
         {
           "id": "047.stage.3",
           "title": "Stade 3",
           "chili": 4,
-          "action_text": "Réalisez ensemble une vidéo sexuelle de votre choix."
+          "action_text": "Réalisez ensemble une vidéo pendant une activité sexuelle.",
+          "details_text": "Aucune durée minimale ou maximale n’est imposée. La vidéo peut montrer une pratique très engagée, y compris une pénétration, sans l’imposer."
         }
       ]
     },

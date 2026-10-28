@@ -19,6 +19,8 @@ import '../../engines/eligibility/concept_action_options.dart';
 import '../../engines/eligibility/session_occurrence_consent.dart';
 import '../../sync/rounds/session_consent.dart';
 import '../../engines/eligibility/anatomy_compatibility.dart';
+import '../../engines/eligibility/directional_clothing.dart';
+import '../../engines/eligibility/concept_context.dart';
 
 enum NetworkGameViewState {
   loading,
@@ -1499,6 +1501,7 @@ final class NetworkGameController extends ChangeNotifier {
     bool recovery = false,
   }) {
     if (!_definitions.containsKey(usage.conceptId)) return false;
+    if (!_clothingContextAllows(usage.conceptId, direction: CardOccurrenceDirection.values.byName(usage.resolvedAction['direction']! as String))) return false;
     if (recovery) {
       final reference = recoveryReferenceSpice;
       final chili = usage.resolvedAction['effective_chili']! as int;
@@ -1549,6 +1552,7 @@ final class NetworkGameController extends ChangeNotifier {
     ConceptActionOption option,
     NetworkUsageProjection usage,
   ) =>
+      option.allowsDirection(CardOccurrenceDirection.values.byName(usage.resolvedAction['direction']! as String)) &&
       option.choice.actionId ==
           (usage.resolvedAction['stage_id'] ??
               usage.resolvedAction['variant_id']) &&
@@ -1589,7 +1593,12 @@ final class NetworkGameController extends ChangeNotifier {
           )
           .toList();
 
-  Future<void> start() async {
+  Future<void> start({Set<MediaCapability>? localMediaCapabilities}) async {
+    if (localMediaCapabilities != null) {
+      _context = _context.copyWith(mediaCapabilitiesByPlayer: {
+        ..._context.mediaCapabilitiesByPlayer, playerId: localMediaCapabilities,
+      });
+    }
     if (_subscription != null) return;
     try {
       postGameProfileChoice = await _profileChoiceStore.load(playerId);
@@ -1788,7 +1797,7 @@ final class NetworkGameController extends ChangeNotifier {
     // An existing occurrence keeps its native direction when choosing another action.
     return options
         .where(
-          (option) =>
+          (option) => option.allowsDirection(direction) &&
               anatomyAllowed(conceptId, option.choice.actionId, direction.name),
         )
         .toList();
@@ -1844,15 +1853,19 @@ final class NetworkGameController extends ChangeNotifier {
     bool localConsentOnly = false,
   }) {
     if (recovery && recoveryReferenceSpice == null) return const {};
+    final currentContext = ConceptContext.resolve(
+      context: context ?? _context, profile: _ratingProfile,
+      accessories: _accessoryPool.available,
+    );
     final options = const ConceptActionOptions().evaluate(
       catalog: _conceptCatalog,
       profile: _ratingProfile,
       cardRatings: _cardRatings,
-      context: context ?? _context,
+      context: currentContext,
       actor: _profile(playerId),
       partner: _profile(opponentId),
       hierarchy: _hierarchy,
-      mediaSendRequired: _context.flags['mediaSendRequired'] == true,
+      mediaSendRequired: currentContext.flags['mediaSendRequired'] == true,
       recovery: recovery,
       recoveryMinimumChili: recovery ? recoveryReferenceSpice : null,
     );
@@ -1861,14 +1874,14 @@ final class NetworkGameController extends ChangeNotifier {
         entry.key: entry.value
             .where(
               (o) => _directions(entry.key, o.choice.actionId).any(
-                (d) => localConsentOnly
+                (d) => o.allowsDirection(d) && (localConsentOnly
                     ? anatomyAllowed(entry.key, o.choice.actionId, d.name) &&
                           localConsentAllowed(
                             entry.key,
                             o.choice.actionId,
                             d.name,
                           )
-                    : occurrenceAllowed(entry.key, o.choice.actionId, d.name),
+                    : occurrenceAllowed(entry.key, o.choice.actionId, d.name)),
               ),
             )
             .toList(),
@@ -3776,19 +3789,19 @@ final class NetworkGameController extends ChangeNotifier {
     _rememberHandDirections();
   }
 
-  bool _clothingContextAllows(String conceptId) {
+  bool _clothingContextAllows(String conceptId, {CardOccurrenceDirection? direction}) {
     final definition = _definitions[conceptId];
     if (definition == null) return false;
-    return const EligibilityEngine()
-        .evaluate(
-          card: const CatalogEngineAdapter.v3().card(definition),
-          context: _context,
-          actor: _profile(playerId),
-          partner: _profile(opponentId),
-          hierarchy: _hierarchy,
-        )
-        .variants
-        .any((v) => !v.reasons.any((r) => r.code == IneligibilityCode.CLOTHES));
+    final held = _runtime.where((c) => c.cardId == conceptId && c.zone == CardZone.HAND).firstOrNull;
+    final fixed = direction ?? held?.nativeDirection;
+    final engine = const CatalogEngineAdapter.v3().card(definition);
+    return engine.variants.any((variant) =>
+      (fixed == null || fixed == CardOccurrenceDirection.GENERAL
+          ? _directions(conceptId,variant.id) : [fixed]).any((d) =>
+        const EligibilityEngine().evaluate(
+          card: EngineCard(id: conceptId, variants: [clothingVariantForDirection(definition,variant,d)]),
+          context: _context, actor: _profile(playerId), partner: _profile(opponentId), hierarchy: _hierarchy,
+        ).variants.any((v) => !v.reasons.any((r) => r.code == IneligibilityCode.CLOTHES))));
   }
 
   void _buildDeckCycle() {
@@ -3849,7 +3862,7 @@ final class NetworkGameController extends ChangeNotifier {
                   : materializedAction(cardId, options)
             : options.where((o) => o.choice.actionId == variantId).firstOrNull);
     if (selected == null) return null;
-    final eligible = selected.variant;
+    var eligible = selected.variant;
     final variant = definition.variants.firstWhere(
       (v) => v.stableId == eligible.id,
     );
@@ -3863,6 +3876,7 @@ final class NetworkGameController extends ChangeNotifier {
           : role == ProfileRole.RECEVOIR
           ? 'RECEVOIR'
           : 'GENERAL';
+      if ((role == ProfileRole.FAIRE || role == ProfileRole.RECEVOIR) && !selected.allowsDirection(CardOccurrenceDirection.values.byName(direction))) return false;
       if ((role == ProfileRole.FAIRE || role == ProfileRole.RECEVOIR) &&
           !occurrenceAllowed(cardId, selected.choice.actionId, direction)) {
         return false;
@@ -3922,6 +3936,8 @@ final class NetworkGameController extends ChangeNotifier {
     } on StateError {
       return null;
     }
+    if (!selected.allowsDirection(direction.effectiveDirection)) return null;
+    eligible = clothingVariantForDirection(definition,eligible,direction.effectiveDirection);
     final role = _profileRole(
       direction.effectiveDirection,
       fallback: ProfileRole.GENERAL,
@@ -5033,6 +5049,7 @@ final class NetworkGameController extends ChangeNotifier {
     ConceptActionOption option,
     CardOccurrenceDirection direction,
   ) {
+    if (!option.allowsDirection(direction)) return null;
     if (_v4Profile?.excludesStage(
           conceptId,
           option.choice.actionId,

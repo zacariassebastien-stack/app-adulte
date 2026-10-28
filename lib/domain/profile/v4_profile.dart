@@ -116,6 +116,7 @@ enum PracticeConsentStatus { unknown, allowed, excluded }
 enum PracticeConsentSource { manualExplicit, sessionExplicit }
 
 const v4AccessoryTags = {
+  'ENTRAVE',
   'ANAL',
   'VAGINAL',
   'BUCCAL',

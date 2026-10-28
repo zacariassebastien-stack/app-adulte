@@ -3,6 +3,7 @@ import 'package:couple_cards/features/profile/radial_appreciation.dart';
 import 'package:couple_cards/features/game/ui/card_hand_surface.dart';
 import 'package:couple_cards/card_themes/card_renderer.dart';
 import 'package:flutter/services.dart';
+import 'package:couple_cards/features/game/game_media_capabilities.dart';
 import 'package:couple_cards/sync/projection/usage_learning_projection.dart';
 import 'package:couple_cards/features/lobby/two_phone_lobby_screen.dart';
 import 'package:couple_cards/features/lobby/lobby_repository.dart';
@@ -31,6 +32,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(PlatformGameMediaCapabilities.channel, (_) async => <String>[]);
+  });
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(PlatformGameMediaCapabilities.channel, null);
+  });
   late Catalog catalog;
   late V4ScoringCatalog scoringCatalog;
   late LobbySession session;
@@ -54,7 +64,6 @@ void main() {
       ],
     );
   });
-
 
   for (final actor in ['alice', 'bob']) {
     for (final confirmed in [0, 5, 6]) {
@@ -825,6 +834,184 @@ void main() {
     );
   }
 
+
+  for (final tags in <Set<V4AccessoryTag>>[
+    {},
+    {V4AccessoryTag.externe},
+    {V4AccessoryTag.entrave},
+  ]) {
+    test(
+      'normal context derives optional requirements from structured accessories $tags',
+      () async {
+        final backend = _Backend()..v4UnlockedSpice = 3;
+        final focused = _catalogWithCards(catalog, {
+          'card.v4.001',
+          'card.v4.034',
+          'card.v4.048',
+        });
+        final secrets = MemoryNetworkDuelSecretStore();
+        NetworkGameController create() => NetworkGameController(
+          anatomies: const {
+            'alice': PlayerAnatomy.PENIS,
+            'bob': PlayerAnatomy.VULVE,
+          },
+          session: session,
+          playerId: 'alice',
+          repository: backend.repository('alice'),
+          catalog: focused,
+          v4Profile: completeConsentProfile('alice'),
+          privateStore: secrets,
+          learningStore: MemoryNetworkProfileLearningStore(),
+          initialClothingCounts: const {'alice': 3, 'bob': 3},
+          profileAccessories: [
+            if (tags.isNotEmpty)
+              V4Accessory(
+                id: 'explicit-restraint',
+                name: 'Entrave',
+                ownerPlayerId: 'alice',
+                tags: tags,
+              ),
+          ],
+        );
+        var controller = create();
+        await controller.start();
+        await _settle();
+        expect(
+          controller.choicesFor('034').isNotEmpty,
+          tags.contains(V4AccessoryTag.entrave),
+        );
+        expect(controller.choicesFor('048'), isNotEmpty);
+        controller.dispose();
+        controller = create();
+        addTearDown(controller.dispose);
+        await controller.start();
+        await _settle();
+        expect(
+          controller.choicesFor('034').isNotEmpty,
+          tags.contains(V4AccessoryTag.entrave),
+        );
+        expect(controller.choicesFor('048'), isNotEmpty);
+      },
+    );
+  }
+  for (final native in <List<String>>[
+    [],
+    ['PHOTO_CAPTURE'],
+    ['RECORDED_VIDEO'],
+    ['PHOTO_CAPTURE', 'RECORDED_VIDEO'],
+  ]) {
+    testWidgets('normal media startup honors device capabilities $native', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      var calls = 0;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(PlatformGameMediaCapabilities.channel, (
+            call,
+          ) async {
+            calls++;
+            return native;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+              PlatformGameMediaCapabilities.channel,
+              null,
+            ),
+      );
+      final backend = _Backend();
+      final focused = _catalogWithCards(catalog, {
+        'card.v4.001',
+        'card.v4.044',
+        'card.v4.045',
+        'card.v4.046',
+        'card.v4.047',
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NetworkDuelScreen(
+            anatomies: const {
+              'alice': PlayerAnatomy.PENIS,
+              'bob': PlayerAnatomy.VULVE,
+            },
+            session: session,
+            playerId: 'alice',
+            repository: backend.repository('alice'),
+            catalog: focused,
+            v4Profile: completeConsentProfile('alice'),
+            secretStore: MemoryNetworkDuelSecretStore(),
+            initialClothingCounts: const {'alice': 3, 'bob': 3},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final dynamic state = tester.state(find.byType(NetworkDuelScreen));
+      // Inspect this private State in the integration test without adding a production test hook.
+      // ignore: avoid_dynamic_calls
+      final controller = state.controller as NetworkGameController;
+      expect(calls, 1);
+      expect(controller.viewState, NetworkGameViewState.choosing);
+      for (final id in ['044', '045', '046', '047']) {
+        expect(
+          controller.choicesFor(id).isNotEmpty,
+          native.contains(
+            id == '044' || id == '045' ? 'PHOTO_CAPTURE' : 'RECORDED_VIDEO',
+          ),
+        );
+      }
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+  for (final id in ['006', '007']) {
+    for (final wearer in ['alice', 'bob']) {
+      test(
+        'asymmetric $id reserves only the playable direction for wearer $wearer',
+        () async {
+          final backend = _Backend();
+          backend.clothingCounts['alice'] = wearer == 'alice' ? 3 : 0;
+          backend.clothingCounts['bob'] = wearer == 'bob' ? 3 : 0;
+          final focused = _catalogWithCards(catalog, {
+            'card.v4.001',
+            'card.v4.$id',
+          });
+          final controller = NetworkGameController(
+            anatomies: const {
+              'alice': PlayerAnatomy.PENIS,
+              'bob': PlayerAnatomy.VULVE,
+            },
+            session: session,
+            playerId: 'alice',
+            repository: backend.repository('alice'),
+            privateStore: MemoryNetworkDuelSecretStore(),
+            learningStore: MemoryNetworkProfileLearningStore(),
+            v4Profile: completeConsentProfile('alice'),
+            catalog: focused,
+            initialClothingCounts: const {'alice': 3, 'bob': 3},
+          );
+          addTearDown(controller.dispose);
+          await controller.start();
+          await _settle();
+          final card = controller.hand.singleWhere((c) => c.id == id);
+          expect(
+            card.nativeDirection,
+            wearer == 'alice'
+                ? CardOccurrenceDirection.RECEVOIR
+                : CardOccurrenceDirection.FAIRE,
+          );
+          expect(card.oppositePersonalValue, isNull);
+          controller.selectCard(card.identity);
+          await controller.confirmSelection();
+          await _settle();
+          final saved = controller.usageCheckpoint.usagesByIntent.values.single;
+          expect(saved.action.targetPlayerIds, [wearer]);
+          expect(saved.invertedAction, isNull);
+          expect(controller.errorMessage, isNull);
+        },
+      );
+    }
+
+  }
   for (final inverted in [false, true]) {
     for (final accepted in [false, true]) {
       test(

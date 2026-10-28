@@ -38,7 +38,9 @@ final class CatalogEngineAdapter {
             ...card.technicalRequirements.map(TechnicalRule.fromCatalog),
             ...variant.technicalRequirements.map(TechnicalRule.fromCatalog),
             if (useV3 && (variant.v3 != null || card.v3 != null))
-              ..._v3Technical((variant.v3 ?? card.v3!).requirements),
+              ..._v3Technical((variant.v3 ?? card.v3!).requirements,
+                directionalClothing: card.v4?.clothingBehavior.name == 'removeOne' ||
+                    card.v4?.clothingBehavior.name == 'removeTwo'),
             ..._validatedRuntimeRules(variant.stableId),
           ],
           effects: variant.stateEffects,
@@ -92,7 +94,7 @@ final class CatalogEngineAdapter {
     ];
   }
 
-  List<TechnicalRule> _v3Technical(V3Requirements requirements) => [
+  List<TechnicalRule> _v3Technical(V3Requirements requirements, {bool directionalClothing = false}) => [
     if (requirements.distanceExcluded)
       const TechnicalRule(
         kind: TechnicalRuleKind.SESSION_MODE,
@@ -104,7 +106,7 @@ final class CatalogEngineAdapter {
         subject: RequirementSubject.BOTH,
         values: {'RECORDED_VIDEO', 'LIVE_CAMERA'},
       ),
-    if (requirements.minimumRemovableClothing > 0)
+    if (requirements.minimumRemovableClothing > 0 && !directionalClothing)
       TechnicalRule(
         kind: TechnicalRuleKind.CLOTHES_AT_LEAST,
         subject: RequirementSubject.BOTH,

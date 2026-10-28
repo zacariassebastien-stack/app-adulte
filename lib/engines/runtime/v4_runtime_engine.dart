@@ -413,7 +413,7 @@ final class V4ActionTargetResolver {
   }
 }
 
-enum V4AccessoryTag { anal, vaginal, buccal, phallus, externe, vibrant }
+enum V4AccessoryTag { anal, vaginal, buccal, phallus, externe, vibrant, entrave }
 
 final class V4AccessoryRequirements {
   V4AccessoryRequirements._({

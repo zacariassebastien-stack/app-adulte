@@ -101,7 +101,7 @@ final class V4CardRatingEngine {
       if (preference.excluded &&
           allTags.contains(preference.key.tagId) &&
           (preference.key.role == ProfilePreferenceRole.general ||
-              preference.key.role == effectiveRole)) {
+              preferenceAppliesToRole(preference, conceptId, effectiveRole))) {
         return V4RatingResult.excluded(preference.key.tagId);
       }
     }
@@ -119,8 +119,8 @@ final class V4CardRatingEngine {
           ? ProfilePreferenceRole.faire
           : effectiveRole;
       final value =
-          _resolve(profile, tag, effectiveRole) ??
-          _resolve(profile, priorTag, priorRole);
+          _resolve(profile, tag, effectiveRole, conceptId: conceptId) ??
+          _resolve(profile, priorTag, priorRole, conceptId: conceptId);
       resolved[tag] = value;
       if (value?.excluded ?? false) return V4RatingResult.excluded(tag);
     }
@@ -219,15 +219,40 @@ final class V4CardRatingEngine {
     },
   };
 
+  // Q05's axes describe whose clothes change, not who removes/chooses them.
+  // Only questionnaire bootstraps need this translation. Precise ratings and
+  // learned/manual role-scoped preferences keep their effective action roles.
+  static ProfilePreferenceRole questionnaireRoleFor(
+    String? concept, String tag, ProfilePreferenceRole role,
+  ) {
+    final reversed = ((concept == '006' || concept == '007') && const {'enlever','tenue'}.contains(tag)) ||
+        (concept == '012' && tag == 'tenue');
+    if (!reversed) return role;
+    return switch(role) {
+      ProfilePreferenceRole.faire => ProfilePreferenceRole.recevoir,
+      ProfilePreferenceRole.recevoir => ProfilePreferenceRole.faire,
+      _ => role,
+    };
+  }
+
+  static bool preferenceAppliesToRole(
+    ProfilePreference preference, String? concept, ProfilePreferenceRole role,
+  ) => preference.key.role == ProfilePreferenceRole.general ||
+      preference.key.role == (preference.source == ProfilePreferenceSource.initialQuestionnaire
+          ? questionnaireRoleFor(concept,preference.key.tagId,role) : role);
+
   ProfilePreference? _resolve(
-    V4Profile profile,
-    String tag,
-    ProfilePreferenceRole role,
-  ) =>
-      profile.preference(ProfilePreferenceKey(tagId: tag, role: role)) ??
-      profile.preference(
-        ProfilePreferenceKey(tagId: tag, role: ProfilePreferenceRole.general),
-      );
+    V4Profile profile, String tag, ProfilePreferenceRole role, {String? conceptId}
+  ) {
+    final exact = profile.preference(ProfilePreferenceKey(tagId: tag,role: role));
+    final initialRole = questionnaireRoleFor(conceptId,tag,role);
+    if (initialRole == role || (exact != null && exact.source != ProfilePreferenceSource.initialQuestionnaire)) {
+      return exact ?? profile.preference(ProfilePreferenceKey(tagId:tag,role:ProfilePreferenceRole.general));
+    }
+    final initial = profile.preference(ProfilePreferenceKey(tagId:tag,role:initialRole));
+    return initial?.source == ProfilePreferenceSource.initialQuestionnaire ? initial :
+        profile.preference(ProfilePreferenceKey(tagId:tag,role:ProfilePreferenceRole.general));
+  }
 
   V4MutualRatingResult initializeMutual({
     required List<V4RatingContribution> contributions,

@@ -327,7 +327,7 @@ Map<String, void Function()> conceptCatalogChecks() => {
       'Posture clothing',
     );
     _check(
-      concepts['025']!.detailsText!.contains('028'),
+      concepts['025']!.detailsText!.contains('Sexe oral anal'),
       'Separate oral anal concept',
     );
     _check(

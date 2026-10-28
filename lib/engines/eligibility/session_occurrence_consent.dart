@@ -104,7 +104,7 @@ final class SessionOccurrenceConsent {
           tags.contains(p.key.tagId) &&
           (p.key.zoneId == null || p.key.zoneId == zone) &&
           (p.key.role == ProfilePreferenceRole.general ||
-              roles.contains(p.key.role)),
+              roles.any((r) => V4CardRatingEngine.preferenceAppliesToRole(p, conceptId, r))),
     );
   }
 }

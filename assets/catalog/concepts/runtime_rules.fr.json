@@ -3805,7 +3805,6 @@
             "taxonomy_version": 1,
             "tags": [
               "v3.preference.photo",
-              "v3.preference.sous_vetements",
               "v3.preference.envoyer",
               "v3.direction.faire",
               "v3.direction.recevoir"

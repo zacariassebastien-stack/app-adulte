@@ -8,6 +8,7 @@ import '../deck/concept_deck_engine.dart';
 import 'catalog_engine_adapter.dart';
 import 'concept_runtime_catalog.dart';
 import 'eligibility_engine.dart';
+import 'directional_clothing.dart';
 
 final class ConceptActionOption {
   ConceptActionOption({
@@ -15,7 +16,14 @@ final class ConceptActionOption {
     required this.variant,
     required this.title,
     Map<String, Object?> parameters = const {},
-  }) : parameters = Map.unmodifiable(parameters);
+    Set<CardOccurrenceDirection>? allowedDirections,
+  }) : parameters = Map.unmodifiable(parameters),
+       allowedDirections = allowedDirections == null
+           ? null
+           : Set.unmodifiable(allowedDirections);
+  final Set<CardOccurrenceDirection>? allowedDirections;
+  bool allowsDirection(CardOccurrenceDirection direction) =>
+      allowedDirections == null || allowedDirections!.contains(direction);
   final ConceptDeckChoice choice;
   final EngineVariant variant;
   final String title;
@@ -65,13 +73,18 @@ final class ConceptActionOptions {
       // Definition-only availability. Runtime stock is checked by the caller.
       stock: ConceptDeckStock.startCycle(
         catalog: catalog.concepts,
-        initialClothing: context.clothesByPlayer[actor.playerId] ?? 0,
+        initialClothing:
+            3, // Definition-only pool; current clothing is checked below.
       ),
       eligibility: eligibility,
       globalChili: recovery ? 4 : context.chiliActive,
       style: PlayerStyle.SOFT,
     );
-    bool allowed(String conceptId, EngineVariant variant) {
+    bool allowed(
+      String conceptId,
+      EngineVariant variant,
+      CardOccurrenceDirection direction,
+    ) {
       if (profile != null) {
         final tags = catalog.vetoTags(conceptId, actionId: variant.id);
         final rating = catalog.optionalRatingFor(conceptId, variant.id);
@@ -115,24 +128,7 @@ final class ConceptActionOptions {
                   null;
         }
 
-        final directions = variant.tags;
-        if (directions.contains('v3.direction.faire') &&
-            directions.contains('v3.direction.recevoir')) {
-          if (!rated('FAIRE') && !rated('RECEVOIR')) return false;
-        } else {
-          final direction = directions.contains('v3.direction.mutuel')
-              ? 'MUTUEL'
-              : directions.contains('v3.direction.simultane')
-              ? 'SIMULTANE'
-              : directions.contains('v3.direction.solo')
-              ? 'SOLO'
-              : directions.contains('v3.direction.faire')
-              ? 'FAIRE'
-              : directions.contains('v3.direction.recevoir')
-              ? 'RECEVOIR'
-              : 'GENERAL';
-          if (!rated(direction)) return false;
-        }
+        if (!rated(direction.name)) return false;
       }
       final eligible = const EligibilityEngine()
           .evaluate(
@@ -176,8 +172,11 @@ final class ConceptActionOptions {
       );
       if (variant.tags.contains('v3.direction.faire') &&
           variant.tags.contains('v3.direction.recevoir')) {
-        return directionAllowed(ProfileRole.FAIRE) ||
-            directionAllowed(ProfileRole.RECEVOIR);
+        return directionAllowed(
+          direction == CardOccurrenceDirection.FAIRE
+              ? ProfileRole.FAIRE
+              : ProfileRole.RECEVOIR,
+        );
       }
       return true;
     }
@@ -191,7 +190,16 @@ final class ConceptActionOptions {
                   context.proximity == ProximityState.SEPARATED)
           ? V4SessionPresence.distance
           : V4SessionPresence.presentiel;
-      if (definition.v4 != null && !definition.v4!.presence.supports(presence)) {
+      if (definition.v4 != null &&
+          !definition.v4!.presence.supports(presence)) {
+        continue;
+      }
+      if (concept.sessionModes.isNotEmpty &&
+          !concept.sessionModes.contains(
+            presence == V4SessionPresence.distance
+                ? SessionMode.distance
+                : SessionMode.face_to_face,
+          )) {
         continue;
       }
       // Profiles currently provide no concrete tagged accessory inventory.
@@ -254,8 +262,20 @@ final class ConceptActionOptions {
               invertible: variant.invertible,
             );
           }
-          if (!allowed(concept.id, variant)) continue;
-          final definition = catalog.definitions[concept.id]!.variants
+          final allowedDirections = {
+            for (final direction in CardOccurrenceDirection.values)
+              if (variant.tags.contains(
+                    'v3.direction.${direction.name.toLowerCase()}',
+                  ) &&
+                  allowed(
+                    concept.id,
+                    clothingVariantForDirection(definition, variant, direction),
+                    direction,
+                  ))
+                direction,
+          };
+          if (allowedDirections.isEmpty) continue;
+          final actionDefinition = catalog.definitions[concept.id]!.variants
               .singleWhere((v) => v.stableId == choice.actionId);
           final zone = catalog.concepts.zones
               .where((z) => z.id == choice.zoneId)
@@ -263,6 +283,7 @@ final class ConceptActionOptions {
           choices.add(
             ConceptActionOption(
               choice: choice,
+              allowedDirections: allowedDirections,
               variant: variant,
               title: concept.id == '024'
                   ? concept.actionText
@@ -278,7 +299,7 @@ final class ConceptActionOptions {
                         'Choisis librement la partie du corps et la manière d’utiliser tes mains.',
                       _ => 'Choisis librement une partie du corps.',
                     }
-                  : '${definition.title ?? concept.title}${zone == null ? '' : ' · ${zone.title}'}',
+                  : '${actionDefinition.title ?? concept.title}${zone == null ? '' : ' · ${zone.title}'}',
               parameters: {
                 if (media) 'media_capture_player_id': actor.playerId,
                 if (media) 'media_send': mediaSendRequired,
