@@ -1,6 +1,6 @@
 # Couple Cards — domaine et stockage local Flutter / Dart
 
-## Passation actuelle — reprise sur le PC de travail
+## Passation actuelle — clôture du chantier catalogue
 
 **PERSONNALISATION / APPRENTISSAGE : TERMINÉ.** Validation acceptée le
 27 octobre 2026. Ce chantier est clos ; ne pas rouvrir spontanément la
@@ -9,10 +9,11 @@ observé en conditions réelles et nouveau chantier décidé avec l'utilisateur.
 
 ### Référence et reprise Git
 
-Référence fonctionnelle validée et poussée sur `origin/main` :
-`a988d40acf4cb7864af7c19c4db02fb11de1e5b0`
-(`fix: finalize personalization learning signals`). Un commit de documentation
-de passation s'ajoute ensuite à cette référence sans changement fonctionnel.
+Référence fonctionnelle actuelle validée et poussée sur `origin/main` :
+`b512f9aa23f268a3ed01b84cda1aa83c11f4767a`
+(`fix: align active catalog eligibility and metadata`). Elle remplace
+`6c1dc2c73c2a08ba6e90e346056efb6e02a5532c` comme référence fonctionnelle de reprise.
+Le commit de cette passation s'y ajoute sans changement fonctionnel.
 
 Sur le PC de travail : vérifier le dépôt, la branche `main` et les modifications
 locales, récupérer `origin/main`, puis synchroniser par avance rapide si l'arbre
@@ -24,6 +25,45 @@ périmètre : **ne jamais l'ajouter au dépôt**, ni le modifier ou le supprimer
 nettoyer Git. Sur le mini-PC, il est la seule entrée non suivie après le push du
 chantier ; son absence sur une autre machine ne constitue pas un fichier manquant
 du dépôt.
+
+### Catalogue actif et validations actuelles
+
+**CATALOGUE ACTIF / ÉLIGIBILITÉ : TERMINÉ.** Chantier clos le 28 octobre 2026.
+
+- 55 concepts actifs au catalogue, dont **51 non suspendus** et les quatre
+  concepts sextoys **049–052 explicitement suspendus**.
+- Couverture questionnaire : **51/51 concepts actifs non suspendus**, avec les
+  **44 préférences nécessaires au scoring initial couvertes**.
+- `031 — Frottement génital` est initialisé normalement par
+  `Q01 → frotter | MUTUEL → 031`, via le mécanisme générique
+  questionnaire → préférences → cartes. Il ne s'agit pas d'une exception par ID.
+
+Les corrections ont traité l'accessibilité de cartes auparavant bloquées,
+les capacités médias 044–047, les conditions de 034/048, les vêtements
+asymétriques 006/007, la correspondance Q05, la cohérence éditoriale et les
+métadonnées. La progression des médias distingue suggestion, exposition/intimité
+explicite, puis activité sexuelle en cours.
+
+| Contrôle du dernier chantier | Résultat |
+| --- | --- |
+| Tests ciblés | **268 réussites**, aucun échec |
+| Suite Flutter complète locale | **1 570 réussites, 7 échecs préexistants confirmés** ; sortie 1 |
+| `dart analyze` | **6 erreurs dans `tools/card_editor`, 0 warning, 28 infos** ; sortie 3 |
+| `flutter analyze --no-pub` | **6 erreurs dans `tools/card_editor`, 0 warning, 28 infos** ; sortie 1 |
+| Compilation Android debug | Réussie |
+| `git diff --check` / `git diff --cached --check` | Propres avant commit ; index vide après commit |
+
+**Dette préexistante connue :** les sept échecs appartiennent aux anciens
+bancs/tests locaux non suivis de personnalisation. Leurs noms et messages ont été
+reproduits à l'identique sur une copie propre de la base `6c1dc2c...`, complétée
+par ces mêmes fichiers locaux. Les six erreurs de `tools/card_editor` ont également
+été reproduites sur cette base dans les mêmes conditions d'analyse racine.
+Aucune nouvelle régression identifiée dans le chantier catalogue ; ne pas
+corriger cette dette dans une simple passe de validation ou de documentation.
+
+Le rapport `docs/CATALOG_ACTIVE_AUDIT_20261028.md` reste volontairement non suivi.
+Préserver les anciens rapports, simulations et bancs locaux non suivis, l'élément
+`git` et les artefacts Work ; ne pas les ajouter automatiquement à Git.
 
 ### Décisions de personnalisation à conserver
 
@@ -61,9 +101,9 @@ Correctifs intégrés dans la référence fonctionnelle :
 - valeur privée Recovery/Corruption retrouvée dans une réservation lorsque
   nécessaire, sans se limiter aux usages engagés et sans inventer de valeur.
 
-### Validation acquise et limites acceptées
+### Validation antérieure de la personnalisation et limites acceptées
 
-Validation finale avant le commit fonctionnel :
+Checkpoint historique avant le commit de personnalisation `a988d40...` ; les résultats actuels du dépôt local figurent dans le tableau catalogue ci-dessus :
 
 | Contrôle | Résultat |
 | --- | --- |
@@ -92,9 +132,29 @@ Références conservées dans le dépôt :
 
 ### Prochain point de reprise
 
-Après synchronisation et lecture de cette passation, reprendre avec l'utilisateur
-la conception générale du jeu, des cartes, du profil, ou le prochain chantier
-qu'il choisira. Aucun nouveau développement n'est prédéfini ici.
+**VALIDATION FONCTIONNELLE ANDROID EN CONDITIONS RÉELLES**
+
+Jouer une vraie partie sur Android et relever les problèmes effectivement
+visibles ou rencontrés par le joueur. La prochaine étape est une validation
+fonctionnelle réelle, pas un nouvel audit théorique ni une reprise de calibration.
+
+Checklist de partie :
+
+- [ ] Sélection/création des profils et état initial issu du questionnaire.
+- [ ] Lancement, premières mains et cohérence des cartes proposées.
+- [ ] Évolution du piment, appréciation en partie et verrouillage.
+- [ ] Vêtements, cibles de l'action et confirmations vestimentaires.
+- [ ] Duel, Compromis, Corruption et Recovery.
+- [ ] Effets persistants/multi-tours et Silence si rencontré.
+- [ ] Fin de partie, nouvelle partie et persistance du profil/apprentissage.
+- [ ] Médias 044 Photo, 045 Photo mutuelle, 046 Vidéo intime et 047 Vidéo mutuelle :
+      vérifier leur accessibilité dans un contexte compatible et leur blocage
+      lorsque la capacité nécessaire est réellement absente.
+
+**Contrôle appareil encore à effectuer :** les capacités médias sont raccordées
+au runtime et la compilation Android réussit, mais leur détection réelle sur
+appareil Android n'est pas encore validée. Ne pas confondre compilation/tests
+simulés du pont natif et validation sur téléphone.
 
 Les sections et documents historiques ci-dessous décrivent d'anciens checkpoints.
 Ils restent utiles comme références techniques, mais leurs anciens compteurs de
