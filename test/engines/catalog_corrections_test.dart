@@ -438,8 +438,8 @@ void main() {
         }
       }
       expect(covered.length, 51);
-      expect(actions, 130);
-      expect(presentations, 240);
+      expect(actions, 106);
+      expect(presentations, 192);
       expect(scoringTags.length, 44);
       expect(
         p.preference(
@@ -497,7 +497,7 @@ void main() {
       for (final id in ['044', '045', '046', '047']) {
         final c = catalog.concepts.concepts.singleWhere((c) => c.id == id);
         expect(
-          c.stages.map((s) => s.chili),
+          c.presentationStages.map((s) => s.chili),
           id == '044' || id == '046' ? [1, 2, 3] : [1, 2, 4],
         );
         for (final direction
@@ -508,7 +508,7 @@ void main() {
                   ]
                 : [CardOccurrenceDirection.MUTUEL]) {
           final texts = [
-            for (final stage in c.stages)
+            for (final stage in c.presentationStages)
               renderer.render(
                 concept: c,
                 actionId: stage.id,

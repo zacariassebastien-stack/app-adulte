@@ -47,7 +47,7 @@ Les usages engagés restent indépendants des variations ultérieures.
 
 ## Catalogue et correspondances validées P1–P6
 
-`assets/catalog/concepts/active.fr.json` reste la seule référence pour les 56
+`assets/catalog/concepts/active.fr.json` reste la seule référence pour les 55
 identités actives, actions, stades, zones, textes, quotas et piments.
 `assets/catalog/concepts/runtime_rules.fr.json` nomme explicitement les sources
 V4 dont les préférences, directions et prérequis pertinents sont repris.
@@ -62,7 +62,7 @@ participe au nouveau tirage. Le brouillon de correspondances est retiré.
 | P3 — 045/047 | Sources photo/vidéo explicites du fichier de correspondances ; participation MUTUEL ; PHOTO/VIDEO + ETRE_REGARDE ; stades 1/2/4 ; ENVOYER et capacités de transfert uniquement si un envoi est requis ; aucune pratique sexuelle implicite ajoutée au stade explicite |
 | P4 — 049–052 | Sources `card.v3.sextoy_play` et `card.v3.remote_toy_control` ; externe/phallus SEXTOY, piment 3 ; insertions SEXTOY + PENETRER et zone VAGINAL/ANAL, piment 4 ; 050 ajoute MASTURBATION et SOLO (direction SOI existante) ; 052 conserve VIBRANT + CONTROLE_DISTANCE + CONTROLE |
 | P5 — 044/046 | Sources photo/vidéo ; contradiction DISTANCE_EXCLUE retirée ; trois contextes autorisés si capacités médias nécessaires satisfaites |
-| P6 — 004 | Sources oral/analingus : technique LECHER ou SUCER choisie explicitement ; FAIRE/RECEVOIR ; distance exclue ; zone sémantique et piment base 1 + modificateur ; aucune préférence sexuelle génitale/anale héritée automatiquement |
+| 004 actuel | Préférence générale `bouche`, FAIRE/RECEVOIR ; distance exclue ; deux stades P2/P3 × Haut/Bas/Libre ; aucune technique ni sous-variante anatomique ajoutée. Voir [régions génériques](generic_body_regions.md). |
 | P6 — 024 | Le joker propose une pratique intime existante compatible ; emprunte ses règles mais conserve concept/usage/quota 024 ; pratique et action choisies figées ; pas de contournement du plafond ni des exclusions |
 | P6 — 013 | Source `card.v3.costume_and_light_outfit` ; TENUE et SOLO uniquement, trois contextes ; aucun ETRE_REGARDE/DEGUISEMENT/TENUE_LEGERE ajouté ; résultat vestimentaire réel enregistré séparément du snapshot engagé |
 

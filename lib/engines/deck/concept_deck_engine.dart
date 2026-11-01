@@ -294,9 +294,12 @@ final class ConceptDeckEngine {
       }
     }
 
-    for (final stage in concept.stages) {
+    for (final stage in concept.presentationStages) {
       if (eligibility.allowsAction(concept.id, stage.id)) {
-        add(stage.id, stage.chili);
+        if (stage.zoneId == null ||
+            eligibility.allowsZone(concept.id, stage.zoneId!)) {
+          add(stage.id, stage.chili, stage.zoneId);
+        }
       }
     }
     for (final variant in concept.variants) {

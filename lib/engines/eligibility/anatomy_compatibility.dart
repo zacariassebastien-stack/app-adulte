@@ -11,7 +11,7 @@ abstract final class AnatomyCompatibility {
     required String ownerId,
     required Map<String, PlayerAnatomy> anatomies,
   }) {
-    final stage = concept.stages.where((a) => a.id == actionId).firstOrNull;
+    final stage = concept.presentationStages.where((a) => a.id == actionId).firstOrNull;
     final variant = concept.variants.where((a) => a.id == actionId).firstOrNull;
     if (stage == null && variant == null) return false;
     if (anatomies.length != 2 || !anatomies.containsKey(ownerId)) return false;

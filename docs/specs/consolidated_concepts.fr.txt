@@ -37,10 +37,10 @@ Ils ne font cependant plus partie du catalogue actif actuel.
 - piment : 1
 
 002 Embrasser
-- embrasser une ZONE DU CORPS, pas bouche-à-bouche
-- variantes de zones + zone libre
-- aucune évolution
-- base piment 1 + modificateur de zone
+- pratique : embrasser le corps du partenaire, distincte de 003
+- 2 stades : P2 sensuel ; P3 liberté accrue, dimension sexuelle possible sans obligation
+- chaque stade : Haut du corps / Bas du corps / Libre × FAIRE / RECEVOIR
+- 12 présentations indépendantes, sans modificateur anatomique
 
 003 S'embrasser
 - bouche-à-bouche
@@ -48,18 +48,16 @@ Ils ne font cependant plus partie du catalogue actif actuel.
 - piments : 1 / 2 / 2
 
 004 Jeu de bouche
-- utilisation libre de la bouche sur la zone indiquée ; aucune technique demandée par l'application
-- variantes de zones + zone libre
-- aucune évolution
-- base piment 1 + modificateur de zone
-- description UI doit rendre le sens clair
+- utilisation libre de la bouche sur le corps du partenaire, sans sous-appréciation technique
+- 2 stades : P2 sensuel ; P3 liberté accrue, dimension sexuelle possible sans obligation
+- chaque stade : Haut du corps / Bas du corps / Libre × FAIRE / RECEVOIR
+- 12 présentations indépendantes, sans modificateur anatomique
 
 005 Jeu de main
-- utilisation libre des mains sur la zone indiquée ; aucune technique demandée par l'application
-- variantes de zones + zone libre
-- aucune évolution
-- base piment 1 + modificateur de zone
-- description UI doit rendre le sens clair
+- utilisation libre de les mains sur le corps du partenaire, sans sous-appréciation technique
+- 2 stades : P2 sensuel ; P3 liberté accrue, dimension sexuelle possible sans obligation
+- chaque stade : Haut du corps / Bas du corps / Libre × FAIRE / RECEVOIR
+- 12 présentations indépendantes, sans modificateur anatomique
 
 006 Retirer un vêtement
 - action unique
@@ -355,10 +353,22 @@ Exemple :
 - Pénétration vaginale = 4/4/4
 
 ============================================================
-4. MODIFICATEURS DE ZONES
+4. RÉGIONS GÉNÉRIQUES ET ANCIENNE TAXONOMIE
 ============================================================
 
-Pour les cartes GÉNÉRIQUES dont la zone est un paramètre :
+Règle actuelle de 002 / 004 / 005 :
+- Haut du corps = au-dessus de la ceinture.
+- Bas du corps = sous la ceinture, zones intimes comprises.
+- Libre = choix libre dans les limites applicables.
+- Stade 1 = P2, approche sensuelle, douce et exploratoire.
+- Stade 2 = P3, liberté accrue et possibilité d’une dimension sexuelle, jamais imposée.
+- Aucun supplément anatomique ni sous-variante cachée ; 36 présentations au total.
+- Anciennes notes conservées sans fusion ; nouvelles estimations depuis le profil général.
+- Anciennes exclusions précises conservées comme limites ciblées pendant l’action.
+- Usages déjà figés non recalculés ; voir docs/generic_body_regions.md.
+
+La taxonomie ci-dessous reste historique et disponible pour les autres mécanismes.
+Elle ne définit plus les piments ni les variantes de 002 / 004 / 005 :
 
 piment_effectif = min(4, piment_intrinsèque + modificateur_zone)
 

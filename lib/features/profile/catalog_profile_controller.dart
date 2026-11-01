@@ -5,6 +5,7 @@ import '../../domain/catalog/concept_catalog.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/profile/adaptive_profile.dart';
 import '../../domain/profile/v4_profile.dart';
+import '../../domain/profile/generic_body_limits.dart';
 import '../../engines/eligibility/concept_runtime_catalog.dart';
 import '../../engines/profile/v4_card_rating_engine.dart';
 import '../game/network_profile_learning.dart';
@@ -50,7 +51,7 @@ final class CatalogProfileController extends ChangeNotifier {
     items = List.unmodifiable([
       for (final concept in catalog.concepts!.concepts)
         for (final action in [
-          ...concept.stages.map((a) => (a.id, a.title, a.chili)),
+          ...concept.presentationStages.map((a) => (a.id, a.title, a.chili)),
           ...concept.variants.map(
             (a) => (a.id, a.title, a.chili ?? concept.intrinsicChili!),
           ),
@@ -160,7 +161,13 @@ final class CatalogProfileController extends ChangeNotifier {
                 V4CardRatingEngine.rolesForDirection(
                   item.concept.id,
                   item.direction.name,
-                ).any((role) => V4CardRatingEngine.preferenceAppliesToRole(p, item.concept.id, role))) &&
+                ).any(
+                  (role) => V4CardRatingEngine.preferenceAppliesToRole(
+                    p,
+                    item.concept.id,
+                    role,
+                  ),
+                )) &&
             runtime
                 .vetoTags(item.concept.id, actionId: item.actionId)
                 .contains(p.key.tagId),
@@ -199,6 +206,14 @@ final class CatalogProfileController extends ChangeNotifier {
       excluded: prior.kind == V4RatingResultKind.excluded,
     );
   }
+
+  List<String> bodyLimits(ProfileCatalogItem item) =>
+      GenericBodyLimits.forPresentation(
+        profile,
+        item.concept.id,
+        item.actionId,
+        item.direction.name,
+      );
 
   Future<void> rate(
     ProfileCatalogItem item,

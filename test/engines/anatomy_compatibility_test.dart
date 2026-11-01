@@ -16,10 +16,6 @@ void main() {
           as Map<String, Object?>;
   final catalog = ConceptCatalog.fromJson(raw);
   final expected = <String, String>{
-    for (final id in ['002', '004', '005']) ...{
-      '$id.zone.penis': 'PENIS',
-      '$id.zone.vulva': 'VULVE',
-    },
     for (final id in ['022', '027'])
       for (var stage = 1; stage <= 3; stage++) '$id.stage.$stage': 'VULVE',
     '055.action': 'PENIS',
@@ -62,7 +58,7 @@ void main() {
     }
   }
   test(
-    'catalog has exactly the 13 restricted action identities, including inherited stages',
+    'catalog has exactly the 7 restricted action identities, including inherited stages',
     () {
       final restricted = <String>{};
       for (final concept in catalog.concepts) {
@@ -84,9 +80,8 @@ void main() {
   );
   for (final action in [
     '065.action',
-    '002.zone.free',
-    '004.zone.free',
-    '005.zone.free',
+    for (final c in catalog.concepts.where((c) => c.hasBodyRegions))
+      ...c.presentationStages.map((s) => s.id),
     '023.stage.1',
     '028.action',
     '025.stage.3',

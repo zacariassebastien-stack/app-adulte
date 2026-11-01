@@ -8,6 +8,7 @@ import '../../engines/profile/card_personalization_engine.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../domain/domain.dart';
+import '../../domain/profile/generic_body_limits.dart';
 import '../../engines/engines.dart';
 import '../../sync/sync.dart';
 import '../lobby/lobby_models.dart';
@@ -184,7 +185,7 @@ final class NetworkGameController extends ChangeNotifier {
       postGameProfileChoice != PostGameProfileChoice.trustGame
       ? const []
       : _personalizationRatings.values
-            .where((s) => s.personalization['pending'] != null)
+            .where((s) => s.personalization['pending'] != null && !GenericBodyLimits.isLegacy(s.key.variantId))
             .toList();
 
   Future<void> decidePersonalization(
@@ -1107,7 +1108,7 @@ final class NetworkGameController extends ChangeNotifier {
   V4Profile? _v4Profile;
   V4Profile? get editableProfile => _v4Profile;
   List<CardConcept> get stagedConcepts => _conceptCatalog.concepts.concepts
-      .where((c) => c.stages.isNotEmpty)
+      .where((c) => c.presentationStages.isNotEmpty)
       .toList();
   bool stageExcluded(String conceptId, String actionId, String direction) =>
       _v4Profile?.excludesStage(conceptId, actionId, direction) ?? false;
@@ -1388,9 +1389,9 @@ final class NetworkGameController extends ChangeNotifier {
         if (usage != null) return usage.action.zoneId;
       }
     }
-    return conceptFor(
-      card.id,
-    ).variants.where((v) => v.id == card.variant.id).firstOrNull?.zoneId;
+    final concept = conceptFor(card.id);
+    return concept.presentationStages.where((s) => s.id == card.variant.id).firstOrNull?.zoneId ??
+        concept.variants.where((v) => v.id == card.variant.id).firstOrNull?.zoneId;
   }
 
   List<CardConcept> get heldConcepts => [
@@ -1500,6 +1501,7 @@ final class NetworkGameController extends ChangeNotifier {
     NetworkUsageProjection usage, {
     bool recovery = false,
   }) {
+    if (GenericBodyLimits.isLegacy((usage.resolvedAction['stage_id'] ?? usage.resolvedAction['variant_id'])! as String)) return false;
     if (!_definitions.containsKey(usage.conceptId)) return false;
     if (!_clothingContextAllows(usage.conceptId, direction: CardOccurrenceDirection.values.byName(usage.resolvedAction['direction']! as String))) return false;
     if (recovery) {
@@ -1814,7 +1816,7 @@ final class NetworkGameController extends ChangeNotifier {
         .reserve(
           intentId: _intentId,
           conceptId: card.id,
-          stageId: conceptFor(card.id).stages.isEmpty
+          stageId: conceptFor(card.id).presentationStages.isEmpty
               ? null
               : _selectedOption?.choice.actionId,
         );
@@ -1907,7 +1909,7 @@ final class NetworkGameController extends ChangeNotifier {
     );
     return _usageCheckpoint.stageAvailable(
       id,
-      concept.stages.isEmpty ? null : option.choice.actionId,
+      concept.presentationStages.isEmpty ? null : option.choice.actionId,
       intentId: _intentId,
     );
   }
@@ -1924,8 +1926,8 @@ final class NetworkGameController extends ChangeNotifier {
   ]) {
     final choices = options ?? choicesFor(id);
     final concept = conceptFor(id);
-    if (concept.stages.isNotEmpty) {
-      for (final stage in concept.stages.reversed) {
+    if (concept.presentationStages.isNotEmpty) {
+      for (final stage in concept.presentationStages.reversed) {
         final found = choices
             .where((o) => o.choice.actionId == stage.id)
             .firstOrNull;
@@ -2182,7 +2184,7 @@ final class NetworkGameController extends ChangeNotifier {
       'catalog_version':
           _conceptCatalog.concepts.reader.json['catalog_version'],
       'locale': _conceptCatalog.concepts.reader.json['locale'],
-      if (concept.stages.isNotEmpty)
+      if (concept.presentationStages.isNotEmpty)
         'stage_id': option.choice.actionId
       else
         'variant_id': option.choice.actionId,
@@ -2258,7 +2260,7 @@ final class NetworkGameController extends ChangeNotifier {
                 'card_id': card.id,
                 'target_player_id': target,
                 'remaining_actions': duration,
-                'stage_id': ?(concept.stages.isNotEmpty
+                'stage_id': ?(concept.presentationStages.isNotEmpty
                     ? option.choice.actionId
                     : null),
                 'actor_player_ids': mutual ? playerIds : [actor],
@@ -3760,7 +3762,7 @@ final class NetworkGameController extends ChangeNotifier {
             candidate.choices.length,
       );
       if (concept == null) break;
-      final materialized = concept.concept.kind == ConceptKind.zones
+      final materialized = concept.concept.kind == ConceptKind.zones || concept.concept.hasBodyRegions
           ? concept.materialize(
               random,
               weight: (choice) => _drawPersonalizationWeight(
@@ -3826,6 +3828,9 @@ final class NetworkGameController extends ChangeNotifier {
     ConceptActionOption? option,
     bool recovery = false,
   }) {
+    // Unengaged old hands materialize a new presentation; frozen usages below
+    // retain their historical action, zone, text, values and spice.
+    if (variantId != null && GenericBodyLimits.isLegacy(variantId)) variantId = null;
     if (!_clothingContextAllows(cardId)) return null;
     for (final checkpoint in [_usageCheckpoint, ..._priorCheckpoints]) {
       for (final usage in checkpoint.usagesByIntent.values) {

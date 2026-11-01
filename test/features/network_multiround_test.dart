@@ -580,7 +580,7 @@ void main() {
         final backend = await tester.runAsync(() async {
           final setup = await _setup(session, catalog);
           setup.backend.routeToUnifiedPostDuelChoice = !mode.startsWith('resolved');
-          await _playUnequal(setup, requireInvertibleWinner: mode == 'resolved-inverted');
+          await _playUnequal(setup, requireInvertibleWinner: mode.startsWith('resolved'));
           if (mode == 'resolved-inverted') {
             final winner = setup.alice.isInitialLoser ? setup.bob : setup.alice;
             final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
@@ -1849,7 +1849,7 @@ void main() {
     expect(b.hand.singleWhere((c) => c.id == concept).nativeDirection, bDirection);
     return (consent, a, b, profiles);
   }
-  for (final example in [('004', '004.zone.free'), ('012', '012.action')]) {
+  for (final example in [('004', '004.stage.1.region.free'), ('012', '012.action')]) {
     for (final scenario in [
       ('A', CardOccurrenceDirection.FAIRE, CardOccurrenceDirection.FAIRE, ProfilePreferenceRole.faire, true),
       ('B', CardOccurrenceDirection.RECEVOIR, CardOccurrenceDirection.FAIRE, ProfilePreferenceRole.recevoir, false),
@@ -1911,7 +1911,7 @@ void main() {
       });
     }
   }
-  for (final example in [('004', '004.zone.free'), ('012', '012.action')]) {
+  for (final example in [('004', '004.stage.1.region.free'), ('012', '012.action')]) {
     testWidgets('role-scoped consent hand menu ${example.$1} excludes FAIRE only with both players holding FAIRE', (tester) async {
       SharedPreferences.setMockInitialValues({});
       final pair = await tester.runAsync(() => rolePair(example.$1, example.$2,
@@ -3007,16 +3007,16 @@ void main() {
       final setup = await _setup(
         session,
         _catalogWithCards(catalog, {'card.v4.002'}),
-        aliceSecrets: store,
+        aliceSecrets: store, initialSpice: 2,
       );
       addTearDown(setup.dispose);
       final free = setup.alice
           .choicesFor('002')
-          .where((o) => o.choice.actionId == '002.zone.free')
+          .where((o) => o.choice.actionId == '002.stage.1.region.free')
           .toList();
       expect(free, hasLength(1));
-      expect(free.single.choice.zoneId, isNull);
-      expect(free.single.choice.chili, 1);
+      expect(free.single.choice.zoneId, 'free');
+      expect(free.single.choice.chili, 2);
       setup.alice.selectCard('002');
       setup.alice.chooseAction(free.single);
       await setup.alice.confirmSelection();
@@ -3025,11 +3025,11 @@ void main() {
         playerId: 'alice',
       ))!;
       final usage = saved.activeReveal!.choice.usage!;
-      expect(usage.resolvedAction.containsKey('zone_id'), isFalse);
-      expect(usage.resolvedAction['effective_chili'], 1);
+      expect(usage.resolvedAction['zone_id'], 'free');
+      expect(usage.resolvedAction['effective_chili'], 2);
       expect(
         usage.resolvedAction['action_text'],
-        'Choisis librement une partie du corps de ton partenaire à embrasser.',
+        'Embrasse le corps de ton partenaire.',
       );
       expect(
         (usage.resolvedAction['tags'] as List).where(
@@ -3061,7 +3061,7 @@ void main() {
       final setup = await _setup(
         session,
         _catalogWithCards(catalog, {'card.v4.004'}),
-        aliceSecrets: store,
+        aliceSecrets: store, initialSpice: 2,
       );
       addTearDown(setup.dispose);
       final saved = (await store.loadGame(
@@ -3085,10 +3085,103 @@ void main() {
     },
   );
 
+  for (final concept in ['002', '004', '005']) {
+    for (final direction in [CardOccurrenceDirection.FAIRE, CardOccurrenceDirection.RECEVOIR]) {
+      test('regional $concept $direction keeps precise learning and snapshot across retry and reconnect', () async {
+        final backend = _Backend()..v4UnlockedSpice = 3;
+        final secrets = MemoryNetworkDuelSecretStore();
+        final ratings = MemoryV4CardLearningStore();
+        final modes = MemoryPostGameProfileChoiceStore()
+          ..values['alice'] = PostGameProfileChoice.trustGame;
+        final action = '$concept.stage.2.region.lower_body';
+        final profile = completeConsentProfile('alice').copyWith(stageVetoes: [
+          StageVeto(conceptId: concept, actionId: '$concept.zone.anus',
+            role: ProfilePreferenceRole.parse(direction.name)),
+        ]);
+        await secrets.saveGame(sessionId: session.id, playerId: 'alice',
+          state: NetworkPrivateGameState(roundNumber: 1, cards: [
+            CardRuntimeState(cardId: concept, variantId: action,
+              zone: CardZone.HAND, nativeDirection: direction),
+          ], displayedHandActions: {concept: action},
+            conceptCheckpoint: ConceptUsageCheckpoint.startCycle(sessionId: session.id,
+              ownerPlayerId: 'alice', cycle: 1, catalog: catalog.concepts!, initialClothing: 5)));
+        NetworkGameController create() => NetworkGameController(
+          session: session, playerId: 'alice', repository: backend.repository('alice'),
+          privateStore: secrets, catalog: _catalogWithCards(catalog, {'card.v4.$concept'}),
+          v4Profile: profile, learningStore: MemoryNetworkProfileLearningStore(),
+          cardLearningStore: ratings, profileChoiceStore: modes,
+          anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE});
+        final first = create();
+        await first.start();
+        expect(first.hand.single.variant.id, action);
+        first.selectCard(concept);
+        await first.confirmSelection();
+        await first.flushPersonalization();
+        final usage = first.usageCheckpoint.usagesByIntent.values.single;
+        final frozen = jsonEncode(usage.toJson());
+        expect(usage.action.stageId, action);
+        expect(usage.action.zoneId, 'lower_body');
+        expect(usage.action.effectiveChili, 3);
+        expect(usage.action.direction, direction);
+        expect(frozen, isNot(contains('$concept.zone.anus')));
+        expect(frozen, isNot(contains('Anus')));
+        final key = CardRatingKey(profileId: 'alice', cardId: concept,
+          variantId: action, role: ProfilePreferenceRole.parse(direction.name));
+        final learned = (await ratings.load('alice')).read(key)!;
+        expect((learned.personalization['events'] as List).where((e) => (e as String).endsWith('/chosen')), hasLength(1));
+        final learnedJson = jsonEncode(learned.toJson());
+        await first.confirmSelection();
+        await first.flushPersonalization();
+        first.dispose();
+        final resumed = create();
+        addTearDown(resumed.dispose);
+        await resumed.start();
+        await resumed.flushPersonalization();
+        expect(jsonEncode(resumed.usageCheckpoint.usagesByIntent.values.single.toJson()), frozen);
+        expect(resumed.usageCheckpoint.stock.remainingFor(concept), 1);
+        expect(jsonEncode((await ratings.load('alice')).read(key)!.toJson()), learnedJson);
+        expect((await ratings.load('alice')).values.where((s) => s.key.cardId == concept && s.observationCount > 0), hasLength(1));
+      });
+    }
+  }
+
+  testWidgets('regional execution limits stay visible privately in hand and receiver resolution', (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final backend = _Backend()..v4UnlockedSpice = 3;
+    final secrets = MemoryNetworkDuelSecretStore();
+    const action = '002.stage.2.region.lower_body';
+    await secrets.saveGame(sessionId: session.id, playerId: 'alice', state: NetworkPrivateGameState(
+      roundNumber: 1, cards: [CardRuntimeState(cardId: '002', variantId: action,
+        zone: CardZone.HAND, nativeDirection: CardOccurrenceDirection.RECEVOIR)],
+      displayedHandActions: const {'002': action},
+      conceptCheckpoint: ConceptUsageCheckpoint.startCycle(sessionId: session.id,
+        ownerPlayerId: 'alice', cycle: 1, catalog: catalog.concepts!, initialClothing: 5)));
+    final profile = completeConsentProfile('alice').copyWith(stageVetoes: const [
+      StageVeto(conceptId: '002', actionId: '002.zone.anus', role: ProfilePreferenceRole.recevoir),
+    ]);
+    await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(session: session,
+      playerId: 'alice', repository: backend.repository('alice'), catalog: catalog,
+      secretStore: secrets, v4Profile: profile,
+      anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE})));
+    await tester.pumpAndSettle();
+    final hand = tester.widget<CardHandSurface>(find.byType(CardHandSurface));
+    expect(hand.cards.single.definition.details, contains('Tes limites conservées pour cette action : Anus.'));
+    final usage = actionUsageFixture(conceptId: '002', actionId: action,
+      ownerPlayerId: 'bob', nativeDirection: NetworkCardDirection.FAIRE, effectiveSpice: 3);
+    _setProjectedAction(backend, cards: [NetworkResolvedActionCardDto.fromUsage(usage.withoutPersonalValues())]);
+    backend.notify();
+    await tester.pumpAndSettle();
+    expect(tester.widget<CardRenderer>(find.byType(CardRenderer)).definition.details,
+      contains('Tes limites conservées pour cette action : Anus.'));
+    expect(jsonEncode(backend.round.actionProjection!.toJson()), isNot(contains('Anus')));
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   for (final spec in [
-    ('002', '002.zone.neck_nape', 'neck_nape', 1),
-    ('004', '004.zone.neck_nape', 'neck_nape', 1),
-    ('005', '005.zone.neck_nape', 'neck_nape', 1),
+    ('002', '002.stage.1.region.upper_body', 'upper_body', 2),
+    ('004', '004.stage.1.region.upper_body', 'upper_body', 2),
+    ('005', '005.stage.1.region.upper_body', 'upper_body', 2),
   ]) {
     test(
       '${spec.$1} freezes its precise zone occurrence in the snapshot',
@@ -3097,7 +3190,7 @@ void main() {
         final setup = await _setup(
           session,
           _catalogWithCards(catalog, {'card.v4.${spec.$1}'}),
-          aliceSecrets: store,
+          aliceSecrets: store, initialSpice: 2,
         );
         addTearDown(setup.dispose);
         final option = setup.alice
@@ -3110,7 +3203,7 @@ void main() {
           sessionId: session.id,
           playerId: 'alice',
         ))!.activeReveal!.choice.usage!;
-        expect(usage.resolvedAction['variant_id'], spec.$2);
+        expect(usage.resolvedAction['stage_id'], spec.$2);
         expect(usage.resolvedAction['zone_id'], spec.$3);
         expect(usage.resolvedAction['effective_chili'], spec.$4);
         expect(
@@ -3129,12 +3222,12 @@ void main() {
         final setup = await _setup(
           session,
           _catalogWithCards(catalog, {'card.v4.$id'}),
-          aliceSecrets: store,
+          aliceSecrets: store, initialSpice: 2,
         );
         addTearDown(setup.dispose);
         final free = setup.alice
             .choicesFor(id)
-            .singleWhere((choice) => choice.choice.actionId == '$id.zone.free');
+            .singleWhere((choice) => choice.choice.actionId == '$id.stage.1.region.free');
         setup.alice.selectCard(id);
         setup.alice.chooseAction(free);
         await setup.alice.confirmSelection();
@@ -3142,9 +3235,9 @@ void main() {
           sessionId: session.id,
           playerId: 'alice',
         ))!.activeReveal!.choice.usage!;
-        expect(usage.resolvedAction['variant_id'], '$id.zone.free');
-        expect(usage.resolvedAction.containsKey('zone_id'), isFalse);
-        expect(usage.resolvedAction['effective_chili'], 1);
+        expect(usage.resolvedAction['stage_id'], '$id.stage.1.region.free');
+        expect(usage.resolvedAction['zone_id'], 'free');
+        expect(usage.resolvedAction['effective_chili'], 2);
         expect(
           (usage.resolvedAction['parameters'] as Map).containsKey('technique'),
           isFalse,
@@ -3567,7 +3660,7 @@ void main() {
         if (conceptId == '003') {
           expect(item.definition.variantId, '003.stage.3');
         } else if (conceptId == '002') {
-          expect(item.definition.variantId, startsWith('002.zone.'));
+          expect(item.definition.variantId, startsWith('002.stage.'));
         } else {
           expect(item.definition.variantId, '024.action');
           expect(item.definition.zones, ['LIBRE']);
@@ -3619,13 +3712,13 @@ void main() {
           });
         }
         if (conceptId == '002') {
-          final isFree = shown.variantId == '002.zone.free';
+          final isFree = shown.variantId == '002.stage.1.region.free';
           expect(
             usage.resolvedAction.containsKey('zone_id'),
-            isFree ? isFalse : isTrue,
+            isTrue,
           );
           if (isFree) {
-            expect(usage.resolvedAction['effective_chili'], 1);
+            expect(usage.resolvedAction['effective_chili'], 2);
           }
         }
         await tester.pumpWidget(const SizedBox.shrink());
@@ -4581,13 +4674,13 @@ void main() {
     }
     final kiss = engageHistory('006', '006.action', CardOccurrenceDirection.FAIRE, 1);
     final striptease = engageHistory('010', '010.stage.1', CardOccurrenceDirection.FAIRE, 1);
-    final exhausted = engageHistory('002', '002.zone.face_hair', CardOccurrenceDirection.FAIRE, 1,
+    final exhausted = engageHistory('002', '002.stage.1.region.upper_body', CardOccurrenceDirection.FAIRE, 1,
       zoneId: 'face_hair');
     final tooSpicy = engageHistory('037', '037.stage.1', CardOccurrenceDirection.FAIRE, 2);
     expect(history.map((r) => r.usageId).toSet(), hasLength(4));
     expect(checkpoint.availableFor('006'), 1);
     expect(checkpoint.availableFor('010'), 2);
-    expect(checkpoint.availableFor('002'), 0);
+    expect(checkpoint.availableFor('002'), 1);
     expect(checkpoint.availableFor('037'), 2);
     await store.saveGame(
       sessionId: session.id,
@@ -6127,7 +6220,7 @@ void main() {
         CardOccurrenceDirection.FAIRE,
         null,
       ]) {
-        final backend = _Backend();
+        final backend = _Backend()..v4UnlockedSpice = 2;
         final controller = NetworkGameController(anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
           session: session,
           playerId: 'alice',
@@ -6158,7 +6251,7 @@ void main() {
           await controller.confirmSelection();
           expect(controller.usageCheckpoint.usagesByIntent, isEmpty);
           expect(controller.usageCheckpoint.reservationsByIntent, isEmpty);
-          expect(controller.usageCheckpoint.stock.remainingFor('002'), 1);
+          expect(controller.usageCheckpoint.stock.remainingFor('002'), 2);
           expect(backend.round.commits, isEmpty);
         } else {
           expect(
@@ -6179,7 +6272,7 @@ void main() {
             usage.action.personalValues.single.value,
             allowed == CardOccurrenceDirection.FAIRE ? 6 : 8,
           );
-          expect(controller.usageCheckpoint.stock.remainingFor('002'), 0);
+          expect(controller.usageCheckpoint.stock.remainingFor('002'), 1);
           final saved = (await controller.privateStore.loadGame(
             sessionId: session.id,
             playerId: 'alice',
@@ -6199,7 +6292,7 @@ void main() {
       ProfilePreferenceRole.faire,
       ProfilePreferenceRole.recevoir,
     ]) {
-      final backend = _Backend();
+      final backend = _Backend()..v4UnlockedSpice = 2;
       final preferences = <String, ProfilePreference>{};
       for (final role in [
         ProfilePreferenceRole.faire,
@@ -6236,7 +6329,7 @@ void main() {
       await controller.confirmSelection();
       expect(controller.usageCheckpoint.usagesByIntent, hasLength(1));
       expect(controller.usageCheckpoint.reservationsByIntent, isEmpty);
-      expect(controller.usageCheckpoint.stock.remainingFor('002'), 0);
+      expect(controller.usageCheckpoint.stock.remainingFor('002'), 1);
       expect(backend.round.commits, hasLength(1));
     }
   });
@@ -6477,6 +6570,7 @@ void main() {
       );
       final backend = _Backend()
         ..hybridMode = true
+        ..v4UnlockedSpice = 2
         ..hybridOrientation = from
         ..hybridAvailabilityOrientation = from
         ..hybridAvailabilityGeneration = 1
@@ -8779,6 +8873,40 @@ void main() {
 
 
 
+  for (final concept in ['002', '004', '005']) {
+    testWidgets('legacy $concept frozen anatomy remains readable after catalog replacement', (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final backend = _Backend();
+      final base = actionUsageFixture(conceptId: concept, actionId: '$concept.zone.feet',
+        usageId: 'old-$concept', ownerPlayerId: 'bob',
+        nativeDirection: NetworkCardDirection.RECEVOIR, effectiveSpice: 1, snapshotValue: 7);
+      final oldAction = Map<String, Object?>.from(base.resolvedAction)..remove('stage_id');
+      final frozen = NetworkUsageProjection.fromJson({
+        ...base.toJson(),
+        'resolved_action': {...oldAction, 'variant_id': '$concept.zone.feet',
+          'zone_id': 'feet', 'action_text': 'Instruction historique $concept sur les pieds.',
+          'parameters': {...oldAction['parameters']! as Map<String, Object?>,
+            'display_details': 'Précision historique conservée.'}},
+      });
+      final original = jsonEncode(frozen.toJson());
+      _setProjectedAction(backend, cards: [NetworkResolvedActionCardDto.fromUsage(frozen.withoutPersonalValues())]);
+      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+        session: session, playerId: 'alice', repository: backend.repository('alice'),
+        catalog: catalog, secretStore: MemoryNetworkDuelSecretStore(),
+        anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE})));
+      await tester.pumpAndSettle();
+      final rendered = tester.widgetList<CardRenderer>(find.byType(CardRenderer))
+        .map((w) => w.definition).where((d) => d.variantId == '$concept.zone.feet').single;
+      expect(rendered.action, 'Instruction historique $concept sur les pieds.');
+      expect(rendered.spice, 1);
+      expect(rendered.details, 'Précision historique conservée.');
+      expect(jsonEncode(frozen.toJson()), original);
+      expect(backend.round.actionProjection!.cards.single.zoneId, 'feet');
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
   test('reconnect restores the canonical frozen action snapshot', () async {
     final backend = _Backend();
     const parameters = V4ResolvedParameters(
@@ -9047,7 +9175,7 @@ void main() {
 
   for (final concept in ['002', '003']) {
     test(
-      'corruption second life replays exhausted historical $concept without normal stock',
+      'corruption second life replays a consumed historical $concept presentation',
       () async {
         final setup = await _setupCorruption(
           session,
@@ -9077,7 +9205,7 @@ void main() {
           );
         }
         if (concept == '002') {
-          expect(actor.usageCheckpoint.stock.remainingFor(concept), 0);
+          expect(actor.usageCheckpoint.stock.remainingFor(concept), 1);
         }
         if (source.action.stageId != null) {
           expect(actor.stageConsumed(concept, source.action.stageId!), isTrue);
@@ -10966,8 +11094,9 @@ Future<_Setup> _setup(
   NetworkDuelSecretStore? bobSecrets,
   NetworkProfileLearningStore? aliceLearning,
   NetworkProfileLearningStore? bobLearning,
+  int initialSpice = 1,
 }) async {
-  final backend = _Backend();
+  final backend = _Backend()..v4UnlockedSpice = initialSpice;
   final alice = _controller(
     backend,
     session,
@@ -11091,7 +11220,7 @@ Future<_Setup> _setupCorruption(
   String firstLifeConcept = '006',
   _ConsentBackend? consent,
 }) async {
-  final backend = _Backend();
+  final backend = _Backend()..v4UnlockedSpice = firstLifeConcept == '002' ? 2 : 1;
   final stores = {
     'alice': MemoryNetworkDuelSecretStore(),
     'bob': MemoryNetworkDuelSecretStore(),
@@ -11108,7 +11237,7 @@ Future<_Setup> _setupCorruption(
             CardRuntimeState(
               cardId: id,
               zone: CardZone.HAND,
-              variantId: id == '002' ? '002.zone.feet' : null,
+              variantId: id == '002' ? '002.stage.1.region.lower_body' : null,
             ),
         ],
       ),

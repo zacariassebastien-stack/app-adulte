@@ -160,9 +160,9 @@ void main() {
       final concept = runtime.concepts.concepts.singleWhere(
         (c) => c.id == '002',
       );
-      final fixed = concept.variants.firstWhere((v) => v.zoneId != null);
-      final free = concept.variants.singleWhere((v) => v.freeZone);
-      final p = profile(tag: fixed.zoneId!);
+      final fixed = concept.presentationStages.firstWhere((v) => v.zoneId == 'upper_body');
+      final free = concept.presentationStages.firstWhere((v) => v.zoneId == 'free');
+      final p = profile(tag: 'chest');
       expect(
         allowed(
           p,
@@ -170,7 +170,7 @@ void main() {
           concept: '002',
           action: fixed.id,
         ),
-        isFalse,
+        isTrue,
       );
       expect(
         allowed(

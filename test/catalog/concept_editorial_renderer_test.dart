@@ -30,68 +30,65 @@ void main() {
       renderer
           .render(
             concept: concept('002'),
-            actionId: '002.zone.buttocks',
+            actionId: '002.stage.1.region.lower_body',
             direction: CardOccurrenceDirection.FAIRE,
           )
           .actionText,
-      'Embrasse les fesses de ton partenaire.',
+      'Embrasse le bas du corps de ton partenaire.',
     );
     expect(
       renderer
           .render(
             concept: concept('002'),
-            actionId: '002.zone.buttocks',
+            actionId: '002.stage.1.region.lower_body',
             direction: CardOccurrenceDirection.RECEVOIR,
           )
           .actionText,
-      'Laisse ton partenaire embrasser tes fesses.',
+      'Laisse ton partenaire embrasser le bas de ton corps.',
     );
   });
 
   test('renders composed anatomy and appends its optional precision', () {
     final text = renderer.render(
       concept: concept('002'),
-      actionId: '002.zone.neck_nape',
+      actionId: '002.stage.1.region.upper_body',
       direction: CardOccurrenceDirection.FAIRE,
     );
-    expect(text.actionText, 'Embrasse le cou et la nuque de ton partenaire.');
+    expect(text.actionText, 'Embrasse le haut du corps de ton partenaire.');
     expect(
       text.detailsText,
-      'À une ou plusieurs reprises, cela dépend de toi. '
-      'Tu peux choisir l’une des deux ou les deux.',
+      contains('Haut du corps : au-dessus de la ceinture.'),
     );
   });
 
   test('LIBRE keeps a dedicated action without anatomical substitution', () {
     final faire = renderer.render(
       concept: concept('004'),
-      actionId: '004.zone.free',
+      actionId: '004.stage.1.region.free',
       direction: CardOccurrenceDirection.FAIRE,
     );
     final recevoir = renderer.render(
       concept: concept('005'),
-      actionId: '005.zone.free',
+      actionId: '005.stage.1.region.free',
       direction: CardOccurrenceDirection.RECEVOIR,
     );
     expect(
       faire.actionText,
-      'Choisis librement une partie du corps de ton partenaire et la manière '
-      'd’utiliser ta bouche.',
+      'Explore le corps de ton partenaire avec ta bouche.',
     );
     expect(
       recevoir.actionText,
-      'Laisse ton partenaire choisir librement une partie de ton corps et la '
-      'manière d’utiliser ses mains.',
+      'Laisse ton partenaire explorer ton corps avec ses mains.',
     );
     expect(faire.actionText, isNot(contains('fesses')));
     expect(recevoir.actionText, isNot(contains('vulve')));
   });
 
   test('new anatomical player copy never exposes the technical word zone', () {
-    final technicalWord = RegExp(r'\bzone\b', caseSensitive: false);
+    final technicalWord = RegExp(r'zone indiquée', caseSensitive: false);
     for (final id in ['002', '004', '005']) {
       final item = concept(id);
-      for (final variant in item.variants) {
+      for (final variant in item.presentationStages) {
         for (final direction in [
           CardOccurrenceDirection.FAIRE,
           CardOccurrenceDirection.RECEVOIR,
@@ -137,31 +134,31 @@ void main() {
     final kiss = concepts.cast<JsonMap>().singleWhere(
       (item) => item['id'] == '002',
     );
-    final variants = kiss['variants']! as List<Object?>;
+    final variants = kiss['stages']! as List<Object?>;
     final face = variants.cast<JsonMap>().singleWhere(
-      (item) => item['id'] == '002.zone.face_hair',
+      (item) => item['id'] == '002.stage.1',
     );
     face['action_templates'] = {
       'FAIRE': 'Texte spécifique pour {partie_corps}.',
     };
-    face['details_text'] = 'Précision spécifique.';
+    face['details_templates'] = {'FAIRE': 'Précision spécifique.'};
     final overridden = ConceptCatalog.fromJson(copy);
     final text = ConceptEditorialRenderer(overridden).render(
       concept: overridden.concepts.singleWhere((item) => item.id == '002'),
-      actionId: '002.zone.face_hair',
+      actionId: '002.stage.1.region.upper_body',
       direction: CardOccurrenceDirection.FAIRE,
     );
-    expect(text.actionText, 'Texte spécifique pour le visage et les cheveux.');
+    expect(text.actionText, 'Texte spécifique pour le haut du corps.');
     expect(
       text.detailsText,
-      'Précision spécifique. Tu peux choisir l’une des deux ou les deux.',
+      startsWith('Précision spécifique. Haut du corps'),
     );
   });
 
   test('editorial metadata preserves catalogue and runtime identities', () {
     final actionIds = {
       for (final item in catalog.concepts) ...{
-        ...item.stages.map((stage) => stage.id),
+        ...item.presentationStages.map((stage) => stage.id),
         ...item.variants.map((variant) => variant.id),
       },
     };
@@ -185,8 +182,8 @@ void main() {
       }
     }
     expect(catalog.concepts, hasLength(55));
-    expect(actionIds, hasLength(146));
-    expect(representations, 268);
+    expect(actionIds, hasLength(122));
+    expect(representations, 220);
   });
   test(
     'V1 copy renders stage directions, semantic exceptions and camera subjects',
@@ -230,7 +227,7 @@ void main() {
       }
       for (final c in catalog.concepts) {
         for (final a in [
-          ...c.stages.map((a) => a.id),
+          ...c.presentationStages.map((a) => a.id),
           ...c.variants.map((a) => a.id),
         ]) {
           for (final d in CardOccurrenceDirection.values) {

@@ -53,7 +53,7 @@ ConceptDeckEligibility _eligible(
         concept.id:
             actionOverrides[concept.id] ??
             {
-              ...concept.stages.map((stage) => stage.id),
+              ...concept.presentationStages.map((stage) => stage.id),
               ...concept.variants.map((variant) => variant.id),
             },
   },
@@ -422,11 +422,11 @@ Map<String, void Function()> conceptDeckChecks() => {
       'Excluded upper stages changed class',
     );
   },
-  'free-zone class follows 1,1,2,2 without changing actual action chili': () {
+  'regional class follows unavailable,2,3,3 without changing stage chili': () {
     final catalog = _catalog({'002', '004', '005'});
     for (var global = 1; global <= 4; global++) {
       for (final candidate in _pool(catalog, global: global).candidates) {
-        _check(candidate.drawClass == (global < 3 ? 1 : 2), 'Zone draw class');
+        _check(candidate.drawClass == (global < 3 ? 2 : 3), 'Zone draw class');
         _check(
           candidate.choices.every((choice) => choice.chili <= global),
           'Zone ceiling',
@@ -438,75 +438,31 @@ Map<String, void Function()> conceptDeckChecks() => {
       }
     }
   },
-  'free zones stay unspecified at base chili with no zone modifier': () {
+  'regional free choices retain stage spice and no anatomical evidence': () {
     final catalog = _catalog({'005'});
-    final eligibility = _eligible(
-      catalog,
-      actionOverrides: {
-        '005': {'005.zone.free'},
-      },
-      zoneOverrides: {
-        '005': {'vulva', 'unlisted_zone'},
-      },
-    );
-    for (final global in [1, 2, 3, 4]) {
-      final candidate = _pool(
-        catalog,
-        eligibility: eligibility,
-        global: global,
-      ).candidates.single;
-      _check(
-        candidate.choices.single.zoneId == null &&
-            candidate.choices.single.chili == 1 &&
-            candidate.drawClass == 1,
-        'Free action inferred an anatomical zone or modifier',
-      );
+    for (final level in [2, 3, 4]) {
+      final pool = _pool(catalog, global: level, eligibility: _eligible(catalog,
+        zoneOverrides: {'005': {'free'}}));
+      final choices = pool.candidates.single.choices;
+      _check(choices.every((c) => c.zoneId == 'free'), 'Unexpected region');
+      _check(choices.first.chili == 2 && choices.length == (level == 2 ? 1 : 2), 'Stage spice');
     }
-    _check(
-      _pool(
-        catalog,
-        eligibility: _eligible(catalog, zoneOverrides: {'005': {}}),
-      ).isEmpty,
-      'No eligible zone must still exclude the concept',
-    );
-    _check(
-      _pool(
-        catalog,
-        eligibility: _eligible(catalog, actionOverrides: {'005': {}}),
-      ).isEmpty,
-      'Excluded action admitted',
-    );
+    _check(_pool(catalog, global: 1).isEmpty, 'Regional cards must start at P2');
+    _check(_pool(catalog, eligibility: _eligible(catalog, zoneOverrides: {'005': {}})).isEmpty,
+      'No eligible region must exclude the concept');
+    _check(_pool(catalog, eligibility: _eligible(catalog, actionOverrides: {'005': {}})).isEmpty,
+      'No eligible presentation must exclude the concept');
   },
-  'fixed zones keep their modifier and free variant remains a separate choice':
-      () {
-        final catalog = _catalog({'005'});
-        final eligibility = _eligible(
-          catalog,
-          zoneOverrides: {
-            '005': {'vulva'},
-          },
-        );
-        final low = _pool(
-          catalog,
-          eligibility: eligibility,
-          global: 1,
-        ).candidates.single;
-        _check(
-          low.choices.length == 1 && low.choices.single.zoneId == null,
-          'Fixed intimate zone admitted below its ceiling',
-        );
-        final high = _pool(
-          catalog,
-          eligibility: eligibility,
-          global: 3,
-        ).candidates.single;
-        _check(
-          high.choices.length == 2 &&
-              high.choices.any((c) => c.zoneId == 'vulva' && c.chili == 3) &&
-              high.choices.any((c) => c.zoneId == null && c.chili == 1),
-          'Fixed zone modifier or free base chili changed',
-        );
-      },
+  'regional fixed and free choices share the same stage spice': () {
+    final catalog = _catalog({'005'});
+    final low = _pool(catalog, global: 2).candidates.single;
+    final high = _pool(catalog, global: 3).candidates.single;
+    _check(low.choices.length == 3 && low.choices.every((c) => c.chili == 2), 'P2 choices');
+    _check(high.choices.length == 6 && high.drawClass == 3, 'P3 choices');
+    for (final region in ['upper_body', 'lower_body', 'free']) {
+      _check(high.choices.where((c) => c.zoneId == region).map((c) => c.chili).join('/') == '2/3', 'Region spice');
+    }
+  },
   'toy variants use intrinsic 3/4 without zone discount or evolution quota':
       () {
         final catalog = _catalog({'049'});
@@ -537,10 +493,10 @@ Map<String, void Function()> conceptDeckChecks() => {
           'Excluded insertion still raised class',
         );
       },
-  'all real-catalog choices respect ceilings with availability 26,36,53,55':
+  'all real-catalog choices respect ceilings with availability 23,36,53,55':
       () {
         final catalog = _catalog();
-        const expected = [26, 36, 53, 55];
+        const expected = [23, 36, 53, 55];
         for (var global = 1; global <= 4; global++) {
           final pool = _pool(catalog, global: global);
           _check(
@@ -644,45 +600,23 @@ Map<String, void Function()> conceptDeckChecks() => {
       'Remaining quantity was used as multiplicity',
     );
   },
-  'zone variant count does not multiply concept draw probability or stock': () {
-    final catalog = _catalog({'001', '005'});
-    final stock = ConceptDeckStock.startCycle(
-      catalog: catalog,
-      initialClothing: 5,
-    );
-    final pool = _pool(catalog, stock: stock, global: 1);
+  'regional presentation count never multiplies stock or concept probability': () {
+    final original = _catalog();
+    final catalog = ConceptCatalog.fromJson({...original.toJson(), 'concepts': [
+      _action('control', 2), original.concepts.singleWhere((c) => c.id == '005').toJson(),
+    ]});
+    final stock = ConceptDeckStock.startCycle(catalog: catalog, initialClothing: 5);
+    final pool = _pool(catalog, stock: stock, global: 2);
     final manual = pool.candidates.singleWhere((c) => c.concept.id == '005');
-    _check(manual.choices.length > 1, 'Zone fixture has no variants');
-    final first = manual.materialize(
-      _RandomAt(0, 0, expectedSize: manual.choices.length),
-    );
-    final free = manual.materialize(
-      _RandomAt(
-        0,
-        manual.choices.length - 1,
-        expectedSize: manual.choices.length,
-      ),
-    );
-    _check(
-      first.zoneId != null && free.zoneId == null,
-      'Fixed/free choices cannot both be materialized',
-    );
-    _check(
-      pool.classes[1]!.length == 2 &&
-          pool.draw(_RandomAt(0, 0, expectedSize: 2))!.concept.id == '001' &&
-          pool.draw(_RandomAt(0, 1, expectedSize: 2))!.concept.id == '005',
-      'Zone variants became draw candidates',
-    );
-    final consumed = stock.consume('005');
-    _check(
-      consumed.remainingFor('005') == 0 &&
-          !_pool(
-            catalog,
-            stock: consumed,
-            global: 1,
-          ).candidates.any((c) => c.concept.id == '005'),
-      'A second zone occurrence bypassed concept stock',
-    );
+    _check(manual.choices.length == 3 && stock.remainingFor('005') == 2, 'Wrong regional quota');
+    final first = manual.materialize(_RandomAt(0, 0, expectedSize: 3));
+    final free = manual.materialize(_RandomAt(0, 2, expectedSize: 3));
+    _check(first.zoneId == 'upper_body' && free.zoneId == 'free', 'Materialization');
+    _check(pool.classes[2]!.length == 2 &&
+      pool.draw(_RandomAt(0, 0, expectedSize: 2))!.concept.id == 'control' &&
+      pool.draw(_RandomAt(0, 1, expectedSize: 2))!.concept.id == '005', 'Duplicated concept');
+    final consumed = stock.consume('005').consume('005');
+    _check(!_pool(catalog, stock: consumed, global: 2).candidates.any((c) => c.concept.id == '005'), 'Quota bypass');
   },
   'adding same-chili stages or accessory variants cannot change class probabilities':
       () {

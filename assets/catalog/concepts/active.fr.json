@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "catalog_version": 1,
+  "catalog_version": 2,
   "locale": "fr-FR",
   "source": "Spécification consolidée fournie par l’utilisateur — sections 1 à 4",
   "zones": [
@@ -99,6 +99,27 @@
       "modifier": 2,
       "object_form": "l’anus",
       "possessive_form": "ton anus"
+    },
+    {
+      "id": "upper_body",
+      "title": "Haut du corps",
+      "modifier": 0,
+      "object_form": "le haut du corps",
+      "possessive_form": "le haut de ton corps"
+    },
+    {
+      "id": "lower_body",
+      "title": "Bas du corps",
+      "modifier": 0,
+      "object_form": "le bas du corps",
+      "possessive_form": "le bas de ton corps"
+    },
+    {
+      "id": "free",
+      "title": "Libre",
+      "modifier": 0,
+      "object_form": "le corps",
+      "possessive_form": "ton corps"
     }
   ],
   "concepts": [
@@ -118,91 +139,41 @@
     {
       "id": "002",
       "title": "Embrasser",
-      "kind": "zones",
-      "action_text": "Embrasse une partie du corps choisie.",
-      "action_templates": {
-        "FAIRE": "Embrasse {partie_corps} de {ton_partenaire}.",
-        "RECEVOIR": "Laisse {ton_partenaire} embrasser {ta_partie_corps}."
-      },
-      "free_action_templates": {
-        "FAIRE": "Choisis librement une partie du corps de {ton_partenaire} à embrasser.",
-        "RECEVOIR": "Laisse {ton_partenaire} choisir librement une partie de ton corps à embrasser."
-      },
-      "details_text": "À une ou plusieurs reprises, cela dépend de toi.",
-      "composed_details_text": "Tu peux choisir l’une des deux ou les deux.",
-      "intrinsic_chili": 1,
-      "variants": [
+      "kind": "evolution",
+      "action_text": "Embrasse {partie_corps} de {ton_partenaire}.",
+      "body_regions": [
+        "upper_body",
+        "lower_body",
+        "free"
+      ],
+      "stages": [
         {
-          "id": "002.zone.face_hair",
-          "title": "Visage / cheveux",
-          "zone_id": "face_hair"
+          "id": "002.stage.1",
+          "title": "Stade 1 — Sensuel",
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Embrasse {partie_corps} de {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} embrasser {ta_partie_corps}."
+          },
+          "details_text": "Parcours le corps de ton/ta partenaire avec sensualité. Prends ton temps, explore et varie les gestes en privilégiant les sensations et la douceur.",
+          "details_templates": {
+            "FAIRE": "Parcours le corps de ton/ta partenaire avec sensualité. Prends ton temps, explore et varie les gestes en privilégiant les sensations et la douceur.",
+            "RECEVOIR": "Laisse ton/ta partenaire parcourir ton corps avec sensualité, en prenant son temps et en privilégiant les sensations et la douceur."
+          }
         },
         {
-          "id": "002.zone.neck_nape",
-          "title": "Cou / nuque",
-          "zone_id": "neck_nape"
-        },
-        {
-          "id": "002.zone.arms_hands",
-          "title": "Bras / mains",
-          "zone_id": "arms_hands"
-        },
-        {
-          "id": "002.zone.back_shoulders",
-          "title": "Dos / épaules",
-          "zone_id": "back_shoulders"
-        },
-        {
-          "id": "002.zone.belly",
-          "title": "Ventre",
-          "zone_id": "belly"
-        },
-        {
-          "id": "002.zone.legs",
-          "title": "Jambes hors cuisses",
-          "zone_id": "legs"
-        },
-        {
-          "id": "002.zone.feet",
-          "title": "Pieds",
-          "zone_id": "feet"
-        },
-        {
-          "id": "002.zone.thighs",
-          "title": "Cuisses",
-          "zone_id": "thighs"
-        },
-        {
-          "id": "002.zone.buttocks",
-          "title": "Fesses",
-          "zone_id": "buttocks"
-        },
-        {
-          "id": "002.zone.chest",
-          "title": "Poitrine / seins",
-          "zone_id": "chest"
-        },
-        {
-          "id": "002.zone.penis",
-          "anatomy_requirements": {"FAIRE": {"PARTNER": "PENIS"}, "RECEVOIR": {"OWNER": "PENIS"}},
-          "title": "Pénis",
-          "zone_id": "penis"
-        },
-        {
-          "id": "002.zone.vulva",
-          "anatomy_requirements": {"FAIRE": {"PARTNER": "VULVE"}, "RECEVOIR": {"OWNER": "VULVE"}},
-          "title": "Vulve",
-          "zone_id": "vulva"
-        },
-        {
-          "id": "002.zone.anus",
-          "title": "Anus",
-          "zone_id": "anus"
-        },
-        {
-          "id": "002.zone.free",
-          "title": "LIBRE",
-          "free_zone": true
+          "id": "002.stage.2",
+          "title": "Stade 2 — Liberté accrue",
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Embrasse {partie_corps} de {ton_partenaire}.",
+            "RECEVOIR": "Laisse {ton_partenaire} embrasser {ta_partie_corps}."
+          },
+          "details_text": "Laisse libre cours à tes envies. Explore le corps de ton/ta partenaire comme tu le souhaites et laisse l’action devenir plus sexuelle si l’envie s’y prête, dans le respect des limites de chacun.",
+          "details_templates": {
+            "FAIRE": "Laisse libre cours à tes envies. Explore le corps de ton/ta partenaire comme tu le souhaites et laisse l’action devenir plus sexuelle si l’envie s’y prête, dans le respect des limites de chacun.",
+            "RECEVOIR": "Laisse ton/ta partenaire explorer ton corps librement. L’action peut devenir plus sexuelle si l’envie s’y prête, dans le respect des limites de chacun."
+          }
         }
       ]
     },
@@ -236,182 +207,82 @@
     {
       "id": "004",
       "title": "Jeu de bouche",
-      "kind": "zones",
-      "action_text": "Utilise librement ta bouche sur la partie du corps indiquée.",
-      "action_templates": {
-        "FAIRE": "Utilise librement ta bouche sur {partie_corps} de {ton_partenaire}.",
-        "RECEVOIR": "Laisse {ton_partenaire} utiliser librement sa bouche sur {ta_partie_corps}."
-      },
-      "free_action_templates": {
-        "FAIRE": "Choisis librement une partie du corps de {ton_partenaire} et la manière d’utiliser ta bouche.",
-        "RECEVOIR": "Laisse {ton_partenaire} choisir librement une partie de ton corps et la manière d’utiliser sa bouche."
-      },
-      "details_text": "Tu peux embrasser, lécher, sucer, souffler ou varier librement la manière d’utiliser ta bouche.",
-      "composed_details_text": "Tu peux choisir l’une des deux ou les deux.",
-      "intrinsic_chili": 1,
-      "variants": [
+      "kind": "evolution",
+      "action_text": "Explore {partie_corps} de {ton_partenaire} avec ta bouche.",
+      "body_regions": [
+        "upper_body",
+        "lower_body",
+        "free"
+      ],
+      "stages": [
         {
-          "id": "004.zone.face_hair",
-          "title": "Visage / cheveux",
-          "zone_id": "face_hair"
+          "id": "004.stage.1",
+          "title": "Stade 1 — Sensuel",
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Explore {partie_corps} de {ton_partenaire} avec ta bouche.",
+            "RECEVOIR": "Laisse {ton_partenaire} explorer {ta_partie_corps} avec sa bouche."
+          },
+          "details_text": "Parcours le corps de ton/ta partenaire avec sensualité. Prends ton temps, explore et varie les gestes en privilégiant les sensations et la douceur.",
+          "details_templates": {
+            "FAIRE": "Parcours le corps de ton/ta partenaire avec sensualité. Prends ton temps, explore et varie les gestes en privilégiant les sensations et la douceur.",
+            "RECEVOIR": "Laisse ton/ta partenaire parcourir ton corps avec sensualité, en prenant son temps et en privilégiant les sensations et la douceur."
+          }
         },
         {
-          "id": "004.zone.neck_nape",
-          "title": "Cou / nuque",
-          "zone_id": "neck_nape"
-        },
-        {
-          "id": "004.zone.arms_hands",
-          "title": "Bras / mains",
-          "zone_id": "arms_hands"
-        },
-        {
-          "id": "004.zone.back_shoulders",
-          "title": "Dos / épaules",
-          "zone_id": "back_shoulders"
-        },
-        {
-          "id": "004.zone.belly",
-          "title": "Ventre",
-          "zone_id": "belly"
-        },
-        {
-          "id": "004.zone.legs",
-          "title": "Jambes hors cuisses",
-          "zone_id": "legs"
-        },
-        {
-          "id": "004.zone.feet",
-          "title": "Pieds",
-          "zone_id": "feet"
-        },
-        {
-          "id": "004.zone.thighs",
-          "title": "Cuisses",
-          "zone_id": "thighs"
-        },
-        {
-          "id": "004.zone.buttocks",
-          "title": "Fesses",
-          "zone_id": "buttocks"
-        },
-        {
-          "id": "004.zone.chest",
-          "title": "Poitrine / seins",
-          "zone_id": "chest"
-        },
-        {
-          "id": "004.zone.penis",
-          "anatomy_requirements": {"FAIRE": {"PARTNER": "PENIS"}, "RECEVOIR": {"OWNER": "PENIS"}},
-          "title": "Pénis",
-          "zone_id": "penis"
-        },
-        {
-          "id": "004.zone.vulva",
-          "anatomy_requirements": {"FAIRE": {"PARTNER": "VULVE"}, "RECEVOIR": {"OWNER": "VULVE"}},
-          "title": "Vulve",
-          "zone_id": "vulva"
-        },
-        {
-          "id": "004.zone.anus",
-          "title": "Anus",
-          "zone_id": "anus"
-        },
-        {
-          "id": "004.zone.free",
-          "title": "LIBRE",
-          "free_zone": true
+          "id": "004.stage.2",
+          "title": "Stade 2 — Liberté accrue",
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Explore {partie_corps} de {ton_partenaire} avec ta bouche.",
+            "RECEVOIR": "Laisse {ton_partenaire} explorer {ta_partie_corps} avec sa bouche."
+          },
+          "details_text": "Laisse libre cours à tes envies. Explore le corps de ton/ta partenaire comme tu le souhaites et laisse l’action devenir plus sexuelle si l’envie s’y prête, dans le respect des limites de chacun.",
+          "details_templates": {
+            "FAIRE": "Laisse libre cours à tes envies. Explore le corps de ton/ta partenaire comme tu le souhaites et laisse l’action devenir plus sexuelle si l’envie s’y prête, dans le respect des limites de chacun.",
+            "RECEVOIR": "Laisse ton/ta partenaire explorer ton corps librement. L’action peut devenir plus sexuelle si l’envie s’y prête, dans le respect des limites de chacun."
+          }
         }
       ]
     },
     {
       "id": "005",
       "title": "Jeu de main",
-      "kind": "zones",
-      "action_text": "Utilise librement tes mains sur la partie du corps indiquée.",
-      "action_templates": {
-        "FAIRE": "Utilise librement tes mains sur {partie_corps} de {ton_partenaire}.",
-        "RECEVOIR": "Laisse {ton_partenaire} utiliser librement ses mains sur {ta_partie_corps}."
-      },
-      "free_action_templates": {
-        "FAIRE": "Choisis librement une partie du corps de {ton_partenaire} et la manière d’utiliser tes mains.",
-        "RECEVOIR": "Laisse {ton_partenaire} choisir librement une partie de ton corps et la manière d’utiliser ses mains."
-      },
-      "details_text": "Tu peux caresser, effleurer, masser ou varier librement la manière d’utiliser tes mains.",
-      "composed_details_text": "Tu peux choisir l’une des deux ou les deux.",
-      "intrinsic_chili": 1,
-      "variants": [
+      "kind": "evolution",
+      "action_text": "Explore {partie_corps} de {ton_partenaire} avec tes mains.",
+      "body_regions": [
+        "upper_body",
+        "lower_body",
+        "free"
+      ],
+      "stages": [
         {
-          "id": "005.zone.face_hair",
-          "title": "Visage / cheveux",
-          "zone_id": "face_hair"
+          "id": "005.stage.1",
+          "title": "Stade 1 — Sensuel",
+          "chili": 2,
+          "action_templates": {
+            "FAIRE": "Explore {partie_corps} de {ton_partenaire} avec tes mains.",
+            "RECEVOIR": "Laisse {ton_partenaire} explorer {ta_partie_corps} avec ses mains."
+          },
+          "details_text": "Parcours le corps de ton/ta partenaire avec sensualité. Prends ton temps, explore et varie les gestes en privilégiant les sensations et la douceur.",
+          "details_templates": {
+            "FAIRE": "Parcours le corps de ton/ta partenaire avec sensualité. Prends ton temps, explore et varie les gestes en privilégiant les sensations et la douceur.",
+            "RECEVOIR": "Laisse ton/ta partenaire parcourir ton corps avec sensualité, en prenant son temps et en privilégiant les sensations et la douceur."
+          }
         },
         {
-          "id": "005.zone.neck_nape",
-          "title": "Cou / nuque",
-          "zone_id": "neck_nape"
-        },
-        {
-          "id": "005.zone.arms_hands",
-          "title": "Bras / mains",
-          "zone_id": "arms_hands"
-        },
-        {
-          "id": "005.zone.back_shoulders",
-          "title": "Dos / épaules",
-          "zone_id": "back_shoulders"
-        },
-        {
-          "id": "005.zone.belly",
-          "title": "Ventre",
-          "zone_id": "belly"
-        },
-        {
-          "id": "005.zone.legs",
-          "title": "Jambes hors cuisses",
-          "zone_id": "legs"
-        },
-        {
-          "id": "005.zone.feet",
-          "title": "Pieds",
-          "zone_id": "feet"
-        },
-        {
-          "id": "005.zone.thighs",
-          "title": "Cuisses",
-          "zone_id": "thighs"
-        },
-        {
-          "id": "005.zone.buttocks",
-          "title": "Fesses",
-          "zone_id": "buttocks"
-        },
-        {
-          "id": "005.zone.chest",
-          "title": "Poitrine / seins",
-          "zone_id": "chest"
-        },
-        {
-          "id": "005.zone.penis",
-          "anatomy_requirements": {"FAIRE": {"PARTNER": "PENIS"}, "RECEVOIR": {"OWNER": "PENIS"}},
-          "title": "Pénis",
-          "zone_id": "penis"
-        },
-        {
-          "id": "005.zone.vulva",
-          "anatomy_requirements": {"FAIRE": {"PARTNER": "VULVE"}, "RECEVOIR": {"OWNER": "VULVE"}},
-          "title": "Vulve",
-          "zone_id": "vulva"
-        },
-        {
-          "id": "005.zone.anus",
-          "title": "Anus",
-          "zone_id": "anus"
-        },
-        {
-          "id": "005.zone.free",
-          "title": "LIBRE",
-          "free_zone": true
+          "id": "005.stage.2",
+          "title": "Stade 2 — Liberté accrue",
+          "chili": 3,
+          "action_templates": {
+            "FAIRE": "Explore {partie_corps} de {ton_partenaire} avec tes mains.",
+            "RECEVOIR": "Laisse {ton_partenaire} explorer {ta_partie_corps} avec ses mains."
+          },
+          "details_text": "Laisse libre cours à tes envies. Explore le corps de ton/ta partenaire comme tu le souhaites et laisse l’action devenir plus sexuelle si l’envie s’y prête, dans le respect des limites de chacun.",
+          "details_templates": {
+            "FAIRE": "Laisse libre cours à tes envies. Explore le corps de ton/ta partenaire comme tu le souhaites et laisse l’action devenir plus sexuelle si l’envie s’y prête, dans le respect des limites de chacun.",
+            "RECEVOIR": "Laisse ton/ta partenaire explorer ton corps librement. L’action peut devenir plus sexuelle si l’envie s’y prête, dans le respect des limites de chacun."
+          }
         }
       ]
     },

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import '../../domain/profile/generic_body_limits.dart';
 
 import '../../domain/profile/adaptive_profile.dart';
 import 'v4_card_rating_engine.dart';
@@ -214,6 +215,7 @@ final class CardPersonalizationEngine {
     if (exact == null) {
       final evidence = <String, double>{};
       for (final other in store.values) {
+        if (GenericBodyLimits.isAction(key.variantId) && GenericBodyLimits.isLegacy(other.key.variantId)) continue;
         if (other.personalization['excluded'] == true ||
             other.source == 'EXCLUSION_MARKER' ||
             other.key.profileId != key.profileId ||

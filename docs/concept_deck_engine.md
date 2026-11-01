@@ -72,9 +72,13 @@ reste une contrainte d'éligibilité à fournir par le système existant.
 
 Chaque choix accessible doit respecter le plafond global 1 à 4. La classe
 d'une candidate est le piment maximal des choix actuellement accessibles.
-Pour les concepts génériques de type `zones` (002, 004, 005, avec choix libre),
-elle devient `max(1, maximum accessible - 1)`. Le piment des actions ne change
-pas : bras = 1, cuisses = 2, pénis/vulve = 3 pour une base 1.
+002, 004 et 005 sont désormais des évolutions P2/P3 : leur classe suit le
+maximum accessible, sans rabais pour Libre. Les trois régions partagent le
+piment du stade. Leur quota vaut deux, calculé depuis les deux stades éditoriaux,
+pas depuis les six combinaisons stade/région ou les douze présentations de rôle.
+Voir [régions génériques et compatibilité](generic_body_regions.md). Le support
+historique de `zones` conserve son rabais `max(1, maximum accessible - 1)` pour
+les consommateurs qui l’utilisent encore.
 
 Les pratiques intrinsèques et les variantes sextoy n'utilisent pas ce rabais
 ni un supplément de zone. Exclusions d'un stade, d'un accessoire ou d'une zone
@@ -104,7 +108,7 @@ Régression catalogue : **23/23**. Analyse ciblée : aucun problème.
 
 Les contrôles incluent les formules 006/007, trois répétitions du même stade,
 la non-consommation à la pioche, les classes Photo mutuelle `1/2/2/4`, Entrave
-`1/2/3/3`, zones `1/1/2/2`, les plafonds réels, toutes les pondérations et leur
+`1/2/3/3`, régions génériques `indisponible/2/3/3`, les plafonds réels, toutes les pondérations et leur
 normalisation, les exclusions, l'épuisement et l'immuabilité. Un test utilise
 10 000 points aléatoires stratifiés avec indices contrôlés pour vérifier les
 pourcentages et l'égalité de sélection des concepts, sans test statistique fluctuant.

@@ -93,6 +93,7 @@ final class CardRenderDefinition {
   final String? oppositeDirection;
 
   CardRenderDefinition copyWith({
+    String? details,
     int? personalPa,
     int? oppositePa,
     String? oppositeDirection,
@@ -109,7 +110,7 @@ final class CardRenderDefinition {
     personalPa: removePersonalPa ? null : (personalPa ?? this.personalPa),
     oppositePa: removePersonalPa ? null : (oppositePa ?? this.oppositePa),
     oppositeDirection: oppositeDirection ?? this.oppositeDirection,
-    details: details,
+    details: details ?? this.details,
     illustrationId: illustrationId,
   );
 }

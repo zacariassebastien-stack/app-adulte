@@ -9,6 +9,7 @@ import '../../domain/catalog/enums.dart';
 import '../../domain/game/game_models.dart';
 import '../../domain/profile/adaptive_profile.dart';
 import '../../domain/profile/v4_profile.dart';
+import '../../domain/profile/generic_body_limits.dart';
 import '../../domain/catalog/v4_catalog.dart';
 import '../../engines/corruption/corruption_engine.dart';
 import '../../engines/deck/deck_cycle_state.dart';
@@ -358,12 +359,13 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     try {
       await editor.load();
       if (!mounted) return;
-      final target = editor.items.singleWhere(
+      final target = editor.items.where(
         (candidate) =>
             candidate.concept.id == definition.cardId &&
             candidate.actionId == definition.variantId &&
             candidate.direction.name == definition.direction,
-      );
+      ).firstOrNull;
+      if (target == null) return; // Retired snapshots have no active rating entry.
       // AlertDialog measures content intrinsically. Bound both axes before the
       // profile wheel's LayoutBuilder, including on narrow screens.
       await showDialog<void>(
@@ -493,7 +495,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               ),
               onTap: () => Navigator.pop(context, 'lock'),
             ),
-            if (!cardExcluded && concept.stages.length > 1 && actionId != null)
+            if (!cardExcluded && concept.presentationStages.length > 1 && actionId != null)
               ListTile(
                 title: Text(
                   stageExcluded
@@ -616,7 +618,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           .where(
             (o) =>
                 (concept.kind != ConceptKind.zones &&
-                    concept.stages.isEmpty &&
+                    concept.presentationStages.isEmpty &&
                     !selectedIsFree) ||
                 o.choice.actionId == item.definition.variantId,
           )
@@ -684,31 +686,31 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                     true,
             locked: controller.lockedCardId == concept.id,
             tabs: [
-              for (var i = 0; i < concept.stages.length; i++)
+              for (var i = 0; i < concept.presentationStages.length; i++)
                 CardHandTab(
-                  id: concept.stages[i].id,
-                  label: '${i + 1}',
+                  id: concept.presentationStages[i].id,
+                  label: _stageTabLabel(concept, i),
                   enabled: false,
                   excluded:
                       !controller.localConsentAllowed(
                         concept.id,
-                        concept.stages[i].id,
+                        concept.presentationStages[i].id,
                         controller.heldDirection(concept.id) ?? 'GENERAL',
                       ) ||
                       controller.stageExcluded(
                         concept.id,
-                        concept.stages[i].id,
+                        concept.presentationStages[i].id,
                         'GENERAL',
                       ) ||
                       (controller.editableProfile?.stageVetoes.any(
                             (v) =>
                                 v.conceptId == concept.id &&
-                                v.actionId == concept.stages[i].id,
+                                v.actionId == concept.presentationStages[i].id,
                           ) ??
                           false),
                   consumed: controller.stageConsumed(
                     concept.id,
-                    concept.stages[i].id,
+                    concept.presentationStages[i].id,
                   ),
                 ),
             ],
@@ -716,7 +718,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               cardId: concept.id,
               variantId:
                   _displayedActions[concept.id] ??
-                  concept.stages.lastOrNull?.id ??
+                  concept.presentationStages.lastOrNull?.id ??
                   concept.variants.firstOrNull?.id,
               direction:
                   _displayedDirections[concept.id] ??
@@ -727,7 +729,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               spice:
                   concept.intrinsicChili ??
                   [
-                    ...concept.stages.map((s) => s.chili),
+                    ...concept.presentationStages.map((s) => s.chili),
                     ...concept.variants.map((v) => v.chili).nonNulls,
                   ].reduce((a, b) => a < b ? a : b),
             ),
@@ -768,7 +770,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               displayedId,
               displayedDirection,
             ));
-    final stage = concept.stages.where((s) => s.id == displayedId).firstOrNull;
+    final stage = concept.presentationStages.where((s) => s.id == displayedId).firstOrNull;
     final displayedCopy = displayedExcluded && stage != null
         ? ConceptEditorialRenderer(widget.catalog.concepts!).render(
             concept: concept,
@@ -804,21 +806,21 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
               true,
       locked: item.locked,
       tabs: [
-        for (var i = 0; i < concept.stages.length; i++)
+        for (var i = 0; i < concept.presentationStages.length; i++)
           CardHandTab(
-            id: concept.stages[i].id,
-            label: '${i + 1}',
+            id: concept.presentationStages[i].id,
+            label: _stageTabLabel(concept, i),
             enabled:
-                options.any((o) => o.choice.actionId == concept.stages[i].id) &&
+                options.any((o) => o.choice.actionId == concept.presentationStages[i].id) &&
                 controller.occurrenceConsentAllowed(
                   id,
-                  concept.stages[i].id,
+                  concept.presentationStages[i].id,
                   displayedDirection,
                 ),
-            consumed: controller.stageConsumed(id, concept.stages[i].id),
+            consumed: controller.stageConsumed(id, concept.presentationStages[i].id),
             excluded: !controller.localConsentAllowed(
               id,
-              concept.stages[i].id,
+              concept.presentationStages[i].id,
               displayedDirection,
             ),
           ),
@@ -913,11 +915,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
           else if (free)
             'LIBRE',
         ],
-        details: card.identity != card.id
+        subtitle: concept?.presentationStages.where((s) => s.id == card.variant.id).firstOrNull?.title,
+        details: _withBodyLimits(card.identity != card.id
             ? editorialVariant?.detailsText ?? card.definition.detailsText
             : editorial?.detailsText ??
                   editorialVariant?.detailsText ??
-                  card.definition.detailsText,
+                  card.definition.detailsText, card.id, card.variant.id, card.effectiveDirection.name),
         direction: card.effectiveDirection.name,
         spice: card.chiliLevel,
         personalPa: card.personalValue,
@@ -966,6 +969,20 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         ),
       ),
     );
+  }
+
+  String _stageTabLabel(CardConcept concept, int index) => !concept.hasBodyRegions
+      ? '${index + 1}'
+      : '${index ~/ concept.bodyRegions.length + 1} · ${const {'upper_body': 'Haut', 'lower_body': 'Bas', 'free': 'Libre'}[concept.presentationStages[index].zoneId]}';
+
+  String? _withBodyLimits(String? details, String concept, String action, String direction) {
+    final profile = controller.editableProfile;
+    if (profile == null) return details;
+    final limits = GenericBodyLimits.forPresentation(profile, concept, action, direction);
+    return limits.isEmpty ? details : [
+      ?details,
+      'Tes limites conservées pour cette action : ${limits.join(', ')}.',
+    ].join(' ');
   }
 
   String _waitingName(String? playerId, {bool subject = false}) {
@@ -1335,7 +1352,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       variantId: card.variantId,
       title: parameters['display_title'] as String? ?? _title(card.cardId),
       subtitle:
-          concept?.stages
+          concept?.presentationStages
               .where((s) => s.id == card.variantId)
               .firstOrNull
               ?.title ??
@@ -1394,7 +1411,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
             usage: card.usage,
             child: FittedActionCard(
               child: CardRenderer(
-                definition: definition,
+                definition: definition.copyWith(details: _withBodyLimits(
+                  definition.details, card.cardId, card.variantId,
+                  _localAppreciationDefinition(card.usage)?.direction ?? card.direction.name,
+                )),
                 state: CardVisualState.full,
                 showPa: false,
               ),
@@ -2058,7 +2078,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                         key: Key('stage-veto-concept-${concept.id}'),
                         title: Text(concept.title),
                         children: [
-                          for (final stage in concept.stages)
+                          for (final stage in concept.presentationStages)
                             for (final direction in _stageDirections(
                               concept.id,
                               stage.id,

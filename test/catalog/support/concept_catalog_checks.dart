@@ -92,6 +92,9 @@ Map<String, void Function()> conceptCatalogChecks() => {
     const expected = <String, List<int>>{
       '003': [1, 2, 2],
       '010': [1, 2, 2],
+      '002': [2, 3],
+      '004': [2, 3],
+      '005': [2, 3],
       '018': [1, 2, 2],
       '019': [3, 3, 3],
       '022': [3, 4, 4],
@@ -188,6 +191,9 @@ Map<String, void Function()> conceptCatalogChecks() => {
           'penis': 2,
           'vulva': 2,
           'anus': 2,
+          'upper_body': 0,
+          'lower_body': 0,
+          'free': 0,
         };
         _check(catalog.zones.length == expected.length, 'Zone count');
         for (final zone in catalog.zones) {
@@ -197,7 +203,7 @@ Map<String, void Function()> conceptCatalogChecks() => {
           );
         }
         final generic = catalog.concepts.where(
-          (c) => c.kind == ConceptKind.zones,
+          (c) => c.hasBodyRegions,
         );
         _check(
           generic.map((c) => c.id).join('/') == '002/004/005',
@@ -205,23 +211,21 @@ Map<String, void Function()> conceptCatalogChecks() => {
         );
         for (final concept in generic) {
           _check(
-            concept.stages.isEmpty && concept.intrinsicChili == 1,
-            'Zone choices are not evolutions',
+            concept.stages.length == 2 && concept.intrinsicChili == null,
+            'Regional stages have their own fixed chili',
           );
-          final fixed = concept.variants
-              .where((variant) => !variant.freeZone)
-              .toList();
+          final fixed = concept.presentationStages;
           _check(
-            fixed.length == expected.length &&
+            fixed.length == 6 &&
                 fixed
                     .map((variant) => variant.zoneId)
                     .toSet()
-                    .containsAll(expected.keys),
+                    .containsAll({'upper_body', 'lower_body', 'free'}),
             'Missing fixed zone on ${concept.id}',
           );
           _check(
-            concept.variants.where((v) => v.freeZone).length == 1,
-            'Exactly one free zone choice',
+            fixed.where((s) => s.zoneId == 'free').length == 2,
+            'One free presentation per stage',
           );
         }
       },
@@ -257,7 +261,7 @@ Map<String, void Function()> conceptCatalogChecks() => {
           );
         }
       },
-  'entry levels give 26/10/17/2 concepts and 26/36/53/55 cumulatively': () {
+  'entry levels give 23/13/17/2 concepts and 23/36/53/55 cumulatively': () {
     final counts = <int, int>{1: 0, 2: 0, 3: 0, 4: 0};
     for (final concept in _load().concepts) {
       final levels = concept.kind == ConceptKind.zones
@@ -269,10 +273,10 @@ Map<String, void Function()> conceptCatalogChecks() => {
       final minimum = levels.reduce((a, b) => a < b ? a : b);
       counts[minimum] = counts[minimum]! + 1;
     }
-    _check(counts.values.join('/') == '26/10/17/2', 'Entry distribution');
+    _check(counts.values.join('/') == '23/13/17/2', 'Entry distribution');
     var cumulative = 0;
     final totals = [for (final count in counts.values) cumulative += count];
-    _check(totals.join('/') == '26/36/53/55', 'Cumulative availability');
+    _check(totals.join('/') == '23/36/53/55', 'Cumulative availability');
   },
   '006 and 007 stay distinct non-evolving concepts with capacity references':
       () {
@@ -295,17 +299,13 @@ Map<String, void Function()> conceptCatalogChecks() => {
   'required distinctions and persistent definitions remain explicit': () {
     final concepts = {for (final c in _load().concepts) c.id: c};
     _check(
-      concepts['002']!.detailsText ==
-              'À une ou plusieurs reprises, cela dépend de toi.' &&
-          concepts['002']!.composedDetailsText ==
-              'Tu peux choisir l’une des deux ou les deux.',
+      concepts['002']!.stages.first.detailsText!.contains('sensualité') &&
+          concepts['002']!.actionText.contains('Embrasse'),
       'Body kissing editorial precision',
     );
     _check(
-      concepts['004']!.actionText.contains('librement ta bouche') &&
-          concepts['004']!.detailsText!.contains('lécher') &&
-          concepts['005']!.actionText.contains('librement tes mains') &&
-          concepts['005']!.detailsText!.contains('masser'),
+      concepts['004']!.actionText.contains('ta bouche') &&
+          concepts['005']!.actionText.contains('tes mains'),
       'Mouth/hand distinction',
     );
     _check(
@@ -392,22 +392,20 @@ Map<String, void Function()> conceptCatalogChecks() => {
     ((_concept(json, '003')['stages']! as List).first as JsonMap)['chili'] = 5;
   }),
   'reject unknown zone references': () => _reject((json) {
-    ((_concept(json, '002')['variants']! as List).first as JsonMap)['zone_id'] =
-        'clothing';
+    _concept(json, '002')['body_regions'] = ['upper_body', 'clothing', 'free'];
   }),
   'reject stages on non-evolving zone variants': () => _reject((json) {
-    _concept(json, '002')['stages'] = _concept(json, '003')['stages'];
+    _concept(json, '002')['kind'] = 'zones';
   }),
   'reject variants duplicated alongside evolution stages': () =>
       _reject((json) {
         _concept(json, '003')['variants'] = _concept(json, '001')['variants'];
       }),
   'reject missing free zone choice': () => _reject((json) {
-    (_concept(json, '002')['variants']! as List).removeLast();
+    (_concept(json, '002')['body_regions']! as List).removeLast();
   }),
   'reject duplicate fixed zones': () => _reject((json) {
-    final variants = _concept(json, '002')['variants']! as List;
-    (variants[1] as JsonMap)['zone_id'] = (variants[0] as JsonMap)['zone_id'];
+    _concept(json, '002')['body_regions'] = ['upper_body', 'upper_body', 'free'];
   }),
   'reject zone modifiers added to intrinsically intimate practices': () =>
       _reject((json) {

@@ -42,9 +42,10 @@ final class ConceptRuntimeCatalog {
   ) {
     final definition = definitions[conceptId];
     if (definition == null) throw ArgumentError.value(conceptId, 'conceptId');
-    final variant = definition.variants.singleWhere(
+    final variant = definition.variants.where(
       (v) => v.stableId == actionId,
-    );
+    ).firstOrNull;
+    if (variant == null) return null; // Retired frozen usages are not new candidates.
     final metadata = variant.reader.json['v4'];
     if (metadata == null) return null;
     return V4VariantRatingDefinition.fromJson({
@@ -56,6 +57,7 @@ final class ConceptRuntimeCatalog {
   }
 
   Set<String> vetoTags(String conceptId, {String? actionId}) {
+    final concept = concepts.concepts.singleWhere((c) => c.id == conceptId);
     final tags = <String>{
       for (final variant in definitions[conceptId]!.variants.where(
         (v) => actionId == null || v.stableId == actionId,
@@ -73,6 +75,10 @@ final class ConceptRuntimeCatalog {
           ConceptKind.zones)
         for (final zone in concepts.zones) zone.id,
     };
+    if (concept.hasBodyRegions && actionId != null) {
+      final region = concept.presentationStages.where((s) => s.id == actionId).firstOrNull?.zoneId;
+      if (region != null) tags.add(region);
+    }
     if (actionId != null && concepts.concepts.singleWhere((c) => c.id == conceptId).kind == ConceptKind.zones) {
       tags.removeAll(concepts.zones.map((z) => z.id));
       final zone = concepts.concepts
@@ -100,7 +106,7 @@ final class ConceptRuntimeCatalog {
         (raw as JsonMap)['action_id']! as String: raw,
     };
     final actions = [
-      for (final stage in concept.stages)
+      for (final stage in concept.presentationStages)
         (
           stage.id,
           stage.title,

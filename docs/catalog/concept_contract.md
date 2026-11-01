@@ -1,4 +1,7 @@
-# Lot 1 — contrat éditorial des concepts
+# Contrat éditorial des concepts
+
+État actuel : voir [les régions génériques](../generic_body_regions.md). Les
+éléments de livraison par lots ci-dessous conservent leur contexte historique.
 
 Référence : [spécification consolidée fournie par l'utilisateur](../specs/consolidated_concepts.fr.txt).
 Elle remplace les décisions contradictoires du dépôt. Le contrat ne contient
@@ -6,7 +9,7 @@ ni moteur de pioche, ni quota calculé, ni identité d'usage ou migration résea
 
 ## Sources et état du raccordement
 
-- `assets/catalog/concepts/active.fr.json` : les **56 concepts actifs** et les zones.
+- `assets/catalog/concepts/active.fr.json` : les **55 concepts actifs** et les zones.
 - `docs/catalog/reserved_concepts.fr.json` : trois concepts réservés, sans actions
   jouables ; hors du catalogue actif et hors des assets de l'application.
 - `lib/domain/catalog/concept_catalog.dart` : lecteur pur, immuable et strict du
@@ -14,7 +17,7 @@ ni moteur de pioche, ni quota calculé, ni identité d'usage ou migration résea
 
 Les numéros éditoriaux `001` à `065`, avec leurs trous conservés, identifient les
 concepts dans ce contrat. Les identités des définitions d'action sont locales au
-concept (`003.stage.1`, `002.zone.neck_nape`, etc.). Ce ne sont pas des identités
+concept (`003.stage.1`, `002.stage.1.region.upper_body`, etc.). Ce ne sont pas des identités
 d'usage : leur correspondance avec les anciens IDs persistés relève du lot 3.
 
 Le catalogue ancien `assets/catalog/source/cards.v2.fr.json` et son lecteur
@@ -53,17 +56,24 @@ un flag. Les six suppressions sont tracées dans ce tableau, sans définition jo
 | --- | --- | --- |
 | `action` | Une action, une variante | Aucun stade d'évolution |
 | `evolution` | Deux ou trois `stages`, chacun avec son piment | Pas de copie de ces stades dans `variants` |
-| `zones` | Concepts 002, 004, 005 ; base 1, variantes de zone et un choix libre | Le nombre de zones ne définit pas des évolutions |
+| `zones` | Support historique des variantes anatomiques | Ne définit plus 002, 004 ou 005 |
 | `accessory` | Concepts 049 à 052 ; variantes d'usage externe/phallus ou insertion | Aucune évolution ; axes zone/accessoire sans inventaire de matériel inventé |
 
 Les variantes de sextoy représentent uniquement les catégories validées, pas la
 liste finale des accessoires compatibles. Externe et phallus sont au piment 3,
 insertions vaginale et anale au piment 4. Aucun modificateur générique n'est ajouté.
 
-Pour les zones génériques : `min(4, piment intrinsèque + modificateur de zone)`.
-Les 13 identifiants de zones transcrivent les groupes validés, en séparant pénis
-et vulve pour permettre leurs choix distincts. Les vêtements ne sont pas une zone.
-Le contrôle du plafond global et le calcul de classe de pioche sont au lot 2.
+002, 004 et 005 sont des `evolution` avec deux stades P2/P3 et le champ
+`body_regions: [upper_body, lower_body, free]`. Haut signifie au-dessus de la
+ceinture ; Bas signifie sous la ceinture, zones intimes comprises ; Libre reste
+soumis aux limites applicables. Le stade 1 est sensuel ; le stade 2 permet sans
+imposer une dimension sexuelle. Chaque stade est combiné aux trois régions et
+aux deux rôles : 12 présentations par concept, 36 au total.
+
+La formule historique `min(4, piment intrinsèque + modificateur de zone)` ne
+s’applique pas à ces trois concepts. Les 13 identifiants anatomiques restent
+conservés pour la compatibilité et les autres mécanismes. Les vêtements ne sont
+pas une zone. Voir [la transition des profils et usages](../generic_body_regions.md).
 
 Les concepts 006 et 007 restent deux actions simples distinctes. Leur champ
 `capacity_rule` référence la capacité vestimentaire spéciale ; aucune copie de
@@ -94,7 +104,9 @@ Ils couvrent notamment les 56 identités, réserves/suppressions, toutes les sui
 de piments, toutes les zones, la séparation variantes/évolutions, les capacités
 006/007, les distinctions textuelles, l'immuabilité et le rejet de données mal
 formées ou d'anciens flags. Résultat : **23/23 contrôles réussis**.
-Répartition par premier piment : **26 / 11 / 17 / 2** ; cumul : **26 / 37 / 54 / 56**.
+Répartition actuelle des 55 concepts par premier piment : **23 / 13 / 17 / 2** ;
+cumul : **23 / 36 / 53 / 55**. Les chiffres de validation des lots ci-dessus
+restent historiques ; les tests actuels suivent le catalogue version 2.
 
 L'analyse ciblée du lecteur, des contrôles partagés et de l'outil d'audit ne
 signale aucun problème. Le lancement de la même suite via `package:test` a été

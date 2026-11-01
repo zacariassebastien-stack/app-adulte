@@ -456,7 +456,7 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
-  testWidgets('profile cards receive the exact anatomical occurrence', (
+  testWidgets('profile cards receive the exact stage and body region', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -468,13 +468,13 @@ void main() {
       'Embrasser',
     );
     await tester.pumpAndSettle();
-    final neck = find.widgetWithText(ListTile, 'Embrasser · Cou / nuque').first;
+    final neck = find.widgetWithText(ListTile, 'Embrasser · Stade 1 — Sensuel · Haut du corps').first;
     await tester.ensureVisible(neck);
     await tester.tap(neck);
     await tester.pumpAndSettle();
     expect(
       tester.widget<CardRenderer>(find.byType(CardRenderer)).definition.zones,
-      ['Cou / nuque'],
+      ['Haut du corps'],
     );
     await tester.pumpWidget(const SizedBox.shrink());
   });

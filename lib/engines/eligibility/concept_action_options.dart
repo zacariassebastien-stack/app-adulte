@@ -61,7 +61,7 @@ final class ConceptActionOptions {
     final eligibility = ConceptDeckEligibility(
       actionIdsByConcept: {
         for (final c in catalog.concepts.concepts)
-          c.id: {...c.stages.map((a) => a.id), ...c.variants.map((a) => a.id)},
+          c.id: {...c.presentationStages.map((a) => a.id), ...c.variants.map((a) => a.id)},
       },
       zoneIdsByConcept: {
         for (final c in catalog.concepts.concepts)

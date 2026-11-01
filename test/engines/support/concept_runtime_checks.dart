@@ -288,7 +288,7 @@ Map<String, void Function()> conceptRuntimeChecks() {
           ),
           'Legacy action leaked',
         );
-        for (final stage in concept.stages) {
+        for (final stage in concept.presentationStages) {
           _check(
             engine.variants.singleWhere((v) => v.id == stage.id).chiliLevel ==
                 stage.chili,
@@ -342,7 +342,7 @@ Map<String, void Function()> conceptRuntimeChecks() {
               .expand((v) => v)
               .singleWhere((c) => c.concept.id == '005');
           _check(
-            candidate.drawClass == 1 &&
+            candidate.drawClass == 2 &&
                 candidate.choices.any((c) => c.chili == 2),
             'Real spice reduced',
           );
@@ -433,7 +433,7 @@ Map<String, void Function()> conceptRuntimeChecks() {
             final choices = all[id]!;
             _check(
               choices.any((o) => o.choice.zoneId != null) &&
-                  choices.any((o) => o.choice.zoneId == null),
+                  choices.any((o) => o.choice.zoneId == 'free'),
               '$id fixed/free variants',
             );
             _check(
@@ -448,24 +448,24 @@ Map<String, void Function()> conceptRuntimeChecks() {
           }
           final mouth = all['004']!;
           final free = mouth.singleWhere(
-            (o) => o.choice.actionId == '004.zone.free',
+            (o) => o.choice.actionId == '004.stage.1.region.free',
           );
           final neck = mouth.singleWhere(
-            (o) => o.choice.actionId == '004.zone.neck_nape',
+            (o) => o.choice.actionId == '004.stage.1.region.upper_body',
           );
           final intimate = mouth.singleWhere(
-            (o) => o.choice.actionId == '004.zone.penis',
+            (o) => o.choice.actionId == '004.stage.2.region.lower_body',
           );
           _check(
-            free.choice.zoneId == null && free.choice.chili == 1,
+            free.choice.zoneId == 'free' && free.choice.chili == 2,
             '004 free zone semantics',
           );
           _check(
-            neck.choice.zoneId == 'neck_nape' && neck.choice.chili == 1,
+            neck.choice.zoneId == 'upper_body' && neck.choice.chili == 2,
             '004 fixed zone semantics',
           );
           _check(
-            intimate.choice.zoneId == 'penis' && intimate.choice.chili == 3,
+            intimate.choice.zoneId == 'lower_body' && intimate.choice.chili == 3,
             '004 zone spice',
           );
         },

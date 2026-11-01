@@ -106,6 +106,12 @@ class _CatalogProfileScreenState extends State<CatalogProfileScreen> {
         title: item.concept.title,
         subtitle: item.actionTitle,
         zones: [
+          for (final stage in item.concept.presentationStages.where(
+            (s) => s.id == item.actionId,
+          ))
+            if (stage.zoneId != null)
+              model.catalog.concepts!.zones
+                  .singleWhere((z) => z.id == stage.zoneId).title,
           for (final variant in item.concept.variants.where(
             (v) => v.id == item.actionId,
           ))
@@ -117,7 +123,11 @@ class _CatalogProfileScreenState extends State<CatalogProfileScreen> {
               'LIBRE',
         ],
         action: copy.actionText,
-        details: copy.detailsText,
+        details: [
+          ?copy.detailsText,
+          if (model.bodyLimits(item).isNotEmpty)
+            'Tes limites conservées pour cette action : ${model.bodyLimits(item).join(', ')}.',
+        ].join(' '),
         direction: item.direction.name,
         spice: item.chili,
       ),

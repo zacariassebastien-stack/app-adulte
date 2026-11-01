@@ -1,5 +1,6 @@
 import '../../domain/catalog/v4_catalog.dart';
 import '../../domain/profile/v4_profile.dart';
+import '../../domain/profile/generic_body_limits.dart';
 import '../runtime/v4_runtime_engine.dart';
 
 enum V4RatingResultKind { rated, excluded, unknown, unavailable }
@@ -84,6 +85,7 @@ final class V4CardRatingEngine {
     bool technicalAvailable = true,
     String technicalRequirementId = 'technical_requirement',
   }) {
+    profile = GenericBodyLimits.ratingProfile(profile, variant.variantId);
     final tags = [
       ...variant.primaryPreferenceTags,
       ...variant.secondaryPreferenceTags,

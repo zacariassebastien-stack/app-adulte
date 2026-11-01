@@ -53,7 +53,7 @@
       ],
       "actions": [
         {
-          "action_id": "002.zone.face_hair",
+          "action_id": "002.stage.1.region.upper_body",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -61,7 +61,7 @@
               "v3.direction.faire",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -86,7 +86,7 @@
           }
         },
         {
-          "action_id": "002.zone.neck_nape",
+          "action_id": "002.stage.1.region.lower_body",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -94,7 +94,7 @@
               "v3.direction.faire",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -119,7 +119,7 @@
           }
         },
         {
-          "action_id": "002.zone.arms_hands",
+          "action_id": "002.stage.1.region.free",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -127,7 +127,7 @@
               "v3.direction.faire",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -152,7 +152,7 @@
           }
         },
         {
-          "action_id": "002.zone.back_shoulders",
+          "action_id": "002.stage.2.region.upper_body",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -160,7 +160,7 @@
               "v3.direction.faire",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -185,7 +185,7 @@
           }
         },
         {
-          "action_id": "002.zone.belly",
+          "action_id": "002.stage.2.region.lower_body",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -193,7 +193,7 @@
               "v3.direction.faire",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -218,7 +218,7 @@
           }
         },
         {
-          "action_id": "002.zone.legs",
+          "action_id": "002.stage.2.region.free",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -226,271 +226,7 @@
               "v3.direction.faire",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "embrasser"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "002.zone.feet",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.embrasser",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "embrasser"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "002.zone.thighs",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.embrasser",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "embrasser"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "002.zone.buttocks",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.embrasser",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "embrasser"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "002.zone.chest",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.embrasser",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "embrasser"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "002.zone.penis",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.embrasser",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "embrasser"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "002.zone.vulva",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.embrasser",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "embrasser"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "002.zone.anus",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.embrasser",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "embrasser"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "002.zone.free",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.embrasser",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -643,7 +379,7 @@
       ],
       "actions": [
         {
-          "action_id": "004.zone.face_hair",
+          "action_id": "004.stage.1.region.upper_body",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -651,7 +387,7 @@
               "v3.direction.recevoir",
               "v3.preference.bouche"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -676,7 +412,7 @@
           }
         },
         {
-          "action_id": "004.zone.neck_nape",
+          "action_id": "004.stage.1.region.lower_body",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -684,7 +420,7 @@
               "v3.direction.recevoir",
               "v3.preference.bouche"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -709,7 +445,7 @@
           }
         },
         {
-          "action_id": "004.zone.arms_hands",
+          "action_id": "004.stage.1.region.free",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -717,7 +453,7 @@
               "v3.direction.recevoir",
               "v3.preference.bouche"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -742,7 +478,7 @@
           }
         },
         {
-          "action_id": "004.zone.back_shoulders",
+          "action_id": "004.stage.2.region.upper_body",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -750,7 +486,7 @@
               "v3.direction.recevoir",
               "v3.preference.bouche"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -775,7 +511,7 @@
           }
         },
         {
-          "action_id": "004.zone.belly",
+          "action_id": "004.stage.2.region.lower_body",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -783,7 +519,7 @@
               "v3.direction.recevoir",
               "v3.preference.bouche"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -808,7 +544,7 @@
           }
         },
         {
-          "action_id": "004.zone.legs",
+          "action_id": "004.stage.2.region.free",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -816,271 +552,7 @@
               "v3.direction.recevoir",
               "v3.preference.bouche"
             ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "bouche"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "004.zone.feet",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.direction.faire",
-              "v3.direction.recevoir",
-              "v3.preference.bouche"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "bouche"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "004.zone.thighs",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.direction.faire",
-              "v3.direction.recevoir",
-              "v3.preference.bouche"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "bouche"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "004.zone.buttocks",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.direction.faire",
-              "v3.direction.recevoir",
-              "v3.preference.bouche"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "bouche"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "004.zone.chest",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.direction.faire",
-              "v3.direction.recevoir",
-              "v3.preference.bouche"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "bouche"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "004.zone.penis",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.direction.faire",
-              "v3.direction.recevoir",
-              "v3.preference.bouche"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "bouche"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "004.zone.vulva",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.direction.faire",
-              "v3.direction.recevoir",
-              "v3.preference.bouche"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "bouche"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "004.zone.anus",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.direction.faire",
-              "v3.direction.recevoir",
-              "v3.preference.bouche"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "bouche"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "004.zone.free",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.direction.faire",
-              "v3.direction.recevoir",
-              "v3.preference.bouche"
-            ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -1114,7 +586,7 @@
       ],
       "actions": [
         {
-          "action_id": "005.zone.face_hair",
+          "action_id": "005.stage.1.region.upper_body",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -1123,7 +595,7 @@
               "v3.direction.faire",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -1148,7 +620,7 @@
           }
         },
         {
-          "action_id": "005.zone.neck_nape",
+          "action_id": "005.stage.1.region.lower_body",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -1157,7 +629,7 @@
               "v3.direction.faire",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -1182,7 +654,7 @@
           }
         },
         {
-          "action_id": "005.zone.arms_hands",
+          "action_id": "005.stage.1.region.free",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -1191,7 +663,7 @@
               "v3.direction.faire",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 2,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -1216,7 +688,7 @@
           }
         },
         {
-          "action_id": "005.zone.back_shoulders",
+          "action_id": "005.stage.2.region.upper_body",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -1225,7 +697,7 @@
               "v3.direction.faire",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -1250,7 +722,7 @@
           }
         },
         {
-          "action_id": "005.zone.belly",
+          "action_id": "005.stage.2.region.lower_body",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -1259,7 +731,7 @@
               "v3.direction.faire",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }
@@ -1284,7 +756,7 @@
           }
         },
         {
-          "action_id": "005.zone.legs",
+          "action_id": "005.stage.2.region.free",
           "editorial": {
             "taxonomy_version": 1,
             "tags": [
@@ -1293,279 +765,7 @@
               "v3.direction.faire",
               "v3.direction.recevoir"
             ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "main"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "005.zone.feet",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.caresser",
-              "v3.preference.main",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "main"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "005.zone.thighs",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.caresser",
-              "v3.preference.main",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "main"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "005.zone.buttocks",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.caresser",
-              "v3.preference.main",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "main"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "005.zone.chest",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.caresser",
-              "v3.preference.main",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "main"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "005.zone.penis",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.caresser",
-              "v3.preference.main",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "main"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "005.zone.vulva",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.caresser",
-              "v3.preference.main",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "main"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "005.zone.anus",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.caresser",
-              "v3.preference.main",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
-            "requirements": {
-              "DISTANCE_EXCLUE": true
-            }
-          },
-          "technical_requirements": [
-            {
-              "type": "SESSION_MODE_IN",
-              "values": [
-                "face_to_face",
-                "hybrid"
-              ]
-            }
-          ],
-          "state_effects": [],
-          "inversion_override": "SWAP_ACTOR_TARGET",
-          "rating": {
-            "primary_preference_tags": [
-              "main"
-            ],
-            "secondary_preference_tags": [],
-            "non_preference_data": []
-          }
-        },
-        {
-          "action_id": "005.zone.free",
-          "editorial": {
-            "taxonomy_version": 1,
-            "tags": [
-              "v3.preference.caresser",
-              "v3.preference.main",
-              "v3.direction.faire",
-              "v3.direction.recevoir"
-            ],
-            "baseEngagementLevel": 1,
+            "baseEngagementLevel": 3,
             "requirements": {
               "DISTANCE_EXCLUE": true
             }

@@ -168,7 +168,7 @@ void main() {
     );
   });
   test(
-    'zone vetoes remain while obsolete mouth techniques do not veto 004',
+    'legacy anatomical limits do not veto a whole new region or resurrect mouth techniques',
     () {
       expect(
         rate(
@@ -181,9 +181,9 @@ void main() {
         rate(
           '002',
           withExcluded(profile(), 'anus', ProfilePreferenceRole.general),
-          action: '002.zone.anus',
+          action: '002.stage.1.region.lower_body',
         ).kind,
-        V4RatingResultKind.excluded,
+        V4RatingResultKind.rated,
       );
     },
   );

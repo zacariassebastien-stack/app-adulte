@@ -1,3 +1,7 @@
+> Les identités actives de 002/004/005 suivent désormais deux stades P2/P3 ×
+> Haut/Bas/Libre × FAIRE/RECEVOIR. Voir [le contrat actuel](generic_body_regions.md)
+> pour les appréciations et la conservation des limites anatomiques historiques.
+
 > Référence historique V4. Pour le runtime conceptuel réconcilié, les décisions
 > validées remplacent le calcul maximum/moyenne par une moyenne pondérée
 > (principal 1, secondaire 0,5, roundHalfUp), UNSURE 20 par 18 à l'initialisation,

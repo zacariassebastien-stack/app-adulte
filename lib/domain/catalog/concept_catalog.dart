@@ -31,14 +31,14 @@ final class ConceptCatalog extends JsonModel {
     _unique(concepts.map((concept) => concept.id), 'concepts');
     _unique([
       for (final concept in concepts) ...[
-        ...concept.stages.map((stage) => stage.id),
+        ...concept.presentationStages.map((stage) => stage.id),
         ...concept.variants.map((variant) => variant.id),
       ],
     ], 'actions');
     final zoneIds = zones.map((zone) => zone.id).toSet();
     for (final concept in concepts) {
       for (final actionId in [
-        ...concept.stages.map((stage) => stage.id),
+        ...concept.presentationStages.map((stage) => stage.id),
         ...concept.variants.map((variant) => variant.id),
       ]) {
         if (!actionId.startsWith('${concept.id}.')) {
@@ -48,6 +48,11 @@ final class ConceptCatalog extends JsonModel {
       for (final variant in concept.variants) {
         if (variant.zoneId != null && !zoneIds.contains(variant.zoneId)) {
           reader.fail('concepts', 'Unknown zone on ${variant.id}');
+        }
+      }
+      for (final stage in concept.presentationStages) {
+        if (stage.zoneId != null && !zoneIds.contains(stage.zoneId)) {
+          reader.fail('concepts', 'Unknown zone on ${stage.id}');
         }
       }
     }
@@ -107,6 +112,8 @@ final class ConceptStage extends JsonModel {
       'action_text',
       'details_text',
       'action_templates',
+      'zone_id',
+      'details_templates',
     });
     id;
     title;
@@ -114,6 +121,8 @@ final class ConceptStage extends JsonModel {
     actionText;
     detailsText;
     actionTemplates;
+    zoneId;
+    detailsTemplates;
   }
 
   AnatomyRequirements? get anatomyRequirements =>
@@ -122,9 +131,12 @@ final class ConceptStage extends JsonModel {
   String get id => reader.string('id');
   String get title => reader.string('title');
   int get chili => reader.integer('chili', min: 1, max: 4);
+  String? get zoneId => reader.optionalString('zone_id');
   String? get actionText => reader.optionalString('action_text');
   String? get detailsText => reader.optionalString('details_text');
   Map<String, String> get actionTemplates => _directionTemplates(reader);
+  Map<String, String> get detailsTemplates =>
+      _directionTemplates(reader, key: 'details_templates');
 }
 
 final class ConceptActionVariant extends JsonModel {
@@ -188,6 +200,7 @@ final class CardConcept extends JsonModel {
       'variants',
       'intrinsic_chili',
       'selection_axes',
+      'body_regions',
       'capacity_rule',
       'persistent_effect',
       'session_modes',
@@ -217,6 +230,22 @@ final class CardConcept extends JsonModel {
       optional: true,
     );
     final axes = reader.strings('selection_axes', optional: true);
+    final regions = bodyRegions;
+    if (regions.isNotEmpty &&
+        (kind != ConceptKind.evolution ||
+            stages.length != 2 ||
+            regions.length != 3 ||
+            regions.toSet().length != 3 ||
+            !regions.toSet().containsAll({
+              'upper_body',
+              'lower_body',
+              'free',
+            }))) {
+      reader.fail(
+        'body_regions',
+        'Regional evolutions require upper_body/lower_body/free',
+      );
+    }
     if (kind == ConceptKind.evolution) {
       if (stages.length < 2 || stages.length > 3 || variants.isNotEmpty) {
         reader.fail('stages', 'An evolution has 2 or 3 stages and no variants');
@@ -308,7 +337,35 @@ final class CardConcept extends JsonModel {
 
   late final List<ConceptStage> stages;
   late final List<ConceptActionVariant> variants;
+
+  List<String> get bodyRegions =>
+      reader.strings('body_regions', optional: true);
+  bool get hasBodyRegions => bodyRegions.isNotEmpty;
+
+  /// Two editorial stages, expanded into six precise action identities.
+  /// This projection never adds stage quota or anatomical sub-variants.
+  List<ConceptStage> get presentationStages => !hasBodyRegions
+      ? stages
+      : [
+          for (final stage in stages)
+            for (final region in bodyRegions)
+              ConceptStage.read(
+                JsonReader({
+                  ...stage.toJson(),
+                  'id': '${stage.id}.region.$region',
+                  'title': '${stage.title} · ${bodyRegionTitle(region)}',
+                  'zone_id': region,
+                }, 'RegionalConceptStage'),
+              ),
+        ];
 }
+
+String bodyRegionTitle(String region) => switch (region) {
+  'upper_body' => 'Haut du corps',
+  'lower_body' => 'Bas du corps',
+  'free' => 'Libre',
+  _ => throw ArgumentError.value(region, 'region'),
+};
 
 Map<String, String> _directionTemplates(
   JsonReader reader, {

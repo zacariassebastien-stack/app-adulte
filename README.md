@@ -1,6 +1,19 @@
 # Couple Cards — domaine et stockage local Flutter / Dart
 
-## Passation actuelle — validation Android et corrections UX
+## Passation actuelle — régions génériques
+
+002 Embrasser, 004 Jeu de bouche et 005 Jeu de main possèdent désormais deux
+stades P2/P3 × Haut du corps / Bas du corps / Libre × FAIRE / RECEVOIR :
+**36 présentations**, et 220 pour le catalogue complet. Les anciennes notes
+restent conservées sans fusion ; les anciennes exclusions anatomiques restent
+des limites ciblées d’exécution, rappelées localement. Les usages engagés restent
+figés. Voir [le contrat de transition](docs/generic_body_regions.md).
+
+Validation de cette passe : **1 580 tests Flutter réussis** (1 559 au départ),
+analyses Dart/Flutter sans erreur ni warning, **28 infos identiques au départ**,
+`git diff --check` propre. Aucun changement SQL Supabase.
+
+## Validation Android et corrections UX — passe précédente
 
 La première partie Android réelle après clôture des chantiers personnalisation
 et catalogue est globalement concluante pour les fonctionnalités rencontrées.

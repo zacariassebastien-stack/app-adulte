@@ -64,7 +64,10 @@ final class SessionOccurrenceConsent {
     final concept = catalog.concepts.concepts.singleWhere(
       (c) => c.id == conceptId,
     );
-    final zone = concept.variants
+    final zone = concept.presentationStages
+        .where((s) => s.id == actionId)
+        .firstOrNull
+        ?.zoneId ?? concept.variants
         .where((v) => v.id == actionId)
         .firstOrNull
         ?.zoneId;

@@ -16,7 +16,7 @@ final class ConceptEditorialRenderer {
   final ConceptCatalog catalog;
 
   bool appliesTo({required CardConcept concept, required String actionId}) {
-    final stage = concept.stages
+    final stage = concept.presentationStages
         .where((item) => item.id == actionId)
         .firstOrNull;
     final variant = concept.variants
@@ -39,7 +39,7 @@ final class ConceptEditorialRenderer {
     required CardOccurrenceDirection direction,
     String partnerLabel = 'ton partenaire',
   }) {
-    final stage = concept.stages
+    final stage = concept.presentationStages
         .where((item) => item.id == actionId)
         .firstOrNull;
     final variant = concept.variants
@@ -48,9 +48,10 @@ final class ConceptEditorialRenderer {
     if (stage == null && variant == null) {
       throw StateError('Unknown editorial action $actionId');
     }
-    final zone = variant?.zoneId == null
+    final zoneId = stage?.zoneId ?? variant?.zoneId;
+    final zone = zoneId == null
         ? null
-        : catalog.zones.singleWhere((item) => item.id == variant!.zoneId);
+        : catalog.zones.singleWhere((item) => item.id == zoneId);
     final directionKey = direction.name;
     final specificTemplates =
         stage?.actionTemplates ?? variant!.actionTemplates;
@@ -76,7 +77,24 @@ final class ConceptEditorialRenderer {
     }
 
     var details =
-        stage?.detailsText ?? variant?.detailsText ?? concept.detailsText;
+        stage?.detailsTemplates[directionKey] ??
+        stage?.detailsText ??
+        variant?.detailsText ??
+        concept.detailsText;
+    if (concept.hasBodyRegions) {
+      final region = switch (zoneId) {
+        'upper_body' => 'Haut du corps : au-dessus de la ceinture.',
+        'lower_body' =>
+          'Bas du corps : sous la ceinture, zones intimes comprises.',
+        _ =>
+          'Libre : choisis librement les parties du corps dans les limites applicables.',
+      };
+      details = [
+        ?details,
+        region,
+        'Respectez les exclusions et les limites de chacun. Vérifiez ensemble les zones et les gestes avant de commencer.',
+      ].join(' ');
+    }
     if (concept.id == '061' && direction == CardOccurrenceDirection.RECEVOIR) {
       details =
           'Cette personne ne parle pas et ne fait volontairement aucun bruit. '
