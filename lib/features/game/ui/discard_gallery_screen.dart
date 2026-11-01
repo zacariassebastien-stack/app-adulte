@@ -18,8 +18,9 @@ final class DiscardGalleryItem {
 }
 
 class DiscardGalleryScreen extends StatefulWidget {
-  const DiscardGalleryScreen({required this.cards, super.key});
+  const DiscardGalleryScreen({required this.cards, this.onRate, super.key});
   final List<DiscardGalleryItem> cards;
+  final ValueChanged<DiscardGalleryItem>? onRate;
 
   @override
   State<DiscardGalleryScreen> createState() => _DiscardGalleryScreenState();
@@ -39,6 +40,9 @@ class _DiscardGalleryScreenState extends State<DiscardGalleryScreen> {
               key: const Key('discard-readonly-zoom'),
               behavior: HitTestBehavior.opaque,
               onTap: () => setState(() => _opened = null),
+              onLongPress: widget.onRate == null
+                  ? null
+                  : () => widget.onRate!(_opened!),
               child: LayoutBuilder(
                 builder: (context, box) {
                   final width = math.min(
@@ -75,6 +79,9 @@ class _DiscardGalleryScreenState extends State<DiscardGalleryScreen> {
                 return GestureDetector(
                   key: Key('discard-card-${item.id}'),
                   onTap: () => setState(() => _opened = item),
+                  onLongPress: widget.onRate == null
+                      ? null
+                      : () => widget.onRate!(item),
                   child: CardRenderer(
                     definition: item.definition,
                     state: CardVisualState.discarded,

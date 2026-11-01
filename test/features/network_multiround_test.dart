@@ -573,6 +573,103 @@ void main() {
     }
   }
 
+  for (final mode in ['post-duel', 'compromise', 'resolved', 'resolved-inverted']) {
+    for (final player in ['alice', 'bob']) {
+      testWidgets('Android appreciation $mode for $player persists precise role without changing game', (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final backend = await tester.runAsync(() async {
+          final setup = await _setup(session, catalog);
+          setup.backend.routeToUnifiedPostDuelChoice = !mode.startsWith('resolved');
+          await _playUnequal(setup, requireInvertibleWinner: mode == 'resolved-inverted');
+          if (mode == 'resolved-inverted') {
+            final winner = setup.alice.isInitialLoser ? setup.bob : setup.alice;
+            final loser = setup.alice.isInitialLoser ? setup.alice : setup.bob;
+            await loser.proposeNegotiation(inversion: true, directPa: 0);
+            await _settle();
+            await winner.respondNegotiation(accepted: true);
+            await _settle();
+          }
+          if (mode.startsWith('resolved')) {
+            final loser = setup.alice.isCorruptionActor ? setup.alice : setup.bob;
+            await loser.skipCorruption();
+            await _settle();
+          }
+          setup.dispose();
+          return setup.backend;
+        });
+        final profiles = MemoryV4ProfileStore();
+        await profiles.save(V4Profile(profileId: player, sex: player == 'alice'
+            ? ProfileSex.HOMME : ProfileSex.FEMME, preferences: const {}));
+        final ratings = MemoryV4CardLearningStore();
+        await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+          session: session, playerId: player, catalog: catalog,
+          repository: backend!.repository(player), profileStore: profiles,
+          cardLearningStore: ratings, secretStore: MemoryNetworkDuelSecretStore(),
+          anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+        )));
+        await tester.pumpAndSettle();
+        final controller = (tester.state(find.byType(NetworkDuelScreen)) as dynamic).controller as NetworkGameController;
+        if (mode == 'compromise' && controller.isInitialLoser) {
+          await tester.tap(find.byKey(const Key('choose-negotiation')));
+          await tester.pumpAndSettle();
+        }
+        final cardFinder = mode.startsWith('resolved') ? find.byType(CardRenderer).first
+            : find.byKey(const Key('personal-duel-card'));
+        final shown = tester.widget<CardRenderer>(cardFinder).definition;
+        final String direction;
+        if (mode.startsWith('resolved')) {
+          final usage = controller.actionProjection?.cards.first.usage ??
+              controller.finalResolution!.compromise.first.usage;
+          final actors = (usage.resolvedAction['actor_player_ids']! as List).cast<String>();
+          direction = {'FAIRE', 'RECEVOIR'}.contains(shown.direction)
+              ? actors.contains(player) ? 'FAIRE' : 'RECEVOIR'
+              : shown.direction!;
+        } else {
+          direction = shown.direction!;
+        }
+        final key = CardRatingKey(profileId: player, cardId: shown.cardId,
+          variantId: shown.variantId!, role: ProfilePreferenceRole.parse(direction));
+        final seed = CatalogProfileController(catalog: catalog, playerId: player,
+          profileStore: profiles, ratingStore: ratings,
+          learningStore: MemoryNetworkProfileLearningStore());
+        await seed.load();
+        final item = seed.items.singleWhere((i) => i.ratingKey(player).storageKey == key.storageKey);
+        await seed.rate(item, DetailedPreferenceCategory.like, preserveExclusions: true);
+        seed.dispose();
+        final beforeA = jsonEncode(backend.state('alice').toJson());
+        final beforeB = jsonEncode(backend.state('bob').toJson());
+        final privateBefore = jsonEncode(controller.usageCheckpoint.toJson());
+        final handBefore = [for (final card in controller.hand) '${card.identity}:${card.personalValue}'];
+        final commands = Set<String>.from(backend.commands);
+        await tester.longPress(cardFinder);
+        await tester.pumpAndSettle();
+        expect(find.text('Mon appréciation'), findsOneWidget);
+        expect(tester.widget<RadialAppreciation>(find.byType(RadialAppreciation)).initialValue,
+          DetailedPreferenceCategory.like);
+        final center = tester.getCenter(find.byType(RadialAppreciation));
+        await tester.tapAt(center + Offset(0, -tester.getSize(find.byType(RadialAppreciation)).width * .33));
+        await tester.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsNothing);
+        expect((await ratings.load(player)).explicitEstimate(key), 1.5);
+        expect((await ratings.load(player == 'alice' ? 'bob' : 'alice')).toJson(), isEmpty);
+        expect(jsonEncode(backend.state('alice').toJson()), beforeA);
+        expect(jsonEncode(backend.state('bob').toJson()), beforeB);
+        expect(jsonEncode(controller.usageCheckpoint.toJson()), privateBefore);
+        expect([for (final card in controller.hand) '${card.identity}:${card.personalValue}'], handBefore);
+        expect(backend.commands, commands);
+        // Reopening loads the persisted manual value, without rebuilding the turn.
+        await tester.longPress(cardFinder);
+        await tester.pumpAndSettle();
+        expect(tester.widget<RadialAppreciation>(find.byType(RadialAppreciation)).initialValue,
+          DetailedPreferenceCategory.essential);
+        await tester.tap(find.text('Fermer'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
+    }
+  }
+
   test('UX in-game appreciation preserves consent exclusions', () async {
     final profiles = MemoryV4ProfileStore(); await profiles.save(stageProfile(excluded: 3));
     final ratings = MemoryV4CardLearningStore();
@@ -585,8 +682,8 @@ void main() {
     expect((await ratings.load('alice')).explicitEstimate(item.ratingKey('alice')), 3.5);
   });
 
-  for (final drag in [false, true]) {
-    testWidgets('UX hand rating ${drag ? 'drag' : 'tap'} is visible above a pushed game and freezes current hand through reconnect', (tester) async {
+  for (final interaction in ['tap', 'drag', 'long']) {
+    testWidgets('UX hand rating $interaction is visible above a pushed game and freezes current hand through reconnect', (tester) async {
       await tester.binding.setSurfaceSize(const Size(320, 568));
       addTearDown(() => tester.binding.setSurfaceSize(null));
       SharedPreferences.setMockInitialValues({});
@@ -621,7 +718,11 @@ void main() {
       await tester.tapAt(tester.getCenter(find.byKey(const Key('hand-card-056'))));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('rate-hand-card-056')), findsOneWidget);
-      await tester.tap(find.byKey(const Key('rate-hand-card-056')));
+      if (interaction == 'long') {
+        await tester.longPress(find.byKey(const Key('hand-card-056')));
+      } else {
+        await tester.tap(find.byKey(const Key('rate-hand-card-056')));
+      }
       await tester.pumpAndSettle();
       expect(find.text('Mon appréciation'), findsNWidgets(2));
       expect(find.byKey(const Key('appreciation-radial')), findsOneWidget);
@@ -655,7 +756,7 @@ void main() {
       final origin = tester.getCenter(find.byType(RadialAppreciation));
       // One tap on the already-visible profile wheel saves the selected sector.
       final sector = origin + Offset(0, -tester.getSize(find.byType(RadialAppreciation)).width * .33);
-      if (drag) {
+      if (interaction == 'drag') {
         final gesture = await tester.startGesture(origin);
         await gesture.moveTo(sector);
         await tester.pump();
@@ -677,6 +778,13 @@ void main() {
       await controller.confirmSelection();
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('rate-hand-card-056')), findsNothing);
+      final committedState = jsonEncode(backend.state('alice').toJson());
+      await tester.longPress(find.byKey(const Key('committed-card')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('appreciation-radial')), findsOneWidget);
+      await tester.tap(find.text('Fermer'));
+      await tester.pumpAndSettle();
+      expect(jsonEncode(backend.state('alice').toJson()), committedState);
       await tester.pumpWidget(const SizedBox.shrink());
       final restored = NetworkGameController(session: session, playerId: 'alice',
         repository: backend.repository('alice'), privateStore: secrets, catalog: focused,
@@ -9894,6 +10002,53 @@ void main() {
       greaterThan(0),
     );
   });
+
+  for (final direction in [CardOccurrenceDirection.FAIRE, CardOccurrenceDirection.RECEVOIR]) {
+    testWidgets('Android appreciation Recovery $direction preserves proposal and persists precise role', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final backend = _Backend()..canonicalSpiceOverride = 1;
+      backend.points['alice'] = 10;
+      backend.round.phase = NetworkGamePhase.recovery;
+      final secrets = MemoryNetworkDuelSecretStore();
+      await secrets.saveGame(sessionId: session.id, playerId: 'alice',
+        state: privateGameFixture(roundNumber: 1, cards: [
+          CardRuntimeState(cardId: '012', zone: CardZone.HAND, nativeDirection: direction),
+        ]));
+      final data = _catalogWithCards(catalog, {'card.v4.012'});
+      final profiles = MemoryV4ProfileStore();
+      await profiles.save(completeConsentProfile('alice'));
+      final ratings = MemoryV4CardLearningStore();
+      await tester.pumpWidget(MaterialApp(home: NetworkDuelScreen(
+        session: session, playerId: 'alice', catalog: data,
+        repository: backend.repository('alice'), profileStore: profiles,
+        v4Profile: completeConsentProfile('alice'), secretStore: secrets,
+        cardLearningStore: ratings,
+        anatomies: const {'alice': PlayerAnatomy.PENIS, 'bob': PlayerAnatomy.VULVE},
+      )));
+      await tester.pumpAndSettle();
+      final card = find.byKey(const Key('recovery-choice-card-012'));
+      final definition = tester.widget<CardRenderer>(card).definition;
+      expect(definition.direction, direction.name);
+      final before = jsonEncode(backend.state('alice').toJson());
+      final privateBefore = jsonEncode((await secrets.loadGame(sessionId: session.id, playerId: 'alice'))!.toJson());
+      await tester.longPress(card);
+      await tester.pumpAndSettle();
+      expect(find.byType(RadialAppreciation), findsOneWidget);
+      final center = tester.getCenter(find.byType(RadialAppreciation));
+      final sector = center + Offset(0, -tester.getSize(find.byType(RadialAppreciation)).width * .33);
+      await tester.tapAt(sector);
+      await tester.pumpAndSettle();
+      final key = CardRatingKey(profileId: 'alice', cardId: '012',
+        variantId: definition.variantId!, role: ProfilePreferenceRole.parse(direction.name));
+      final persisted = await ratings.load('alice');
+      expect(persisted.explicitEstimate(key), 1.5, reason: '${persisted.toJson()}');
+      expect(jsonEncode(backend.state('alice').toJson()), before);
+      expect(jsonEncode((await secrets.loadGame(sessionId: session.id, playerId: 'alice'))!.toJson()), privateBefore);
+      expect(backend.round.recoveries, isEmpty);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    });
+  }
 
   for (final eligibleCount in [0, 1, 2, 3, 4, 5]) {
     testWidgets('Recovery visual choice shows up to four real cards from $eligibleCount eligible concepts', (tester) async {

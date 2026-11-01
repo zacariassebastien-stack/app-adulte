@@ -110,10 +110,18 @@ final class ResolutionWording {
       '063',
       '065',
     };
-    final relation = card.zoneId != null || physicalTarget.contains(card.cardId)
+    // RECEVOIR still needs its distinct recipient on actor-centred cards.
+    // Use the final frozen direction/roles, including after an inversion.
+    final receiving =
+        card.direction == NetworkCardDirection.RECEVOIR &&
+        targets.any((id) => !actors.contains(id));
+    final relation =
+        (receiving && actorCentred.contains(card.cardId)) ||
+            card.zoneId != null ||
+            physicalTarget.contains(card.cardId)
         ? 'sur'
         : 'pour';
-    final suffix = actorCentred.contains(card.cardId)
+    final suffix = actorCentred.contains(card.cardId) && !receiving
         ? ''
         : ' $relation ${people(targets)}';
     final duration = card.parameters['duration_actions'] as int?;

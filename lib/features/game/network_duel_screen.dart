@@ -15,6 +15,7 @@ import '../../engines/deck/deck_cycle_state.dart';
 import '../../engines/recovery/recovery_engine.dart';
 import '../../engines/runtime/v4_runtime_engine.dart';
 import '../../sync/rounds/network_game.dart';
+import '../../sync/protocol/network_usage_projection.dart';
 import '../lobby/lobby_models.dart';
 import '../lobby/active_session_store.dart';
 import '../lobby/game_history.dart';
@@ -258,7 +259,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     return AdaptiveCardPage(
       key: body.key,
       before: body.children,
-      card: IgnorePointer(
+      card: _consultableCard(
+        definition: _handItem(card).definition,
         child: FittedActionCard(
           child: CardRenderer(
             key: const Key('personal-duel-card'),
@@ -296,11 +298,56 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     NetworkGameViewState.error => _error(),
   };
 
-  Future<void> _rateHandCard(CardHandItem item) async {
-    if (controller.viewState != NetworkGameViewState.choosing ||
-        controller.selectedCard != null) {
-      return;
+  Future<void> _rateHandCard(CardHandItem item) =>
+      _rateCard(item.definition, updateHandConsent: true);
+
+  Widget _consultableCard({
+    required CardRenderDefinition definition,
+    required Widget child,
+    NetworkUsageProjection? usage,
+  }) => GestureDetector(
+    behavior: HitTestBehavior.opaque,
+    onLongPress: () => _rateCard(
+      usage == null ? definition : _localAppreciationDefinition(usage),
+    ),
+    child: child,
+  );
+
+  CardRenderDefinition? _localAppreciationDefinition(
+    NetworkUsageProjection usage,
+  ) {
+    final action = usage.resolvedAction;
+    final actors = (action['actor_player_ids']! as List).cast<String>();
+    final targets = (action['target_player_ids']! as List).cast<String>();
+    if (!actors.contains(widget.playerId) &&
+        !targets.contains(widget.playerId)) {
+      return null;
     }
+    final direction = action['direction']! as String;
+    // Same participant semantics as personalization: the owner is not always
+    // the performer. Never derive a role from who won the duel.
+    final local = direction == 'FAIRE' || direction == 'RECEVOIR'
+        ? actors.contains(widget.playerId)
+              ? 'FAIRE'
+              : 'RECEVOIR'
+        : direction;
+    return CardRenderDefinition(
+      cardId: usage.conceptId,
+      variantId: (action['stage_id'] ?? action['variant_id'])! as String,
+      title: controller.titleFor(usage.conceptId),
+      direction: local,
+      spice: action['effective_chili']! as int,
+    );
+  }
+
+  bool _ratingOpen = false;
+  Future<void> _rateCard(
+    CardRenderDefinition? definition, {
+    bool updateHandConsent = false,
+  }) async {
+    if (definition == null || _ratingOpen || !mounted) return;
+    _ratingOpen = true;
+    final handRound = controller.round?.roundId;
     final editor = CatalogProfileController(
       sexLocked: true,
       catalog: widget.catalog,
@@ -310,14 +357,12 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     );
     try {
       await editor.load();
-      if (!mounted || controller.viewState != NetworkGameViewState.choosing) {
-        return;
-      }
+      if (!mounted) return;
       final target = editor.items.singleWhere(
         (candidate) =>
-            candidate.concept.id == item.definition.cardId &&
-            candidate.actionId == item.definition.variantId &&
-            candidate.direction.name == item.definition.direction,
+            candidate.concept.id == definition.cardId &&
+            candidate.actionId == definition.variantId &&
+            candidate.direction.name == definition.direction,
       );
       // AlertDialog measures content intrinsically. Bound both axes before the
       // profile wheel's LayoutBuilder, including on narrow screens.
@@ -339,14 +384,8 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                       visible: true,
                       initialValue: category,
                       allowExclusion: false,
-                      enabled:
-                          !editor.saving &&
-                          controller.viewState == NetworkGameViewState.choosing,
+                      enabled: !editor.saving,
                       onSelected: (value) async {
-                        if (controller.viewState !=
-                            NetworkGameViewState.choosing) {
-                          return;
-                        }
                         // Exclusions retain their existing consent flow in the hand menu.
                         if (value == DetailedPreferenceCategory.excluded) {
                           return;
@@ -359,7 +398,17 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                           );
                           // Consent exceptions synchronize independently of the
                           // frozen per-round economic reference.
-                          await controller.applyStageVetoProfile(editor.profile);
+                          if (updateHandConsent &&
+                              mounted &&
+                              controller.viewState ==
+                                  NetworkGameViewState.choosing &&
+                              controller.round?.roundId == handRound) {
+                            await controller.applyStageVetoProfile(
+                              editor.profile,
+                            );
+                          }
+                          // Engaged contexts only save the existing manual profile
+                          // rating. No game refresh, eligibility or PA recalculation.
                           // The current hand and its personal values remain frozen.
                           if (dialogContext.mounted) {
                             Navigator.pop(dialogContext);
@@ -399,6 +448,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
       }
     } finally {
       editor.dispose();
+      _ratingOpen = false;
     }
   }
 
@@ -430,6 +480,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            ListTile(
+              title: const Text('Mon appréciation'),
+              onTap: () => Navigator.pop(context, 'rate'),
+            ),
             ListTile(
               title: Text(
                 item.locked ? 'Déverrouiller la carte' : 'Verrouiller la carte',
@@ -473,6 +527,10 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     }
     if (choice == 'lock') {
       controller.toggleLock(item.id);
+      return;
+    }
+    if (choice == 'rate') {
+      await _rateHandCard(item);
       return;
     }
     final editor = CatalogProfileController(
@@ -780,6 +838,7 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     }
     return CardHandSurface(
       committedCard: _handItem(card),
+      onRate: _rateHandCard,
       cards: const [],
       canCancelCommitted: controller.canCancelSelection,
       animationsEnabled: preferences.value.animations,
@@ -879,12 +938,21 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => DiscardGalleryScreen(
+          onRate: (item) => _rateCard(
+            _localAppreciationDefinition(
+              cards.singleWhere((usage) => usage.usageId == item.id),
+            ),
+          ),
           cards: [
             for (var index = 0; index < cards.length; index++)
               DiscardGalleryItem(
                 id: cards[index].usageId,
                 definition: CardRenderDefinition(
                   cardId: cards[index].conceptId,
+                  variantId:
+                      (cards[index].resolvedAction['stage_id'] ??
+                              cards[index].resolvedAction['variant_id'])!
+                          as String,
                   title: controller.titleFor(cards[index].conceptId),
                   action: cards[index].resolvedAction['action_text']! as String,
                   spice: cards[index].resolvedAction['effective_chili']! as int,
@@ -1321,11 +1389,15 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
         ),
         const SizedBox(height: 12),
         Expanded(
-          child: FittedActionCard(
-            child: CardRenderer(
-              definition: definition,
-              state: CardVisualState.full,
-              showPa: false,
+          child: _consultableCard(
+            definition: definition,
+            usage: card.usage,
+            child: FittedActionCard(
+              child: CardRenderer(
+                definition: definition,
+                state: CardVisualState.full,
+                showPa: false,
+              ),
             ),
           ),
         ),
@@ -1666,6 +1738,9 @@ class _NetworkDuelScreenState extends State<NetworkDuelScreen> {
                       child: InkWell(
                         key: Key('recover-with-${card.identity}'),
                         onTap: () => _proposeRecovery(card),
+                        onLongPress: () => _rateCard(
+                          _handItem(card, recovery: true).definition,
+                        ),
                         child: AspectRatio(
                           aspectRatio: .68,
                           child: CardRenderer(

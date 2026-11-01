@@ -199,7 +199,9 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
         return;
       }
       _longPressTriggered = true;
-      final callback = widget.onLongPressCard ?? widget.onLockChanged;
+      final callback = _stage == CardHandStage.open && widget.onRate != null
+          ? widget.onRate
+          : widget.onLongPressCard ?? widget.onLockChanged;
       callback?.call(widget.cards[_focused!]);
     });
   }
@@ -527,6 +529,9 @@ class _CardHandSurfaceState extends State<CardHandSurface> {
       key: const Key('committed-card'),
       behavior: HitTestBehavior.opaque,
       onTap: () => setState(() => _back = !_back),
+      onLongPress: !_back && widget.onRate != null
+          ? () => widget.onRate!(card)
+          : null,
       onVerticalDragStart: widget.canCancelCommitted
           ? (_) => _committedDy = 0
           : null,

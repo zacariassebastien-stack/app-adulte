@@ -5,6 +5,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('appreciation keeps the exact discard item from grid and zoom', (tester) async {
+    final item = DiscardGalleryItem(
+      id: 'played-stage',
+      definition: const CardRenderDefinition(cardId: '056', variantId: '056.stage.2',
+        direction: 'RECEVOIR', title: 'Carte consultée'),
+      playedAt: DateTime.utc(2026),
+    );
+    final selected = <DiscardGalleryItem>[];
+    await tester.pumpWidget(MaterialApp(home: DiscardGalleryScreen(
+      cards: [item], onRate: selected.add)));
+    await tester.longPress(find.byKey(const Key('discard-card-played-stage')));
+    expect(selected, [same(item)]);
+    await tester.tap(find.byKey(const Key('discard-card-played-stage')));
+    await tester.pump();
+    await tester.longPress(find.byKey(const Key('discard-readonly-zoom')));
+    expect(selected, [same(item), same(item)]);
+  });
   testWidgets('gallery is three columns, newest first, and zoom is readonly', (
     tester,
   ) async {

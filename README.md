@@ -1,6 +1,26 @@
 # Couple Cards — domaine et stockage local Flutter / Dart
 
-## Passation actuelle — clôture du chantier catalogue
+## Passation actuelle — validation Android et corrections UX
+
+La première partie Android réelle après clôture des chantiers personnalisation
+et catalogue est globalement concluante pour les fonctionnalités rencontrées.
+Deux corrections ciblées la complètent : la résolution `RECEVOIR` explicite aussi
+le destinataire distinct sur les cartes qui le masquaient, et l’appréciation du
+profil est accessible par appui long sur les cartes consultables du parcours
+réseau : main ouverte, carte engagée visible, décisions post-duel/Compromis,
+résolution, choix Recovery et défausse (grille et zoom). Le bouton existant et
+les commandes de verrouillage/exclusion de la main sont conservés.
+
+Une notation après engagement met à jour le profil pour les contextes futurs :
+aucun recalcul des PA, du gagnant, des coûts, de la main, de l’éligibilité ou de
+la résolution en cours. L’identité précise et le rôle local suivent la carte
+affichée ou les rôles finaux figés, y compris après inversion. Les chantiers
+personnalisation et catalogue restent clos ; leurs règles ne sont pas modifiées.
+
+Validation locale de cette passe : **1 559 tests Flutter réussis** (1 542 avant
+correction), analyses Dart/Flutter sans erreur ni warning, **28 infos identiques**,
+`git diff --check` propre. Les échecs et erreurs historiques du tableau catalogue
+ci-dessous ne sont pas présents sur ce poste ; aucune dette n’a été corrigée ici.
 
 **PERSONNALISATION / APPRENTISSAGE : TERMINÉ.** Validation acceptée le
 27 octobre 2026. Ce chantier est clos ; ne pas rouvrir spontanément la
@@ -132,11 +152,15 @@ Références conservées dans le dépôt :
 
 ### Prochain point de reprise
 
-**VALIDATION FONCTIONNELLE ANDROID EN CONDITIONS RÉELLES**
+**NOUVELLE VALIDATION ANDROID CIBLÉE APRÈS COMPILATION**
 
-Jouer une vraie partie sur Android et relever les problèmes effectivement
-visibles ou rencontrés par le joueur. La prochaine étape est une validation
-fonctionnelle réelle, pas un nouvel audit théorique ni une reprise de calibration.
+Vérifier sur les deux téléphones la phrase exécutant/destinataire d’une carte
+`RECEVOIR`, puis la notation par appui long dans la main et après une perte de
+duel, pendant un Compromis et en résolution. Contrôler sa persistance, sans
+changement du résultat ni des PA engagés. Ces corrections sont testées localement ;
+leur nouvelle validation Android reste à effectuer. La checklist plus large
+ci-dessous reste utile pour les fonctionnalités non rencontrées pendant la
+première partie réelle, sans rouvrir la calibration.
 
 Checklist de partie :
 
@@ -159,8 +183,8 @@ simulés du pont natif et validation sur téléphone.
 Les sections et documents historiques ci-dessous décrivent d'anciens checkpoints.
 Ils restent utiles comme références techniques, mais leurs anciens compteurs de
 tests, statuts de livraison ou questions de calibration ne remplacent pas cette
-passation actuelle. Cette mise à jour est documentaire uniquement et ne constitue
-ni un déploiement ni une nouvelle validation manuelle à deux clients.
+passation actuelle. Les validations locales ne constituent ni un déploiement
+Android ni une nouvelle validation manuelle à deux clients.
 
 ---
 

@@ -85,6 +85,37 @@ void main() {
   });
 
   const names = {'alice': 'Sébastien', 'bob': 'Julie'};
+  for (final inverted in [false, true]) {
+    test('receiving actor-centred card names its recipient inverted=$inverted', () {
+      final usage = nativeUsageFixture(
+        conceptId: '006',
+        direction: inverted ? 'FAIRE' : 'RECEVOIR',
+      ).resolved(inverted: inverted);
+      final card = NetworkResolvedActionCardDto.fromUsage(usage);
+      final frozen = card.toJson();
+      for (final viewer in ['alice', 'bob']) {
+        expect(ResolutionWording(localPlayerId: viewer, names: names)
+            .describe(card, 'Retirer un vêtement'),
+          'Julie réalise « Retirer un vêtement » sur Sébastien.');
+      }
+      expect(card.toJson(), frozen);
+    });
+  }
+  test('receiving a self-directed effect does not invent a second recipient', () {
+    final base = nativeUsageFixture(conceptId: '061', direction: 'RECEVOIR');
+    final card = NetworkResolvedActionCardDto.fromUsage(NetworkUsageProjection.fromJson({
+      ...base.toJson(),
+      'resolved_action': {...base.resolvedAction, 'target_player_ids': ['bob']},
+    }));
+    expect(const ResolutionWording(localPlayerId: 'alice', names: names)
+        .describe(card, 'Silence'), 'Julie réalise « Silence ».');
+  });
+  test('receiving preserves an existing non-physical recipient formulation', () {
+    final card = NetworkResolvedActionCardDto.fromUsage(
+      nativeUsageFixture(conceptId: '011', direction: 'RECEVOIR'));
+    expect(const ResolutionWording(localPlayerId: 'alice', names: names)
+        .describe(card, 'Fantasme'), 'Julie réalise « Fantasme » pour Sébastien.');
+  });
   for (final direction in [
     'FAIRE',
     'RECEVOIR',

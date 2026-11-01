@@ -103,7 +103,7 @@ void main() {
     );
   }
 
-  testWidgets('committed surface cannot navigate or rate', (tester) async {
+  testWidgets('committed surface cannot navigate or show hand rating button', (tester) async {
     await pumpHand(tester, committed: cards.first, animations: false);
     await tester.drag(
       find.byKey(const Key('committed-card')),
@@ -118,6 +118,24 @@ void main() {
     expect(find.text('Mon appréciation'), findsNothing);
     expect(find.byType(CardRenderer), findsOneWidget);
     await tester.binding.setSurfaceSize(null);
+  });
+
+  testWidgets('committed visible card rates on long press without cancel or flip', (tester) async {
+    CardHandItem? rated;
+    var cancels = 0;
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: CardHandSurface(
+      cards: const [], committedCard: cards.first, animationsEnabled: false,
+      onRate: (item) => rated = item, onCancelCommitted: () => cancels++,
+    ))));
+    await tester.longPress(find.byKey(const Key('committed-card')));
+    expect(rated, same(cards.first));
+    expect(cancels, 0);
+    expect(tester.widget<CardRenderer>(find.byType(CardRenderer)).state, CardVisualState.waiting);
+    rated = null;
+    await tester.tap(find.byKey(const Key('committed-card')));
+    await tester.pump();
+    await tester.longPress(find.byKey(const Key('committed-card')));
+    expect(rated, isNull);
   });
 
   for (final open in [false, true]) {
