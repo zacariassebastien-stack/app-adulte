@@ -14,6 +14,7 @@ import 'package:couple_cards/engines/profile/initial_questionnaire_engine.dart';
 import 'package:couple_cards/features/game/network_profile_learning.dart';
 import 'package:couple_cards/features/profile/catalog_profile_controller.dart';
 import 'package:couple_cards/features/profile/catalog_profile_screen.dart';
+import 'package:couple_cards/features/profile/catalog_profile_binder_order.dart';
 import 'package:couple_cards/features/profile/radial_appreciation.dart';
 import 'package:couple_cards/card_themes/card_renderer.dart';
 import 'package:couple_cards/features/lobby/two_phone_lobby_screen.dart';
@@ -401,66 +402,241 @@ void main() {
     c.dispose();
   });
 
-  testWidgets(
-    'catalogue deck remains usable on a small phone with enlarged text',
-    (tester) async {
-      await tester.binding.setSurfaceSize(const Size(320, 480));
+  List<ProfileCatalogItem> arrange(
+    CatalogProfileController c,
+    ProfileBinderSort sort, {
+    Set<CardOccurrenceDirection> roles = const {},
+    Set<int> spices = const {},
+    ProfileBinderEvaluation evaluation = ProfileBinderEvaluation.all,
+    String query = '',
+  }) => ProfileBinderOrder.select(
+    items: c.items,
+    isEvaluated: c.explicit,
+    categoryFor: c.category,
+    estimateFor: (i) => c.ratings.explicitEstimate(i.ratingKey('p')),
+    sort: sort,
+    roles: roles,
+    spices: spices,
+    evaluation: evaluation,
+    query: query,
+  );
+
+  test(
+    'binder ranks precise assessments before proximity without averaging a concept',
+    () async {
+      final c = editor();
+      await c.load();
+      addTearDown(c.dispose);
+      final favorite = item(c, '004.stage.2.region.lower_body');
+      final kiss = item(c, '002.stage.1.region.upper_body');
+      final receive = item(c, '002.stage.1.region.upper_body', 'RECEVOIR');
+      final hand = item(c, '005.stage.1.region.upper_body');
+      final excluded = item(c, '002.stage.1.region.lower_body');
+      final unsure = item(c, '004.stage.1.region.free');
+      await c.rate(favorite, DetailedPreferenceCategory.essential);
+      await c.rate(kiss, DetailedPreferenceCategory.love);
+      await c.rate(receive, DetailedPreferenceCategory.atMyLimit);
+      await c.rate(hand, DetailedPreferenceCategory.love);
+      await c.rate(excluded, DetailedPreferenceCategory.excluded);
+      await c.rate(unsure, DetailedPreferenceCategory.unsure);
+      final profileBefore = jsonEncode(c.profile.toJson());
+      final ratingsBefore = jsonEncode(c.ratings.toJson());
+      expect(arrange(c, ProfileBinderSort.favorites).take(6), [
+        favorite,
+        kiss,
+        hand,
+        receive,
+        unsure,
+        excluded,
+      ]);
+      expect(arrange(c, ProfileBinderSort.leastFavorites).take(6), [
+        excluded,
+        unsure,
+        receive,
+        kiss,
+        hand,
+        favorite,
+      ]);
+      expect(
+        arrange(
+          c,
+          ProfileBinderSort.unevaluated,
+        ).take(214).every((i) => !c.explicit(i)),
+        isTrue,
+      );
+      for (final sort in ProfileBinderSort.values) {
+        final ordered = arrange(c, sort);
+        expect(ordered.map((i) => i.id).toSet(), hasLength(220));
+        expect(c.profile.toJson(), jsonDecode(profileBefore));
+        expect(c.ratings.toJson(), jsonDecode(ratingsBefore));
+      }
+      expect(await learning.load('p'), isNull);
+    },
+  );
+
+  test(
+    'binder exact scores outrank proximity even inside the same visible category',
+    () async {
+      final c = editor();
+      addTearDown(c.dispose);
+      final near = item(c, '002.stage.1.region.upper_body');
+      final other = item(c, '005.stage.1.region.upper_body');
+      final ordered = ProfileBinderOrder.select(
+        items: [near, other],
+        isEvaluated: (_) => true,
+        categoryFor: (_) => DetailedPreferenceCategory.like,
+        estimateFor: (i) => i == other ? 7.1 : 7.4,
+        sort: ProfileBinderSort.favorites,
+      );
+      expect(ordered, [other, near]);
+    },
+  );
+
+  test(
+    'binder all sorts and combined filters retain the twelve exact generic identities',
+    () async {
+      final c = editor();
+      await c.load();
+      addTearDown(c.dispose);
+      for (final concept in ['002', '004', '005']) {
+        final original = c.items.where((i) => i.concept.id == concept).toList();
+        expect(original, hasLength(12));
+        for (final sort in ProfileBinderSort.values) {
+          final ordered = arrange(
+            c,
+            sort,
+          ).where((i) => i.concept.id == concept).toList();
+          expect(
+            ordered.map((i) => i.ratingKey('p').storageKey).toSet(),
+            original.map((i) => i.ratingKey('p').storageKey).toSet(),
+          );
+          expect(ordered.any((i) => i.actionId.contains('.zone.')), isFalse);
+        }
+        final filtered = arrange(
+          c,
+          ProfileBinderSort.favorites,
+          roles: {CardOccurrenceDirection.RECEVOIR},
+          spices: {3},
+        ).where((i) => i.concept.id == concept);
+        expect(filtered, hasLength(3));
+        expect(
+          filtered.every((i) => i.actionId.contains('.stage.2.region.')),
+          isTrue,
+        );
+      }
+      final ascending = arrange(
+        c,
+        ProfileBinderSort.spiceAscending,
+      ).map((i) => i.chili).toList();
+      final descending = arrange(
+        c,
+        ProfileBinderSort.spiceDescending,
+      ).map((i) => i.chili).toList();
+      expect(ascending, orderedEquals([...ascending]..sort()));
+      expect(
+        descending,
+        orderedEquals(<int>[...descending]..sort((a, b) => b.compareTo(a))),
+      );
+      final alphabetical = arrange(c, ProfileBinderSort.alphabetical)
+          .map((i) => i.concept.title).toSet().toList();
+      expect(alphabetical.take(3), ['69', 'Ailleurs en privé', 'Câlin']);
+      expect(alphabetical.indexOf('Entrave'), lessThan(alphabetical.indexOf('Être en sous-vêtements')));
+      expect(alphabetical.indexOf('Être en sous-vêtements'), lessThan(alphabetical.indexOf('Exposition / sensation')));
+      final noAccents = arrange(c, ProfileBinderSort.defaultOrder, query: 'calin');
+      expect(noAccents, hasLength(1));
+      expect(noAccents.single.concept.id, '001');
+      expect(
+        arrange(c, ProfileBinderSort.defaultOrder),
+        orderedEquals(c.items),
+      );
+    },
+  );
+
+  for (final size in [const Size(360, 800), const Size(320, 480)]) {
+    testWidgets('binder portrait $size stays readable with enlarged text', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(size);
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
-            data: const MediaQueryData(
-              size: Size(320, 480),
-              textScaler: TextScaler.linear(1.4),
+            data: MediaQueryData(
+              size: size,
+              textScaler: const TextScaler.linear(1.4),
             ),
             child: CatalogProfileScreen(controller: editor()),
           ),
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Cartes'));
-      await tester.pumpAndSettle();
       expect(find.byType(PageView), findsOneWidget);
+      expect(find.byType(RadialAppreciation), findsNWidgets(4));
+      await tester.tap(find.byKey(const Key('profile-binder-filters')));
+      await tester.pumpAndSettle();
+      expect(find.text('Filtrer le classeur'), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const Key('binder-apply-filters')));
+      await tester.tap(find.byKey(const Key('binder-apply-filters')));
+      await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
-    },
-  );
+    });
+  }
+
   testWidgets(
-    'catalogue list consult filters swipe deck and random are reachable',
+    'binder shows four exact presentations in a 2 by 2 page and swipes horizontally',
     (tester) async {
+      final c = editor();
       await tester.pumpWidget(
-        MaterialApp(home: CatalogProfileScreen(controller: editor())),
+        MaterialApp(home: CatalogProfileScreen(controller: c)),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Personnaliser mon profil'), findsOneWidget);
+      final before = jsonEncode(c.ratings.toJson());
+      expect(find.byType(RadialAppreciation), findsNWidgets(4));
+      final rects = [
+        for (final i in c.items.take(4))
+          tester.getRect(find.byKey(ValueKey(i.id))),
+      ];
+      expect(rects[0].top, rects[1].top);
+      expect(rects[0].left, rects[2].left);
+      expect(rects[2].top, rects[3].top);
+      expect(rects[1].left, greaterThan(rects[0].left));
+      expect(rects[2].top, greaterThan(rects[0].top));
+      expect(find.text('1 / 55'), findsOneWidget);
+      await tester.drag(find.byType(PageView), const Offset(-600, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('2 / 55'), findsOneWidget);
+      expect(find.byKey(ValueKey(c.items[4].id)), findsOneWidget);
+      expect(jsonEncode(c.ratings.toJson()), before);
       await tester.enterText(
         find.byKey(const Key('profile-catalog-search')),
         'Paroles dégradantes',
       );
       await tester.pumpAndSettle();
-      expect(find.byType(ListTile), findsWidgets);
-      await tester.tap(find.byType(ListTile).first);
+      expect(find.text('1 / 2'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('binder-next-page')));
       await tester.pumpAndSettle();
-      expect(find.byType(AlertDialog), findsOneWidget);
-      await tester.tap(find.text('Fermer'));
+      expect(find.text('2 / 2'), findsOneWidget);
+      expect(find.byType(RadialAppreciation), findsNWidgets(2));
+      await tester.enterText(find.byKey(const Key('profile-catalog-search')), 'aucun-resultat');
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Cartes'));
+      expect(find.text('0 / 0'), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('profile-catalog-search')), '');
       await tester.pumpAndSettle();
-      expect(find.byType(PageView), findsOneWidget);
-      await tester.drag(find.byType(PageView), const Offset(-600, 0));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Aléatoire'));
-      await tester.pumpAndSettle();
-      expect(find.byType(RadialAppreciation), findsOneWidget);
+      expect(find.text('1 / 55'), findsOneWidget);
+      expect(find.byKey(ValueKey(c.items.first.id)), findsOneWidget);
+
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
-  testWidgets('profile cards receive the exact stage and body region', (
+
+  testWidgets('binder consultation keeps the exact stage region and role', (
     tester,
   ) async {
+    final c = editor();
     await tester.pumpWidget(
-      MaterialApp(home: CatalogProfileScreen(controller: editor())),
+      MaterialApp(home: CatalogProfileScreen(controller: c)),
     );
     await tester.pumpAndSettle();
     await tester.enterText(
@@ -468,43 +644,142 @@ void main() {
       'Embrasser',
     );
     await tester.pumpAndSettle();
-    final neck = find.widgetWithText(ListTile, 'Embrasser · Stade 1 — Sensuel · Haut du corps').first;
-    await tester.ensureVisible(neck);
-    await tester.tap(neck);
+    final target = item(c, '002.stage.1.region.upper_body', 'RECEVOIR');
+    await tester.tap(find.byKey(ValueKey(target.id)));
     await tester.pumpAndSettle();
-    expect(
-      tester.widget<CardRenderer>(find.byType(CardRenderer)).definition.zones,
-      ['Haut du corps'],
-    );
+    final definition = tester
+        .widget<CardRenderer>(find.byType(CardRenderer))
+        .definition;
+    expect(definition.variantId, target.actionId);
+    expect(definition.direction, 'RECEVOIR');
+    expect(definition.spice, 2);
+    expect(definition.zones, ['Haut du corps']);
+    expect(definition.action, contains('Laisse'));
+    await tester.tap(find.text('Fermer'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
   testWidgets(
-    'random appreciation renders its successor immediately without a null crash',
+    'binder miniature long hold drag release rates only that precise presentation',
     (tester) async {
       final c = editor();
       await tester.pumpWidget(
         MaterialApp(home: CatalogProfileScreen(controller: c)),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Aléatoire'));
+      await tester.enterText(
+        find.byKey(const Key('profile-catalog-search')),
+        'Embrasser',
+      );
+      FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
-      final radial = tester.widget<RadialAppreciation>(
+      final target = item(c, '002.stage.1.region.upper_body');
+      final opposite = item(c, target.actionId, 'RECEVOIR');
+      final oldOpposite = c.category(opposite);
+      final positionBefore = tester
+          .widget<Text>(find.byKey(const Key('profile-binder-position')))
+          .data;
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byKey(ValueKey(target.id))),
+      );
+      await tester.pump(const Duration(milliseconds: 650));
+      final center = tester.getCenter(
+        find.byKey(const Key('appreciation-radial')),
+      );
+      final angle = -math.pi / 2 + math.pi / 5;
+      await gesture.moveTo(
+        center + Offset(math.cos(angle) * 105, math.sin(angle) * 105),
+      );
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(c.category(target), DetailedPreferenceCategory.love);
+      expect(c.explicit(target), isTrue);
+      expect(c.explicit(opposite), isFalse);
+      expect(c.category(opposite), oldOpposite);
+      expect(
+        (await ratings.load('p')).explicitEstimate(target.ratingKey('p')),
+        3.5,
+      );
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('profile-binder-position')))
+            .data,
+        positionBefore,
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
+    'binder combines RECEVOIR P3 unassessed filter and preference sort without writing data',
+    (tester) async {
+      final c = editor();
+      await tester.pumpWidget(
+        MaterialApp(home: CatalogProfileScreen(controller: c)),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('profile-catalog-search')),
+        'Embrasser',
+      );
+      await tester.pumpAndSettle();
+      final beforeProfile = jsonEncode(c.profile.toJson());
+      final beforeRatings = jsonEncode(c.ratings.toJson());
+      await tester.tap(find.byKey(const Key('profile-binder-filters')));
+      await tester.pumpAndSettle();
+      for (final key in [
+        'binder-role-RECEVOIR',
+        'binder-spice-3',
+        'binder-evaluation-unevaluated',
+      ]) {
+        await tester.tap(find.byKey(Key(key)));
+        await tester.pump();
+      }
+      await tester.tap(find.byKey(const Key('binder-apply-filters')));
+      await tester.pumpAndSettle();
+      expect(find.text('3 cartes · 3 non évaluées'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('profile-binder-sort')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Préférences').last);
+      await tester.pumpAndSettle();
+      final cards = tester.widgetList<RadialAppreciation>(
         find.byType(RadialAppreciation),
       );
-      final before = c.remaining.length;
-      final previous = tester
-          .widget<CardRenderer>(find.byType(CardRenderer))
-          .definition;
-      radial.onSelected(DetailedPreferenceCategory.like);
+      expect(cards, hasLength(3));
+      for (final card in cards) {
+        expect(
+          (card.key! as ValueKey<String>).value,
+          contains('.stage.2.region.'),
+        );
+        expect((card.key! as ValueKey<String>).value, endsWith('|RECEVOIR'));
+      }
+      expect(jsonEncode(c.profile.toJson()), beforeProfile);
+      expect(jsonEncode(c.ratings.toJson()), beforeRatings);
+      final firstId = (cards.first.key! as ValueKey<String>).value;
+      cards.first.onSelected(DetailedPreferenceCategory.like);
       await tester.pumpAndSettle();
-      expect(c.remaining.length, before - 1);
-      final next = tester
-          .widget<CardRenderer>(find.byType(CardRenderer))
-          .definition;
+      expect(find.text('2 cartes · 2 non évaluées'), findsOneWidget);
+      expect(find.byKey(ValueKey(firstId)), findsNothing);
+      final reopened = editor();
+      await reopened.load();
       expect(
-        '${next.cardId}/${next.variantId}/${next.direction}',
-        isNot('${previous.cardId}/${previous.variantId}/${previous.direction}'),
+        reopened.explicit(reopened.items.singleWhere((i) => i.id == firstId)),
+        isTrue,
       );
+      reopened.dispose();
+      await tester.enterText(
+        find.byKey(const Key('profile-catalog-search')),
+        'aucun-resultat',
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Aucune carte pour ces filtres.'), findsOneWidget);
+      expect(find.text('0 / 0'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
     },
@@ -548,7 +823,7 @@ void main() {
       isTrue,
     );
     expect(find.byType(CircularProgressIndicator), findsNothing);
-    expect(find.byType(ListTile), findsWidgets);
+    expect(find.byType(RadialAppreciation), findsWidgets);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
